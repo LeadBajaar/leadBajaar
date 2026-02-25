@@ -71,7 +71,7 @@ export default function EventTypesPage() {
     }
 
     loadEventTypes()
-  }, [toast])
+  }, [])
 
   const copyBookingLink = (eventType: EventType) => {
     const bookingLink = `${window.location.origin}/book/${eventType.id}`

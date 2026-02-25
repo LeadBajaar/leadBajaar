@@ -174,15 +174,15 @@ export default function AnalyticsPage() {
   const convRate = ((totalConverted / totalLeads) * 100).toFixed(1)
 
   return (
-    <div className="flex flex-col gap-6 p-6 h-full overflow-y-auto">
+    <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 h-full overflow-y-auto">
 
       {/* ── Header ── */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white">Analytics</h1>
           <p className="text-sm text-slate-500 mt-0.5">Track performance across your entire sales pipeline</p>
         </div>
-        <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+        <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 w-full sm:w-auto overflow-x-auto no-scrollbar shrink-0">
           {PERIODS.map(p => (
             <button
               key={p}
@@ -201,7 +201,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Leads"
           value={totalLeads.toLocaleString()}

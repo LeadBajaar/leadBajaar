@@ -222,10 +222,13 @@ export default function LiveChatPage() {
   }
 
   return (
-    <div className="flex h-full p-4 lg:p-6 gap-4 lg:gap-6 overflow-hidden bg-slate-50/50 dark:bg-slate-950/20">
+    <div className="flex flex-col lg:flex-row h-full p-2 sm:p-4 lg:p-6 gap-2 sm:gap-4 lg:gap-6 overflow-hidden bg-slate-50/50 dark:bg-slate-950/20">
 
       {/* ── Sidebar: Conversations ─────────────────────────────────────── */}
-      <div className="w-[340px] flex flex-col gap-4 shrink-0 overflow-hidden">
+      <div className={cn(
+        "w-full lg:w-[340px] flex flex-col gap-4 shrink-0 overflow-hidden transition-all duration-300",
+        activeChat ? "hidden lg:flex" : "flex"
+      )}>
         <div className="flex items-center justify-between shrink-0">
           <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             Conversations
@@ -332,13 +335,24 @@ export default function LiveChatPage() {
       </div>
 
       {/* ── Main Chat Area ───────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+      <div className={cn(
+        "flex-1 flex flex-col gap-4 overflow-hidden transition-all duration-300",
+        !activeChat ? "hidden lg:flex" : "flex"
+      )}>
         {activeChat ? (
           <>
             {/* Header */}
             <Card className="shrink-0 border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900/80 backdrop-blur-md rounded-2xl overflow-hidden ring-1 ring-slate-100 dark:ring-slate-800/50">
-              <div className="px-5 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-4">
+              <div className="px-4 py-3 sm:px-5 sm:py-4 flex items-center justify-between">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setActiveChat(null)}
+                    className="h-9 w-9 -ml-1 lg:hidden rounded-xl bg-slate-100 dark:bg-slate-800"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
                   <div className="relative">
                     <Avatar className="h-10 w-10 shadow-sm ring-2 ring-indigo-500/10">
                       <AvatarImage src={activeChat.user.avatar} />
@@ -352,21 +366,23 @@ export default function LiveChatPage() {
                       {activeChat.priority === 'high' && <Badge className="bg-red-50 text-red-600 border-red-100 text-[10px] font-bold px-1.5 py-0 shrink-0">URGENT</Badge>}
                     </h2>
                     <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5 mt-0.5 truncate">
-                      <span className="flex items-center gap-1"><Zap className="h-3 w-3 text-amber-500 fill-amber-500" /> {activeChat.user.company}</span>
-                      <span className="text-slate-300 dark:text-slate-700">·</span>
+                      <span className="flex items-center gap-1"><Zap className="h-3 w-3 text-amber-500 fill-amber-500" /> <span className="hidden sm:inline">{activeChat.user.company}</span></span>
+                      <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">·</span>
                       <span>Active now</span>
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800">
-                    <Phone className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                  </Button>
-                  <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800">
-                    <Video className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                  </Button>
-                  <Separator orientation="vertical" className="h-6 mx-1 bg-slate-200 dark:bg-slate-800" />
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <div className="hidden sm:flex items-center gap-2">
+                    <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800">
+                      <Phone className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                    </Button>
+                    <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800">
+                      <Video className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                    </Button>
+                    <Separator orientation="vertical" className="h-6 mx-1 bg-slate-200 dark:bg-slate-800" />
+                  </div>
                   <Button
                     variant="outline"
                     size="icon"

@@ -53,10 +53,10 @@ interface Meeting {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const teamMembers: TeamMember[] = [
-  { id: 1, name: 'Alex Thompson', email: 'alex@leadbajar.com', avatar: '', role: 'Sales Representative' },
-  { id: 2, name: 'Sarah Johnson', email: 'sarah@leadbajar.com', avatar: '', role: 'Senior Sales Executive' },
-  { id: 3, name: 'Michael Brown', email: 'michael@leadbajar.com', avatar: '', role: 'Account Manager' },
-  { id: 4, name: 'Emily Wilson', email: 'emily@leadbajar.com', avatar: '', role: 'Sales Manager' },
+  { id: 1, name: 'Alex Thompson', email: 'alex@leadbajaar.com', avatar: '', role: 'Sales Representative' },
+  { id: 2, name: 'Sarah Johnson', email: 'sarah@leadbajaar.com', avatar: '', role: 'Senior Sales Executive' },
+  { id: 3, name: 'Michael Brown', email: 'michael@leadbajaar.com', avatar: '', role: 'Account Manager' },
+  { id: 4, name: 'Emily Wilson', email: 'emily@leadbajaar.com', avatar: '', role: 'Sales Manager' },
 ]
 
 const meetingTypeConfig = {
@@ -577,58 +577,52 @@ export default function MeetingsPage() {
   const totalCompleted = meetings.history.filter(m => m.status === 'completed').length
 
   return (
-    <div className="flex flex-col p-6 h-full overflow-hidden gap-5 bg-slate-50/30 dark:bg-slate-950/30">
-
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between shrink-0">
+    <div className="flex flex-col h-full overflow-hidden bg-slate-50/30 dark:bg-slate-950/30">
+      <div className="flex items-center justify-between gap-4 shrink-0 px-6 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+        {/* ── Header ── */}
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white">Meetings</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Manage your scheduled meetings and appointments</p>
+          <h1 className="text-base font-bold text-slate-900 dark:text-white">Meetings</h1>
+          <p className="text-xs text-slate-500">Manage your scheduled meetings</p>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/meetings/event-types">
-            <Button variant="outline" size="sm" className="h-9 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 gap-1.5">
+            <Button variant="outline" size="sm" className="h-8 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 gap-1.5">
               <Settings2 className="h-4 w-4" />
-              Event Types
+              <span className="hidden sm:inline">Event Types</span>
             </Button>
           </Link>
-          <Button size="sm" className="h-9 bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5 shadow-sm">
+          <Button size="sm" className="h-8 bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5 shadow-sm">
             <FileText className="h-4 w-4" />
-            Questions
+            <span className="hidden sm:inline">Questions</span>
           </Button>
         </div>
       </div>
 
       {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+      <div className="grid grid-cols-4 gap-3 shrink-0 px-6 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
         {[
           { label: 'Upcoming', value: totalUpcoming, icon: CalendarDays, gradient: 'from-indigo-500 to-indigo-700' },
           { label: 'Confirmed', value: totalConfirmed, icon: CalendarCheck, gradient: 'from-emerald-500 to-emerald-700' },
           { label: 'Completed', value: totalCompleted, icon: CheckCircle2, gradient: 'from-violet-500 to-violet-700' },
           { label: 'Total', value: totalUpcoming + totalHistory, icon: Users, gradient: 'from-amber-500 to-amber-700' },
         ].map(({ label, value, icon: Icon, gradient }) => (
-          <Card key={label} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">{label}</p>
-                  <div className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
-                    {isLoading ? <Skeleton className="h-7 w-10" /> : value}
-                  </div>
-                </div>
-                <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center bg-gradient-to-br', gradient)}>
-                  <Icon className="h-5 w-5 text-white" />
-                </div>
+          <div key={label} className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl px-4 py-3">
+            <div className={cn('h-8 w-8 rounded-lg flex items-center justify-center bg-gradient-to-br shrink-0', gradient)}>
+              <Icon className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <p className="text-[11px] text-slate-500 uppercase tracking-wider font-medium">{label}</p>
+              <div className="text-lg font-bold text-slate-900 dark:text-white">
+                {isLoading ? <Skeleton className="h-5 w-8" /> : value}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
 
-      {/* ── Tabs ── */}
-      <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm flex-1 flex flex-col min-h-0">
+      <div className="bg-white dark:bg-slate-900 flex-1 flex flex-col min-h-0 border-t border-slate-100 dark:border-slate-800">
         <Tabs defaultValue="upcoming" className="flex-1 flex flex-col min-h-0">
-          <CardHeader className="pb-0 border-b border-slate-100 dark:border-slate-800">
+          <CardHeader className="pb-0 px-6 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between">
               <TabsList className="bg-slate-100 dark:bg-slate-800 rounded-lg p-1 h-auto">
                 <TabsTrigger value="upcoming"
@@ -728,12 +722,12 @@ export default function MeetingsPage() {
             ) : (
               <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-slate-900">
                 <div className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
-                  <Table className="relative border-separate border-spacing-0">
+                  <Table className="relative border-separate border-spacing-0 min-w-max">
                     <TableHeader className="sticky top-0 z-20">
                       <TableRow className="bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/60 shadow-sm">
                         {['Meeting', 'Attendee', 'Date & Time', 'Type', 'Status', 'Outcome', 'Actions'].map(h => (
                           <TableHead key={h}
-                            className="h-12 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-50/95 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm first:pl-6">
+                            className="h-12 whitespace-nowrap text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-50/95 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm first:pl-6">
                             {h}
                           </TableHead>
                         ))}
@@ -747,38 +741,38 @@ export default function MeetingsPage() {
                         return (
                           <TableRow key={m.id}
                             className="border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
-                            <TableCell className="font-semibold text-sm text-slate-900 dark:text-white max-w-[180px] truncate pl-6">
+                            <TableCell className="whitespace-nowrap font-semibold text-sm text-slate-900 dark:text-white pl-6">
                               {m.title}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap">
                               <div className="flex items-center gap-3">
                                 <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-sm">
                                   {initials(m.lead.name)}
                                 </div>
                                 <div>
-                                  <p className="text-xs font-semibold text-slate-800 dark:text-white">{m.lead.name}</p>
-                                  {m.lead.company && <p className="text-[10px] text-slate-400 mt-0.5">{m.lead.company}</p>}
+                                  <p className="text-xs font-semibold text-slate-800 dark:text-white whitespace-nowrap">{m.lead.name}</p>
+                                  {m.lead.company && <p className="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">{m.lead.company}</p>}
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell className="text-xs text-slate-500 whitespace-nowrap">
+                            <TableCell className="whitespace-nowrap text-xs text-slate-500">
                               <div className="font-medium text-slate-700 dark:text-slate-300">{m.date}</div>
                               <div className="text-slate-400 mt-0.5">{m.time}</div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap">
                               <div className={cn('flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider w-fit border shadow-sm', typeInfo.bg, typeInfo.color, 'border-current/10')}>
                                 <TypeIcon className="h-3 w-3" />{typeInfo.label}
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap">
                               <Badge variant="outline" className={cn('text-[10px] font-bold uppercase tracking-wider border shadow-sm px-2.5 py-0.5 rounded-full', statusInfo.className)}>
                                 {statusInfo.label}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-xs text-slate-500 max-w-[140px] truncate">
+                            <TableCell className="whitespace-nowrap text-xs text-slate-500 max-w-[200px] truncate">
                               {m.outcome || <span className="text-slate-300 italic">— No outcome recorded —</span>}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap">
                               <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/40 rounded-full transition-all"
                                 onClick={() => openMeeting(m)}>
                                 <FileText className="h-3.5 w-3.5" />
@@ -807,15 +801,13 @@ export default function MeetingsPage() {
             )}
           </TabsContent>
         </Tabs>
-      </Card>
-
-      {/* ── Detail Dialog ── */}
-      <MeetingDetailDialog
-        meeting={selectedMeeting}
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        onUpdate={handleMeetingUpdate}
-      />
+        <MeetingDetailDialog
+          meeting={selectedMeeting}
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          onUpdate={handleMeetingUpdate}
+        />
+      </div>
     </div>
   )
 }

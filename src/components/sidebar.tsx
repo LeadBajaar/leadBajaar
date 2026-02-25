@@ -54,7 +54,12 @@ const bottomNav = [
 ]
 
 // ── Sidebar shell ────────────────────────────────────────────
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean
+  setMobileOpen?: (open: boolean) => void
+}
+
+export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const router = useRouter()
 
@@ -73,14 +78,19 @@ export function Sidebar() {
       <aside
         className={cn(
           // Base — NO overflow-hidden so the toggle button peeks out
-          'relative flex flex-col h-full shrink-0',
+          'fixed inset-y-0 left-0 z-[100] flex flex-col h-full shrink-0',
+          'lg:relative lg:z-0',
           // Dark sidebar background
           'bg-slate-900 dark:bg-slate-950',
           // Border
           'border-r border-slate-800 dark:border-slate-800',
-          // Width transition
+          // Width & Visibility
           'transition-all duration-300 ease-in-out',
-          collapsed ? 'w-[68px]' : 'w-[220px]',
+          'w-[260px]', // Mobile width
+          mobileOpen
+            ? 'translate-x-0 opacity-100 visible'
+            : '-translate-x-full opacity-0 invisible lg:translate-x-0 lg:opacity-100 lg:visible',
+          collapsed ? 'lg:w-[68px]' : 'lg:w-[220px]',
         )}
       >
         {/* Subtle top gradient glow */}
@@ -122,7 +132,7 @@ export function Sidebar() {
           {!collapsed && (
             <div className="flex flex-col leading-none">
               <span className="text-sm font-bold text-white tracking-tight whitespace-nowrap">
-                LeadBajar
+                LeadBajaar
               </span>
               <span className="text-[10px] text-indigo-400 font-medium tracking-widest uppercase">
                 CRM
@@ -148,7 +158,7 @@ export function Sidebar() {
 
                 <nav className="flex flex-col gap-0.5">
                   {section.items.map(item => (
-                    <NavItem key={item.href} item={item} collapsed={collapsed} />
+                    <NavItem key={item.href} item={item} collapsed={collapsed} setMobileOpen={setMobileOpen} />
                   ))}
                 </nav>
               </div>
@@ -159,7 +169,7 @@ export function Sidebar() {
         {/* ── Bottom section ───────────────────────────────── */}
         <div className="shrink-0 border-t border-slate-800 px-3 py-3 space-y-0.5">
           {bottomNav.map(item => (
-            <NavItem key={item.href} item={item} collapsed={collapsed} />
+            <NavItem key={item.href} item={item} collapsed={collapsed} setMobileOpen={setMobileOpen} />
           ))}
 
           {/* Logout */}
@@ -212,13 +222,22 @@ type NavItemDef = {
   color: string
 }
 
-function NavItem({ item, collapsed }: { item: NavItemDef; collapsed: boolean }) {
+function NavItem({
+  item,
+  collapsed,
+  setMobileOpen
+}: {
+  item: NavItemDef;
+  collapsed: boolean;
+  setMobileOpen?: (open: boolean) => void
+}) {
   const pathname = usePathname()
-  const isActive = pathname === item.href
+  const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
 
   const inner = (
     <Link
       href={item.href}
+      onClick={() => setMobileOpen?.(false)}
       className={cn(
         'group relative flex items-center gap-3 rounded-xl px-3 py-2.5',
         'text-sm font-medium transition-all duration-150',

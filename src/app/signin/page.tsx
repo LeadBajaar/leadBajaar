@@ -91,7 +91,7 @@ export default function LoginPage() {
           <div className="space-y-1">
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Welcome back</h2>
             <p className="text-slate-500 dark:text-slate-400 text-sm">
-              Manage your sales pipeline with <span className="text-indigo-600 dark:text-indigo-400 font-semibold tracking-tight uppercase italic text-xs">LeadBajar</span>
+              Manage your sales pipeline with <span className="text-indigo-600 dark:text-indigo-400 font-semibold tracking-tight uppercase italic text-xs">LeadBajaar</span>
             </p>
           </div>
         </div>

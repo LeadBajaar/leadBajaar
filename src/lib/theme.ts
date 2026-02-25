@@ -1,6 +1,6 @@
 /**
  * ============================================================
- *  LeadBajar — Centralized Theme Configuration
+ *  LeadBajaar — Centralized Theme Configuration
  * ============================================================
  *  All design tokens live here. To retheme the app, only
  *  edit this file + the matching CSS variables in globals.css.
@@ -10,7 +10,7 @@
 export const theme = {
     // ── Brand ────────────────────────────────────────────────
     brand: {
-        name: 'LeadBajar',
+        name: 'LeadBajaar',
         shortName: 'LB',
     },
 

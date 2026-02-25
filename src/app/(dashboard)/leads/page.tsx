@@ -341,6 +341,11 @@ export default function LeadsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const resultsSectionRef = useRef<HTMLDivElement>(null)
 
+  // Sticky horizontal scrollbar refs
+  const tableScrollRef = useRef<HTMLDivElement>(null)
+  const bottomScrollbarRef = useRef<HTMLDivElement>(null)
+  const tableInnerRef = useRef<HTMLDivElement>(null)
+
   // Add these states
   const [stages, setStages] = useState<Record<string, { color: string; icon: LucideIcon }>>(defaultStages)
   const [showStageManager, setShowStageManager] = useState(false)
@@ -481,6 +486,42 @@ export default function LeadsPage() {
       setIsSearching(false);
     }
   }, [filters.search, debouncedSearch]);
+
+  // Sync horizontal scroll between table body and sticky bottom scrollbar
+  useEffect(() => {
+    const tableEl = tableScrollRef.current
+    const bottomEl = bottomScrollbarRef.current
+    const innerEl = tableInnerRef.current
+    if (!tableEl || !bottomEl || !innerEl) return
+
+    // Update spacer width whenever table content changes
+    const updateWidth = () => {
+      innerEl.style.width = tableEl.scrollWidth + 'px'
+    }
+    updateWidth()
+
+    const syncFromTable = () => {
+      if (bottomEl.scrollLeft !== tableEl.scrollLeft)
+        bottomEl.scrollLeft = tableEl.scrollLeft
+    }
+    const syncFromBottom = () => {
+      if (tableEl.scrollLeft !== bottomEl.scrollLeft)
+        tableEl.scrollLeft = bottomEl.scrollLeft
+    }
+
+    tableEl.addEventListener('scroll', syncFromTable)
+    bottomEl.addEventListener('scroll', syncFromBottom)
+
+    // Use ResizeObserver to keep spacer width in sync as columns change
+    const ro = new ResizeObserver(updateWidth)
+    ro.observe(tableEl)
+
+    return () => {
+      tableEl.removeEventListener('scroll', syncFromTable)
+      bottomEl.removeEventListener('scroll', syncFromBottom)
+      ro.disconnect()
+    }
+  }, [leads, visibleColumns])
 
   // Add these state variables near your other states
   const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
@@ -1431,14 +1472,14 @@ export default function LeadsPage() {
   // Remove duplicate useEffect - using the one above with debouncedSearch
 
   return (
-    <div className="flex flex-col p-6 h-full overflow-hidden">
-      <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm flex-1 flex flex-col min-h-0 overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-slate-100 dark:border-slate-800">
+    <div className="flex flex-col h-full overflow-hidden bg-slate-50/30 dark:bg-slate-950/30">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <CardHeader className="px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 space-y-0 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
           <div>
             <CardTitle className="text-lg font-bold text-slate-900 dark:text-white">Leads</CardTitle>
             <p className="text-xs text-slate-500 mt-0.5">Manage and track your sales pipeline</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 overflow-scroll">
             <TableColumnToggle
               columns={columns}
               visibleColumns={visibleColumns}
@@ -1498,38 +1539,38 @@ export default function LeadsPage() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col min-h-0 p-0 overflow-hidden">
-          {/* ── Fixed toolbar (never scrolls) ── */}
-          <div className="shrink-0 flex flex-col gap-3 px-4 pt-3 pb-2 border-b border-slate-100 dark:border-slate-800">
-            {/* Search row */}
-            <div className="flex flex-wrap gap-2">
-              <div className="relative flex-1 max-w-sm">
-                {isSearching ? (
-                  <Loader2 className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 animate-spin" />
-                ) : (
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                )}
-                <Input
-                  placeholder="Search leads..."
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange('search', e.target.value)}
-                  className={cn(
-                    "pl-9 h-9 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800 transition-colors",
-                    isSearching && "border-indigo-300"
+        <div className="flex-1 flex flex-col min-h-0 p-0 overflow-hidden">
+          {/* ── Toolbar: 2 rows, each scrolls horizontally – never wraps ── */}
+          <div className="shrink-0 flex flex-col border-b border-slate-100 dark:border-slate-800">
+            {/* Row 1: Search */}
+            <div className="overflow-x-auto px-4 pt-2.5 pb-1">
+              <div className="flex items-center gap-2 min-w-max">
+                <div className="relative w-72">
+                  {isSearching ? (
+                    <Loader2 className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 animate-spin" />
+                  ) : (
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                   )}
-                />
+                  <Input
+                    placeholder="Search leads..."
+                    value={filters.search}
+                    onChange={(e) => handleFilterChange('search', e.target.value)}
+                    className={cn(
+                      "pl-9 h-9 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800 transition-colors",
+                      isSearching && "border-indigo-300"
+                    )}
+                  />
+                </div>
               </div>
             </div>
-            {/* Filter chips row */}
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Select Status, Stage, Source group */}
-              <div className="flex items-center gap-2">
-                <Select
-                  value={filters.status}
-                  onValueChange={(value) => handleFilterChange('status', value)}
-                >
-                  <SelectTrigger className="h-9 w-[135px] border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-sm">
-                    <Thermometer className="mr-2 h-3.5 w-3.5 text-slate-500" />
+
+            {/* Row 2: Filters – scrolls horizontally */}
+            <div className="overflow-x-auto px-4 pt-1 pb-2.5">
+              <div className="flex items-center gap-2 min-w-max">
+                {/* Status */}
+                <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
+                  <SelectTrigger className="h-8 w-[120px] border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-xs">
+                    <Thermometer className="mr-1 h-3.5 w-3.5 text-slate-500 shrink-0" />
                     <SelectValue placeholder="Temp" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1540,73 +1581,62 @@ export default function LeadsPage() {
                   </SelectContent>
                 </Select>
 
-                <Select
-                  value={filters.stage}
-                  onValueChange={(value) => handleFilterChange('stage', value)}
-                >
-                  <SelectTrigger className="h-9 w-[135px] border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-sm">
-                    <Tag className="mr-2 h-3.5 w-3.5 text-slate-500" />
+                {/* Stage */}
+                <Select value={filters.stage} onValueChange={(value) => handleFilterChange('stage', value)}>
+                  <SelectTrigger className="h-8 w-[120px] border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-xs">
+                    <Tag className="mr-1 h-3.5 w-3.5 text-slate-500 shrink-0" />
                     <SelectValue placeholder="Stage" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Stages</SelectItem>
                     {Object.keys(defaultStages).map((stage) => (
-                      <SelectItem key={stage} value={stage}>
-                        {stage}
-                      </SelectItem>
+                      <SelectItem key={stage} value={stage}>{stage}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
 
-                <Select
-                  value={filters.source}
-                  onValueChange={(value) => handleFilterChange('source', value)}
-                >
-                  <SelectTrigger className="h-9 w-[135px] border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-sm">
-                    <Globe className="mr-2 h-3.5 w-3.5 text-slate-500" />
+                {/* Source */}
+                <Select value={filters.source} onValueChange={(value) => handleFilterChange('source', value)}>
+                  <SelectTrigger className="h-8 w-[120px] border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-xs">
+                    <Globe className="mr-1 h-3.5 w-3.5 text-slate-500 shrink-0" />
                     <SelectValue placeholder="Source" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Sources</SelectItem>
                     {Object.keys(sourceConfig).map((source) => (
-                      <SelectItem key={source} value={source}>
-                        {source}
-                      </SelectItem>
+                      <SelectItem key={source} value={source}>{source}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
 
-              <Separator orientation="vertical" className="hidden lg:block h-6 bg-slate-200 dark:bg-slate-800" />
+                <Separator orientation="vertical" className="h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
 
-              {/* Date Ranges Group */}
-              <div className="flex flex-wrap items-center gap-2">
+                {/* Date pickers */}
                 <DateRangePicker
                   value={filters.dateRange}
                   onChange={(range) => handleFilterChange('dateRange', range)}
-                  placeholder="Last Contact Date"
-                  className="h-9 w-[260px] border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-sm"
+                  placeholder="Last Contact"
+                  className="h-8 w-[190px] border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-xs"
                 />
-
                 <DateRangePicker
                   value={filters.createdAt}
                   onChange={(range) => handleFilterChange('createdAt', range)}
                   placeholder="Created Date"
-                  className="h-9 w-[240px] border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-sm"
+                  className="h-8 w-[175px] border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-xs"
                 />
+
+                <Separator orientation="vertical" className="h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+
+                {/* Clear */}
+                <Button
+                  variant="ghost"
+                  onClick={clearFilters}
+                  className="h-8 px-3 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all rounded-lg text-xs"
+                >
+                  <RefreshCcw className="mr-1.5 h-3 w-3" />
+                  Clear filters
+                </Button>
               </div>
-
-              <Separator orientation="vertical" className="hidden lg:block h-6 bg-slate-200 dark:bg-slate-800" />
-
-              {/* Clear filters button */}
-              <Button
-                variant="ghost"
-                onClick={clearFilters}
-                className="h-9 px-3 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all rounded-lg"
-              >
-                <RefreshCcw className="mr-2 h-3.5 w-3.5" />
-                Clear
-              </Button>
             </div>
           </div>{/* end toolbar */}
 
@@ -2564,168 +2594,176 @@ export default function LeadsPage() {
               </div>
             ) : (
               <div className="flex-1 flex flex-col min-h-0 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 overflow-hidden shadow-sm">
-                <div className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
-                  <Table className="min-w-full relative border-separate border-spacing-0">
-                    <TableHeader>
-                      <TableRow className="bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/60">
-                        <TableHead className="sticky top-0 z-30 w-[46px] pl-4 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 accent-indigo-600"
-                            checked={selectedLeads.length > 0 && selectedLeads.length === leads.length}
-                            onChange={handleSelectAll}
-                          />
-                        </TableHead>
-                        {columns
-                          .filter(column => visibleColumns.includes(column.id))
-                          .map(column => (
-                            <TableHead key={column.id}
-                              className="sticky top-0 z-30 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
-                            >{column.label}</TableHead>
-                          ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {leads.map((lead) => (
-                        <TableRow
-                          key={`lead-${lead.id}`}
-                          className="border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
-                        >
-                          <TableCell className="pl-4">
+                {/*
+                  Two-container scroll trick:
+                  - Outer: overflow-x-auto → horizontal scrollbar lives here,
+                    always pinned at the bottom of this fixed-height flex area.
+                  - Inner: overflow-y-auto + min-w-max + h-full → vertical scroll,
+                    expands to fit all columns without wrapping.
+                */}
+                <div className="flex-1 overflow-x-auto overflow-y-hidden min-h-0">
+                  <div className="overflow-y-auto h-full min-w-max scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
+                    <Table className="relative border-separate border-spacing-0">
+                      <TableHeader>
+                        <TableRow className="bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                          <TableHead className="sticky top-0 z-30 w-[46px] pl-4 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                             <input
                               type="checkbox"
                               className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 accent-indigo-600"
-                              checked={selectedLeads.includes(lead.id)}
-                              onChange={() => handleSelectLead(lead.id)}
+                              checked={selectedLeads.length > 0 && selectedLeads.length === leads.length}
+                              onChange={handleSelectAll}
                             />
-                          </TableCell>
+                          </TableHead>
                           {columns
                             .filter(column => visibleColumns.includes(column.id))
                             .map(column => (
-                              <TableCell key={`${lead.id}-${column.id}`}>
-                                {column.id === 'actions' ? (
-                                  <div className="flex gap-2">
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 w-8 p-0"
-                                            onClick={() => handleEditLead(lead)}
-                                          >
-                                            <Pencil className="h-4 w-4 text-blue-600" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>Edit Lead</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 w-8 p-0"
-                                            onClick={() => handleDelete(lead)}
-                                          >
-                                            <Trash className="h-4 w-4 text-red-600" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>Delete Lead</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  </div>
-                                ) : column.id === 'stage' ? (
-                                  <Badge
-                                    variant="outline"
-                                    onClick={() => {
-                                      setEditingLead(lead);
-                                      setSelectedStage(lead.stage);
-                                      setShowStageChange(true);
-                                    }}
-                                    className={cn(
-                                      stages[lead.stage]?.color || 'bg-slate-50 text-slate-600',
-                                      'flex items-center gap-1.5 cursor-pointer transition-all px-2.5 py-0.5 border-none font-semibold ring-1 ring-inset ring-current/20 hover:ring-current/50 hover:bg-current/10 hover:shadow-sm active:scale-95'
-                                    )}
-                                  >
-                                    {React.createElement(stages[lead.stage]?.icon || Tag, {
-                                      className: "h-3 w-3"
-                                    })}
-                                    {lead.stage}
-                                  </Badge>
-                                ) : column.id === 'status' ? (
-                                  <Badge
-                                    className={cn(
-                                      temperatureConfig[lead.status as TemperatureType]?.color || 'bg-gray-100 text-gray-800',
-                                      'flex items-center gap-1'
-                                    )}
-                                  >
-                                    {React.createElement(temperatureConfig[lead.status as TemperatureType]?.icon || Thermometer, {
-                                      className: "h-3 w-3"
-                                    })}
-                                    {lead.status}
-                                  </Badge>
-                                ) : column.id === 'source' ? (
-                                  <Badge
-                                    className={cn(
-                                      sourceConfig[lead.source as keyof typeof sourceConfig]?.color || 'bg-gray-100 text-gray-800',
-                                      'flex items-center gap-1'
-                                    )}
-                                  >
-                                    {React.createElement(sourceConfig[lead.source as keyof typeof sourceConfig]?.icon || Globe, {
-                                      className: "h-3 w-3"
-                                    })}
-                                    {lead.source}
-                                  </Badge>
-                                ) : column.id === 'deal_value' || column.id === 'paid_amount' ? (
-                                  <div className="flex items-center gap-1 font-medium">
-                                    <span className="text-gray-500">₹</span>
-                                    <span>{lead[column.id as keyof typeof lead]?.toLocaleString() || '0'}</span>
-                                  </div>
-                                ) : column.id === 'lastContact' ? (
-                                  <div className="flex items-center gap-2">
-                                    {column.icon && React.createElement(column.icon, {
-                                      className: "h-4 w-4 text-gray-500"
-                                    })}
-                                    <span>{format(new Date(lead.last_contact), "MMM dd, yyyy")}</span>
-                                  </div>
-                                ) : column.id === 'created_at' ? (
-                                  <div className="flex items-center gap-2">
-                                    {column.icon && React.createElement(column.icon, {
-                                      className: "h-4 w-4 text-gray-500"
-                                    })}
-                                    {/* <span>{format(new Date(lead.created_at), "MMM dd, yyyy")}</span> */}
-                                    <span>{format(new Date(lead.created_at), "MMM dd, yyyy 'at' hh:mm a")}</span>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center gap-2">
-                                    {column.icon && React.createElement(column.icon, {
-                                      className: "h-4 w-4 text-gray-500"
-                                    })}
-                                    <span>{lead[column.id as keyof typeof lead]}</span>
-                                  </div>
-                                )}
-                              </TableCell>
+                              <TableHead key={column.id}
+                                className="sticky top-0 z-30 whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
+                              >{column.label}</TableHead>
                             ))}
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {leads.map((lead) => (
+                          <TableRow
+                            key={`lead-${lead.id}`}
+                            className="border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                          >
+                            <TableCell className="pl-4">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 accent-indigo-600"
+                                checked={selectedLeads.includes(lead.id)}
+                                onChange={() => handleSelectLead(lead.id)}
+                              />
+                            </TableCell>
+                            {columns
+                              .filter(column => visibleColumns.includes(column.id))
+                              .map(column => (
+                                <TableCell key={`${lead.id}-${column.id}`} className="whitespace-nowrap">
+                                  {column.id === 'actions' ? (
+                                    <div className="flex gap-2 whitespace-nowrap">
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-8 w-8 p-0"
+                                              onClick={() => handleEditLead(lead)}
+                                            >
+                                              <Pencil className="h-4 w-4 text-blue-600" />
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Edit Lead</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-8 w-8 p-0"
+                                              onClick={() => handleDelete(lead)}
+                                            >
+                                              <Trash className="h-4 w-4 text-red-600" />
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Delete Lead</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    </div>
+                                  ) : column.id === 'stage' ? (
+                                    <Badge
+                                      variant="outline"
+                                      onClick={() => {
+                                        setEditingLead(lead);
+                                        setSelectedStage(lead.stage);
+                                        setShowStageChange(true);
+                                      }}
+                                      className={cn(
+                                        stages[lead.stage]?.color || 'bg-slate-50 text-slate-600',
+                                        'flex items-center gap-1.5 cursor-pointer transition-all px-2.5 py-0.5 border-none font-semibold ring-1 ring-inset ring-current/20 hover:ring-current/50 hover:bg-current/10 hover:shadow-sm active:scale-95'
+                                      )}
+                                    >
+                                      {React.createElement(stages[lead.stage]?.icon || Tag, {
+                                        className: "h-3 w-3"
+                                      })}
+                                      {lead.stage}
+                                    </Badge>
+                                  ) : column.id === 'status' ? (
+                                    <Badge
+                                      className={cn(
+                                        temperatureConfig[lead.status as TemperatureType]?.color || 'bg-gray-100 text-gray-800',
+                                        'flex items-center gap-1'
+                                      )}
+                                    >
+                                      {React.createElement(temperatureConfig[lead.status as TemperatureType]?.icon || Thermometer, {
+                                        className: "h-3 w-3"
+                                      })}
+                                      {lead.status}
+                                    </Badge>
+                                  ) : column.id === 'source' ? (
+                                    <Badge
+                                      className={cn(
+                                        sourceConfig[lead.source as keyof typeof sourceConfig]?.color || 'bg-gray-100 text-gray-800',
+                                        'flex items-center gap-1'
+                                      )}
+                                    >
+                                      {React.createElement(sourceConfig[lead.source as keyof typeof sourceConfig]?.icon || Globe, {
+                                        className: "h-3 w-3"
+                                      })}
+                                      {lead.source}
+                                    </Badge>
+                                  ) : column.id === 'deal_value' || column.id === 'paid_amount' ? (
+                                    <div className="flex items-center gap-1 font-medium whitespace-nowrap">
+                                      <span className="text-gray-500">₹</span>
+                                      <span>{lead[column.id as keyof typeof lead]?.toLocaleString() || '0'}</span>
+                                    </div>
+                                  ) : column.id === 'lastContact' ? (
+                                    <div className="flex items-center gap-2 whitespace-nowrap">
+                                      {column.icon && React.createElement(column.icon, {
+                                        className: "h-4 w-4 text-gray-500"
+                                      })}
+                                      <span>{format(new Date(lead.last_contact), "MMM dd, yyyy")}</span>
+                                    </div>
+                                  ) : column.id === 'created_at' ? (
+                                    <div className="flex items-center gap-2 whitespace-nowrap">
+                                      {column.icon && React.createElement(column.icon, {
+                                        className: "h-4 w-4 text-gray-500"
+                                      })}
+                                      <span>{format(new Date(lead.created_at), "MMM dd, yyyy 'at' hh:mm a")}</span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-2 whitespace-nowrap">
+                                      {column.icon && React.createElement(column.icon, {
+                                        className: "h-4 w-4 text-gray-500"
+                                      })}
+                                      <span>{lead[column.id as keyof typeof lead]}</span>
+                                    </div>
+                                  )}
+                                </TableCell>
+                              ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
-                <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+                <div className="shrink-0 px-6 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
                   <PaginationControls />
                 </div>
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <Dialog
@@ -3414,7 +3452,7 @@ export default function LeadsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   )
 }
 

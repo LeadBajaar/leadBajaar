@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, memo, useMemo } from 'react'
 import { ReactFlow, MiniMap, Controls, Background, useNodesState, useEdgesState, addEdge, Connection, Edge, NodeTypes, ReactFlowInstance, OnNodesChange, OnEdgesChange, applyNodeChanges, applyEdgeChanges } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
@@ -10,9 +10,10 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ChatbotNode, ChatbotEdge, MessageNodeData, TriggerConfig } from '@/types/nodes'
-import { PlusCircle, Tag, ArrowLeft } from 'lucide-react'
+import { ChatbotNode, ChatbotEdge, MessageNodeData, TriggerConfig, NodeData, FlowNodeData, FunctionNodeData, BaseNodeData } from '@/types/nodes'
+import { Paperclip, Smile, X, PlusCircle, Tag, ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { cn } from '@/lib/utils'
 
 import MessageNode from '@/components/reactflow/MessageNode'
 import InputNode from '@/components/reactflow/InputNode'
@@ -36,10 +37,6 @@ interface CTAUrlMessage {
   button: CTAUrlButton;
 }
 
-interface MessageNodeData {
-  ctaUrl?: CTAUrlMessage;
-}
-
 const nodeTypes: NodeTypes = {
   message: MessageNode,
   input: InputNode,
@@ -50,17 +47,15 @@ const nodeTypes: NodeTypes = {
 }
 
 const TRIGGER_TYPES = {
-  'message': 'Message Contains',
-  'exact_match': 'Exact Message Match',
+  'message': 'Message Keywords',
+  'exact_match': 'Exact Match',
   'button': 'Button Click',
   'api': 'API Webhook',
-  'schedule': 'Scheduled',
-  'event': 'Custom Event',
-  'regex': 'Regular Expression',
-  'intent': 'Intent Match',
-  'fallback': 'Fallback',
-  'start': 'Conversation Start',
-} as const;
+  'schedule': 'Schedule/Cron',
+  'event': 'System Event',
+  'regex': 'Regex Pattern',
+  'intent': 'AI Intent'
+} as const
 
 const PREDEFINED_FUNCTIONS = {
   'save_name': {
@@ -87,7 +82,8 @@ const PREDEFINED_FUNCTIONS = {
       // Save user email to database
       async function saveEmail(message) {
         try {
-          const email = message.trim();
+          const email = message.trim().toLowerCase();
+          if (!email.match(/^\\S+@\\S+\\.\\S+$/)) return 'Invalid email format.';
           await saveUserData({ email });
           return 'Email saved successfully!';
         } catch (error) {
@@ -122,7 +118,7 @@ const PREDEFINED_FUNCTIONS = {
 } as const;
 
 const initialNodes: ChatbotNode[] = [
-  { 
+  {
     id: 'flow-1',
     type: 'flow',
     position: { x: 0, y: 0 },
@@ -130,22 +126,21 @@ const initialNodes: ChatbotNode[] = [
       label: 'Welcome Flow',
       content: 'Main welcome flow for new users',
       trigger: 'message',
-      messageType: 'text',
-    }
+    } as FlowNodeData
   },
-  { 
-    id: '1', 
-    type: 'message', 
-    position: { x: 0, y: 100 }, 
-    data: { 
-      label: 'Welcome Message', 
+  {
+    id: '1',
+    type: 'message',
+    position: { x: 0, y: 100 },
+    data: {
+      label: 'Welcome Message',
       content: 'Welcome! How can I help you today?',
       messageType: 'text',
       buttons: [
         { id: 'btn1', text: 'Pricing Info', action: 'show_pricing' },
         { id: 'btn2', text: 'Get Support', action: 'get_support' }
       ]
-    } 
+    } as MessageNodeData
   },
 ]
 
@@ -153,7 +148,7 @@ const initialEdges: ChatbotEdge[] = [
   { id: 'e1-2', source: 'flow-1', target: '1' },
 ]
 
-const isMessageNode = (node: ChatbotNode): node is ChatbotNode & { data: ExtendedMessageNodeData } => {
+const isMessageNode = (node: ChatbotNode): node is ChatbotNode & { data: MessageNodeData } => {
   return node.type === 'message';
 }
 
@@ -188,13 +183,9 @@ interface MessageTemplate {
   components: TemplateComponent[];
 }
 
-interface ExtendedMessageNodeData extends MessageNodeData {
-  templateComponents?: TemplateComponent[];
-}
-
-const NodeProperties = ({ node, onChange }: { 
-  node: ChatbotNode & { data: ExtendedMessageNodeData }, 
-  onChange: (data: ExtendedMessageNodeData) => void 
+const NodeProperties = memo(({ node, onChange }: {
+  node: ChatbotNode & { data: MessageNodeData },
+  onChange: (data: MessageNodeData) => void
 }) => {
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
@@ -207,11 +198,8 @@ const NodeProperties = ({ node, onChange }: {
         try {
           const response = await integrationApi.getWhatsAppAccounts();
           if (response.accounts && response.accounts.length > 0) {
-            console.log(response.accounts[0].templates)
             setTemplates(response.accounts[0].templates || []);
           }
-          // const response = await integrationApi.getWhatsAppTemplates(3);
-          // setTemplates(response.templates);
         } catch (error) {
           console.error('Failed to load templates:', error);
           toast({
@@ -236,7 +224,7 @@ const NodeProperties = ({ node, onChange }: {
       ) : (
         <>
           <div>
-            <Label>Select Template</Label>
+            <Label className="text-xs">Select Template</Label>
             <Select
               value={node.data.templateId?.toString()}
               onValueChange={(value) => {
@@ -258,7 +246,7 @@ const NodeProperties = ({ node, onChange }: {
                 }
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-9">
                 <SelectValue placeholder="Choose a template" />
               </SelectTrigger>
               <SelectContent>
@@ -275,12 +263,12 @@ const NodeProperties = ({ node, onChange }: {
             <div className="space-y-4">
               {node.data.templateComponents.map((component: any, index: number) => (
                 <div key={index} className="border p-3 rounded-md">
-                  <Label>{component.type}</Label>
+                  <Label className="text-xs">{component.type}</Label>
                   {component.text && (
                     <Textarea
                       value={component.text}
                       readOnly
-                      className="mt-2"
+                      className="mt-2 h-20 text-xs"
                     />
                   )}
                 </div>
@@ -291,7 +279,7 @@ const NodeProperties = ({ node, onChange }: {
       )}
     </div>
   );
-};
+});
 
 type TriggerType = keyof typeof TRIGGER_TYPES;
 
@@ -299,7 +287,13 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
   const router = useRouter()
   const [nodes, setNodes] = useState<ChatbotNode[]>(isNew ? initialNodes : [])
   const [edges, setEdges] = useState<ChatbotEdge[]>(isNew ? initialEdges : [])
-  const [selectedNode, setSelectedNode] = useState<ChatbotNode | null>(null)
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
+
+  const selectedNode = useMemo(() =>
+    nodes.find(node => node.id === selectedNodeId) || null,
+    [nodes, selectedNodeId]
+  )
+
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<ChatbotNode, ChatbotEdge> | null>(null)
   const [loading, setLoading] = useState(!isNew)
@@ -312,6 +306,12 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
     value: ''
   })
   const [isSaving, setIsSaving] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+  const loadedRef = useRef(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const onNodesChange = useCallback<OnNodesChange<ChatbotNode>>(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -324,25 +324,25 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
   )
 
   const loadFlow = useCallback(async () => {
-    if (isNew) return
-    
+    if (isNew || loadedRef.current) return
+    loadedRef.current = true
+
     try {
       setLoading(true)
       setError(null)
       const flow = await chatbotService.getFlow(flowId!)
-      
+
       setNodes(flow.nodes || [])
       setEdges(flow.edges || [])
       setFlowName(flow.name || '')
       setFlowDescription(flow.description || '')
 
-      // Parse the trigger string into our TriggerConfig format
-      const [triggerType, triggerValue] = (flow.trigger || '').includes(':') 
-        ? flow.trigger.split(':') 
+      const [triggerType, triggerValue] = (flow.trigger || '').includes(':')
+        ? flow.trigger.split(':')
         : ['message', flow.trigger]
 
       setFlowTrigger({
-        type: (triggerType as TriggerType) || 'message',  // Cast to TriggerType and provide default
+        type: (triggerType as TriggerType) || 'message',
         value: triggerValue || ''
       })
     } catch (err) {
@@ -371,24 +371,22 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
         id: flowId || undefined,
         name: flowName || 'Untitled Flow',
         description: flowDescription || '',
-        // Convert trigger object to string format that Laravel expects
-        trigger: flowTrigger.type === 'message' ? flowTrigger.value : 
-                `${flowTrigger.type}:${flowTrigger.value}`,
+        trigger: flowTrigger.type === 'message' ? flowTrigger.value :
+          `${flowTrigger.type}:${flowTrigger.value}`,
         nodes,
         edges,
       }
 
       const savedFlow = await chatbotService.saveFlow(flowData)
-      
-      // Parse the trigger string back into our TriggerConfig format
-      const [triggerType, triggerValue] = (savedFlow.trigger || '').includes(':') 
-        ? savedFlow.trigger.split(':') 
+
+      const [triggerType, triggerValue] = (savedFlow.trigger || '').includes(':')
+        ? savedFlow.trigger.split(':')
         : ['message', savedFlow.trigger]
 
       setFlowName(savedFlow.name || '')
       setFlowDescription(savedFlow.description || '')
       setFlowTrigger({
-        type: (triggerType as TriggerType) || 'message',  // Cast to TriggerType and provide default
+        type: (triggerType as TriggerType) || 'message',
         value: triggerValue || ''
       })
       setNodes(savedFlow.nodes || [])
@@ -401,8 +399,6 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
 
       if (isNew) {
         router.replace(`/chatbot/builder/${savedFlow.id}`)
-        flowId = savedFlow.id
-        isNew = false
       }
 
       onSave?.(savedFlow)
@@ -420,25 +416,16 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
     }
   }
 
-  useEffect(() => {
-    if (selectedNode) {
-      const updatedNode = nodes.find(node => node.id === selectedNode.id)
-      if (updatedNode) {
-        setSelectedNode(updatedNode)
-      }
-    }
-  }, [nodes, selectedNode])
+  // selection is now handled via useMemo and selectedNodeId
 
   const onConnect = useCallback(
     (params: Connection) => {
-      // Allow multiple incoming connections to message nodes
       const targetNode = nodes.find(n => n.id === params.target)
       if (targetNode?.type === 'message') {
         setEdges((eds) => addEdge(params, eds))
         return
       }
 
-      // For other node types, check if they already have an incoming connection
       const hasIncomingConnection = edges.some(
         edge => edge.target === params.target
       )
@@ -452,22 +439,18 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: ChatbotNode) => {
     event.preventDefault()
-    setSelectedNode(node)
+    setSelectedNodeId(node.id)
   }, [])
 
-  const updateNodeData = useCallback((id: string, newData: Partial<ChatbotNode['data']>) => {
+  const updateNodeData = useCallback((id: string, newData: Partial<NodeData>) => {
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === id) {
           const updatedData = {
             ...node.data,
             ...newData,
-          }
-          
-          if (isMessageNode(node) && 'buttons' in newData) {
-            updatedData.buttons = newData.buttons || []
-          }
-          
+          } as NodeData;
+
           return {
             ...node,
             data: updatedData
@@ -478,6 +461,12 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
     )
   }, [setNodes])
 
+  const handleNodeDataChange = useCallback((data: MessageNodeData) => {
+    if (selectedNodeId) {
+      updateNodeData(selectedNodeId, data);
+    }
+  }, [selectedNodeId, updateNodeData]);
+
   const addNode = useCallback((type: string) => {
     if (reactFlowInstance) {
       const { x, y, zoom } = reactFlowInstance.getViewport()
@@ -487,51 +476,65 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
       const newNode: ChatbotNode = {
         id: `${type}-${Date.now()}`,
         type,
-        position: { 
+        position: {
           x: centerX - 100,
           y: centerY - 50
         },
-        data: { 
-          label: `New ${type}`, 
+        data: {
+          label: `New ${type}`,
           content: '',
           ...(type === 'flow' ? { trigger: 'message' } : {})
-        },
+        } as any,
       }
       setNodes((nds) => [...nds, newNode])
     }
   }, [setNodes, reactFlowInstance])
 
+  if (!isMounted) {
+    return (
+      <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-950 items-center justify-center">
+        <div className="text-center animate-in fade-in zoom-in duration-500">
+          <div className="relative h-16 w-16 mx-auto mb-4">
+            <div className="absolute inset-0 rounded-full border-4 border-slate-200 dark:border-slate-800 opacity-20"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
+          </div>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Initializing builder...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col h-screen">
-      <div className="flex items-center gap-4 p-4 border-b">
+    <div className="flex flex-col h-screen overflow-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-3 sm:p-4 border-b shrink-0 bg-white dark:bg-slate-900 z-50">
         <Button variant="ghost" size="sm" onClick={() => router.push('/chatbot')}>
-          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Flows
+          <ArrowLeft className="w-4 h-4 mr-2" /> Back
         </Button>
-        <div className="flex-1 flex items-center gap-4">
-          <div className="flex-1">
+        <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 overflow-hidden">
+          <div className="flex-1 min-w-0">
             <Input
               value={flowName || ''}
               onChange={(e) => setFlowName(e.target.value)}
               placeholder="Flow Name"
-              className="text-lg font-semibold"
+              className="text-base sm:text-lg font-semibold h-9 sm:h-auto"
             />
             <Input
               value={flowDescription || ''}
               onChange={(e) => setFlowDescription(e.target.value)}
-              placeholder="Flow Description"
-              className="mt-1"
+              placeholder="Description"
+              className="mt-1 text-xs sm:text-sm h-8 sm:h-auto"
             />
           </div>
-          <div className="flex flex-col gap-2 w-[300px]">
-            <Select 
+          <div className="flex flex-row sm:flex-col gap-2 w-full sm:w-[250px] lg:w-[300px]">
+            <Select
               value={flowTrigger?.type || 'message'}
               onValueChange={(value) => setFlowTrigger(prev => ({
                 ...prev,
                 type: value as keyof typeof TRIGGER_TYPES
               }))}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select trigger type" />
+              <SelectTrigger className="h-9 text-xs">
+                <SelectValue placeholder="Trigger type" />
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(TRIGGER_TYPES).map(([value, label]) => (
@@ -548,10 +551,11 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
                 value: e.target.value
               })}
               placeholder={getTriggerPlaceholder(flowTrigger?.type as TriggerType)}
+              className="h-9 text-xs"
             />
           </div>
         </div>
-        <Button onClick={saveFlow} disabled={isSaving}>
+        <Button onClick={saveFlow} disabled={isSaving} className="w-full sm:w-auto mt-2 sm:mt-0 shadow-lg shadow-indigo-500/20 bg-indigo-600 hover:bg-indigo-700">
           {isSaving ? 'Saving...' : 'Save Flow'}
         </Button>
       </div>
@@ -564,271 +568,197 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
           </div>
         </div>
       ) : (
-        <div className="flex flex-1 overflow-hidden">
-          <div className="w-3/4 h-full" ref={reactFlowWrapper}>
+        <div className="flex flex-1 flex-col lg:flex-row overflow-hidden relative">
+          <div className="flex-1 h-full touch-none" ref={reactFlowWrapper}>
             <ReactFlow
               nodes={nodes}
               edges={edges}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
-              onNodeClick={(event, node) => onNodeClick(event, node as ChatbotNode)}
+              onNodeClick={onNodeClick}
               nodeTypes={nodeTypes}
               onInit={setReactFlowInstance}
               fitView
               deleteKeyCode="Delete"
               multiSelectionKeyCode="Control"
+              preventScrolling={true}
             >
               <Controls />
               <MiniMap />
               <Background gap={12} size={1} />
             </ReactFlow>
           </div>
-          <div className="w-1/4 p-4 bg-gray-100 dark:bg-gray-800 overflow-y-auto mb-10">
-            <Card>
-              <CardHeader>
-                <CardTitle>Flow Builder</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <Button onClick={() => addNode('flow')} size="sm"><Tag className="w-4 h-4 mr-2" /> Flow</Button>
-                  <Button onClick={() => addNode('message')} size="sm"><PlusCircle className="w-4 h-4 mr-2" /> Message</Button>
-                  <Button onClick={() => addNode('input')} size="sm"><PlusCircle className="w-4 h-4 mr-2" /> Input</Button>
-                  <Button onClick={() => addNode('condition')} size="sm"><PlusCircle className="w-4 h-4 mr-2" /> Condition</Button>
-                  <Button onClick={() => addNode('api')} size="sm"><PlusCircle className="w-4 h-4 mr-2" /> API</Button>
-                  <Button onClick={() => addNode('function')} size="sm"><PlusCircle className="w-4 h-4 mr-2" /> Function</Button>
-                </div>
-                {selectedNode && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Edit Node</h3>
-                    {selectedNode.type === 'message' && (
-                      <>
-                        <div>
-                          <Label>Message Type</Label>
-                          <Select
-                            value={selectedNode.data.messageType || 'text'}
-                            onValueChange={(value) => updateNodeData(selectedNode.id, {
-                              ...selectedNode.data,
-                              messageType: value,
-                              content: '',
-                              templateId: undefined,
-                              templateVariables: undefined,
-                              ctaUrl: value === 'cta_url' ? {
-                                body: '',
-                                button: {
-                                  display_text: '',
-                                  url: ''
-                                }
-                              } : undefined
-                            })}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select message type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="text">Text Message</SelectItem>
-                              <SelectItem value="template">WhatsApp Template</SelectItem>
-                              <SelectItem value="cta_url">CTA URL Button</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
 
-                        {selectedNode.data.messageType === 'cta_url' ? (
-                          <div className="space-y-4">
-                            <div>
-                              <Label>Header (Optional)</Label>
-                              <Input
-                                value={selectedNode.data.ctaUrl?.header || ''}
-                                onChange={(e) => updateNodeData(selectedNode.id, {
-                                  ctaUrl: {
-                                    ...selectedNode.data.ctaUrl,
-                                    header: e.target.value
-                                  }
-                                })}
-                                placeholder="Header text"
-                              />
-                            </div>
-                            
-                            <div>
-                              <Label>Body Text</Label>
-                              <Textarea
-                                value={selectedNode.data.ctaUrl?.body || ''}
-                                onChange={(e) => updateNodeData(selectedNode.id, {
-                                  ctaUrl: {
-                                    ...selectedNode.data.ctaUrl,
-                                    body: e.target.value
-                                  }
-                                })}
-                                placeholder="Message body text"
-                                className="min-h-[100px]"
-                              />
-                            </div>
+          <div className={cn(
+            "w-full lg:w-[350px] border-t lg:border-t-0 lg:border-l bg-slate-50 dark:bg-slate-900/50 backdrop-blur-md overflow-hidden flex flex-col shrink-0 transition-all duration-300",
+            selectedNode ? "h-1/2 lg:h-full" : "h-0 lg:h-full lg:opacity-50"
+          )}>
+            <div className="p-4 flex flex-col h-full overflow-hidden">
+              <Card className="flex-1 flex flex-col overflow-hidden border-none shadow-none bg-transparent">
+                <CardHeader className="p-0 pb-4">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base uppercase tracking-wider text-slate-500 font-bold">Properties</CardTitle>
+                    {selectedNode && (
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedNodeId(null)} className="h-8 w-8 p-0">
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0 overflow-y-auto custom-scrollbar pr-2 flex-1">
+                  <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 mb-6">
+                    <Button onClick={() => addNode('flow')} variant="outline" size="sm" className="justify-start"><Tag className="w-4 h-4 mr-2 text-indigo-500" /> Flow</Button>
+                    <Button onClick={() => addNode('message')} variant="outline" size="sm" className="justify-start"><PlusCircle className="w-4 h-4 mr-2 text-emerald-500" /> Message</Button>
+                    <Button onClick={() => addNode('input')} variant="outline" size="sm" className="justify-start"><PlusCircle className="w-4 h-4 mr-2 text-violet-500" /> Input</Button>
+                    <Button onClick={() => addNode('condition')} variant="outline" size="sm" className="justify-start"><PlusCircle className="w-4 h-4 mr-2 text-amber-500" /> Condition</Button>
+                    <Button onClick={() => addNode('api')} variant="outline" size="sm" className="justify-start"><PlusCircle className="w-4 h-4 mr-2 text-blue-500" /> API</Button>
+                    <Button onClick={() => addNode('function')} variant="outline" size="sm" className="justify-start"><PlusCircle className="w-4 h-4 mr-2 text-rose-500" /> Function</Button>
+                  </div>
 
-                            <div>
-                              <Label>Footer (Optional)</Label>
-                              <Input
-                                value={selectedNode.data.ctaUrl?.footer || ''}
-                                onChange={(e) => updateNodeData(selectedNode.id, {
-                                  ctaUrl: {
-                                    ...selectedNode.data.ctaUrl,
-                                    footer: e.target.value
-                                  }
-                                })}
-                                placeholder="Footer text"
-                              />
-                            </div>
+                  {selectedNode && (
+                    <div className="space-y-4 border-t pt-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="h-2 w-2 rounded-full bg-indigo-500" />
+                        <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase">Editing {selectedNode.type} Node</h3>
+                      </div>
 
-                            <div className="space-y-2">
-                              <Label>Button Configuration</Label>
-                              <Input
-                                value={selectedNode.data.ctaUrl?.button.display_text || ''}
-                                onChange={(e) => updateNodeData(selectedNode.id, {
-                                  ctaUrl: {
-                                    ...selectedNode.data.ctaUrl,
-                                    button: {
-                                      ...selectedNode.data.ctaUrl?.button,
-                                      display_text: e.target.value
-                                    }
-                                  }
-                                })}
-                                placeholder="Button text"
-                              />
-                              <Input
-                                value={selectedNode.data.ctaUrl?.button.url || ''}
-                                onChange={(e) => updateNodeData(selectedNode.id, {
-                                  ctaUrl: {
-                                    ...selectedNode.data.ctaUrl,
-                                    button: {
-                                      ...selectedNode.data.ctaUrl?.button,
-                                      url: e.target.value
-                                    }
-                                  }
-                                })}
-                                placeholder="Button URL"
-                              />
-                            </div>
-                          </div>
-                        ) : selectedNode.data.messageType === 'template' ? (
-                          <NodeProperties 
-                            node={selectedNode} 
-                            onChange={(data) => updateNodeData(selectedNode.id, data)} 
-                          />
-                        ) : (
+                      {selectedNode.type === 'message' && (
+                        <>
                           <div>
-                            <Label>Message Text</Label>
-                            <Textarea
-                              value={selectedNode.data.content}
-                              onChange={(e) => updateNodeData(selectedNode.id, { content: e.target.value })}
-                              className="min-h-[100px]"
-                            />
-                          </div>
-                        )}
-                      </>
-                    )}
-                    <div>
-                      <Label>Label</Label>
-                      <Input
-                        value={selectedNode.data.label}
-                        onChange={(e) => updateNodeData(selectedNode.id, { label: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <Label>Content</Label>
-                      <Textarea
-                        value={selectedNode.data.content}
-                        onChange={(e) => updateNodeData(selectedNode.id, { content: e.target.value })}
-                        className="min-h-[100px]"
-                      />
-                    </div>
-                    {selectedNode.type === 'flow' && (
-                      <div>
-                        <Label>Trigger</Label>
-                        <Select
-                          value={selectedNode.data.trigger}
-                          onValueChange={(value) => updateNodeData(selectedNode.id, { trigger: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select trigger type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(TRIGGER_TYPES).map(([value, label]) => (
-                              <SelectItem key={value} value={value}>
-                                {label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                    {isMessageNode(selectedNode) && (
-                      <div>
-                        <Label>Buttons</Label>
-                        {selectedNode.data.buttons?.map((button, index) => (
-                          <div key={button.id} className="flex flex-col gap-2 mt-2 border rounded-lg p-2">
-                            <Input
-                              value={button.text}
-                              onChange={(e) => {
-                                const buttons = [...(selectedNode.data.buttons || [])];
-                                buttons[index] = { ...button, text: e.target.value };
-                                updateNodeData(selectedNode.id, { buttons });
-                              }}
-                              placeholder="Button text"
-                            />
-                            <Input
-                              value={button.action}
-                              onChange={(e) => {
-                                const buttons = [...(selectedNode.data.buttons || [])];
-                                buttons[index] = { ...button, action: e.target.value };
-                                updateNodeData(selectedNode.id, { buttons });
-                              }}
-                              placeholder="Button action (e.g., show_pricing)"
-                            />
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => {
-                                const buttons = selectedNode.data.buttons?.filter(b => b.id !== button.id) || [];
-                                updateNodeData(selectedNode.id, { buttons });
-                              }}
+                            <Label className="text-xs">Message Type</Label>
+                            <Select
+                              value={(selectedNode.data as MessageNodeData).messageType || 'text'}
+                              onValueChange={(value) => updateNodeData(selectedNode.id, {
+                                ...(selectedNode.data as MessageNodeData),
+                                messageType: value as any,
+                                content: '',
+                                templateId: undefined,
+                                templateComponents: undefined,
+                                ctaUrl: value === 'cta_url' ? {
+                                  body: '',
+                                  button: {
+                                    display_text: '',
+                                    url: ''
+                                  }
+                                } : undefined
+                              })}
                             >
-                              Remove
-                            </Button>
+                              <SelectTrigger className="h-9">
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="text">Text Message</SelectItem>
+                                <SelectItem value="template">WhatsApp Template</SelectItem>
+                                <SelectItem value="cta_url">CTA URL Button</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
-                        ))}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mt-2 w-full"
-                          onClick={() => {
-                            const buttons = [...(selectedNode.data.buttons || []), { id: `btn${Date.now()}`, text: 'New Button' }];
-                            updateNodeData(selectedNode.id, { buttons });
-                          }}
-                        >
-                          Add Button
-                        </Button>
+
+                          {(selectedNode.data as MessageNodeData).messageType === 'cta_url' ? (
+                            <div className="space-y-4 bg-white dark:bg-slate-800 p-3 rounded-lg border">
+                              <div>
+                                <Label className="text-[10px] uppercase font-bold text-slate-400">Header</Label>
+                                <Input
+                                  value={(selectedNode.data as MessageNodeData).ctaUrl?.header || ''}
+                                  onChange={(e) => updateNodeData(selectedNode.id, {
+                                    ctaUrl: {
+                                      ...(selectedNode.data as MessageNodeData).ctaUrl!,
+                                      header: e.target.value
+                                    }
+                                  })}
+                                  placeholder="Header text"
+                                  className="h-8 text-xs"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-[10px] uppercase font-bold text-slate-400">Body</Label>
+                                <Textarea
+                                  value={(selectedNode.data as MessageNodeData).ctaUrl?.body || ''}
+                                  onChange={(e) => updateNodeData(selectedNode.id, {
+                                    ctaUrl: {
+                                      ...(selectedNode.data as MessageNodeData).ctaUrl!,
+                                      body: e.target.value
+                                    }
+                                  } as any)}
+                                  placeholder="Message body"
+                                  className="min-h-[60px] text-xs"
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <Label className="text-[10px] uppercase font-bold text-slate-400">Button Text</Label>
+                                  <Input
+                                    value={(selectedNode.data as MessageNodeData).ctaUrl?.button?.display_text || ''}
+                                    onChange={(e) => updateNodeData(selectedNode.id, {
+                                      ctaUrl: {
+                                        ...(selectedNode.data as MessageNodeData).ctaUrl!,
+                                        button: {
+                                          ...(selectedNode.data as MessageNodeData).ctaUrl?.button!,
+                                          display_text: e.target.value
+                                        }
+                                      } as any
+                                    })}
+                                    className="h-8 text-xs"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-[10px] uppercase font-bold text-slate-400">URL</Label>
+                                  <Input
+                                    value={(selectedNode.data as MessageNodeData).ctaUrl?.button?.url || ''}
+                                    onChange={(e) => updateNodeData(selectedNode.id, {
+                                      ctaUrl: {
+                                        ...(selectedNode.data as MessageNodeData).ctaUrl!,
+                                        button: {
+                                          ...(selectedNode.data as MessageNodeData).ctaUrl?.button!,
+                                          url: e.target.value
+                                        }
+                                      } as any
+                                    })}
+                                    className="h-8 text-xs"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ) : (selectedNode.data as MessageNodeData).messageType === 'template' ? (
+                            <NodeProperties
+                              node={selectedNode as any}
+                              onChange={handleNodeDataChange}
+                            />
+                          ) : (
+                            <div>
+                              <Label className="text-xs">Message Text</Label>
+                              <Textarea
+                                value={(selectedNode.data as MessageNodeData).content}
+                                onChange={(e) => updateNodeData(selectedNode.id, { content: e.target.value })}
+                                className="min-h-[100px] text-sm"
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      <div>
+                        <Label className="text-xs">Label</Label>
+                        <Input
+                          value={(selectedNode.data as BaseNodeData).label}
+                          onChange={(e) => updateNodeData(selectedNode.id, { label: e.target.value })}
+                          className="h-8 text-xs"
+                        />
                       </div>
-                    )}
-                    {selectedNode.type === 'function' && (
-                      <div className="space-y-4">
+
+                      {selectedNode.type === 'flow' && (
                         <div>
-                          <Label>Function Type</Label>
+                          <Label className="text-xs">Trigger</Label>
                           <Select
-                            value={selectedNode.data.functionType || 'custom'}
-                            onValueChange={(value) => {
-                              const functionData = PREDEFINED_FUNCTIONS[value as keyof typeof PREDEFINED_FUNCTIONS];
-                              updateNodeData(selectedNode.id, {
-                                functionType: value,
-                                label: functionData.label,
-                                description: functionData.description,
-                                functionBody: value === 'custom' ? selectedNode.data.functionBody : functionData.code
-                              });
-                            }}
+                            value={(selectedNode.data as BaseNodeData).trigger}
+                            onValueChange={(value) => updateNodeData(selectedNode.id, { trigger: value })}
                           >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select function type" />
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="Select trigger" />
                             </SelectTrigger>
                             <SelectContent>
-                              {Object.entries(PREDEFINED_FUNCTIONS).map(([value, { label }]) => (
+                              {Object.entries(TRIGGER_TYPES).map(([value, label]) => (
                                 <SelectItem key={value} value={value}>
                                   {label}
                                 </SelectItem>
@@ -836,33 +766,106 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
                             </SelectContent>
                           </Select>
                         </div>
+                      )}
 
-                        {selectedNode.data.functionType === 'custom' && (
-                          <div>
-                            <Label>Function Body</Label>
-                            <Textarea
-                              value={selectedNode.data.functionBody || ''}
-                              onChange={(e) => updateNodeData(selectedNode.id, { functionBody: e.target.value })}
-                              className="min-h-[200px] font-mono"
-                              placeholder="Write your custom function here..."
-                            />
-                          </div>
-                        )}
-
+                      {isMessageNode(selectedNode) && (
                         <div>
-                          <Label>Description</Label>
-                          <Input
-                            value={selectedNode.data.description || ''}
-                            onChange={(e) => updateNodeData(selectedNode.id, { description: e.target.value })}
-                            placeholder="Function description"
-                          />
+                          <Label className="text-xs">Buttons</Label>
+                          {selectedNode.data.buttons?.map((button, index) => (
+                            <div key={button.id} className="flex flex-col gap-2 mt-2 border rounded-lg p-2 bg-slate-100 dark:bg-slate-800/50">
+                              <Input
+                                value={button.text}
+                                onChange={(e) => {
+                                  const buttons = [...(selectedNode.data.buttons || [])];
+                                  buttons[index] = { ...button, text: e.target.value };
+                                  updateNodeData(selectedNode.id, { buttons });
+                                }}
+                                placeholder="Button text"
+                                className="h-8 text-xs"
+                              />
+                              <Input
+                                value={button.action}
+                                onChange={(e) => {
+                                  const buttons = [...(selectedNode.data.buttons || [])];
+                                  buttons[index] = { ...button, action: e.target.value };
+                                  updateNodeData(selectedNode.id, { buttons });
+                                }}
+                                placeholder="Action"
+                                className="h-8 text-xs"
+                              />
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => {
+                                  const buttons = selectedNode.data.buttons?.filter(b => b.id !== button.id) || [];
+                                  updateNodeData(selectedNode.id, { buttons });
+                                }}
+                                className="h-7 text-[10px]"
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-2 w-full h-8 text-xs"
+                            onClick={() => {
+                              const buttons = [...(selectedNode.data.buttons || []), { id: `btn${Date.now()}`, text: 'New Button' }];
+                              updateNodeData(selectedNode.id, { buttons });
+                            }}
+                          >
+                            Add Button
+                          </Button>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                      )}
+
+                      {selectedNode.type === 'function' && (
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-xs">Function Type</Label>
+                            <Select
+                              value={(selectedNode.data as FunctionNodeData).functionType || 'custom'}
+                              onValueChange={(value) => {
+                                const functionData = PREDEFINED_FUNCTIONS[value as keyof typeof PREDEFINED_FUNCTIONS];
+                                updateNodeData(selectedNode.id, {
+                                  functionType: value as any,
+                                  label: functionData.label,
+                                  description: functionData.description,
+                                  functionBody: value === 'custom' ? (selectedNode.data as FunctionNodeData).functionBody : functionData.code
+                                });
+                              }}
+                            >
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue placeholder="Type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.entries(PREDEFINED_FUNCTIONS).map(([value, { label }]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {(selectedNode.data as FunctionNodeData).functionType === 'custom' && (
+                            <div>
+                              <Label className="text-xs">Body</Label>
+                              <Textarea
+                                value={(selectedNode.data as FunctionNodeData).functionBody || ''}
+                                onChange={(e) => updateNodeData(selectedNode.id, { functionBody: e.target.value })}
+                                className="min-h-[150px] font-mono text-[10px]"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       )}
@@ -872,23 +875,14 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
 
 function getTriggerPlaceholder(triggerType?: TriggerType): string {
   switch (triggerType) {
-    case 'message':
-      return 'Enter keywords (comma separated)'
-    case 'exact_match':
-      return 'Enter exact message'
-    case 'button':
-      return 'Enter button ID or text'
-    case 'api':
-      return 'Enter webhook endpoint'
-    case 'schedule':
-      return 'Enter cron expression'
-    case 'event':
-      return 'Enter event name'
-    case 'regex':
-      return 'Enter regular expression'
-    case 'intent':
-      return 'Enter intent name'
-    default:
-      return 'Enter trigger value'
+    case 'message': return 'Keywords (comma separated)'
+    case 'exact_match': return 'Exact message'
+    case 'button': return 'Button ID'
+    case 'api': return 'Webhook endpoint'
+    case 'schedule': return 'Cron expression'
+    case 'event': return 'Event name'
+    case 'regex': return 'Regex pattern'
+    case 'intent': return 'AI intent'
+    default: return 'Value'
   }
 }

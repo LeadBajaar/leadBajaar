@@ -37,27 +37,29 @@ const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 export function useToast() {
   const [state, setState] = React.useState<State>({ toasts: [] })
 
+  const toast = React.useCallback((props: Omit<ToasterToast, "id">) => {
+    const id = genId()
+    setState((state) => ({
+      ...state,
+      toasts: [{ ...props, id }, ...state.toasts].slice(0, TOAST_LIMIT),
+    }))
+    return {
+      id,
+      dismiss: () => setState((state) => ({
+        ...state,
+        toasts: state.toasts.filter((t) => t.id !== id),
+      })),
+    }
+  }, [])
+
   return {
     ...state,
-    toast: (props: Omit<ToasterToast, "id">) => {
-      const id = genId()
-      setState((state) => ({
-        ...state,
-        toasts: [{ ...props, id }, ...state.toasts].slice(0, TOAST_LIMIT),
-      }))
-      return {
-        id,
-        dismiss: () => setState((state) => ({
-          ...state,
-          toasts: state.toasts.filter((t) => t.id !== id),
-        })),
-      }
-    },
-    dismiss: (toastId?: string) => {
+    toast,
+    dismiss: React.useCallback((toastId?: string) => {
       setState((state) => ({
         ...state,
         toasts: state.toasts.filter((t) => t.id !== toastId),
       }))
-    },
+    }, []),
   }
 } 

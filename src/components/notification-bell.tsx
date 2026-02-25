@@ -39,22 +39,27 @@ export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const fetchNotifications = async (isInitial = false) => {
     try {
       if (isInitial) {
         setLoading(true);
       }
-      
+
       const [notificationsResponse, unreadResponse] = await Promise.all([
         api.get('/notifications'),
         api.get('/notifications/unread-count')
       ]);
-      
+
       const newNotifications = notificationsResponse.data.data || [];
       const newUnreadCount = unreadResponse.data.count || 0;
-      
+
       if (isInitial) {
         // Initial load - replace all notifications
         setNotifications(newNotifications);
@@ -62,19 +67,19 @@ export function NotificationBell() {
       } else {
         // Subsequent loads - only add new notifications
         setNotifications(prev => {
-          const existingIds = new Set(prev.map(n => n.id));
-          const trulyNew = newNotifications.filter(n => !existingIds.has(n.id));
-          
+          const existingIds = new Set(prev.map((n: Notification) => n.id));
+          const trulyNew = newNotifications.filter((n: Notification) => !existingIds.has(n.id));
+
           if (trulyNew.length > 0) {
             return [...trulyNew, ...prev];
           }
           return prev;
         });
-        
+
         // Update unread count
         setUnreadCount(newUnreadCount);
       }
-      
+
       setLastFetchTime(new Date());
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -90,19 +95,19 @@ export function NotificationBell() {
       await api.post('/notifications/mark-read', {
         notification_ids: notificationIds
       });
-      
+
       // Update local state
-      setNotifications(prev => 
-        prev.map(notification => 
+      setNotifications(prev =>
+        prev.map((notification: Notification) =>
           notificationIds.includes(notification.id)
             ? { ...notification, is_read: true }
             : notification
         )
       );
-      
+
       // Update unread count
       setUnreadCount(prev => Math.max(0, prev - notificationIds.length));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error marking notifications as read:', error);
     }
   };
@@ -110,11 +115,11 @@ export function NotificationBell() {
   const markAllAsRead = async () => {
     try {
       await api.post('/notifications/mark-all-read');
-      setNotifications(prev => 
-        prev.map(notification => ({ ...notification, is_read: true }))
+      setNotifications(prev =>
+        prev.map((notification: Notification) => ({ ...notification, is_read: true }))
       );
       setUnreadCount(0);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error marking all notifications as read:', error);
     }
   };
@@ -124,20 +129,20 @@ export function NotificationBell() {
       console.log('Deleting notification:', notificationId);
       const response = await api.delete(`/notifications/${notificationId}`);
       console.log('Delete response:', response);
-      
+
       // Remove from local state
       setNotifications(prev => {
-        const notification = prev.find(n => n.id === notificationId);
-        const newNotifications = prev.filter(n => n.id !== notificationId);
-        
+        const notification = prev.find((n: Notification) => n.id === notificationId);
+        const newNotifications = prev.filter((n: Notification) => n.id !== notificationId);
+
         // Update unread count if the deleted notification was unread
         if (notification && !notification.is_read) {
           setUnreadCount(prev => Math.max(0, prev - 1));
         }
-        
+
         return newNotifications;
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting notification:', error);
       console.error('Error details:', {
         message: error.message,
@@ -160,12 +165,12 @@ export function NotificationBell() {
   useEffect(() => {
     // Initial fetch
     fetchNotifications(true);
-    
+
     // Poll for new notifications every 30 seconds
     intervalRef.current = setInterval(() => {
       fetchNotifications(false);
     }, 30000);
-    
+
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -216,6 +221,14 @@ export function NotificationBell() {
     }
   };
 
+  if (!isMounted) {
+    return (
+      <Button variant="ghost" size="sm" className="relative">
+        <Bell className="h-5 w-5" />
+      </Button>
+    );
+  }
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
@@ -226,8 +239,8 @@ export function NotificationBell() {
             <Bell className="h-5 w-5" />
           )}
           {unreadCount > 0 && (
-            <Badge 
-              variant="destructive" 
+            <Badge
+              variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
             >
               {unreadCount > 99 ? '99+' : unreadCount}
@@ -240,9 +253,9 @@ export function NotificationBell() {
           <h4 className="font-semibold">Notifications</h4>
           <div className="flex items-center gap-2">
             {notifications.length > 0 && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={clearAllNotifications}
                 className="text-xs text-red-600 hover:text-red-700"
               >
@@ -251,9 +264,9 @@ export function NotificationBell() {
               </Button>
             )}
             {unreadCount > 0 && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={markAllAsRead}
                 className="text-xs"
               >
@@ -277,11 +290,10 @@ export function NotificationBell() {
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-3 rounded-lg transition-colors group relative ${
-                    notification.is_read 
-                      ? 'hover:bg-gray-50' 
-                      : 'bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500'
-                  }`}
+                  className={`p-3 rounded-lg transition-colors group relative ${notification.is_read
+                    ? 'hover:bg-gray-50'
+                    : 'bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500'
+                    }`}
                 >
                   <div className="flex items-start gap-3">
                     <span className="text-lg">

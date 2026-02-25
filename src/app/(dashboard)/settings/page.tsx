@@ -40,7 +40,7 @@ export default function SettingsPage() {
   const [profileSettings, setProfileSettings] = useState({
     name: 'John Doe',
     email: 'john@example.com',
-    company: 'LeadBajar Inc',
+    company: 'LeadBajaar Inc',
     phone: '+1 234 567 890',
     bio: 'Sales Operations Manager focused on growth.',
     image: null
@@ -59,22 +59,22 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex h-full p-6 gap-8 overflow-hidden bg-slate-50/50 dark:bg-slate-950/20">
+    <div className="flex flex-col lg:flex-row h-full p-4 md:p-6 lg:p-8 gap-6 lg:gap-8 overflow-hidden bg-slate-50/50 dark:bg-slate-950/20">
 
       {/* ── Sidebar Navigation ── */}
-      <div className="w-72 flex flex-col gap-6 shrink-0">
+      <div className="w-full lg:w-72 flex flex-col gap-4 lg:gap-6 shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Settings</h1>
           <p className="text-sm text-slate-500 mt-1">Configure your account preferences</p>
         </div>
 
-        <nav className="flex flex-col gap-1">
+        <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-x-visible no-scrollbar pb-2 lg:pb-0">
           {SECTIONS.map((section) => (
             <button
               key={section.id}
               onClick={() => setActiveTab(section.id)}
               className={cn(
-                "group flex items-start gap-4 p-4 rounded-2xl transition-all duration-200 text-left relative",
+                "group flex items-center lg:items-start gap-3 lg:gap-4 p-3 lg:p-4 rounded-xl lg:rounded-2xl transition-all duration-200 text-left relative shrink-0 lg:shrink",
                 activeTab === section.id
                   ? "bg-white dark:bg-slate-900 shadow-sm ring-1 ring-slate-200 dark:ring-slate-800"
                   : "hover:bg-slate-200/50 dark:hover:bg-slate-800/50"
@@ -95,10 +95,10 @@ export default function SettingsPage() {
                 )}>
                   {section.title}
                 </p>
-                <p className="text-[11px] text-slate-500 leading-tight mt-0.5">{section.description}</p>
+                <p className="hidden lg:block text-[11px] text-slate-500 leading-tight mt-0.5">{section.description}</p>
               </div>
               {activeTab === section.id && (
-                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                <div className="hidden lg:block absolute right-4 top-1/2 -translate-y-1/2">
                   <ChevronRight className="h-4 w-4 text-indigo-400" />
                 </div>
               )}
@@ -108,8 +108,8 @@ export default function SettingsPage() {
       </div>
 
       {/* ── Content Area ── */}
-      <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar">
-        <div className="max-w-3xl space-y-8 pb-12">
+      <div className="flex-1 overflow-y-auto pr-0 lg:pr-4 custom-scrollbar">
+        <div className="max-w-3xl mx-auto lg:mx-0 space-y-6 lg:space-y-8 pb-12">
 
           {activeTab === 'profile' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -126,16 +126,16 @@ export default function SettingsPage() {
               </div>
 
               {/* Profile Photo */}
-              <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 p-6 rounded-3xl ring-1 ring-slate-100 dark:ring-slate-800/50">
-                <div className="flex items-center gap-8">
-                  <div className="relative group">
-                    <Avatar className="h-28 w-28 ring-4 ring-indigo-50 dark:ring-indigo-900/20 shadow-xl">
+              <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 p-4 lg:p-6 rounded-2xl lg:rounded-3xl ring-1 ring-slate-100 dark:ring-slate-800/50">
+                <div className="flex flex-col sm:flex-row items-center gap-6 lg:gap-8 text-center sm:text-left">
+                  <div className="relative group shrink-0">
+                    <Avatar className="h-24 w-24 lg:h-28 lg:w-28 ring-4 ring-indigo-50 dark:ring-indigo-900/20 shadow-xl">
                       <AvatarImage src={imagePreview || undefined} />
                       <AvatarFallback className="text-2xl font-bold bg-slate-50 dark:bg-slate-800">JD</AvatarFallback>
                     </Avatar>
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all cursor-pointer backdrop-blur-[2px]"
+                      className="absolute inset-0 bg-black/40 rounded-full opacity-100 lg:opacity-0 lg:group-hover:opacity-100 flex items-center justify-center transition-all cursor-pointer backdrop-blur-[2px]"
                     >
                       <div className="bg-white/20 p-2 rounded-full border border-white/40">
                         <Camera className="h-5 w-5 text-white" />
@@ -143,12 +143,12 @@ export default function SettingsPage() {
                     </button>
                     <input ref={fileInputRef} type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="font-bold text-slate-900 dark:text-white">Change Avatar</h3>
-                    <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
+                  <div className="space-y-2 flex-1">
+                    <h3 className="font-bold text-slate-900 dark:text-white text-lg">Change Avatar</h3>
+                    <p className="text-xs text-slate-400 max-w-xs leading-relaxed mx-auto sm:mx-0">
                       Recommended: 400x400px. JPG, PNG or WebP. Max size: 2MB. Your avatar will be visible to team members.
                     </p>
-                    <div className="flex items-center gap-2 pt-1">
+                    <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
                       <Button variant="outline" size="sm" className="h-8 rounded-lg text-[10px] font-bold uppercase tracking-wider px-3" onClick={() => fileInputRef.current?.click()}>Upload New</Button>
                       <Button variant="ghost" size="sm" className="h-8 rounded-lg text-[10px] font-bold uppercase tracking-wider text-red-500 hover:text-red-600" onClick={() => setImagePreview(null)}>Remove</Button>
                     </div>
@@ -157,8 +157,8 @@ export default function SettingsPage() {
               </Card>
 
               {/* Form Fields */}
-              <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 p-8 rounded-3xl ring-1 ring-slate-100 dark:ring-slate-800/50">
-                <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+              <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 p-6 lg:p-8 rounded-2xl lg:rounded-3xl ring-1 ring-slate-100 dark:ring-slate-800/50">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                   <div className="space-y-2">
                     <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Full Name</Label>
                     <div className="relative">
@@ -187,7 +187,7 @@ export default function SettingsPage() {
                       <Input value={profileSettings.phone} onChange={e => setProfileSettings(p => ({ ...p, phone: e.target.value }))} className="pl-10 h-10 bg-slate-50 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800 rounded-xl font-medium" />
                     </div>
                   </div>
-                  <div className="col-span-2 space-y-2">
+                  <div className="md:col-span-2 space-y-2">
                     <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Bio / Signature</Label>
                     <Textarea value={profileSettings.bio} onChange={e => setProfileSettings(p => ({ ...p, bio: e.target.value }))} className="h-32 bg-slate-50 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800 rounded-2xl p-4 font-medium resize-none" placeholder="Write a few lines about yourself..." />
                   </div>
