@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Facebook, Loader2, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { cn } from '@/lib/utils'
+import { api } from '@/lib/api'
 
 interface FacebookService {
   id: string
@@ -40,16 +41,12 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
 
   const loadConnectedServices = async () => {
     try {
-      const response = await fetch('/api/facebook/oauth/connected-services', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
+      const response = await api.get('/facebook/oauth/connected-services')
+
+      if (response.data) {
+        const data = response.data
         const services: FacebookService[] = []
-        
+
         // Add OAuth service
         if (data.facebook_oauth) {
           services.push({
@@ -62,7 +59,7 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
             }
           })
         }
-        
+
         // Add pages
         if (data.facebook_pages) {
           data.facebook_pages.forEach((page: any) => {
@@ -78,7 +75,7 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
             })
           })
         }
-        
+
         // Add WhatsApp Business Accounts
         if (data.whatsapp_business) {
           data.whatsapp_business.forEach((waba: any) => {
@@ -95,7 +92,7 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
             })
           })
         }
-        
+
         setConnectedServices(services)
       }
     } catch (error) {
@@ -107,50 +104,42 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
 
   const handleConnect = async () => {
     setIsConnecting(true)
-    
+
     try {
-      // Get OAuth URL
-      const response = await fetch('/api/facebook/oauth/auth-url', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to get OAuth URL')
-      }
-      
-      const data = await response.json()
-      
+      // Get OAuth URL from the new meta/connect endpoint
+      const response = await api.get('/meta/connect')
+
+      const data = response.data
+
       // Open OAuth popup
       const popup = window.open(
         data.auth_url,
         'facebook-oauth',
         'width=600,height=700,scrollbars=yes,resizable=yes'
       )
-      
+
       if (!popup) {
         throw new Error('Popup blocked. Please allow popups for this site.')
       }
-      
+
       // Listen for popup completion
       const checkClosed = setInterval(() => {
         if (popup.closed) {
           clearInterval(checkClosed)
           setIsConnecting(false)
-          
+
           // Reload connected services
           loadConnectedServices()
-          
+
           toast({
             title: "Facebook Connected",
             description: "Your Facebook services have been connected successfully!",
           })
-          
+
           onConnect?.(connectedServices)
         }
       }, 1000)
-      
+
     } catch (error: any) {
       console.error('OAuth connection failed:', error)
       toast({
@@ -164,30 +153,20 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
 
   const handleRefreshToken = async () => {
     setIsRefreshing(true)
-    
+
     try {
-      const response = await fetch('/api/facebook/oauth/refresh-token', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to refresh token')
-      }
-      
-      const data = await response.json()
-      
+      const response = await api.post('/facebook/oauth/refresh-token')
+
+      const data = response.data
+
       toast({
         title: "Token Refreshed",
         description: "Your Facebook access token has been refreshed successfully!",
       })
-      
+
       // Reload connected services
       loadConnectedServices()
-      
+
     } catch (error: any) {
       console.error('Token refresh failed:', error)
       toast({
@@ -269,7 +248,7 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
           Connect your Facebook pages, WhatsApp Business accounts, and other Meta services
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {hasConnectedServices ? (
           <div className="space-y-3">
@@ -277,7 +256,7 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
               <CheckCircle2 className="h-4 w-4" />
               <span>Connected to Facebook</span>
             </div>
-            
+
             <div className="space-y-2">
               {connectedServices.map((service) => (
                 <div
@@ -302,7 +281,7 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
                 </div>
               ))}
             </div>
-            
+
             <Button
               onClick={handleConnect}
               disabled={isConnecting}
@@ -327,7 +306,7 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
               <AlertCircle className="h-5 w-5" />
               <span>No Facebook services connected</span>
             </div>
-            
+
             <Button
               onClick={handleConnect}
               disabled={isConnecting}
@@ -346,7 +325,7 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
                 </>
               )}
             </Button>
-            
+
             <p className="text-xs text-gray-500">
               This will connect your Facebook pages, WhatsApp Business accounts, and other Meta services
             </p>
