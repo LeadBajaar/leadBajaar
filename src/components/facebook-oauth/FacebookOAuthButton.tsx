@@ -41,7 +41,9 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
 
   const loadConnectedServices = async () => {
     try {
-      const response = await api.get('/facebook/oauth/connected-services')
+      setIsLoading(true)
+      const response = await api.get('/meta/status')
+      console.log('Meta connection status:', response.data)
 
       if (response.data) {
         const data = response.data
@@ -51,7 +53,7 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
         if (data.facebook_oauth) {
           services.push({
             id: 'oauth',
-            name: 'Facebook Account',
+            name: data.facebook_oauth.metadata?.meta_user_name || 'Facebook Account',
             type: 'oauth',
             status: 'connected',
             metadata: {
@@ -61,39 +63,44 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
         }
 
         // Add pages
-        if (data.facebook_pages) {
+        if (data.facebook_pages && Array.isArray(data.facebook_pages)) {
           data.facebook_pages.forEach((page: any) => {
-            services.push({
-              id: page.config.page_id,
-              name: page.config.page_name,
-              type: 'page',
-              status: 'connected',
-              metadata: {
-                page_id: page.config.page_id,
-                connected_at: page.metadata?.connected_at
-              }
-            })
+            if (page.config) {
+              services.push({
+                id: page.config.page_id,
+                name: page.config.page_name,
+                type: 'page',
+                status: 'connected',
+                metadata: {
+                  page_id: page.config.page_id,
+                  connected_at: page.metadata?.connected_at
+                }
+              })
+            }
           })
         }
 
         // Add WhatsApp Business Accounts
-        if (data.whatsapp_business) {
+        if (data.whatsapp_business && Array.isArray(data.whatsapp_business)) {
           data.whatsapp_business.forEach((waba: any) => {
-            services.push({
-              id: waba.config.waba_id,
-              name: waba.config.waba_name,
-              type: 'waba',
-              status: 'connected',
-              metadata: {
-                waba_id: waba.config.waba_id,
-                phone_numbers_count: waba.metadata?.phone_numbers_count,
-                connected_at: waba.metadata?.connected_at
-              }
-            })
+            if (waba.config) {
+              services.push({
+                id: waba.config.waba_id,
+                name: waba.config.waba_name,
+                type: 'waba',
+                status: 'connected',
+                metadata: {
+                  waba_id: waba.config.waba_id,
+                  phone_numbers_count: waba.metadata?.phone_numbers_count,
+                  connected_at: waba.metadata?.connected_at
+                }
+              })
+            }
           })
         }
 
         setConnectedServices(services)
+        console.log('Parsed services:', services)
       }
     } catch (error) {
       console.error('Failed to load connected services:', error)

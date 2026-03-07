@@ -270,7 +270,18 @@ export default function IntegrationsPage() {
   const [isConnecting, setIsConnecting] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
 
+  const [activeTab, setActiveTab] = useState('all')
+
   useEffect(() => {
+    // Select tab based on query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab && ['all', 'facebook', 'crm', 'marketing', 'messaging', 'payments', 'automation', 'scheduling'].includes(tab)) {
+      setActiveTab(tab);
+    } else if (urlParams.has('meta_connected')) {
+      setActiveTab('facebook');
+    }
+
     fetchConnectedIntegrations()
   }, [])
 
@@ -639,7 +650,7 @@ export default function IntegrationsPage() {
         </Button>
       </div>
 
-      <Tabs defaultValue="all" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="w-full overflow-x-auto no-scrollbar mb-4">
           <TabsList className="inline-flex w-auto min-w-full">
             <TabsTrigger value="all">All</TabsTrigger>
@@ -655,10 +666,18 @@ export default function IntegrationsPage() {
         {['all', 'facebook', 'crm', 'marketing', 'messaging', 'payments', 'automation', 'scheduling'].map((category) => (
           <TabsContent key={category} value={category}>
             {category === 'facebook' ? (
-              <div className="space-y-6">
-                <FacebookOAuthButton />
-                <FacebookDashboard />
-                <FacebookServicesManager />
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="max-w-4xl mx-auto space-y-8">
+                  <FacebookOAuthButton onConnect={() => {
+                    // Force a re-fetch of the dashboard data
+                    const dashTitle = document.querySelector('h2.text-3xl.font-extrabold');
+                    if (dashTitle) {
+                      // Small hack to trigger refresh or just reload the part
+                      window.location.reload();
+                    }
+                  }} />
+                  <FacebookDashboard />
+                </div>
               </div>
             ) : category === 'marketing' ? (
               <div className="space-y-6">

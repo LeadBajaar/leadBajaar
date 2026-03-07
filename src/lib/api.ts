@@ -582,6 +582,88 @@ export const integrationApi = {
     }
   },
 
+  // New Meta API Methods (v25.0)
+  getMetaPages: async () => {
+    try {
+      const response = await api.get('/meta/pages');
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to fetch Meta pages';
+      throw new Error(message);
+    }
+  },
+
+  getMetaPageForms: async (pageId: string) => {
+    try {
+      const response = await api.get(`/meta/pages/${pageId}/forms`);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to fetch Meta lead forms';
+      throw new Error(message);
+    }
+  },
+
+  // Meta Ads API Methods
+  getMetaAdAccounts: async () => {
+    try {
+      const response = await api.get('/meta/ads/adaccounts');
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to fetch Meta ad accounts';
+      throw new Error(message);
+    }
+  },
+
+  getMetaCampaigns: async (adAccountId: string) => {
+    try {
+      const response = await api.get(`/meta/ads/adaccounts/${adAccountId}/campaigns`);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to fetch Meta campaigns';
+      throw new Error(message);
+    }
+  },
+
+  getMetaAdSets: async (campaignId: string) => {
+    try {
+      const response = await api.get(`/meta/ads/campaigns/${campaignId}/adsets`);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to fetch Meta ad sets';
+      throw new Error(message);
+    }
+  },
+
+  getMetaAds: async (adSetId: string) => {
+    try {
+      const response = await api.get(`/meta/ads/adsets/${adSetId}/ads`);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to fetch Meta ads';
+      throw new Error(message);
+    }
+  },
+
+  getMetaAdAccountInsights: async (adAccountId: string) => {
+    try {
+      const response = await api.get(`/meta/ads/adaccounts/${adAccountId}/insights`);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to fetch Meta ad insights';
+      throw new Error(message);
+    }
+  },
+
+  updateMetaStatus: async (objectId: string, status: 'ACTIVE' | 'PAUSED') => {
+    try {
+      const response = await api.post(`/meta/ads/${objectId}/status`, { status });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to update Meta status';
+      throw new Error(message);
+    }
+  },
+
   retrieveFacebookLeads: async (data: {
     form_id: string;
     integration_id: number;
@@ -686,6 +768,107 @@ export const integrationApi = {
       return response.data;
     } catch (error: any) {
       const message = error.response?.data?.error || 'Failed to update Conversion API configuration';
+      throw new Error(message);
+    }
+  },
+
+  getMetaStatus: async () => {
+    try {
+      const response = await api.get('/meta/status');
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to fetch Meta status';
+      throw new Error(message);
+    }
+  },
+
+  createMetaCampaign: async (adAccountId: string, data: { name: string; objective?: string; status?: string }) => {
+    try {
+      const response = await api.post(`/meta/ads/adaccounts/${adAccountId}/campaigns`, data);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to create Meta campaign';
+      throw new Error(message);
+    }
+  },
+
+  createMetaAdSet: async (adAccountId: string, data: any) => {
+    try {
+      const response = await api.post(`/meta/ads/adaccounts/${adAccountId}/adsets`, data);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to create Meta ad set';
+      throw new Error(message);
+    }
+  },
+
+  updateMetaAdSet: async (adSetId: string, data: { daily_budget?: number; status?: string }) => {
+    try {
+      const response = await api.post(`/meta/ads/adsets/${adSetId}`, data);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to update Meta ad set';
+      throw new Error(message);
+    }
+  },
+
+  createMetaAd: async (adAccountId: string, data: any) => {
+    try {
+      const response = await api.post(`/meta/ads/adaccounts/${adAccountId}/ads`, data);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to create Meta ad';
+      throw new Error(message);
+    }
+  },
+
+  createMetaPageForm: async (pageId: string, formData: { name: string; questions: any[]; privacy_policy?: any; follow_up_url?: string }) => {
+    try {
+      const response = await api.post(`/meta/pages/${pageId}/forms`, formData);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to create Meta Lead Form';
+      throw new Error(message);
+    }
+  },
+
+
+  syncMetaAssets: async () => {
+    try {
+      const response = await api.post('/meta/ads/sync');
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to sync Meta assets';
+      throw new Error(message);
+    }
+  },
+
+  subscribeMetaPage: async (pageId: string) => {
+    try {
+      const response = await api.post(`/meta/pages/${pageId}/subscribe`);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to subscribe page to webhook';
+      throw new Error(message);
+    }
+  },
+
+  getMetaTemplates: async () => {
+    try {
+      const response = await api.get('/meta/ads/templates');
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to fetch Meta templates';
+      throw new Error(message);
+    }
+  },
+
+  launchMetaTemplate: async (adAccountId: string, templateId: number, customName?: string) => {
+    try {
+      const response = await api.post(`/meta/ads/adaccounts/${adAccountId}/launch-template`, { template_id: templateId, custom_name: customName });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Failed to launch Meta template';
       throw new Error(message);
     }
   },
