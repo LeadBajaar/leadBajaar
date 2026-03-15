@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useForm } from 'react-hook-form'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -29,7 +29,7 @@ type SetupFormData = {
   confirmPassword: string
 }
 
-export default function SetupAccountPage() {
+function SetupAccount() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -221,5 +221,17 @@ export default function SetupAccountPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SetupAccountPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-[#020617] p-6">
+        <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
+      </div>
+    }>
+      <SetupAccount />
+    </Suspense>
   )
 }
