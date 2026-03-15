@@ -180,11 +180,11 @@ function ActivitySkeleton() {
   )
 }
 
-// ─────────────────────────────────────────────────────────────
-// Main Dashboard
-// ─────────────────────────────────────────────────────────────
+import { useUser } from '@/contexts/UserContext'
+
+// ── Main Dashboard ─────────────────────────────────────────────
 export default function DashboardPage() {
-  const [userData, setUserData] = useState<UserData | null>(null)
+  const { user, isLoading: userLoading } = useUser()
   const [isLoading, setIsLoading] = useState(true)
   // Date must be set client-side only to prevent hydration mismatch
   const [todayLabel, setTodayLabel] = useState<string | null>(null)
@@ -194,21 +194,13 @@ export default function DashboardPage() {
   }, [])
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const data = await getUser()
-        setUserData(data)
-      } catch (error) {
-        console.error('Error fetching user data:', error)
-      } finally {
-        setIsLoading(false)
-      }
+    if (!userLoading) {
+      setIsLoading(false)
     }
-    fetchUserData()
-  }, [])
+  }, [userLoading])
 
-  const initials = userData?.name
-    ? userData.name.split(' ').map(n => n[0]).join('').toUpperCase()
+  const initials = user?.name
+    ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
     : '?'
 
   return (
@@ -225,7 +217,7 @@ export default function DashboardPage() {
           ) : (
             <>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                Good evening, {userData?.name?.split(' ')[0] ?? 'there'} 👋
+                Good evening, {user?.name?.split(' ')[0] ?? 'there'} 👋
               </h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
                 Here's what's happening with your leads today.
@@ -322,7 +314,7 @@ export default function DashboardPage() {
         <div className="lg:col-span-3 flex flex-col gap-4">
 
           {/* Account card */}
-          {isLoading ? <ProfileSkeleton /> : userData && (
+          {isLoading ? <ProfileSkeleton /> : user && (
             <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold text-slate-800 dark:text-slate-100">
@@ -333,15 +325,15 @@ export default function DashboardPage() {
                 {/* Avatar + name */}
                 <div className="flex items-center gap-4">
                   <Avatar className="h-14 w-14 rounded-2xl border-2 border-indigo-100 dark:border-indigo-900">
-                    <AvatarImage src={userData.avatar || ''} />
+                    <AvatarImage src={(user as any).avatar || ''} />
                     <AvatarFallback className="rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold text-base">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-semibold text-slate-900 dark:text-white">{userData.name}</p>
+                    <p className="font-semibold text-slate-900 dark:text-white">{user.name}</p>
                     <Badge variant="secondary" className="text-[10px] mt-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-0">
-                      Account Owner
+                      {user.role}
                     </Badge>
                   </div>
                 </div>
@@ -349,10 +341,10 @@ export default function DashboardPage() {
                 {/* Info rows */}
                 <div className="space-y-2.5 pt-1">
                   {[
-                    { key: 'email', icon: Mail, text: userData.email },
-                    { key: 'phone', icon: Phone, text: userData.phone || 'Not provided' },
-                    { key: 'company', icon: Building2, text: userData.company || 'Not provided' },
-                    { key: 'member', icon: Calendar, text: `Member since ${format(new Date(userData.created_at), 'MMMM yyyy')}` },
+                    { key: 'email', icon: Mail, text: user.email },
+                    { key: 'phone', icon: Phone, text: (user as any).phone || 'Not provided' },
+                    { key: 'company', icon: Building2, text: (user as any).company || 'Not provided' },
+                    { key: 'member', icon: Calendar, text: `Member since ${format(new Date((user as any).created_at || new Date()), 'MMMM yyyy')}` },
                   ].map(({ key, icon: Icon, text }) => (
                     <div key={key} className="flex items-center gap-3 text-sm">
                       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">

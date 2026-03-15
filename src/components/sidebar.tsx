@@ -17,7 +17,12 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Bell,
+  ChevronRight as ChevronRightIcon,
+  Code2,
+  Users,
+  Shield,
+  Activity,
+  Bell
 } from 'lucide-react'
 import { logout } from '@/lib/api'
 import { clearSession } from '@/lib/auth'
@@ -29,28 +34,52 @@ import {
 } from '@/components/ui/tooltip'
 
 // ── Nav config ───────────────────────────────────────────────
-const mainNav = [
+import { useUser, UserRole } from '@/contexts/UserContext'
+
+// ── Nav config ───────────────────────────────────────────────
+type NavItemDef = {
+  name: string
+  href: string
+  icon: React.ElementType
+  color: string
+  roles: UserRole[] // Added roles
+}
+
+type NavSection = {
+  label: string
+  items: NavItemDef[]
+}
+
+const mainNav: NavSection[] = [
   {
     label: 'Core',
     items: [
-      { name: 'Dashboard', href: '/dashboard', icon: Gauge, color: '#6366F1' },
-      { name: 'Leads', href: '/leads', icon: UserCheck, color: '#10B981' },
-      { name: 'Live Chat', href: '/live-chat', icon: MessageCircle, color: '#3B82F6' },
-      { name: 'Chatbot', href: '/chatbot', icon: Bot, color: '#8B5CF6' },
+      { name: 'Dashboard', href: '/dashboard', icon: Gauge, color: '#6366F1', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+      { name: 'Leads', href: '/leads', icon: UserCheck, color: '#10B981', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+      { name: 'Live Chat', href: '/live-chat', icon: MessageCircle, color: '#3B82F6', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+      { name: 'Chatbot', href: '/chatbot', icon: Bot, color: '#8B5CF6', roles: ['Super Admin', 'Admin', 'Manager'] },
     ]
   },
   {
     label: 'Productivity',
     items: [
-      { name: 'Meetings', href: '/meetings', icon: CalendarCheck2, color: '#F59E0B' },
-      { name: 'Integrations', href: '/integrations', icon: Plug2, color: '#EC4899' },
-      { name: 'Analytics', href: '/analytics', icon: TrendingUp, color: '#14B8A6' },
+      { name: 'Meetings', href: '/meetings', icon: CalendarCheck2, color: '#F59E0B', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+      { name: 'Integrations', href: '/integrations', icon: Plug2, color: '#EC4899', roles: ['Super Admin', 'Admin'] },
+      { name: 'Analytics', href: '/analytics', icon: TrendingUp, color: '#14B8A6', roles: ['Super Admin', 'Admin', 'Manager'] },
+    ]
+  },
+  {
+    label: 'Platform Control',
+    items: [
+      { name: 'Admin Portal', href: '/admin', icon: Shield, color: '#EF4444', roles: ['Super Admin'] },
+      { name: 'Dev Hub', href: '/developer', icon: Code2, color: '#10B981', roles: ['Super Admin', 'Admin'] },
     ]
   },
 ]
 
-const bottomNav = [
-  { name: 'Settings', href: '/settings', icon: Settings2, color: '#94A3B8' },
+const bottomNav: NavItemDef[] = [
+  { name: 'Team', href: '/team', icon: Users, color: '#6366F1', roles: ['Super Admin', 'Admin'] },
+  { name: 'Settings', href: '/settings', icon: Settings2, color: '#94A3B8', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
 ]
 
 // ── Sidebar shell ────────────────────────────────────────────
@@ -62,6 +91,7 @@ interface SidebarProps {
 export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const router = useRouter()
+  const { user, hasRole } = useUser() // Get user and hasRole from context
 
   const handleLogout = async () => {
     try {
@@ -73,13 +103,23 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
     }
   }
 
+  // Filter sections and items based on role
+  const filteredMainNav = mainNav.map(section => ({
+    ...section,
+    items: section.items.filter(item => hasRole(item.roles))
+  })).filter(section => section.items.length > 0)
+
+  const filteredBottomNav = bottomNav.filter(item => hasRole(item.roles))
+
+  const userRole = user?.role ? user.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Guest'
+
   return (
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
           // Base — NO overflow-hidden so the toggle button peeks out
           'fixed inset-y-0 left-0 z-[100] flex flex-col h-full shrink-0',
-          'lg:relative lg:z-0',
+          'lg:relative lg:z-[999]',
           // Dark sidebar background
           'bg-slate-900 dark:bg-slate-950',
           // Border
@@ -144,7 +184,7 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
         {/* ── Nav ─────────────────────────────────────────── */}
         <ScrollArea className="flex-1 py-3">
           <div className={cn('px-3 space-y-5')}>
-            {mainNav.map((section) => (
+            {filteredMainNav.map((section) => (
               <div key={section.label}>
                 {/* Section label */}
                 {!collapsed && (
@@ -168,7 +208,7 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
 
         {/* ── Bottom section ───────────────────────────────── */}
         <div className="shrink-0 border-t border-slate-800 px-3 py-3 space-y-0.5">
-          {bottomNav.map(item => (
+          {filteredBottomNav.map(item => (
             <NavItem key={item.href} item={item} collapsed={collapsed} setMobileOpen={setMobileOpen} />
           ))}
 
@@ -199,11 +239,11 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
           {!collapsed && (
             <div className="mt-2 flex items-center gap-3 rounded-xl bg-slate-800/60 px-3 py-2.5 border border-slate-700/50">
               <div className="h-7 w-7 shrink-0 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold shadow">
-                U
+                {user?.name?.[0] || 'U'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white truncate">My Account</p>
-                <p className="text-[10px] text-slate-500 truncate">Lead Manager</p>
+                <p className="text-xs font-semibold text-white truncate">{user?.name || 'My Account'}</p>
+                <p className="text-[10px] text-slate-500 truncate">{userRole}</p>
               </div>
               <Bell className="h-3.5 w-3.5 text-slate-500 hover:text-white transition-colors cursor-pointer shrink-0" />
             </div>
@@ -215,13 +255,6 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
 }
 
 // ── Individual nav item ──────────────────────────────────────
-type NavItemDef = {
-  name: string
-  href: string
-  icon: React.ElementType
-  color: string
-}
-
 function NavItem({
   item,
   collapsed,

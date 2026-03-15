@@ -16,6 +16,7 @@ import {
   BarChart2, PieChart as PieIcon, Filter
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { RoleGuard } from '@/components/RoleGuard'
 
 // ─── Dummy Data ────────────────────────────────────────────────────────────────
 
@@ -174,7 +175,8 @@ export default function AnalyticsPage() {
   const convRate = ((totalConverted / totalLeads) * 100).toFixed(1)
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 h-full overflow-y-auto">
+    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager']}>
+      <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 h-full overflow-y-auto">
 
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -496,5 +498,6 @@ export default function AnalyticsPage() {
       </div>
 
     </div>
+    </RoleGuard>
   )
 }

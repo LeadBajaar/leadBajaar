@@ -8,6 +8,7 @@ import { ChatbotFlow, chatbotService } from '@/services/chatbot'
 import { PlusCircle, Edit2, Copy, Trash } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { Badge } from '@/components/ui/badge'
+import { RoleGuard } from '@/components/RoleGuard'
 
 export default function ChatbotPage() {
   const router = useRouter()
@@ -70,7 +71,8 @@ export default function ChatbotPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 p-2">
+    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager']}>
+      <div className="container mx-auto py-8 p-2">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Chatbot Flows</h1>
@@ -154,5 +156,6 @@ export default function ChatbotPage() {
         </>
       )}
     </div>
+    </RoleGuard>
   )
 }

@@ -3,6 +3,7 @@
 import { use } from 'react'
 import { useRouter } from 'next/navigation'
 import FlowBuilder from '@/components/chatbot/flow-builder'
+import { RoleGuard } from '@/components/RoleGuard'
 // import { ChatbotFlow } from '@/services/chatbot'
 
 interface PageParams {
@@ -15,7 +16,8 @@ export default function ChatbotBuilderPage({ params }: PageParams) {
   const isNewFlow = flowId === 'new'
 
   return (
-    <FlowBuilder 
+    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager']}>
+      <FlowBuilder 
       flowId={isNewFlow ? null : flowId} 
       isNew={isNewFlow}
       onSave={(savedFlow) => {
@@ -24,5 +26,6 @@ export default function ChatbotBuilderPage({ params }: PageParams) {
         }
       }}
     />
+    </RoleGuard>
   )
 }

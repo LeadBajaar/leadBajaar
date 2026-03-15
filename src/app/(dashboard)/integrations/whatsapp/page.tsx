@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { TokenUpdateModal } from "@/components/ui/reconnection-modal"
+import { RoleGuard } from '@/components/RoleGuard'
 
 interface WhatsAppAccount {
   id: number;
@@ -653,7 +654,8 @@ export default function WhatsAppManagementPage() {
   const currentTemplates = templates.slice(indexOfFirstTemplate, indexOfLastTemplate)
   const totalPages = Math.ceil(templates.length / itemsPerPage)
   return (
-    <div className="p-6 space-y-6 h-full overflow-y-auto">
+    <RoleGuard allowedRoles={['Super Admin', 'Admin']}>
+      <div className="p-6 space-y-6 h-full overflow-y-auto">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">WhatsApp Management</h1>
         <Button onClick={() => {
@@ -1904,5 +1906,6 @@ export default function WhatsAppManagementPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </RoleGuard>
   )
-} 
+}

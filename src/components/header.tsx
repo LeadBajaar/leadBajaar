@@ -16,6 +16,8 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   '/integrations': { title: 'Integrations', description: 'Connect your tools' },
   '/analytics': { title: 'Analytics', description: 'Insights and reports' },
   '/settings': { title: 'Settings', description: 'Preferences and configuration' },
+  '/team': { title: 'Team Management', description: 'Members, roles and permissions' },
+  '/admin': { title: 'Super Admin Portal', description: 'Global platform control and user management' },
 }
 
 interface HeaderProps {

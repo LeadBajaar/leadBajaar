@@ -227,6 +227,49 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
 
   const hasConnectedServices = connectedServices.length > 0
 
+  if (hasConnectedServices) {
+    return (
+      <div className={cn("flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl border border-green-200 bg-green-50/50 dark:border-green-900/30 dark:bg-green-900/10 shadow-sm", className)}>
+        <div className="flex items-center space-x-4">
+          <div className="h-10 w-10 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center shrink-0">
+            <Facebook className="h-5 w-5 text-green-600 dark:text-green-400" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-green-900 dark:text-green-100 flex items-center gap-2">
+              Meta Services Connected
+              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-500" />
+            </h3>
+            <p className="text-sm text-green-700 dark:text-green-300/80 mt-0.5">
+              {connectedServices.length} {connectedServices.length === 1 ? 'service' : 'services'} synced successfully
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefreshToken}
+            disabled={isRefreshing}
+            className="flex-1 sm:flex-none border-green-200 hover:bg-green-100 dark:border-green-900/50 dark:hover:bg-green-900/30 text-green-700 dark:text-green-400 bg-white/50 dark:bg-slate-900/50 shadow-sm"
+          >
+            {isRefreshing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+            Refresh
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleConnect}
+            disabled={isConnecting}
+            className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white shadow-sm"
+          >
+            {isConnecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Facebook className="h-4 w-4 mr-2" />}
+            Manage
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <Card className={cn("w-full", className)}>
       <CardHeader>
@@ -235,21 +278,6 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
             <Facebook className="h-6 w-6 text-blue-600" />
             <CardTitle>Facebook & Meta Services</CardTitle>
           </div>
-          {hasConnectedServices && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefreshToken}
-              disabled={isRefreshing}
-            >
-              {isRefreshing ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <RefreshCw className="h-4 w-4 mr-2" />
-              )}
-              Refresh
-            </Button>
-          )}
         </div>
         <CardDescription>
           Connect your Facebook pages, WhatsApp Business accounts, and other Meta services
@@ -257,87 +285,35 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {hasConnectedServices ? (
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2 text-sm text-green-600">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>Connected to Facebook</span>
-            </div>
-
-            <div className="space-y-2">
-              {connectedServices.map((service) => (
-                <div
-                  key={service.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                >
-                  <div className="flex items-center space-x-3">
-                    <span className="text-lg">{getServiceIcon(service.type)}</span>
-                    <div>
-                      <p className="font-medium">{service.name}</p>
-                      <p className="text-sm text-gray-500">
-                        {getServiceTypeLabel(service.type)}
-                        {service.metadata?.phone_numbers_count && (
-                          <span> • {service.metadata.phone_numbers_count} phone numbers</span>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    Connected
-                  </Badge>
-                </div>
-              ))}
-            </div>
-
-            <Button
-              onClick={handleConnect}
-              disabled={isConnecting}
-              className="w-full"
-            >
-              {isConnecting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Connecting...
-                </>
-              ) : (
-                <>
-                  <Facebook className="h-4 w-4 mr-2" />
-                  Add More Services
-                </>
-              )}
-            </Button>
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center space-x-2 text-gray-500">
+            <AlertCircle className="h-5 w-5" />
+            <span>No Facebook services connected</span>
           </div>
-        ) : (
-          <div className="text-center space-y-4">
-            <div className="flex items-center justify-center space-x-2 text-gray-500">
-              <AlertCircle className="h-5 w-5" />
-              <span>No Facebook services connected</span>
-            </div>
 
-            <Button
-              onClick={handleConnect}
-              disabled={isConnecting}
-              className="w-full"
-              size="lg"
-            >
-              {isConnecting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Connecting...
-                </>
-              ) : (
-                <>
-                  <Facebook className="h-4 w-4 mr-2" />
-                  Connect Facebook Services
-                </>
-              )}
-            </Button>
+          <Button
+            onClick={handleConnect}
+            disabled={isConnecting}
+            className="w-full"
+            size="lg"
+          >
+            {isConnecting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Connecting...
+              </>
+            ) : (
+              <>
+                <Facebook className="h-4 w-4 mr-2" />
+                Connect Facebook Services
+              </>
+            )}
+          </Button>
 
-            <p className="text-xs text-gray-500">
-              This will connect your Facebook pages, WhatsApp Business accounts, and other Meta services
-            </p>
-          </div>
-        )}
+          <p className="text-xs text-gray-500">
+            This will connect your Facebook pages, WhatsApp Business accounts, and other Meta services
+          </p>
+        </div>
       </CardContent>
     </Card>
   )
