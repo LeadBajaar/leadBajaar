@@ -362,7 +362,7 @@ export default function IntegrationsPage() {
   const [activeTab, setActiveTab] = useState("all");
 
   const [isListeningForWebhook, setIsListeningForWebhook] = useState(false);
-  const [availablePayloadFields, setAvailablePayloadFields] = useState<string[]>([]);
+  const [availablePayloadFields, setAvailablePayloadFields] = useState<{ key: string; value: any }[]>([]);
 
   useEffect(() => {
     // Select tab based on query parameter
@@ -509,14 +509,31 @@ export default function IntegrationsPage() {
     const pollInterval = setInterval(async () => {
       try {
         const result = await integrationApi.getLatestLog(id);
-        if (result.log && result.log.payload) {
-          const payload = typeof result.log.payload === 'string' ? JSON.parse(result.log.payload) : result.log.payload;
-          setAvailablePayloadFields(Object.keys(payload));
+        if (result.log && (result.log.details?.payload || result.log.details)) {
+          const payloadData = result.log.details.payload || result.log.details;
+          const payload = typeof payloadData === 'string' ? JSON.parse(payloadData) : payloadData;
+          
+          const fields = Object.entries(payload).map(([k, v]) => ({ 
+            key: k, 
+            value: v 
+          }));
+          
+          setAvailablePayloadFields(fields);
           setIsListeningForWebhook(false);
           clearInterval(pollInterval);
-          toast({ title: "Data Captured!", description: "Mapping fields available." });
+          
+          // Provide first mapping row immediately if none exist
+          addFieldMapping(id);
+          
+          console.log("Captured fields:", fields);
+          toast({ 
+            title: "Data Captured! 🚀", 
+            description: `We detected ${fields.length} fields from your test request. You can now map them to CRM fields below.`,
+          });
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error("Polling error:", e);
+      }
     }, 3000);
 
     setTimeout(() => { clearInterval(pollInterval); setIsListeningForWebhook(false); }, 120000);
@@ -526,7 +543,7 @@ export default function IntegrationsPage() {
     const webhook = webhooks.find(w => w.id === webhookId);
     if (!webhook) return;
     try {
-      await integrationApi.saveIntegration({
+      const config = {
         type: "webhook",
         config: { 
           name: webhook.name, 
@@ -536,11 +553,21 @@ export default function IntegrationsPage() {
           secret: (webhook as any).secret
         },
         isActive: webhook.isActive,
-        environment: "production"
-      });
-      toast({ title: "Success", description: "Webhook configuration saved successfully" });
+        environment: "production" as "production"
+      };
+
+      if (webhookId) {
+        await (integrationApi as any).updateIntegration(webhookId, config);
+        toast({ title: "Success", description: "Webhook mapping updated!" });
+      } else {
+        await integrationApi.saveIntegration(config);
+        toast({ title: "Success", description: "Webhook created!" });
+      }
+      
+      setShowNewWebhookDialog(false);
+      fetchConnectedIntegrations();
     } catch (error: any) {
-      toast({ title: "Error", description: "Failed to save webhook configuration", variant: "destructive" });
+      toast({ title: "Error", description: error.message || "Failed to save webhook configuration", variant: "destructive" });
     }
   };
 

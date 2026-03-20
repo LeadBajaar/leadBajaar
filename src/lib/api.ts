@@ -407,6 +407,23 @@ export const integrationApi = {
     }
   },
 
+  // Update integration configuration
+  updateIntegration: async (id: string, config: IntegrationConfig) => {
+    try {
+      const response = await api.put(`/integrations/${id}`, config);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 422) {
+        const validationErrors = error.response.data.errors;
+        const message = validationErrors && typeof validationErrors === 'object' 
+          ? Object.entries(validationErrors).map(([f, m]) => `${f}: ${Array.isArray(m) ? m.join(', ') : m}`).join('; ')
+          : error.response.data.message || 'Validation failed';
+        throw new Error(message);
+      }
+      throw new Error(error.response?.data?.message || 'Failed to update integration');
+    }
+  },
+
   // Update integration status
   updateIntegrationStatus: async (id: string, isActive: boolean) => {
     try {

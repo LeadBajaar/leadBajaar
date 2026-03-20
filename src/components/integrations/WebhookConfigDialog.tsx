@@ -72,7 +72,7 @@ interface WebhookConfigDialogProps {
   setWebhooks: React.Dispatch<React.SetStateAction<WebhookConfig[]>>;
   isConnecting: boolean;
   isListening: boolean;
-  availableFields: string[];
+  availableFields: { key: string; value: any }[];
   onSave: (id: string) => Promise<void>;
   onAdd: () => Promise<void>;
   startListening: (id: string) => Promise<void>;
@@ -100,7 +100,23 @@ export function WebhookConfigDialog({
   removeFieldMapping,
 }: WebhookConfigDialogProps) {
   const { toast } = useToast();
-  
+  const [copiedUrl, setCopiedUrl] = React.useState(false);
+  const [copiedSecret, setCopiedSecret] = React.useState(false);
+
+  const handleCopyUrl = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopiedUrl(true);
+    toast({ title: "URL Copied!", description: "Paste this into your external service (e.g. n8n, Zapier)." });
+    setTimeout(() => setCopiedUrl(false), 2000);
+  };
+
+  const handleCopySecret = (secret: string) => {
+    navigator.clipboard.writeText(secret);
+    setCopiedSecret(true);
+    toast({ title: "Secret Copied!" });
+    setTimeout(() => setCopiedSecret(false), 2000);
+  };
+
   const activeWebhook = (webhookId ? webhooks.find(w => w.id === webhookId) : null) || (isOpen && !webhookId ? newWebhook : null);
   const mapping = activeWebhook?.mapping || [];
 
@@ -126,7 +142,7 @@ export function WebhookConfigDialog({
             {webhookId ? "Edit Webhook" : "Create New Webhook"}
           </DialogTitle>
           <DialogDescription>
-            {webhookId 
+            {webhookId
               ? "Configure your webhook settings and payload mapping."
               : "Connect a new external source via webhook."}
           </DialogDescription>
@@ -157,11 +173,20 @@ export function WebhookConfigDialog({
                       <code className="text-[12px] p-3 bg-background border rounded-lg flex-1 font-mono break-all whitespace-normal shadow-sm">
                         {`https://api.leadbajaar.com/api/webhooks/incoming/${activeWebhook.uuid || ''}`}
                       </code>
-                      <Button variant="outline" size="icon" className="shrink-0 h-10 w-10" onClick={() => {
-                        navigator.clipboard.writeText(`https://api.leadbajaar.com/api/webhooks/incoming/${activeWebhook.uuid || ''}`);
-                        toast({ title: "URL Copied!", description: "Paste this into your external service (e.g. n8n, Zapier)." });
-                      }}>
-                        <ClipboardCopy className="h-4 w-4" />
+                      <Button 
+                        variant={copiedUrl ? "default" : "outline"} 
+                        size={copiedUrl ? "default" : "icon"} 
+                        className={cn("shrink-0 h-10 transition-all", copiedUrl ? "w-24 bg-green-600 hover:bg-green-700 border-none" : "w-10")} 
+                        onClick={() => handleCopyUrl(`https://api.leadbajaar.com/api/webhooks/incoming/${activeWebhook.uuid || ''}`)}
+                      >
+                        {copiedUrl ? (
+                          <div className="flex items-center text-xs font-bold text-white">
+                            <CheckCircle2 className="h-4 w-4 mr-1.5" />
+                            Copied!
+                          </div>
+                        ) : (
+                          <ClipboardCopy className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                     <div className="flex items-start gap-2 pt-1">
@@ -191,7 +216,7 @@ export function WebhookConfigDialog({
                         {isListening ? "Listening..." : "Auto-Detect Fields"}
                       </Button>
                     </div>
-                    
+
                     <div className="space-y-3">
                       {mapping.length > 0 ? (
                         <div className="grid gap-3">
@@ -208,8 +233,15 @@ export function WebhookConfigDialog({
                                       <SelectValue placeholder="Select field from payload" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {availableFields.map(field => (
-                                        <SelectItem key={field} value={field}>{field}</SelectItem>
+                                      {availableFields.map((f) => (
+                                        <SelectItem key={f.key} value={f.key}>
+                                          <div className="flex justify-between items-center w-full gap-4">
+                                            <span className="font-medium">{f.key}</span>
+                                            <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">
+                                              ({String(f.value)})
+                                            </span>
+                                          </div>
+                                        </SelectItem>
                                       ))}
                                     </SelectContent>
                                   </Select>
@@ -300,20 +332,21 @@ export function WebhookConfigDialog({
                         <Label className="text-sm font-bold flex items-center gap-2 text-orange-700 dark:text-orange-400">
                           <ShieldCheck className="h-4 w-4" /> Security Secret
                         </Label>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 text-[10px] text-orange-700 hover:bg-orange-100"
-                          onClick={() => {
-                            navigator.clipboard.writeText(activeWebhook.webhook_secret || activeWebhook.secret || '');
-                            toast({ title: "Secret Copied!" });
-                          }}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={cn("h-7 text-[10px] transition-all", copiedSecret ? "text-green-600 bg-green-50" : "text-orange-700 hover:bg-orange-100")}
+                          onClick={() => handleCopySecret(activeWebhook.webhook_secret || activeWebhook.secret || '')}
                         >
-                          <ClipboardCopy className="h-3 w-3 mr-1" /> Copy
+                          {copiedSecret ? (
+                            <><CheckCircle2 className="h-3 w-3 mr-1" /> Copied!</>
+                          ) : (
+                            <><ClipboardCopy className="h-3 w-3 mr-1" /> Copy</>
+                          )}
                         </Button>
                       </div>
                       <div className="bg-background/80 p-2 rounded border font-mono text-xs truncate select-all dark:bg-black/20">
-                         {activeWebhook.webhook_secret || activeWebhook.secret || "Auto-generated upon save"}
+                        {activeWebhook.webhook_secret || activeWebhook.secret || "Auto-generated upon save"}
                       </div>
                       <p className="text-[11px] text-orange-600/80 dark:text-orange-400/60 leading-relaxed italic">
                         Webhook payloads are signed using HMAC-SHA256. Use this secret to verify the `X-LeadBajaar-Signature` header in your server.
@@ -334,7 +367,7 @@ export function WebhookConfigDialog({
                   />
                   <p className="text-xs text-muted-foreground mt-1">Choose a descriptive name to identify this source.</p>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 rounded-xl border bg-muted/20 flex flex-col items-center text-center space-y-2">
                     <ArrowDownToLine className="h-6 w-6 text-primary mb-1" />
