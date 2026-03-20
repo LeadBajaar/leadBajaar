@@ -271,6 +271,9 @@ export function WebhookConfigDialog({
                                     <SelectItem value="email">Email</SelectItem>
                                     <SelectItem value="phone">Phone</SelectItem>
                                     <SelectItem value="company">Company</SelectItem>
+                                    <SelectItem value="city">City</SelectItem>
+                                    <SelectItem value="profession">Profession</SelectItem>
+                                    <SelectItem value="deal_value">Deal Value</SelectItem>
                                     <SelectItem value="notes">Notes/Comment</SelectItem>
                                   </SelectContent>
                                 </Select>
