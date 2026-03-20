@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
-import { Toaster } from '@/components/ui/sonner'
 import { cn } from '@/lib/utils'
 
 import { UserProvider } from '@/contexts/UserContext'
@@ -33,7 +32,6 @@ export default function DashboardLayout({
             {children}
           </main>
         </div>
-        <Toaster />
       </div>
     </UserProvider>
   )

@@ -36,12 +36,23 @@ import {
   Pause,
   Zap,
   Eye,
-  Info
+  Info,
+  ChevronDown,
+  Check,
+  Edit3,
+  Filter,
+  Copy,
+  Pencil,
+  Share2,
+  Layout,
+  Layers,
+  List
 } from 'lucide-react'
-import { useToast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import { integrationApi } from '@/lib/api'
 import { PixelTestConsole } from './PixelTestConsole'
 import { RoiDashboard } from './RoiDashboard'
+import { WebhookVerificationDialog } from './WebhookVerificationDialog'
 import {
   Dialog,
   DialogContent,
@@ -60,6 +71,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Switch } from "@/components/ui/switch"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { ErrorDialog } from "@/components/ui/ErrorDialog"
 
 interface FacebookPage {
   id: string
@@ -76,6 +102,25 @@ interface LeadForm {
   status: string
   created_time: string
 }
+
+const AD_ACCOUNT_STATUS_MAP: Record<number, { text: string, color: string }> = {
+  1: { text: 'Active', color: 'bg-green-100 text-green-700 border-green-200' },
+  2: { text: 'Disabled', color: 'bg-red-100 text-red-700 border-red-200' },
+  3: { text: 'Unsettled', color: 'bg-amber-100 text-amber-700 border-amber-200' },
+  4: { text: 'Pending Review', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+  7: { text: 'In Grace Period', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+  100: { text: 'Pending Closure', color: 'bg-slate-100 text-slate-700 border-slate-200' },
+  101: { text: 'Closed', color: 'bg-slate-100 text-slate-700 border-slate-200' },
+};
+
+const CTA_OPTIONS = [
+  { label: 'Learn More', value: 'LEARN_MORE' },
+  { label: 'Get Quote', value: 'GET_QUOTE' },
+  { label: 'Sign Up', value: 'SIGN_UP' },
+  { label: 'Apply Now', value: 'APPLY_NOW' },
+  { label: 'Download', value: 'DOWNLOAD' },
+  { label: 'Get Offer', value: 'GET_OFFER' },
+]
 
 export function FacebookDashboard() {
   const [pages, setPages] = useState<FacebookPage[]>([])
@@ -102,6 +147,8 @@ export function FacebookDashboard() {
   const [isLoadingSpecificAds, setIsLoadingSpecificAds] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
   const [isCreatingForm, setIsCreatingForm] = useState(false)
+  const [newCampaignObjective, setNewCampaignObjective] = useState('OUTCOME_LEADS')
+  const [isSpecialCategory, setIsSpecialCategory] = useState(false)
   const [creatives, setCreatives] = useState<any[]>([])
   const [isCreativesLoading, setIsCreativesLoading] = useState(false)
   const [isCreateFormDialogOpen, setIsCreateFormDialogOpen] = useState(false)
@@ -124,36 +171,49 @@ export function FacebookDashboard() {
   const [adCreationForms, setAdCreationForms] = useState<any[]>([])
   const [isLoadingAdCreationForms, setIsLoadingAdCreationForms] = useState(false)
   const [isCreatingAd, setIsCreatingAd] = useState(false)
+  const [newAdPrimaryText, setNewAdPrimaryText] = useState('Sign up to learn more about our exclusive offers!')
+  const [newAdHeadline, setNewAdHeadline] = useState('Limited Time Offer!')
+  const [newAdCta, setNewAdCta] = useState('LEARN_MORE')
+  const [newAdImageUrl, setNewAdImageUrl] = useState('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=628&fit=crop')
   const [adAccountSearch, setAdAccountSearch] = useState('')
   const [isCreateCreativeDialogOpen, setIsCreateCreativeDialogOpen] = useState(false)
   const [newCreativeName, setNewCreativeName] = useState('')
   const [newCreativeMsg, setNewCreativeMsg] = useState('Check this out!')
+  const [newCreativeHeadline, setNewCreativeHeadline] = useState('Limited Time Offer!')
+  const [newCreativeCta, setNewCreativeCta] = useState('LEARN_MORE')
   const [newCreativeImageUrl, setNewCreativeImageUrl] = useState('')
   const [isCreatingCreative, setIsCreatingCreative] = useState(false)
-  const [lastError, setLastError] = useState<{ title: string, description: string, action: string } | null>(null)
+  const [useLibraryCreative, setUseLibraryCreative] = useState(false)
+  const [selectedLibraryCreativeId, setSelectedLibraryCreativeId] = useState('')
+  const [lastError, setLastError] = useState<{ title: string, description: string, action: string, url?: string } | null>(null)
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false)
   const [pixels, setPixels] = useState<any[]>([])
   const [isSyncingPixels, setIsSyncingPixels] = useState(false)
   const [isLoadingPixels, setIsLoadingPixels] = useState(false)
   const [isPixelScriptDialogOpen, setIsPixelScriptDialogOpen] = useState(false)
   const [selectedPixelForScript, setSelectedPixelForScript] = useState<any | null>(null)
-  const { toast } = useToast()
+  const [isAdAccountOpen, setIsAdAccountOpen] = useState(false)
+  const [activeInnerTab, setActiveInnerTab] = useState('campaigns')
+  const [newAdSetBudget, setNewAdSetBudget] = useState(100)
+  const [isEditCampaignDialogOpen, setIsEditCampaignDialogOpen] = useState(false)
+  const [editingCampaign, setEditingCampaign] = useState<any>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean, id: string, label: string }>({ isOpen: false, id: '', label: '' })
+  const [isDeletingObject, setIsDeletingObject] = useState(false)
+  const [resourceFilter, setResourceFilter] = useState<'all' | 'active'>('all')
+  const [isSyncingHistory, setIsSyncingHistory] = useState<string | null>(null)
 
   useEffect(() => {
     // Check for success/error parameters from Meta OAuth redirect
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('meta_connected') === 'success') {
-      toast({
-        title: "Meta Connected Successfully",
+      toast.success("Meta Connected Successfully", {
         description: "Your Meta account has been linked and pages are being synced.",
       });
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (urlParams.get('error')) {
-      toast({
-        title: "Connection Failed",
+      toast.error("Connection Failed", {
         description: urlParams.get('error') || "Failed to connect Meta account.",
-        variant: "destructive"
       });
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -176,8 +236,9 @@ export function FacebookDashboard() {
             setSelectedAdFormId(response.forms[0].id)
           }
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error loading forms for ad:", err)
+        toast.error("LeadBajaar System Error", { description: "Refresh your browser and click Deep Sync." })
       } finally {
         setIsLoadingAdCreationForms(false)
       }
@@ -191,20 +252,35 @@ export function FacebookDashboard() {
     }
   }, [pages])
 
+  useEffect(() => {
+    if (selectedAdAccount) {
+      loadCampaigns(selectedAdAccount.id)
+      loadCreatives(selectedAdAccount.id)
+    }
+  }, [selectedAdAccount])
+
   // Helper to humanize Meta API errors & provide "what to do next"
-  const formatMetaError = (errorMsg: string) => {
+  const formatMetaError = (errorMsg: any) => {
     let parsedError: any = null;
+    let rawMessage = "";
+
     try {
-      if (errorMsg.trim().startsWith('{')) {
-        parsedError = JSON.parse(errorMsg);
+      if (typeof errorMsg === 'string') {
+        rawMessage = errorMsg;
+        if (errorMsg.trim().startsWith('{')) {
+          parsedError = JSON.parse(errorMsg);
+        }
+      } else if (typeof errorMsg === 'object' && errorMsg !== null) {
+        parsedError = errorMsg;
+        rawMessage = JSON.stringify(errorMsg);
       }
     } catch (e) {
-      // Not JSON
+      rawMessage = String(errorMsg);
     }
 
-    const errorString = errorMsg.toLowerCase();
+    const errorString = rawMessage.toLowerCase();
     const subcode = parsedError?.error_subcode?.toString() || "";
-    const metaMessage = parsedError?.error_user_msg || parsedError?.message || errorMsg;
+    const metaMessage = parsedError?.error_user_msg || parsedError?.message || rawMessage;
     const metaTitle = parsedError?.error_user_title;
 
     // 1. High-priority specific codes
@@ -270,17 +346,27 @@ export function FacebookDashboard() {
       };
     }
 
+    // Custom Audience or Lead Gen Terms
+    if (subcode === '1892181' || subcode === '1870090' || errorString.includes('terms') || parsedError?.error_type === 'TOS_REQUIRED') {
+      return {
+        title: "Terms of Service Required",
+        description: "You must accept the Lead Generation Terms of Service for your Facebook Page.",
+        action: `Follow the link below to accept Meta's Lead Generation Terms for this ad account: ${parsedError?.tos_url || 'https://www.facebook.com/ads/leadgen/tos'}`,
+        url: parsedError?.tos_url
+      };
+    }
+
     // Generic Invalid Parameter fallback
     if (errorString.includes('100') || errorString.includes('invalid parameter')) {
       return {
-        title: "Invalid Meta Parameter",
+        title: metaTitle || "Invalid Meta Parameter",
         description: metaMessage,
         action: "Check your name, targeting, and budget fields for invalid characters or values."
       };
     }
 
     return {
-      title: "Meta Operation Blocked",
+      title: metaTitle || "Meta Operation Blocked",
       description: metaMessage || "Something went wrong while communicating with Facebook.",
       action: "Check the Meta Ad Account settings or your internet connection."
     };
@@ -298,10 +384,8 @@ export function FacebookDashboard() {
       console.error('Failed to load Meta pages:', error)
       const metaErr = formatMetaError(error.message);
       setLastError(metaErr);
-      toast({
-        title: metaErr.title,
+      toast.error(metaErr.title, {
         description: `${metaErr.description} ${metaErr.action}`,
-        variant: "destructive"
       })
     } finally {
       setIsLoading(false)
@@ -330,17 +414,15 @@ export function FacebookDashboard() {
       console.error('Failed to load ad accounts:', error)
       const metaErr = formatMetaError(error.message);
       setLastError(metaErr);
-      toast({
-        title: metaErr.title,
+      toast.error("Account Load Failed", {
         description: `${metaErr.description}\n\n👉 Next step: ${metaErr.action}`,
-        variant: "destructive"
       })
     }
   }
 
-  const loadCampaigns = async (adAccountId: string) => {
+  const loadCampaigns = async (adAccountId: string, isRefreshing = false) => {
     try {
-      setIsLoadingAds(true)
+      if (!isRefreshing) setIsLoadingAds(true)
       const [campaignsRes, insightsRes] = await Promise.all([
         integrationApi.getMetaCampaigns(adAccountId),
         integrationApi.getMetaAdAccountInsights(adAccountId)
@@ -352,15 +434,17 @@ export function FacebookDashboard() {
       if (insightsRes.status === 'success') {
         setInsights(insightsRes.insights || [])
       }
-      setSelectedCampaign(null)
-      setAdSets([])
-      setAds([])
+      
+      // Only clear child states if we are NOT just refreshing
+      if (!isRefreshing) {
+        setSelectedCampaign(null)
+        setAdSets([])
+        setAds([])
+      }
     } catch (error: any) {
       console.error('Failed to load campaigns:', error)
-      toast({
-        title: "Error",
+      toast.error("Failed to load campaigns", {
         description: "Failed to load Meta Ads data",
-        variant: "destructive"
       })
     } finally {
       setIsLoadingAds(false)
@@ -375,6 +459,7 @@ export function FacebookDashboard() {
       }
     } catch (error) {
       console.error('Failed to load templates')
+      toast.error("Failed to load templates", { description: "Could not retrieve ad templates." })
     }
   }
 
@@ -391,10 +476,8 @@ export function FacebookDashboard() {
       }
     } catch (error: any) {
       console.error('Failed to load lead forms:', error)
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to load lead forms for this page",
-        variant: "destructive"
       })
     } finally {
       setIsLoadingForms(false)
@@ -403,27 +486,22 @@ export function FacebookDashboard() {
 
   const handleSyncHistory = async (form: LeadForm) => {
     try {
-      toast({
-        title: "Manual Sync Started",
-        description: `Fetching historical leads for ${form.name}...`
+      setIsSyncingHistory(form.id)
+      toast.info("Manual Sync Started", {
+        description: `Fetching recent leads for "${form.name}"...`
       })
 
-      const response = await integrationApi.retrieveFacebookLeads({
-        form_id: form.id,
-        integration_id: 0
-      })
+      const response = await integrationApi.syncMetaLeads(form.id, 7)
 
-      toast({
-        title: "Sync Completed",
-        description: `Successfully retrieved ${response.count || 0} leads from Meta.`,
-        variant: "default"
-      })
+      if (response.status === 'success') {
+        toast.success("Sync Completed", {
+          description: `Successfully imported ${response.synced_count || 0} leads into CRM.`,
+        })
+      }
     } catch (error: any) {
-      toast({
-        title: "Sync Failed",
-        description: error.message || "Could not retrieve historical leads",
-        variant: "destructive"
-      })
+      toast.error("Sync Failed", { description: error.message })
+    } finally {
+      setIsSyncingHistory(null)
     }
   }
   const handleDeepSyncAccount = async () => {
@@ -431,17 +509,14 @@ export function FacebookDashboard() {
     setIsDeepSyncing(true)
     try {
       const response = await integrationApi.syncMetaAdAccountDetails(selectedAdAccount.id)
-      toast({
-        title: "Deep Sync Complete",
+      toast.success("Deep Sync Complete", {
         description: response.message || "Reports and campaign history refreshed for this account."
       })
       // Refresh the UI with new data
       loadCampaigns(selectedAdAccount.id)
     } catch (error: any) {
-      toast({
-        title: "Deep Sync Failed",
+      toast.error("Deep Sync Failed", {
         description: error.message,
-        variant: "destructive"
       })
     } finally {
       setIsDeepSyncing(false)
@@ -455,8 +530,7 @@ export function FacebookDashboard() {
       setIsSyncingAssets(false)
 
       setTimeout(() => {
-        toast({
-          title: "Dashboard Refreshed",
+        toast.success("Dashboard Refreshed", {
           description: "Ad account list and pages updated successfully."
         })
       }, 100);
@@ -468,10 +542,8 @@ export function FacebookDashboard() {
       const metaErr = formatMetaError(error.message);
       setLastError(metaErr);
       setTimeout(() => {
-        toast({
-          title: metaErr.title,
+        toast.error(metaErr.title, {
           description: `${metaErr.description}\n\n👉 Next step: ${metaErr.action}`,
-          variant: "destructive"
         })
       }, 100);
     }
@@ -488,9 +560,11 @@ export function FacebookDashboard() {
 
       if (response?.status === 'success') {
         setIsSubscribed(true);
+        toast.success("Webhook Verified", { description: "Page webhook subscription is active." })
       }
     } catch (error: any) {
       console.error('Subscription error:', error);
+      toast.error("Subscription Failed", { description: error.message })
     } finally {
       setIsSubscribing(false);
     }
@@ -504,7 +578,7 @@ export function FacebookDashboard() {
       const data = {
         campaign_id: selectedCampaign.id,
         name: newAdSetName,
-        daily_budget: 50000, // 500 units in cents/paise
+        daily_budget: newAdSetBudget * 100, // Convert to cents/paise
         billing_event: 'IMPRESSIONS',
         optimization_goal: 'LEAD_GENERATION',
         promoted_object: { page_id: selectedPage?.id || pages[0]?.id },
@@ -516,7 +590,7 @@ export function FacebookDashboard() {
       const response = await integrationApi.createMetaAdSet(selectedAdAccount.id, data)
 
       if (response.status === 'success') {
-        toast({ title: "Ad Set Created", description: "New ad set added to campaign." })
+        toast.success("Ad Set Created", { description: "New ad set added to campaign." })
         setIsCreateAdSetDialogOpen(false)
         setNewAdSetName('')
         loadAdSets(selectedCampaign)
@@ -533,7 +607,7 @@ export function FacebookDashboard() {
   const handleCreateAd = async () => {
     if (!selectedAdAccount || !selectedAdSet || !newAdName) return
 
-    if (!selectedAdPageId || !selectedAdFormId) {
+    if (!useLibraryCreative && (!selectedAdPageId || !selectedAdFormId)) {
       setLastError({
         title: "Missing Assets",
         description: "A Facebook Page and Lead Form must be selected to create an ad.",
@@ -543,27 +617,37 @@ export function FacebookDashboard() {
       return
     }
 
+    if (useLibraryCreative && !selectedLibraryCreativeId) {
+      toast.error("Creative Selection Required", { description: "Please select a creative from your library." })
+      return
+    }
+
     try {
       setIsCreatingAd(true)
       const data = {
         adset_id: selectedAdSet.id,
         name: newAdName,
         status: 'PAUSED',
-        creative: {
-          name: `${newAdName} Creative`,
-          page_id: selectedAdPageId,
-          form_id: selectedAdFormId,
-          message: "Sign up to learn more about our exclusive offers!",
-          link: "https://leadbajaar.com",
-          // Default high-converting placeholder image (standard Meta landscape size)
-          image_url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=628&fit=crop"
-        }
+        ...(useLibraryCreative ? {
+          existing_creative_id: selectedLibraryCreativeId
+        } : {
+          creative: {
+            name: `${newAdName} Creative`,
+            page_id: selectedAdPageId,
+            form_id: selectedAdFormId,
+            message: newAdPrimaryText,
+            link: "https://leadbajaar.com",
+            headline: newAdHeadline,
+            image_url: newAdImageUrl,
+            call_to_action: newAdCta
+          }
+        })
       }
 
       const response = await integrationApi.createMetaAd(selectedAdAccount.id, data)
 
       if (response.status === 'success') {
-        toast({ title: "Ad Created", description: "New ad added to ad set." })
+        toast.success("Ad Created", { description: "New ad added to ad set." })
         setIsCreateAdDialogOpen(false)
         setNewAdName('')
         loadAds(selectedAdSet)
@@ -577,18 +661,49 @@ export function FacebookDashboard() {
     }
   }
 
+  const handleDuplicateObject = async (id: string, type: string) => {
+    try {
+      toast.info(`Duplicating ${type}...`, { description: "Preparing a copy with same assets." })
+      const response = await integrationApi.duplicateMetaObject(id)
+      if (response.status === 'success') {
+        toast.success(`${type} Duplicated`, { description: "The copy is available in your list as 'PAUSED'." })
+        if (selectedAdAccount) loadCampaigns(selectedAdAccount.id, true)
+      }
+    } catch (error: any) {
+      toast.error("Duplication Failed", { description: error.message })
+    }
+  }
+
   const handleUpdateStatus = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === 'ACTIVE' ? 'PAUSED' : 'ACTIVE'
+    
+    // Optimistic UI Update
+    setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
+    setAdSets(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s));
+    setAds(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
+
     try {
       const response = await integrationApi.updateMetaStatus(id, newStatus as any)
       if (response.status === 'success') {
-        toast({
-          title: newStatus === 'ACTIVE' ? "Campaign/Ad Started" : "Campaign/Ad Paused",
+        toast.success(newStatus === 'ACTIVE' ? "Started" : "Paused", {
           description: `Status updated to ${newStatus}`
-        })
-        if (selectedAdAccount) loadCampaigns(selectedAdAccount.id)
+        });
+        
+        // Refresh silently in background to ensure sync
+        if (selectedAdAccount) {
+          if (activeInnerTab === 'campaigns') loadCampaigns(selectedAdAccount.id, true);
+          else if (activeInnerTab === 'ad_sets' && selectedCampaign) loadAdSets(selectedCampaign, true);
+          else if (activeInnerTab === 'ads' && selectedAdSet) loadAds(selectedAdSet, true);
+        }
       }
     } catch (error: any) {
+      // Revert optimistic update on error
+      if (selectedAdAccount) {
+        if (activeInnerTab === 'campaigns') loadCampaigns(selectedAdAccount.id, true);
+        else if (activeInnerTab === 'ad_sets' && selectedCampaign) loadAdSets(selectedCampaign, true);
+        else if (activeInnerTab === 'ads' && selectedAdSet) loadAds(selectedAdSet, true);
+      }
+      
       const metaErr = formatMetaError(error.message);
       setLastError(metaErr);
       setIsErrorDialogOpen(true);
@@ -599,7 +714,7 @@ export function FacebookDashboard() {
     try {
       const response = await integrationApi.updateMetaStatus(id, 'ARCHIVED')
       if (response.status === 'success') {
-        toast({ title: "Object Archived", description: "The campaign/adset has been moved to archives." })
+        toast.info("Object Archived", { description: "The campaign/adset has been moved to archives." })
         if (selectedAdAccount) loadCampaigns(selectedAdAccount.id)
       }
     } catch (error: any) {
@@ -610,18 +725,58 @@ export function FacebookDashboard() {
   }
 
   const handleDeleteObject = async (id: string, label: string) => {
-    if (!confirm(`Are you sure you want to PERMANENTLY delete this ${label}? This action cannot be undone.`)) return
+    setDeleteConfirm({ isOpen: true, id, label });
+  }
 
+  const confirmDeleteObject = async () => {
+    const { id, label } = deleteConfirm;
     try {
+      setIsDeletingObject(true)
       const response = await integrationApi.deleteMetaObject(id)
       if (response.status === 'success') {
-        toast({ title: "Deleted Successfully", description: `${label} has been removed from Meta.` })
-        if (selectedAdAccount) loadCampaigns(selectedAdAccount.id)
+        toast.success("Deleted Successfully", { description: `${label} has been removed from Meta.` })
+        
+        // Instant Local Update: Filter out the deleted object from UI lists
+        if (label === 'Creative') {
+          setCreatives(prev => prev.filter(c => c.id !== id))
+        } else if (label === 'Campaign') {
+          setCampaigns(prev => prev.filter(c => c.id !== id))
+          if (selectedCampaign?.id === id) setSelectedCampaign(null)
+        } else if (label === 'Ad Set') {
+          setAdSets(prev => prev.filter(s => s.id !== id))
+          if (selectedAdSet?.id === id) setSelectedAdSet(null)
+        } else if (label === 'Ad') {
+          setAds(prev => prev.filter(a => a.id !== id))
+        }
       }
     } catch (error: any) {
       const metaErr = formatMetaError(error.message);
       setLastError(metaErr);
       setIsErrorDialogOpen(true);
+    } finally {
+      setIsDeletingObject(false)
+      setDeleteConfirm({ isOpen: false, id: '', label: '' });
+    }
+  }
+
+  const handleUpdateCampaignName = async () => {
+    if (!editingCampaign || !newCampaignName) return;
+    try {
+      setIsCreatingCampaign(true);
+      const response = await integrationApi.updateMetaCampaign(editingCampaign.id, { name: newCampaignName });
+      if (response.status === 'success') {
+        toast.success("Campaign Updated", { description: "Campaign name changed successfully." });
+        setIsEditCampaignDialogOpen(false);
+        setEditingCampaign(null);
+        setNewCampaignName('');
+        if (selectedAdAccount) loadCampaigns(selectedAdAccount.id);
+      }
+    } catch (error: any) {
+      const metaErr = formatMetaError(error.message);
+      setLastError(metaErr);
+      setIsErrorDialogOpen(true);
+    } finally {
+      setIsCreatingCampaign(false);
     }
   }
 
@@ -644,11 +799,7 @@ export function FacebookDashboard() {
       const response = await integrationApi.createMetaPageForm(selectedPage.id, formData)
 
       if (response.status === 'success') {
-        toast({
-          title: "Form Created",
-          description: "New Lead Gen Form is now live on Facebook!",
-          variant: "default"
-        })
+        toast.success("Form Created", { description: "New Lead Gen Form is now live on Facebook!" })
         setIsCreateFormDialogOpen(false)
         setNewFormName('')
         loadPageForms(selectedPage)
@@ -669,18 +820,15 @@ export function FacebookDashboard() {
       setIsCreatingCampaign(true)
       const data = {
         name: newCampaignName,
-        objective: 'OUTCOME_LEADS',
-        status: 'PAUSED'
+        objective: newCampaignObjective,
+        status: 'PAUSED',
+        special_ad_categories: isSpecialCategory ? ['HOUSING', 'EMPLOYMENT', 'CREDIT', 'ISSUES_ELECTIONS_POLITICS'] : []
       }
 
       const response = await integrationApi.createMetaCampaign(selectedAdAccount.id, data)
 
       if (response.status === 'success') {
-        toast({
-          title: "Campaign Created",
-          description: "New Lead Generation campaign is ready in your ad account.",
-          variant: "default"
-        })
+        toast.success("Campaign Created", { description: "New Lead Generation campaign is ready in your ad account." })
         setIsCreateCampaignDialogOpen(false)
         setNewCampaignName('')
         loadCampaigns(selectedAdAccount.id)
@@ -696,14 +844,14 @@ export function FacebookDashboard() {
 
   const handleLaunchTemplate = async (templateId: number) => {
     if (!selectedAdAccount) {
-      toast({ title: "Select Ad Account", description: "Please select an ad account first.", variant: "destructive" })
+      toast.error("Select Ad Account", { description: "Please select an ad account first." })
       return
     }
     try {
       setIsLaunchingTemplate(true)
       const response = await integrationApi.launchMetaTemplate(selectedAdAccount.id, templateId)
       if (response.status === 'success') {
-        toast({ title: "Campaign Launched!", description: "Template deployed as a paused campaign." })
+        toast.success("Campaign Launched!", { description: "Template deployed as a paused campaign." })
         loadCampaigns(selectedAdAccount.id)
       }
     } catch (error: any) {
@@ -729,11 +877,7 @@ export function FacebookDashboard() {
       const response = await integrationApi.createMetaCustomAudience(selectedAdAccount.id, data)
 
       if (response.status === 'success') {
-        toast({
-          title: "Audience Created",
-          description: "Your custom audience is now available in Meta Ads Manager.",
-          variant: "default"
-        })
+        toast.success("Audience Created", { description: "Your custom audience is now available in Meta Ads Manager." })
         setIsCreateAudienceDialogOpen(false)
         setNewAudienceName('')
       }
@@ -746,34 +890,38 @@ export function FacebookDashboard() {
     }
   }
 
-  const loadAdSets = async (campaign: any) => {
+  const loadAdSets = async (campaign: any, isRefreshing = false) => {
     try {
       setSelectedCampaign(campaign)
-      setIsLoadingAdSets(true)
-      setAdSets([])
-      setAds([])
+      if (!isRefreshing) {
+        setIsLoadingAdSets(true)
+        setAdSets([])
+        setAds([])
+      }
       const response = await integrationApi.getMetaAdSets(campaign.id)
       if (response.status === 'success') {
         setAdSets(response.ad_sets || [])
       }
     } catch (error: any) {
-      toast({ title: "Failed to load Ad Sets", description: error.message, variant: "destructive" })
+      toast.error("Failed to load Ad Sets", { description: error.message })
     } finally {
       setIsLoadingAdSets(false)
     }
   }
 
-  const loadAds = async (adSet: any) => {
+  const loadAds = async (adSet: any, isRefreshing = false) => {
     try {
       setSelectedAdSet(adSet)
-      setIsLoadingSpecificAds(true)
-      setAds([])
+      if (!isRefreshing) {
+        setIsLoadingSpecificAds(true)
+        setAds([])
+      }
       const response = await integrationApi.getMetaAds(adSet.id)
       if (response.status === 'success') {
         setAds(response.ads || [])
       }
     } catch (error: any) {
-      toast({ title: "Failed to load Ads", description: error.message, variant: "destructive" })
+      toast.error("Failed to load Ads", { description: error.message })
     } finally {
       setIsLoadingSpecificAds(false)
     }
@@ -787,7 +935,7 @@ export function FacebookDashboard() {
         setCreatives(response.creatives || [])
       }
     } catch (error: any) {
-      toast({ title: "Failed to load Creatives", description: error.message, variant: "destructive" })
+      toast.error("Failed to load Creatives", { description: error.message })
     } finally {
       setIsCreativesLoading(false)
     }
@@ -803,13 +951,15 @@ export function FacebookDashboard() {
         page_id: selectedAdPageId,
         form_id: selectedAdFormId,
         message: newCreativeMsg,
+        headline: newCreativeHeadline,
+        call_to_action: newCreativeCta,
         image_url: newCreativeImageUrl || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=628&fit=crop"
       }
 
       const response = await integrationApi.createMetaAdCreativeStandalone(selectedAdAccount.id, data)
 
       if (response.status === 'success') {
-        toast({ title: "Creative Created", description: "Standalone ad creative added to library." })
+        toast.success("Creative Created", { description: "Standalone ad creative added to library." })
         setIsCreateCreativeDialogOpen(false)
         setNewCreativeName('')
         loadCreatives(selectedAdAccount.id)
@@ -832,6 +982,7 @@ export function FacebookDashboard() {
       }
     } catch (error: any) {
       console.error('Failed to load pixels:', error)
+      toast.error("Failed to load Pixels", { description: "Could not retrieve Meta Pixels." })
     } finally {
       setIsLoadingPixels(false)
     }
@@ -843,10 +994,10 @@ export function FacebookDashboard() {
       const response = await integrationApi.syncMetaPixels()
       if (response.status === 'success') {
         setPixels(response.pixels || [])
-        toast({ title: "Pixels Synced", description: "Your Meta Pixels have been updated." })
+        toast.success("Pixels Synced", { description: "Your Meta Pixels have been updated." })
       }
     } catch (error: any) {
-      toast({ title: "Sync Failed", description: error.message, variant: "destructive" })
+      toast.error("Sync Failed", { description: error.message })
     } finally {
       setIsSyncingPixels(false)
     }
@@ -858,10 +1009,10 @@ export function FacebookDashboard() {
       const response = await integrationApi.updateMetaPixel(pixel.id, { is_active: newStatus })
       if (response.status === 'success') {
         setPixels(pixels.map(p => p.id === pixel.id ? { ...p, is_active: newStatus } : p))
-        toast({ title: "Status Updated", description: `Pixel ${pixel.name} is now ${newStatus ? 'active' : 'inactive'}.` })
+        toast.info("Status Updated", { description: `Pixel ${pixel.name} is now ${newStatus ? 'active' : 'inactive'}.` })
       }
     } catch (error: any) {
-      toast({ title: "Update Failed", description: error.message, variant: "destructive" })
+      toast.error("Update Failed", { description: error.message })
     }
   }
 
@@ -869,7 +1020,7 @@ export function FacebookDashboard() {
     try {
       const response = await integrationApi.updateMetaAdSet(adSetId, { daily_budget: newBudget * 100 }) // Facebook cents
       if (response.status === 'success') {
-        toast({ title: "Budget Updated", description: "Ad Set budget adjusted successfully." })
+        toast.success("Budget Updated", { description: "Ad Set budget adjusted successfully." })
         if (selectedCampaign) loadAdSets(selectedCampaign)
       }
     } catch (error: any) {
@@ -1086,23 +1237,11 @@ export function FacebookDashboard() {
                             </DialogFooter>
                           </DialogContent>
                         </Dialog>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={`h-7 text-[10px] font-bold uppercase tracking-tight border-blue-200 dark:border-blue-900 ${isSubscribed ? 'bg-green-50 text-green-600 border-green-200' : 'bg-blue-50/50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'}`}
-                          onClick={handleSubscribePage}
-                          disabled={isSubscribing || isSubscribed}
-                        >
-                          {isSubscribing ? (
-                            <Loader2 className="h-2.5 w-2.5 animate-spin mr-1" />
-                          ) : isSubscribed ? (
-                            <CheckCircle2 className="h-2.5 w-2.5 mr-1 text-green-500" />
-                          ) : (
-                            <Settings className="h-2.5 w-2.5 mr-1" />
-                          )}
-                          {isSubscribed ? 'Verified' : 'Verify Webhook'}
-                        </Button>
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                        <WebhookVerificationDialog 
+                          pageId={selectedPage.id} 
+                          pageName={selectedPage.name} 
+                        />
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-slate-200">
                           Active
                         </Badge>
                       </div>
@@ -1136,8 +1275,14 @@ export function FacebookDashboard() {
                                 variant="secondary"
                                 className="h-8 text-xs font-semibold px-3"
                                 onClick={() => handleSyncHistory(form)}
+                                disabled={isSyncingHistory === form.id}
                               >
-                                <RefreshCw className="h-3 w-3 mr-2" /> Sync History
+                                {isSyncingHistory === form.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin mr-2" />
+                                ) : (
+                                  <RefreshCw className="h-3 w-3 mr-2" />
+                                )}
+                                {isSyncingHistory === form.id ? 'Syncing...' : 'Sync History'}
                               </Button>
                             </div>
                           </div>
@@ -1157,558 +1302,1002 @@ export function FacebookDashboard() {
             </Card>
           </div>
         </TabsContent>
-
         <TabsContent value="ads" className="m-0 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Ad Accounts Sidebar */}
-            <Card className="lg:col-span-1 border-none shadow-md bg-white dark:bg-slate-900 h-fit flex flex-col max-h-[500px]">
-              <CardHeader className="flex-shrink-0">
-                <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Briefcase className="h-4 w-4 mr-2" /> Ad Accounts
+          <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-6">
+              {/* Header / Account Selector Row - Global for this tab */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 p-3.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-3.5">
+                  <div className="h-10 w-10 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-600 shadow-inner shrink-0">
+                    <Briefcase className="h-5 w-5" />
                   </div>
-                  <Badge variant="secondary" className="text-[10px]">{adAccounts.length}</Badge>
-                </CardTitle>
-                <div className="mt-4 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input
-                    placeholder="Search accounts..."
-                    value={adAccountSearch}
-                    onChange={(e) => setAdAccountSearch(e.target.value)}
-                    className="pl-9 h-9 bg-slate-50 border-none shadow-none text-xs focus-visible:ring-blue-500"
-                  />
+                  <div className="min-w-0">
+                    <h3 className="text-base font-black tracking-tight flex items-center gap-3">
+                      <span className="truncate">{selectedAdAccount ? selectedAdAccount.name : "Portfolio Overview"}</span>
+                      {selectedAdAccount && <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-[10px] h-5 px-2 border-0 shrink-0">ACTIVE</Badge>}
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-60 truncate">
+                      {selectedAdAccount ? (selectedAdAccount.business?.name || 'Personal Account') : 'Meta Ads Network'}
+                    </p>
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent className="p-0 overflow-y-auto flex-grow bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {adAccounts
-                    .filter(acc =>
-                      acc.name?.toLowerCase().includes(adAccountSearch.toLowerCase()) ||
-                      acc.id?.toLowerCase().includes(adAccountSearch.toLowerCase()) ||
-                      acc.business?.name?.toLowerCase().includes(adAccountSearch.toLowerCase())
-                    )
-                    .map((acc) => {
-                      const statusMap: Record<number, { text: string, color: string }> = {
-                        1: { text: 'Active', color: 'bg-green-100 text-green-700' },
-                        2: { text: 'Disabled', color: 'bg-red-100 text-red-700' },
-                        3: { text: 'Unsettled', color: 'bg-amber-100 text-amber-700' },
-                        7: { text: 'Pending Review', color: 'bg-blue-100 text-blue-700' },
-                        8: { text: 'Pending Settlement', color: 'bg-blue-100 text-blue-700' },
-                        9: { text: 'In Grace Period', color: 'bg-blue-100 text-blue-700' },
-                        100: { text: 'Pending Closure', color: 'bg-slate-100 text-slate-700' },
-                        101: { text: 'Closed', color: 'bg-slate-100 text-slate-700' },
-                      };
-                      const status = statusMap[acc.account_status] || { text: 'Unknown', color: 'bg-slate-100 text-slate-700' };
-                      const businessName = acc.business?.name || 'Personal Account';
 
-                      return (
-                        <button
-                          key={acc.id}
-                          onClick={() => { setSelectedAdAccount(acc); loadCampaigns(acc.id); }}
-                          className={`w-full p-4 text-left transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 ${selectedAdAccount?.id === acc.id ? 'bg-blue-50/50 dark:bg-blue-900/20 border-r-4 border-blue-500 shadow-sm' : ''} ${acc.account_status !== 1 ? 'opacity-70' : ''}`}
-                        >
-                          <div className="flex justify-between items-start mb-1">
-                            <p className="font-bold text-sm truncate flex-1">{acc.name}</p>
-                            <Badge className={`text-[9px] px-1 h-3.5 leading-none ${status.color}`} variant="outline">
-                              {status.text}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <p className="text-[10px] text-muted-foreground font-medium truncate max-w-[120px]">
-                              {businessName}
-                            </p>
-                            <span className="text-[10px] text-slate-300">•</span>
-                            <span className="text-[10px] text-muted-foreground font-mono">{acc.currency}</span>
-                          </div>
-                          <p className="text-[9px] text-slate-400 mt-0.5 font-mono">{acc.id}</p>
-                        </button>
-                      );
-                    })}
-                  {adAccounts.length === 0 && (
-                    <div className="p-8 text-center text-muted-foreground text-sm">No ad accounts found</div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                <div className="flex items-center gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="default" className="!bg-[#00a400] hover:!bg-[#008a00] text-white font-black shadow-md border-none gap-2">
+                        <Plus className="h-4 w-4" /> Create
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
+                      <DropdownMenuItem className="py-2.5 font-bold cursor-pointer" onClick={() => selectedAdAccount ? setIsCreateCampaignDialogOpen(true) : toast.info("Select Account", { description: "Please select an ad account first." })}>
+                        <Layout className="h-4 w-4 mr-2 text-blue-500" /> New Campaign
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="py-2.5 font-bold cursor-pointer" 
+                        onClick={() => {
+                          if (!selectedAdAccount) {
+                            toast.info("Select Account", { description: "Please select an ad account first." });
+                            return;
+                          }
+                          if (selectedCampaign) {
+                            setIsCreateAdSetDialogOpen(true);
+                          } else {
+                            setActiveInnerTab('campaigns');
+                            toast.info("Select Campaign", { description: "Select a campaign first to add an ad set." });
+                          }
+                        }}
+                      >
+                        <Layers className="h-4 w-4 mr-2 text-purple-500" /> New Ad Set
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="py-2.5 font-bold cursor-pointer" 
+                        onClick={() => {
+                          if (!selectedAdAccount) {
+                            toast.info("Select Account", { description: "Please select an ad account first." });
+                            return;
+                          }
+                          if (selectedAdSet) {
+                            setIsCreateAdDialogOpen(true);
+                          } else {
+                            setActiveInnerTab('ad_sets');
+                            toast.info("Select Ad Set", { description: "Select an ad set first to add an ad." });
+                          }
+                        }}
+                      >
+                        <FileText className="h-4 w-4 mr-2 text-green-500" /> New Ad
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="py-2.5 font-bold cursor-pointer border-t border-slate-100 mt-1 dark:border-slate-800" 
+                        onClick={() => {
+                          if (!selectedAdAccount) {
+                            toast.info("Select Account", { description: "Please select an ad account first." });
+                            return;
+                          }
+                          setIsCreateAudienceDialogOpen(true);
+                        }}
+                      >
+                        <Users className="h-4 w-4 mr-2 text-blue-600" /> New Audience
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
-            {/* Ads Explorer Area */}
-            <div className="lg:col-span-2 space-y-6">
-              {selectedAdAccount ? (
-                <>
-                  {/* Insights Cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
-                    <Card className="border-none shadow-sm bg-blue-600 text-white col-span-1 sm:col-span-2 md:col-span-1">
-                      <CardContent className="p-4">
-                        <p className="text-[10px] opacity-80 uppercase font-bold tracking-wider">Total Spend (Last 30d)</p>
-                        <h3 className="text-xl font-black mt-1">
-                          {selectedAdAccount.currency} {insights.reduce((sum, i) => sum + parseFloat(i.spend || '0'), 0).toFixed(2)}
-                        </h3>
-                      </CardContent>
-                    </Card>
-                    <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
-                      <CardContent className="p-4">
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Impressions</p>
-                        <h3 className="text-xl font-black mt-1">
-                          {insights.reduce((sum, i) => sum + parseInt(i.impressions || '0'), 0).toLocaleString()}
-                        </h3>
-                      </CardContent>
-                    </Card>
-                    <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
-                      <CardContent className="p-4">
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Clicks</p>
-                        <h3 className="text-xl font-black mt-1">
-                          {insights.reduce((sum, i) => sum + parseInt(i.clicks || '0'), 0).toLocaleString()}
-                        </h3>
-                      </CardContent>
-                    </Card>
-                    <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
-                      <CardContent className="p-4">
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Avg CTR</p>
-                        <div className="flex items-center space-x-2">
-                          <h3 className="text-xl font-black mt-1">
-                            {(() => {
-                              const totalImps = insights.reduce((sum, i) => sum + parseInt(i.impressions || '0'), 0);
-                              const totalClicks = insights.reduce((sum, i) => sum + parseInt(i.clicks || '0'), 0);
-                              return totalImps > 0 ? ((totalClicks / totalImps) * 100).toFixed(2) : '0.00';
-                            })()}%
-                          </h3>
+                  <Popover open={isAdAccountOpen} onOpenChange={setIsAdAccountOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={isAdAccountOpen}
+                        className="w-full md:w-[320px] justify-between h-10 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold rounded-xl shadow-sm hover:border-blue-500 hover:ring-4 hover:ring-blue-500/10 transition-all group"
+                      >
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <Search className="h-4 w-4 text-slate-400 shrink-0 group-hover:text-blue-500 transition-colors" />
+                          <span className="truncate">{selectedAdAccount ? selectedAdAccount.name : "Select Ad Account..."}</span>
                         </div>
-                      </CardContent>
-                    </Card>
-                    <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
-                      <CardContent className="p-4">
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Avg CPC</p>
-                        <h3 className="text-xl font-black mt-1">
-                          {selectedAdAccount.currency} {(() => {
-                            const totalSpend = insights.reduce((sum, i) => sum + parseFloat(i.spend || '0'), 0);
-                            const totalClicks = insights.reduce((sum, i) => sum + parseInt(i.clicks || '0'), 0);
-                            return totalClicks > 0 ? (totalSpend / totalClicks).toFixed(2) : '0.00';
-                          })()}
-                        </h3>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Campaigns Table */}
-                  <Card className="border-none shadow-md bg-white dark:bg-slate-900 overflow-hidden">
-                    <CardHeader className="flex flex-row items-center justify-between border-b dark:border-slate-800">
-                      <div>
-                        <CardTitle className="text-xl">Campaigns</CardTitle>
-                        <CardDescription>Performance for {selectedAdAccount.name}</CardDescription>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-[450px] p-0 border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl overflow-hidden"
+                      align="end"
+                      side="bottom"
+                      sideOffset={8}
+                      avoidCollisions={false}
+                    >
+                      <div className="p-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                          <Input
+                            placeholder="Search ad accounts..."
+                            value={adAccountSearch}
+                            onChange={(e) => setAdAccountSearch(e.target.value)}
+                            className="pl-9 h-10 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-none text-sm rounded-lg"
+                          />
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2 text-sm">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleDeepSyncAccount}
-                          disabled={isDeepSyncing || isLoadingAds}
-                          className="h-9 font-semibold border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
-                        >
-                          {isDeepSyncing ? (
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          ) : (
-                            <RefreshCw className="h-4 w-4 mr-2 text-blue-500" />
-                          )}
-                          Refresh Details
-                        </Button>
-
-                        <Dialog open={isCreateAudienceDialogOpen} onOpenChange={setIsCreateAudienceDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-9 font-semibold border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-                            >
-                              <Users className="h-4 w-4 mr-2 text-purple-500" />
-                              New Audience
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Create Custom Audience</DialogTitle>
-                              <DialogDescription>
-                                Targeted for {selectedAdAccount.name}. You can later use this to target specific lead segments.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4 py-4">
-                              <div className="space-y-2">
-                                <label className="text-sm font-bold">Audience Name</label>
-                                <Input
-                                  placeholder="e.g. VIP Leads March 2024"
-                                  value={newAudienceName}
-                                  onChange={(e) => setNewAudienceName(e.target.value)}
-                                />
-                              </div>
-                            </div>
-                            <DialogFooter>
-                              <Button variant="outline" onClick={() => setIsCreateAudienceDialogOpen(false)}>Cancel</Button>
-                              <Button
-                                className="bg-purple-600 hover:bg-purple-700 text-white"
-                                onClick={handleCreateAudience}
-                                disabled={isCreatingAudience || !newAudienceName}
-                              >
-                                {isCreatingAudience ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-                                Create Audience
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-
-                        <Dialog open={isCreateCampaignDialogOpen} onOpenChange={setIsCreateCampaignDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 h-9 font-semibold">
-                              <Plus className="h-4 w-4 mr-1" />
-                              New Campaign
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Launch New Campaign</DialogTitle>
-                              <DialogDescription>
-                                Create a new Lead Generation campaign for "{selectedAdAccount.name}".
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                              <div className="grid gap-2">
-                                <Label htmlFor="campaign-name">Campaign Name</Label>
-                                <Input
-                                  id="campaign-name"
-                                  value={newCampaignName}
-                                  onChange={(e) => setNewCampaignName(e.target.value)}
-                                  placeholder="e.g. March Lead Gen Blast"
-                                />
-                              </div>
-                              <div className="text-xs text-slate-500 bg-slate-50 dark:bg-slate-800 p-3 rounded-md">
-                                <p className="font-semibold mb-1">Configuration:</p>
-                                <ul className="list-disc list-inside space-y-0.5">
-                                  <li>Objective: Lead Generation (OUTCOME_LEADS)</li>
-                                  <li>Initial Status: Paused (Setup required in Meta Ads Manager)</li>
-                                  <li>Budget: Not set (Define in Ads Manager)</li>
-                                </ul>
-                              </div>
-                            </div>
-                            <DialogFooter>
-                              <Button variant="outline" onClick={() => setIsCreateCampaignDialogOpen(false)}>Cancel</Button>
-                              <Button
-                                onClick={handleCreateCampaign}
-                                disabled={isCreatingCampaign || !newCampaignName}
-                                className="bg-blue-600 hover:bg-blue-700"
-                              >
-                                {isCreatingCampaign ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                                Create Campaign
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                        <Button variant="outline" size="sm" onClick={() => loadCampaigns(selectedAdAccount.id)} disabled={isLoadingAds}>
-                          <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingAds ? 'animate-spin' : ''}`} /> Sync Data
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <Table>
-                        <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
-                          <TableRow>
-                            <TableHead className="font-bold">Campaign Name</TableHead>
-                            <TableHead className="font-bold">Status</TableHead>
-                            <TableHead className="font-bold">Objective</TableHead>
-                            <TableHead className="font-bold text-right">Spend</TableHead>
-                            <TableHead className="font-bold text-right">Results</TableHead>
-                            <TableHead className="font-bold text-right">CTR</TableHead>
-                            <TableHead className="font-bold text-right">CPC</TableHead>
-                            <TableHead className="font-bold text-right">Action</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {isLoadingAds ? (
-                            <TableRow>
-                              <TableCell colSpan={8} className="h-40 text-center text-muted-foreground bg-slate-50/50">
-                                <Plus className="h-8 w-8 animate-spin mx-auto text-blue-500 mb-2 opacity-20" />
-                                <p className="text-sm">Fetching campaigns and global insights...</p>
-                              </TableCell>
-                            </TableRow>
-                          ) : campaigns.length > 0 ? (
-                            campaigns.map((camp) => {
-                              const campInsight = insights.find(i => i.campaign_name === camp.name);
-                              const isExpanded = selectedCampaign?.id === camp.id;
-
+                      <ScrollArea className="h-[300px]">
+                        <div className="p-2 space-y-1">
+                          {adAccounts
+                            .filter(acc =>
+                              acc.name?.toLowerCase().includes(adAccountSearch.toLowerCase()) ||
+                              acc.id?.toLowerCase().includes(adAccountSearch.toLowerCase()) ||
+                              acc.business?.name?.toLowerCase().includes(adAccountSearch.toLowerCase())
+                            )
+                            .map((acc) => {
+                              const accStatus = AD_ACCOUNT_STATUS_MAP[acc.account_status] || { text: 'Unknown', color: 'bg-slate-100 text-slate-700' };
                               return (
-                                <React.Fragment key={camp.id}>
-                                  <TableRow
-                                    className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer ${isExpanded ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''}`}
-                                    onClick={() => isExpanded ? setSelectedCampaign(null) : loadAdSets(camp)}
-                                  >
-                                    <TableCell className="font-bold flex items-center space-x-2">
-                                      <ChevronRight className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90 text-blue-500' : 'text-slate-300'}`} />
-                                      <span className="truncate max-w-[150px]">{camp.name}</span>
-                                    </TableCell>
-                                    <TableCell>
-                                      <Badge variant={camp.status === 'ACTIVE' ? 'default' : 'secondary'} className={camp.status === 'ACTIVE' ? 'bg-green-500' : ''}>
-                                        {camp.status}
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-[10px] font-mono opacity-70">
-                                      {camp.objective?.replace('OUTCOME_', '')}
-                                    </TableCell>
-                                    <TableCell className="text-right font-semibold">
-                                      {selectedAdAccount.currency} {campInsight?.spend || '0.00'}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      <div className="flex flex-col items-end">
-                                        <span className="font-bold text-blue-600">{campInsight?.clicks || 0}</span>
-                                        <span className="text-[9px] text-muted-foreground uppercase tracking-wider">Clicks</span>
+                                <button
+                                  key={acc.id}
+                                  onClick={() => {
+                                    setSelectedAdAccount(acc);
+                                    loadCampaigns(acc.id);
+                                    setIsAdAccountOpen(false);
+                                  }}
+                                  className={`w-full flex items-start gap-3 p-3 text-left rounded-xl transition-all bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800/80 group ${selectedAdAccount?.id === acc.id ? 'bg-blue-50 dark:bg-blue-900/30' : ''} ${acc.account_status !== 1 ? 'opacity-60' : ''}`}
+                                >
+                                  <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-white dark:group-hover:bg-slate-700 transition-colors">
+                                    <Briefcase className={`h-4 w-4 ${selectedAdAccount?.id === acc.id ? 'text-blue-500' : 'text-slate-400'}`} />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between mb-0.5">
+                                      <span className="font-bold text-sm truncate uppercase tracking-tight">{acc.name}</span>
+                                      <div className="flex items-center gap-1.5 shrink-0">
+                                        <Badge className={`text-[9px] px-1.5 h-4 leading-none border-0 ${accStatus.color}`}>{accStatus.text}</Badge>
+                                        {selectedAdAccount?.id === acc.id && <Check className="h-3.5 w-3.5 text-blue-500" />}
                                       </div>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      <div className="flex flex-col items-end">
-                                        <span className={`font-bold ${parseFloat(campInsight?.ctr || '0') > 1.5 ? 'text-green-600' : parseFloat(campInsight?.ctr || '0') > 0.8 ? 'text-amber-500' : 'text-slate-600'}`}>
-                                          {parseFloat(campInsight?.ctr || '0').toFixed(2)}%
-                                        </span>
-                                        <span className="text-[8px] text-muted-foreground opacity-50 uppercase">CTR</span>
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      <div className="flex flex-col items-end">
-                                        <span className="font-bold text-slate-700 dark:text-slate-300">
-                                          {selectedAdAccount.currency} {parseFloat(campInsight?.cpc || '0').toFixed(2)}
-                                        </span>
-                                        <span className="text-[8px] text-muted-foreground opacity-50 uppercase">CPC</span>
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      <div className="flex items-center justify-end space-x-1">
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className={`h-8 w-8 ${camp.status === 'ACTIVE' ? 'text-amber-500 hover:text-amber-600' : 'text-green-500 hover:text-green-600'}`}
-                                          onClick={(e) => { e.stopPropagation(); handleUpdateStatus(camp.id, camp.status); }}
-                                          title={camp.status === 'ACTIVE' ? 'Pause Campaign' : 'Resume Campaign'}
-                                        >
-                                          {camp.status === 'ACTIVE' ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8 text-slate-400 hover:text-blue-500"
-                                          onClick={(e) => { e.stopPropagation(); handleArchiveObject(camp.id); }}
-                                          title="Archive Campaign"
-                                        >
-                                          <Archive className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8 text-slate-400 hover:text-red-500"
-                                          onClick={(e) => { e.stopPropagation(); handleDeleteObject(camp.id, 'Campaign'); }}
-                                          title="Delete Campaign"
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    </TableCell>
-                                  </TableRow>
-
-                                  {isExpanded && (
-                                    <TableRow className="bg-slate-50/50 dark:bg-slate-900/50">
-                                      <TableCell colSpan={6} className="p-0 border-b border-blue-100 dark:border-blue-900/30">
-                                        <div className="pl-12 pr-4 py-4 space-y-4">
-                                          <div className="flex items-center justify-between mb-2">
-                                            <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">Ad Sets in this Campaign</h4>
-
-                                            <Dialog open={isCreateAdSetDialogOpen} onOpenChange={setIsCreateAdSetDialogOpen}>
-                                              <DialogTrigger asChild>
-                                                <Button size="sm" variant="ghost" className="h-7 text-[10px] font-bold text-blue-600">
-                                                  <Plus className="h-3 w-3 mr-1" /> New Ad Set
-                                                </Button>
-                                              </DialogTrigger>
-                                              <DialogContent>
-                                                <DialogHeader><DialogTitle>Quick Create Ad Set</DialogTitle></DialogHeader>
-                                                <div className="py-4 space-y-4">
-                                                  <div className="space-y-2">
-                                                    <Label>Ad Set Name</Label>
-                                                    <Input value={newAdSetName} onChange={(e) => setNewAdSetName(e.target.value)} placeholder="e.g. Lead Gen South" />
-                                                  </div>
-                                                </div>
-                                                <DialogFooter>
-                                                  <Button onClick={handleCreateAdSet} disabled={isCreatingAdSet || !newAdSetName}>
-                                                    {isCreatingAdSet && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
-                                                    Create Ad Set
-                                                  </Button>
-                                                </DialogFooter>
-                                              </DialogContent>
-                                            </Dialog>
-                                          </div>
-
-                                          {isLoadingAdSets ? (
-                                            <div className="flex justify-center py-4"><Loader2 className="h-5 w-5 animate-spin text-blue-400" /></div>
-                                          ) : adSets.length > 0 ? (
-                                            <div className="space-y-2">
-                                              {adSets.map((set) => {
-                                                const isAdSetExpanded = selectedAdSet?.id === set.id;
-                                                return (
-                                                  <div key={set.id} className="border rounded-lg bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
-                                                    <div
-                                                      className="p-3 flex items-center justify-between cursor-pointer hover:bg-slate-50"
-                                                      onClick={() => isAdSetExpanded ? setSelectedAdSet(null) : loadAds(set)}
-                                                    >
-                                                      <div className="flex items-center space-x-3">
-                                                        <ChevronRight className={`h-3 w-3 transition-transform ${isAdSetExpanded ? 'rotate-90' : ''}`} />
-                                                        <span className="text-sm font-bold">{set.name}</span>
-                                                        <Badge variant="outline" className="text-[9px] uppercase">{set.status}</Badge>
-                                                      </div>
-                                                      <div className="flex items-center space-x-4">
-                                                        <div className="text-right flex items-center space-x-2">
-                                                          <div className="flex flex-col text-right">
-                                                            <p className="text-[10px] text-muted-foreground uppercase opacity-70">Daily Budget</p>
-                                                            <div className="flex items-center group/budget">
-                                                              <span className="text-xs font-bold mr-1">{selectedAdAccount.currency}</span>
-                                                              <input
-                                                                type="number"
-                                                                defaultValue={(set.daily_budget || 0) / 100}
-                                                                className="w-16 h-6 text-xs font-bold bg-transparent border-b border-transparent focus:border-blue-500 focus:outline-none focus:bg-white px-1"
-                                                                onBlur={(e) => {
-                                                                  const val = parseFloat(e.target.value);
-                                                                  if (!isNaN(val)) handleUpdateBudget(set.id, val);
-                                                                }}
-                                                              />
-                                                            </div>
-                                                          </div>
-                                                        </div>
-                                                        <div className="flex items-center space-x-1">
-                                                          <Button variant="ghost" size="icon" className="h-7 w-7 text-amber-500" onClick={(e) => { e.stopPropagation(); handleUpdateStatus(set.id, set.status); }} title="Toggle Status">
-                                                            {set.status === 'ACTIVE' ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                                                          </Button>
-                                                          <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-red-500" onClick={(e) => { e.stopPropagation(); handleDeleteObject(set.id, 'Ad Set'); }} title="Delete Ad Set">
-                                                            <Trash2 className="h-3 w-3" />
-                                                          </Button>
-                                                        </div>
-                                                      </div>
-                                                    </div>
-
-                                                    {isAdSetExpanded && (
-                                                      <div className="bg-slate-50 border-t p-3">
-                                                        <div className="flex items-center justify-between mb-2 pl-6">
-                                                          <h5 className="text-[10px] font-bold uppercase text-slate-400">Active Ads</h5>
-                                                          <Dialog open={isCreateAdDialogOpen} onOpenChange={setIsCreateAdDialogOpen}>
-                                                            <DialogTrigger asChild>
-                                                              <Button size="sm" variant="ghost" className="h-6 text-[9px] font-bold text-blue-600">
-                                                                <Plus className="h-2.5 w-2.5 mr-1" /> New Ad
-                                                              </Button>
-                                                            </DialogTrigger>
-                                                            <DialogContent className="sm:max-w-md">
-                                                              <DialogHeader><DialogTitle>Quick Create Ad</DialogTitle></DialogHeader>
-                                                              <div className="py-4 space-y-4">
-                                                                <div className="space-y-2">
-                                                                  <Label>Ad Name</Label>
-                                                                  <Input value={newAdName} onChange={(e) => setNewAdName(e.target.value)} placeholder="e.g. 20% Off Promo" />
-                                                                </div>
-
-                                                                <div className="space-y-2">
-                                                                  <Label>Facebook Page</Label>
-                                                                  <Select value={selectedAdPageId} onValueChange={setSelectedAdPageId}>
-                                                                    <SelectTrigger>
-                                                                      <SelectValue placeholder="Select Page" />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                      {pages.map(p => (
-                                                                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                                                                      ))}
-                                                                    </SelectContent>
-                                                                  </Select>
-                                                                </div>
-
-                                                                <div className="space-y-2">
-                                                                  <Label>Lead Form</Label>
-                                                                  <Select
-                                                                    value={selectedAdFormId}
-                                                                    onValueChange={setSelectedAdFormId}
-                                                                    disabled={isLoadingAdCreationForms || adCreationForms.length === 0}
-                                                                  >
-                                                                    <SelectTrigger>
-                                                                      <SelectValue placeholder={isLoadingAdCreationForms ? "Loading forms..." : "Select Form"} />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                      {adCreationForms.map(f => (
-                                                                        <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
-                                                                      ))}
-                                                                    </SelectContent>
-                                                                  </Select>
-                                                                  {adCreationForms.length === 0 && !isLoadingAdCreationForms && selectedAdPageId && (
-                                                                    <p className="text-[10px] text-red-500 font-bold">No forms found for this page. Please create one in 'Pages & Leads' tab.</p>
-                                                                  )}
-                                                                </div>
-
-                                                                <p className="text-[10px] text-muted-foreground border-t pt-2">This will create a lead ad using high-quality placeholder creative.</p>
-                                                              </div>
-                                                              <DialogFooter>
-                                                                <Button onClick={handleCreateAd} disabled={isCreatingAd || !newAdName || !selectedAdFormId}>
-                                                                  {isCreatingAd && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
-                                                                  Create Ad
-                                                                </Button>
-                                                              </DialogFooter>
-                                                            </DialogContent>
-                                                          </Dialog>
-                                                        </div>
-                                                        {isLoadingSpecificAds ? (
-                                                          <div className="flex justify-center"><Loader2 className="h-4 w-4 animate-spin" /></div>
-                                                        ) : ads.length > 0 ? (
-                                                          <div className="pl-6 space-y-2">
-                                                            {ads.map((ad) => (
-                                                              <div key={ad.id} className="flex items-center justify-between bg-white p-2 rounded border shadow-xs">
-                                                                <div className="flex items-center space-x-2">
-                                                                  <div className="h-6 w-6 bg-slate-100 rounded flex items-center justify-center">
-                                                                    <FileText className="h-3 w-3 text-slate-400" />
-                                                                  </div>
-                                                                  <span className="text-xs font-semibold">{ad.name}</span>
-                                                                  <Badge variant="outline" className="text-[8px] h-4">{ad.status}</Badge>
-                                                                </div>
-                                                                <div className="flex items-center space-x-1">
-                                                                  <Button variant="ghost" size="icon" className="h-6 w-6 text-amber-500" onClick={() => handleUpdateStatus(ad.id, ad.status)} title="Toggle Status">
-                                                                    {ad.status === 'ACTIVE' ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                                                                  </Button>
-                                                                  <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-red-500" onClick={() => handleDeleteObject(ad.id, 'Ad')} title="Delete Ad">
-                                                                    <Trash2 className="h-3 w-3" />
-                                                                  </Button>
-                                                                </div>
-                                                              </div>
-                                                            ))}
-                                                          </div>
-                                                        ) : (
-                                                          <p className="text-[10px] text-center text-muted-foreground">No ads in this set</p>
-                                                        )}
-                                                      </div>
-                                                    )}
-                                                  </div>
-                                                );
-                                              })}
-                                            </div>
-                                          ) : (
-                                            <p className="text-xs text-center text-muted-foreground border-dashed border-2 p-4 rounded-xl">No Ad Sets found for this campaign.</p>
-                                          )}
-                                        </div>
-                                      </TableCell>
-                                    </TableRow>
-                                  )}
-                                </React.Fragment>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest opacity-70">
+                                      <span>{acc.business?.name || 'Personal'}</span>
+                                      <span>•</span>
+                                      <span className="font-mono">{acc.id}</span>
+                                      <span>•</span>
+                                      <span className="font-mono">{acc.currency}</span>
+                                    </div>
+                                  </div>
+                                </button>
                               );
                             })
+                          }
+                          {adAccounts.length === 0 && <div className="p-8 text-center text-sm text-slate-500 italic">No ad accounts found</div>}
+                        </div>
+                      </ScrollArea>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              {selectedAdAccount ? (
+                  <div className="flex flex-col h-full bg-[#f0f2f5] dark:bg-slate-950 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
+                    {/* Insights Summary Cards */}
+                    <div className="p-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                      <div className="min-w-[140px] flex-1 bg-blue-600 p-2.5 rounded-xl text-white shadow-sm transition-all hover:bg-blue-700">
+                        <p className="text-[9px] opacity-80 uppercase font-black tracking-widest leading-none mb-1">Spend (30d)</p>
+                        <h3 className="text-sm font-black truncate">
+                          {selectedAdAccount.currency} {insights.reduce((sum, i) => sum + parseFloat(i.spend || '0'), 0).toFixed(2)}
+                        </h3>
+                      </div>
+                      <div className="min-w-[140px] flex-1 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest leading-none mb-1">Impressions</p>
+                        <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">
+                          {insights.reduce((sum, i) => sum + parseInt(i.impressions || '0'), 0).toLocaleString()}
+                        </h3>
+                      </div>
+                      <div className="min-w-[140px] flex-1 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest leading-none mb-1">Link Clicks</p>
+                        <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">
+                          {insights.reduce((sum, i) => sum + parseInt(i.inline_link_clicks || '0'), 0).toLocaleString()}
+                        </h3>
+                      </div>
+                      <div className="min-w-[140px] flex-1 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest leading-none mb-1">Avg. CTR</p>
+                        <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">
+                          {(insights.reduce((sum, i) => sum + parseFloat(i.ctr || '0'), 0) / Math.max(insights.length, 1)).toFixed(2)}%
+                        </h3>
+                      </div>
+                      <div className="min-w-[140px] flex-1 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest leading-none mb-1">Avg. CPC</p>
+                        <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">
+                          {selectedAdAccount.currency} {(insights.reduce((sum, i) => sum + parseFloat(i.cpc || '0'), 0) / Math.max(insights.length, 1)).toFixed(2)}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Top Breadcrumb Header */}
+                  <div className="flex items-center justify-between px-4 py-2 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-bold text-slate-900 dark:text-white capitalize">
+                        {activeInnerTab.replace('_', ' ')}
+                      </span>
+                      <div className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800 mx-1" />
+                      <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 cursor-pointer transition-colors group">
+                         <div className="h-5 w-5 bg-blue-100 dark:bg-blue-900/30 rounded flex items-center justify-center text-blue-600 font-bold text-[10px]">
+                           {selectedAdAccount.name.charAt(0)}
+                         </div>
+                         <span className="text-xs font-medium text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white">
+                           {selectedAdAccount.name} ({selectedAdAccount.id})
+                         </span>
+                         <ChevronDown className="h-3 w-3 text-slate-400" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
+                        <span>Updated just now</span>
+                        <button onClick={() => loadCampaigns(selectedAdAccount.id)} className="p-1 bg-white border border-slate-200 shadow-sm hover:bg-blue-50 dark:hover:bg-slate-800 rounded transition-colors" title="Reload Basic Data">
+                          <RefreshCw className={`h-3 w-3 ${isLoadingAds ? 'animate-spin' : ''}`} />
+                        </button>
+                        <button 
+                          onClick={handleDeepSyncAccount} 
+                          disabled={isDeepSyncing}
+                          className={`p-1 bg-white border border-slate-200 shadow-sm hover:bg-blue-50 dark:hover:bg-slate-800 rounded transition-all ${isDeepSyncing ? 'animate-spin border-blue-500 text-blue-500' : ''}`}
+                          title="Deep Sync (Reports & Metrics)"
+                        >
+                          <Zap className={`h-3 w-3 ${isDeepSyncing ? 'text-blue-500' : ''}`} />
+                        </button>
+                      </div>
+                      <Button size="sm" variant="outline" className="h-8 text-xs font-bold bg-[#e4e6eb] dark:bg-slate-800 border-none hover:bg-slate-200 dark:hover:bg-slate-700">
+                        Review and publish
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Meta Resource Bar */}                   <div className="px-4 py-2 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setResourceFilter('all')}
+                        className={`h-8 px-3 text-xs font-bold transition-all ${resourceFilter === 'all' ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <List className="h-3.5 w-3.5" /> All ads
+                        </div>
+                      </Button>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 px-3 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
+                            <Zap className="h-3.5 w-3.5 mr-2" /> Actions <ChevronDown className="h-3 w-3 ml-1" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-48 p-2 rounded-xl">
+                           <DropdownMenuItem className="py-2.5 font-bold cursor-pointer" onClick={() => loadCampaigns(selectedAdAccount.id, true)}>
+                             <RefreshCw className="h-4 w-4 mr-2 text-blue-500" /> Refresh Current View
+                           </DropdownMenuItem>
+                           <DropdownMenuItem className="py-2.5 font-bold cursor-pointer" onClick={handleDeepSyncAccount}>
+                             <Zap className="h-4 w-4 mr-2 text-amber-500" /> Account Deep Sync
+                           </DropdownMenuItem>
+                           <DropdownMenuItem className="py-2.5 font-bold cursor-pointer text-red-500 border-t border-slate-50 mt-1" onClick={() => toast.info("Lead Flow Active", { description: "Currently monitoring real-time form submissions." })}>
+                             <Trash2 className="h-4 w-4 mr-2" /> Bulk Delete
+                           </DropdownMenuItem>
+                           <DropdownMenuItem className="py-2.5 font-bold cursor-pointer opacity-50">
+                             <Archive className="h-4 w-4 mr-2" /> Bulk Archive
+                           </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setResourceFilter('active')}
+                        className={`h-8 px-3 text-xs font-bold transition-all ${resourceFilter === 'active' ? 'text-green-600 bg-green-50 dark:bg-green-900/10' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                      >
+                        <TrendingUp className="h-3.5 w-3.5 mr-2" /> Active ads
+                      </Button>
+
+                      <div className="flex-1 min-w-[200px] relative">
+                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                       <input
+                         type="text"
+                         placeholder="Search to filter by: name, ID or metrics"
+                         className="w-full pl-9 pr-4 py-1.5 bg-transparent border-none text-xs focus:ring-0 placeholder:text-slate-400 font-medium"
+                     />
+                     </div>
+                  </div>
+
+                  {/* Inner Tabs */}
+                  <div className="flex items-center bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-1">
+                     <button
+                       onClick={() => setActiveInnerTab('campaigns')}
+                       className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'campaigns' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                     >
+                       <div className="flex items-center gap-2">
+                         <Layout className="h-4 w-4" /> Campaigns
+                       </div>
+                     </button>
+                     <button
+                       onClick={() => setActiveInnerTab('ad_sets')}
+                       className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'ad_sets' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                     >
+                       <div className="flex items-center gap-2">
+                         <Layers className="h-4 w-4" /> Ad sets
+                       </div>
+                     </button>
+                     <button
+                       onClick={() => setActiveInnerTab('ads')}
+                       className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'ads' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                     >
+                       <div className="flex items-center gap-2">
+                         <FileText className="h-4 w-4" /> Ads
+                       </div>
+                     </button>
+                  </div>
+
+                  {/* Toolbar */}
+                  <div className="px-4 py-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                     <div className="flex items-center gap-2">
+                       <DropdownMenu>
+                         <DropdownMenuTrigger asChild>
+                            <Button variant="default" size="sm" className="h-8 !bg-[#00a400] hover:!bg-[#008a00] text-white font-bold text-xs px-4 rounded-md border-none">
+                              <Plus className="h-3.5 w-3.5 mr-1.5" /> Create <ChevronDown className="h-3 w-3 ml-1" />
+                            </Button>
+                         </DropdownMenuTrigger>
+                         <DropdownMenuContent align="start" className="w-48 p-2 rounded-xl">
+                            <DropdownMenuItem className="py-2 font-bold cursor-pointer" onClick={() => setIsCreateCampaignDialogOpen(true)}>
+                              <Layout className="h-4 w-4 mr-2 text-blue-500" /> Create Campaign
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="py-2 font-bold cursor-pointer" onClick={() => selectedCampaign ? setIsCreateAdSetDialogOpen(true) : toast.info("Select Campaign", { description: "Please select a campaign first." })}>
+                              <Layers className="h-4 w-4 mr-2 text-purple-500" /> Create Ad Set
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="py-2 font-bold cursor-pointer" onClick={() => selectedAdSet ? setIsCreateAdDialogOpen(true) : toast.info("Select Ad Set", { description: "Please select an ad set first." })}>
+                              <FileText className="h-4 w-4 mr-2 text-green-500" /> Create Ad
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="py-2 font-bold cursor-pointer border-t border-slate-100 mt-1 dark:border-slate-800" onClick={() => setIsCreateAudienceDialogOpen(true)}>
+                              <Users className="h-4 w-4 mr-2 text-blue-600" /> New Audience
+                            </DropdownMenuItem>
+                         </DropdownMenuContent>
+                       </DropdownMenu>
+
+
+                       <Button variant="outline" size="sm" onClick={() => toast.info("Select items", { description: "Please select one or more items to duplicate." })} className="h-8 text-xs font-bold gap-1.5 px-3">
+                         <Copy className="h-3.5 w-3.5" /> Duplicate
+                       </Button>
+                       <Button variant="outline" size="sm" onClick={() => toast.info("Select item", { description: "Please select a specific item to edit." })} className="h-8 text-xs font-bold gap-1.5 px-3">
+                         <Pencil className="h-3.5 w-3.5" /> Edit
+                       </Button>
+                       <Button variant="outline" size="sm" onClick={() => toast.info("A/B Testing", { description: "Select two items to start an A/B test comparison." })} className="h-8 text-xs font-bold gap-1.5 px-3">
+                         <Share2 className="h-3.5 w-3.5" /> A/B test
+                       </Button>
+                       <DropdownMenu>
+                         <DropdownMenuTrigger asChild>
+                           <Button variant="ghost" size="sm" className="h-8 text-xs font-bold">
+                             More <ChevronDown className="h-3 w-3 ml-1" />
+                           </Button>
+                         </DropdownMenuTrigger>
+                         <DropdownMenuContent align="start">
+                           <DropdownMenuItem onClick={() => toast.info("ROAS Estimate", { description: "Expected range: 2.1x - 3.5x" })}>Export</DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => toast.info("Import", { description: "Bulk import restricted." })}>Import</DropdownMenuItem>
+                           <DropdownMenuItem className="text-red-500" onClick={() => toast.info("Delete", { description: "Select items for bulk deletion." })}>Delete</DropdownMenuItem>
+                         </DropdownMenuContent>
+                       </DropdownMenu>
+                     </div>
+                     <div className="flex items-center gap-2">
+                       <div className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 dark:border-slate-800 rounded-md bg-slate-50/50 dark:bg-slate-800/50 text-[10px] uppercase tracking-wider font-extrabold text-slate-500">
+                         <Calendar className="h-3 w-3" /> Last 30 days
+                       </div>
+                       <Button variant="outline" size="sm" className="h-8 font-bold text-xs gap-1.5 px-3">
+                          <Filter className="h-3.5 w-3.5" /> Columns
+                       </Button>
+                     </div>
+                  </div>
+                  {/* Dynamic Inner Content */}
+                  <div className="flex-1 overflow-auto bg-white dark:bg-slate-900">
+                     {/* Campaigns View */}
+                     {activeInnerTab === 'campaigns' && (
+                       <Table>
+                         <TableHeader className="bg-slate-50 dark:bg-green-900/20 sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
+                           <TableRow className="hover:bg-transparent">
+                             <TableHead className="w-10 px-4"><Checkbox /></TableHead>
+                             <TableHead className="w-12 text-center text-[11px] font-black uppercase text-slate-600 py-4">Off/On</TableHead>
+                             <TableHead className="min-w-[200px] text-[11px] font-black uppercase text-slate-600">Campaign Name</TableHead>
+                             <TableHead className="text-[11px] font-black uppercase text-slate-600">Delivery</TableHead>
+                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Results</TableHead>
+                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Budget</TableHead>
+                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Amount Spent</TableHead>
+                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">CTR</TableHead>
+                             <TableHead className="text-center text-[11px] font-black uppercase text-slate-600">Actions</TableHead>
+                           </TableRow>
+                         </TableHeader>
+                         <TableBody>
+                           {isLoadingAds ? (
+                             <TableRow>
+                               <TableCell colSpan={9} className="h-64 text-center">
+                                 <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500 opacity-20 mb-2" />
+                                 <span className="text-xs font-medium text-slate-400">Loading campaigns...</span>
+                               </TableCell>
+                             </TableRow>
+                           ) : campaigns.length > 0 ? (
+                             campaigns
+                               .filter(camp => resourceFilter === 'all' || camp.status === 'ACTIVE')
+                               .map((camp) => {
+                               const campInsight = insights.find(i => i.campaign_name === camp.name);
+                               return (
+                                 <TableRow key={camp.id} className="group hover:bg-blue-100/30 dark:hover:bg-blue-900/10 border-b border-slate-100 dark:border-slate-800 h-16">
+                                   <TableCell className="px-4"><Checkbox /></TableCell>
+                                   <TableCell className="text-center">
+                                     <Switch 
+                                       checked={camp.status === 'ACTIVE'} 
+                                       className="scale-90 data-[state=checked]:!bg-[#00a400] data-[state=unchecked]:bg-slate-100 dark:data-[state=unchecked]:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 shadow-sm"
+                                       onCheckedChange={() => handleUpdateStatus(camp.id, camp.status)}
+                                     />
+                                   </TableCell>
+                                   <TableCell>
+                                     <div 
+                                       className="font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer truncate max-w-[250px] transition-colors"
+                                       onClick={() => {
+                                         loadAdSets(camp);
+                                         setActiveInnerTab('ad_sets');
+                                       }}
+                                     >
+                                       {camp.name}
+                                     </div>
+                                     <div className="flex items-center gap-1.5 mt-1 text-[9px] text-slate-400 font-bold tracking-tight uppercase">
+                                        <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[8px]">{camp.objective?.replace('OUTCOME_', '')}</span>
+                                        <span>•</span>
+                                        <span className="font-mono">ID: {camp.id}</span>
+                                     </div>
+                                   </TableCell>
+                                   <TableCell>
+                                     <div className="flex items-center gap-2">
+                                       <div className={`h-2.5 w-2.5 rounded-full ${camp.status === 'ACTIVE' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-slate-400'}`} />
+                                       <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 capitalize">{camp.status.toLowerCase()}</span>
+                                     </div>
+                                   </TableCell>
+                                   <TableCell className="text-right">
+                                     <div className="text-xs font-black">{campInsight?.results || '-'}</div>
+                                     <div className="text-[10px] text-slate-400">Leads</div>
+                                   </TableCell>
+                                   <TableCell className="text-right">
+                                     <div className="text-xs font-black">{selectedAdAccount.currency} {camp.daily_budget ? (camp.daily_budget / 100).toFixed(2) : '-'}</div>
+                                     <div className="text-[10px] text-slate-400">Daily Average</div>
+                                   </TableCell>
+                                   <TableCell className="text-right">
+                                     <div className="text-xs font-black">{selectedAdAccount.currency} {parseFloat(campInsight?.spend || '0').toFixed(2)}</div>
+                                   </TableCell>
+                                   <TableCell className="text-right">
+                                     <div className="text-xs font-black">{campInsight?.ctr || '0.00'}%</div>
+                                   </TableCell>
+                                   <TableCell className="text-center">
+                                     <div className="flex items-center justify-center gap-1 transition-opacity">
+                                       <button 
+                                          className="p-1.5 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-full text-blue-600 transition-colors" 
+                                          onClick={() => {
+                                            setSelectedCampaign(camp);
+                                            setIsCreateAdSetDialogOpen(true);
+                                          }} 
+                                          title="Add Ad Set"
+                                        >
+                                          <Plus className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button 
+                                           className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full" 
+                                           title="Edit"
+                                           onClick={() => {
+                                             setEditingCampaign(camp);
+                                             setNewCampaignName(camp.name);
+                                             setIsEditCampaignDialogOpen(true);
+                                           }}
+                                         >
+                                           <Edit3 className="h-3.5 w-3.5 text-slate-500" />
+                                         </button>
+                                       <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-red-500" onClick={() => handleDuplicateObject(camp.id, 'Campaign')} title="Duplicate"><Copy className="h-3.5 w-3.5" /></button><button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-red-500" onClick={() => handleDeleteObject(camp.id, 'Campaign')} title="Delete">
+                                         <Trash2 className="h-3.5 w-3.5" />
+                                       </button>
+                                     </div>
+                                   </TableCell>
+                                 </TableRow>
+                               );
+                             })
+                           ) : (
+                             <TableRow>
+                               <TableCell colSpan={9} className="h-64 text-center">
+                                 <div className="flex flex-col items-center justify-center space-y-4">
+                                   <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center">
+                                     <Layout className="h-8 w-8 text-slate-300" />
+                                   </div>
+                                   <div>
+                                     <p className="text-slate-500 font-bold mb-1">No campaigns found in this account</p>
+                                     <p className="text-slate-400 text-xs">Start your lead generation journey by creating a campaign.</p>
+                                   </div>
+                                   <Button 
+                                     onClick={() => setIsCreateCampaignDialogOpen(true)}
+                                     className="!bg-[#00a400] hover:!bg-[#008a00] text-white font-black shadow-md border-none gap-2"
+                                   >
+                                     <Plus className="h-4 w-4 mr-2" />
+                                     Create Campaign
+                                   </Button>
+                                 </div>
+                               </TableCell>
+                             </TableRow>
+                           )}
+                         </TableBody>
+                       </Table>
+                     )}
+
+                     {/* Ad Sets View */}
+                     {activeInnerTab === 'ad_sets' && (
+                       <Table>
+                         <TableHeader className="bg-slate-50 dark:bg-green-900/20 sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
+                           <TableRow className="hover:bg-transparent">
+                             <TableHead className="w-10 px-4"><Checkbox /></TableHead>
+                             <TableHead className="w-12 text-center text-[11px] font-black uppercase text-slate-600 py-4">Off/On</TableHead>
+                             <TableHead className="min-w-[200px] text-[11px] font-black uppercase text-slate-600">Ad Set Name</TableHead>
+                             <TableHead className="text-[11px] font-black uppercase text-slate-600">Delivery</TableHead>
+                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Results</TableHead>
+                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Budget</TableHead>
+                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Amount Spent</TableHead>
+                             <TableHead className="text-center text-[11px] font-black uppercase text-slate-600">Actions</TableHead>
+                           </TableRow>
+                         </TableHeader>
+                         <TableBody>
+                           {isLoadingAdSets ? (
+                             <TableRow>
+                               <TableCell colSpan={8} className="h-64 text-center">
+                                 <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500 opacity-20 mb-2" />
+                                 <span className="text-xs font-medium text-slate-400">Loading ad sets...</span>
+                               </TableCell>
+                             </TableRow>
+                           ) : adSets.length > 0 ? (
+                             adSets
+                             .filter(set => resourceFilter === 'all' || set.status === 'ACTIVE')
+                             .map((set) => (
+                               <TableRow key={set.id} className="group hover:bg-blue-100/30 dark:hover:bg-blue-900/10 border-b border-slate-100 dark:border-slate-800 h-16">
+                                 <TableCell className="px-4"><Checkbox /></TableCell>
+                                 <TableCell className="text-center">
+                                   <Switch 
+                                      checked={set.status === 'ACTIVE'} 
+                                      className="scale-90 data-[state=checked]:!bg-[#00a400] data-[state=unchecked]:bg-slate-100 dark:data-[state=unchecked]:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 shadow-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" 
+                                      onCheckedChange={() => handleUpdateStatus(set.id, set.status)}
+                                    />
+                                 </TableCell>
+                                 <TableCell>
+                                   <div 
+                                     className="font-bold text-blue-600 hover:underline cursor-pointer truncate max-w-[250px]"
+                                     onClick={() => {
+                                       loadAds(set);
+                                       setActiveInnerTab('ads');
+                                     }}
+                                   >
+                                     {set.name}
+                                   </div>
+                                   <div className="text-[9px] text-slate-400 mt-0.5 uppercase tracking-widest font-mono">ID: {set.id}</div>
+                                 </TableCell>
+                                 <TableCell>
+                                   <div className="flex items-center gap-2">
+                                     <div className={`h-2.5 w-2.5 rounded-full ${set.status === 'ACTIVE' ? 'bg-green-500' : 'bg-slate-400'}`} />
+                                     <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 capitalize">{set.status.toLowerCase()}</span>
+                                   </div>
+                                 </TableCell>
+                                 <TableCell className="text-right">
+                                   <div className="text-xs font-black">-</div>
+                                   <div className="text-[10px] text-slate-400">Leads</div>
+                                 </TableCell>
+                                 <TableCell className="text-right">
+                                   <div className="text-xs font-black">{selectedAdAccount.currency} {set.daily_budget ? (set.daily_budget / 100).toFixed(2) : '-'}</div>
+                                   <div className="text-[10px] text-slate-400">Daily Average</div>
+                                 </TableCell>
+                                 <TableCell className="text-right font-black text-xs">
+                                   {selectedAdAccount.currency} 0.00
+                                 </TableCell>
+                                  <TableCell className="text-center">
+                                   <div className="flex items-center justify-center gap-1 transition-opacity">
+                                     <button 
+                                       className="p-1.5 hover:bg-green-50 dark:hover:bg-green-900/40 rounded-full text-green-600 transition-colors" 
+                                       onClick={() => {
+                                         setSelectedAdSet(set);
+                                         setIsCreateAdDialogOpen(true);
+                                       }} 
+                                       title="Add Ad"
+                                     >
+                                       <Plus className="h-3.5 w-3.5" />
+                                     </button>
+                                     <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => toast.info("Edit Ad Set", { description: "Audience editing coming soon." })} title="Edit">
+                                       <Edit3 className="h-3.5 w-3.5" />
+                                     </button>
+                                     <button className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-full text-blue-500 transition-colors" onClick={() => handleDuplicateObject(set.id, 'Ad Set')} title="Duplicate">
+                                       <Copy className="h-3.5 w-3.5" />
+                                     </button>
+                                     <button className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/40 rounded-full text-red-500 transition-colors" onClick={() => handleDeleteObject(set.id, 'Ad Set')} title="Delete">
+                                       <Trash2 className="h-3.5 w-3.5" />
+                                     </button>
+                                   </div>
+                                 </TableCell>
+                               </TableRow>
+                             ))
+                           ) : (
+                             <TableRow>
+                               <TableCell colSpan={8} className="h-64 text-center">
+                                 <div className="flex flex-col items-center justify-center space-y-4">
+                                   <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center">
+                                     <Layers className="h-8 w-8 text-slate-300" />
+                                   </div>
+                                   <div>
+                                     <p className="text-slate-500 font-bold mb-1">
+                                       {selectedCampaign ? `No ad sets found for campaign: ${selectedCampaign.name}` : 'Select a campaign to view ad sets'}
+                                     </p>
+                                     <p className="text-slate-400 text-xs">Define your audience and budget by creating an ad set.</p>
+                                   </div>
+                                   {selectedCampaign && (
+                                     <Button 
+                                       onClick={() => setIsCreateAdSetDialogOpen(true)}
+                                       className="!bg-[#00a400] hover:!bg-[#008a00] text-white font-black shadow-md border-none gap-2"
+                                     >
+                                       <Plus className="h-4 w-4 mr-2" />
+                                       Create Ad Set
+                                     </Button>
+                                   )}
+                                 </div>
+                               </TableCell>
+                             </TableRow>
+                           )}
+                         </TableBody>
+                       </Table>
+                     )}
+
+                     {/* Ads View */}
+                     {activeInnerTab === 'ads' && (
+                       <Table>
+                         <TableHeader className="bg-slate-50 dark:bg-green-900/20 sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
+                           <TableRow className="hover:bg-transparent">
+                             <TableHead className="w-10 px-4"><Checkbox /></TableHead>
+                             <TableHead className="w-12 text-center text-[11px] font-black uppercase text-slate-600 py-4">Off/On</TableHead>
+                             <TableHead className="min-w-[200px] text-[11px] font-black uppercase text-slate-600">Ad Name</TableHead>
+                             <TableHead className="text-[11px] font-black uppercase text-slate-600">Delivery</TableHead>
+                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Results</TableHead>
+                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Reach</TableHead>
+                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Frequency</TableHead>
+                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Amount Spent</TableHead>
+                              <TableHead className="text-center text-[11px] font-black uppercase text-slate-600">Actions</TableHead>
+                           </TableRow>
+                         </TableHeader>
+                         <TableBody>
+                           {isLoadingSpecificAds ? (
+                             <TableRow>
+                               <TableCell colSpan={8} className="h-64 text-center">
+                                 <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500 opacity-20 mb-2" />
+                                 <span className="text-xs font-medium text-slate-400">Loading ads...</span>
+                               </TableCell>
+                             </TableRow>
+                           ) : ads.length > 0 ? (
+                             ads
+                             .filter(ad => resourceFilter === 'all' || ad.status === 'ACTIVE')
+                             .map((ad) => (
+                               <TableRow key={ad.id} className="group hover:bg-blue-100/30 dark:hover:bg-blue-900/10 border-b border-slate-100 dark:border-slate-800 h-16">
+                                 <TableCell className="px-4"><Checkbox /></TableCell>
+                                 <TableCell className="text-center">
+                                   <Switch 
+                                      checked={ad.status === 'ACTIVE'} 
+                                      className="scale-90 data-[state=checked]:!bg-[#00a400] data-[state=unchecked]:bg-slate-100 dark:data-[state=unchecked]:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 shadow-sm" 
+                                      onCheckedChange={() => handleUpdateStatus(ad.id, ad.status)}
+                                    />
+                                 </TableCell>
+                                 <TableCell>
+                                   <div className="font-bold text-slate-900 dark:text-white truncate max-w-[250px]">{ad.name}</div>
+                                   <div className="text-[9px] text-slate-400 mt-0.5 uppercase tracking-widest font-mono">ID: {ad.id}</div>
+                                 </TableCell>
+                                 <TableCell>
+                                   <div className="flex items-center gap-2">
+                                     <div className={`h-2.5 w-2.5 rounded-full ${ad.status === 'ACTIVE' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-slate-400'}`} />
+                                     <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 capitalize">{ad.status.toLowerCase()}</span>
+                                   </div>
+                                 </TableCell>
+                                 <TableCell className="text-right font-black text-xs">-</TableCell>
+                                 <TableCell className="text-right text-xs">0</TableCell>
+                                 <TableCell className="text-right text-xs">0.00</TableCell>
+                                 <TableCell className="text-right font-black text-xs">{selectedAdAccount.currency} 0.00</TableCell>
+                                 <TableCell className="text-center">
+                                   <div className="flex items-center justify-center gap-1 transition-opacity">
+                                     <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => toast.info("Edit Ad", { description: "Ad creative editing coming soon." })} title="Edit">
+                                       <Edit3 className="h-3.5 w-3.5" />
+                                     </button>
+                                     <button className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-full text-blue-500 transition-colors" onClick={() => handleDuplicateObject(ad.id, 'Ad')} title="Duplicate">
+                                       <Copy className="h-3.5 w-3.5" />
+                                     </button>
+                                     <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => window.open(`https://www.facebook.com/ads/manager/preview/display/?ad_id=${ad.id}`, '_blank')} title="Preview Ad">
+                                       <Eye className="h-3.5 w-3.5" />
+                                     </button>
+                                     <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-red-500" onClick={() => handleDeleteObject(ad.id, 'Ad')} title="Delete">
+                                       <Trash2 className="h-3.5 w-3.5" />
+                                     </button>
+                                   </div>
+                                 </TableCell>
+                               </TableRow>
+                             ))
+                           ) : (
+                             <TableRow>
+                               <TableCell colSpan={8} className="h-64 text-center">
+                                 <div className="flex flex-col items-center justify-center space-y-4">
+                                   <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center">
+                                     <FileText className="h-8 w-8 text-slate-300" />
+                                   </div>
+                                   <div>
+                                     <p className="text-slate-500 font-bold mb-1">
+                                       {selectedAdSet ? `No ads found for ad set: ${selectedAdSet.name}` : 'Select an ad set to view ads'}
+                                     </p>
+                                     <p className="text-slate-400 text-xs">Start showing your message by creating an ad.</p>
+                                   </div>
+                                   {selectedAdSet && (
+                                     <Button 
+                                       onClick={() => setIsCreateAdDialogOpen(true)}
+                                       className="!bg-[#00a400] hover:!bg-[#008a00] text-white font-black shadow-md border-none gap-2"
+                                     >
+                                       <Plus className="h-4 w-4 mr-2" />
+                                       Create Ad
+                                     </Button>
+                                   )}
+                                 </div>
+                               </TableCell>
+                             </TableRow>
+                           )}
+                         </TableBody>
+                       </Table>
+                     )}
+                  </div>
+                  
+                  {/* Bottom Global Status Bar */}
+                  <div className="px-4 py-2 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                     <div className="flex items-center gap-6">
+                       <span>1 Ad account selected</span>
+                       {activeInnerTab === 'campaigns' && <span>Results for {campaigns.length} Campaign{campaigns.length !== 1 ? 's' : ''}</span>}
+                       {activeInnerTab === 'ad_sets' && <span>Results for {adSets.length} Ad Set{adSets.length !== 1 ? 's' : ''}</span>}
+                       {activeInnerTab === 'ads' && <span>Results for {ads.length} Ad{ads.length !== 1 ? 's' : ''}</span>}
+                     </div>
+                     <div className="flex items-center gap-4">
+                       <span className="flex items-center gap-1.5"><Globe className="h-3 w-3" /> API Version v25.0</span>
+                       <span className="text-blue-600 cursor-pointer hover:underline">Facebook Ads Manager API</span>
+                     </div>
+                  </div>
+
+                  {/* Creation Dialogs */}
+                  <Dialog open={isCreateCampaignDialogOpen} onOpenChange={setIsCreateCampaignDialogOpen}>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Layout className="h-5 w-5 text-blue-500" />
+                          Launch New Campaign
+                        </DialogTitle>
+                        <DialogDescription>Create a lead generation campaign for "{selectedAdAccount?.name}".</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs font-bold uppercase text-slate-500">Campaign Name</Label>
+                            <Input value={newCampaignName} onChange={(e) => setNewCampaignName(e.target.value)} placeholder="e.g. Q4 Real Estate Leads" />
+                          </div>
+                          
+                          <div className="space-y-2">
+                             <Label className="text-xs font-bold uppercase text-slate-500">Objective</Label>
+                             <Select value={newCampaignObjective} onValueChange={setNewCampaignObjective}>
+                               <SelectTrigger><SelectValue placeholder="Select Goal" /></SelectTrigger>
+                               <SelectContent>
+                                 <SelectItem value="OUTCOME_AWARENESS">Awareness</SelectItem>
+                                 <SelectItem value="OUTCOME_TRAFFIC">Traffic</SelectItem>
+                                 <SelectItem value="OUTCOME_ENGAGEMENT">Engagement</SelectItem>
+                                 <SelectItem value="OUTCOME_LEADS">Leads</SelectItem>
+                                 <SelectItem value="OUTCOME_APP_PROMOTION">App Promotion</SelectItem>
+                                 <SelectItem value="OUTCOME_SALES">Sales</SelectItem>
+                               </SelectContent>
+                             </Select>
+                          </div>
+
+                          <div className="flex items-center space-x-2 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-100 dark:border-amber-900/30">
+                            <Checkbox id="special-cat" checked={isSpecialCategory} onCheckedChange={(c) => setIsSpecialCategory(!!c)} />
+                            <div className="grid gap-1.5 leading-none">
+                              <label htmlFor="special-cat" className="text-[11px] font-bold uppercase leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                Special Ad Category
+                              </label>
+                              <p className="text-[10px] text-amber-700 dark:text-amber-400">Required for Housing, Employment, Credit, or Politics.</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-[11px] text-blue-600 dark:text-blue-400 font-medium">
+                          Note: This campaign will be created as "PAUSED". All ads must manually be set to ACTIVE after review.
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="ghost" onClick={() => setIsCreateCampaignDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleCreateCampaign} disabled={isCreatingCampaign || !newCampaignName} className="bg-blue-600 hover:bg-blue-700 font-bold">
+                          {isCreatingCampaign && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                          Create Campaign
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Dialog open={isCreateAdSetDialogOpen} onOpenChange={setIsCreateAdSetDialogOpen}>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Layers className="h-5 w-5 text-purple-500" />
+                          Create New Ad Set
+                        </DialogTitle>
+                        <DialogDescription>Setting up target audience for "{selectedCampaign?.name}".</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase text-slate-500">Ad Set Name</Label>
+                          <Input value={newAdSetName} onChange={(e) => setNewAdSetName(e.target.value)} placeholder="e.g. Pune Leads - Age 25-45" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-[11px] font-black uppercase text-slate-600 text-slate-400">Budget (Daily)</Label>
+                            <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
+                               <span className="text-xs font-bold text-slate-500">{selectedAdAccount?.currency}</span>
+                               <Input 
+                                 type="number" 
+                                 className="h-8 border-none bg-transparent shadow-none focus-visible:ring-0 text-xs font-black p-0" 
+                                 value={newAdSetBudget}
+                                 onChange={(e) => setNewAdSetBudget(Number(e.target.value))}
+                               />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[11px] font-black uppercase text-slate-600 text-slate-400">Targeting</Label>
+                            <div className="text-[10px] font-bold text-slate-600 truncate bg-slate-50 dark:bg-slate-800 px-3 py-2.5 rounded-md border border-slate-200 dark:border-slate-700">India (Default)</div>
+                          </div>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="ghost" onClick={() => setIsCreateAdSetDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleCreateAdSet} disabled={isCreatingAdSet || !newAdSetName} className="bg-purple-600 hover:bg-purple-700 font-bold">
+                          {isCreatingAdSet && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                          Create Ad Set
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Dialog open={isCreateAdDialogOpen} onOpenChange={setIsCreateAdDialogOpen}>
+                    <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <FileText className="h-5 w-5 text-green-500" />
+                          Design New Lead Ad
+                        </DialogTitle>
+                        <DialogDescription>Quickly create a Lead Ad for "{selectedAdAccount?.name}" using existing forms.</DialogDescription>
+                      </DialogHeader>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                             <Label className="text-xs font-bold uppercase text-slate-500">Creative Type</Label>
+                             <Tabs value={useLibraryCreative ? "library" : "new"} onValueChange={(v) => {
+                               setUseLibraryCreative(v === "library")
+                               if (v === "library" && creatives.length === 0 && selectedAdAccount) {
+                                  loadCreatives(selectedAdAccount.id)
+                               }
+                             }}>
+                               <TabsList className="grid w-full grid-cols-2 h-9">
+                                 <TabsTrigger value="new" className="text-xs">Create New</TabsTrigger>
+                                 <TabsTrigger value="library" className="text-xs">From Library</TabsTrigger>
+                               </TabsList>
+                             </Tabs>
+                           </div>
+
+                           <div className="space-y-2">
+                            <Label className="text-xs font-bold uppercase text-slate-500">Ad Name</Label>
+                            <Input value={newAdName} onChange={(e) => setNewAdName(e.target.value)} placeholder="e.g. Free Consultation Offer" />
+                          </div>
+
+                          {useLibraryCreative ? (
+                            <div className="space-y-2">
+                              <Label className="text-xs font-bold uppercase text-slate-500">Select Creative</Label>
+                              <Select value={selectedLibraryCreativeId} onValueChange={(val) => {
+                                setSelectedLibraryCreativeId(val)
+                                const creative = creatives.find(c => c.id === val)
+                                if (creative) {
+                                  // Update preview with selected creative info
+                                  setNewAdPrimaryText(creative.message || creative.object_story_spec?.link_data?.message || '')
+                                  setNewAdHeadline(creative.headline || creative.object_story_spec?.link_data?.name || '')
+                                  setNewAdImageUrl(creative.image_url || creative.thumbnail_url || '')
+                                }
+                              }}>
+                                <SelectTrigger><SelectValue placeholder="Select Creative" /></SelectTrigger>
+                                <SelectContent>
+                                  {creatives.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                                </SelectContent>
+                              </Select>
+                            </div>
                           ) : (
-                            <TableRow>
-                              <TableCell colSpan={8} className="h-40 text-center text-muted-foreground">
-                                No campaigns found for this ad account
-                              </TableCell>
-                            </TableRow>
+                            <>
+                              <div className="space-y-2">
+                                 <Label className="text-xs font-bold uppercase text-slate-500">Facebook Page</Label>
+                                 <Select value={selectedAdPageId} onValueChange={setSelectedAdPageId}>
+                                   <SelectTrigger><SelectValue placeholder="Select Page" /></SelectTrigger>
+                                   <SelectContent>{pages.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+                                 </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                 <Label className="text-xs font-bold uppercase text-slate-500">Lead Form</Label>
+                                 <Select value={selectedAdFormId} onValueChange={setSelectedAdFormId}>
+                                   <SelectTrigger><SelectValue placeholder={isLoadingAdCreationForms ? "Loading..." : "Select Form"} /></SelectTrigger>
+                                   <SelectContent>{adCreationForms.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}</SelectContent>
+                                 </Select>
+                              </div>
+                            </>
                           )}
-                        </TableBody>
-                      </Table>
-                    </CardContent>
-                  </Card>
-                </>
+
+                          {/* When using library, hide individual design fields as they are part of the creative */}
+                          {!useLibraryCreative && (
+                            <>
+                              <div className="space-y-2">
+                                <Label className="text-xs font-bold uppercase text-slate-500">Body Text (Primary)</Label>
+                                <textarea 
+                                  className="w-full h-24 p-2 text-sm border rounded-md dark:bg-slate-800 dark:border-slate-700" 
+                                  value={newAdPrimaryText}
+                                  onChange={(e) => setNewAdPrimaryText(e.target.value)}
+                                  placeholder="Describe what you are offering..."
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-xs font-bold uppercase text-slate-500">Headline</Label>
+                                <Input value={newAdHeadline} onChange={(e) => setNewAdHeadline(e.target.value)} placeholder="e.g. Claim Your Free Bonus" />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-xs font-bold uppercase text-slate-500">Image URL</Label>
+                                <Input value={newAdImageUrl} onChange={(e) => setNewAdImageUrl(e.target.value)} placeholder="https://example.com/image.jpg" />
+                              </div>
+
+                              <div className="space-y-2">
+                                 <Label className="text-xs font-bold uppercase text-slate-500">Call to Action</Label>
+                                 <Select value={newAdCta} onValueChange={setNewAdCta}>
+                                   <SelectTrigger><SelectValue placeholder="Select CTA" /></SelectTrigger>
+                                   <SelectContent>{CTA_OPTIONS.map(cta => <SelectItem key={cta.value} value={cta.value}>{cta.label}</SelectItem>)}</SelectContent>
+                                 </Select>
+                              </div>
+                            </>
+                          )}
+                        </div>
+
+                        {/* Preview Side */}
+                        <div className="space-y-4">
+                          <Label className="text-xs font-bold uppercase text-slate-500 block mb-2">Ad Preview (Feed)</Label>
+                          <div className="border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+                            <div className="p-3 border-b flex items-center gap-2">
+                              <div className="h-8 w-8 bg-slate-100 rounded-full shrink-0" />
+                              <div>
+                                <div className="text-[11px] font-bold">{pages.find(p => p.id === selectedAdPageId)?.name || 'Page Name'}</div>
+                                <div className="text-[10px] text-slate-400">Sponsored</div>
+                              </div>
+                            </div>
+                            <div className="p-3 text-xs leading-relaxed whitespace-pre-wrap">{newAdPrimaryText}</div>
+                            <div className="aspect-[1.91/1] bg-slate-100 relative group overflow-hidden">
+                                {newAdImageUrl ? (
+                                  <img src={newAdImageUrl} className="w-full h-full object-cover" alt="Ad Creative" />
+                                ) : (
+                                  <div className="flex items-center justify-center h-full text-slate-300"><Plus className="h-6 w-6" /></div>
+                                )}
+                            </div>
+                            <div className="p-3 bg-slate-50 dark:bg-slate-800 flex items-center justify-between border-t">
+                              <div className="min-w-0 pr-4">
+                                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Facebook</p>
+                                <p className="text-sm font-bold truncate">{newAdHeadline || 'Headline'}</p>
+                              </div>
+                              <Button size="sm" className="bg-slate-200 hover:bg-slate-300 text-slate-900 border-none h-8 px-4 font-bold text-xs uppercase tracking-tight shrink-0">
+                                {CTA_OPTIONS.find(c => c.value === newAdCta)?.label || 'Learn More'}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="ghost" onClick={() => setIsCreateAdDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleCreateAd} disabled={isCreatingAd || !newAdName || (!useLibraryCreative && !selectedAdFormId) || (useLibraryCreative && !selectedLibraryCreativeId)} className="bg-green-600 hover:bg-green-700 font-bold">
+                          {isCreatingAd && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                          Create Ad
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                </div>
               ) : (
-                <Card className="h-[500px] border-dashed border-2 flex flex-col items-center justify-center p-12 text-center bg-slate-50/20">
-                  <TrendingUp className="h-16 w-16 text-slate-200 mb-4" />
-                  <h3 className="text-xl font-bold text-slate-400">Select an Ad Account</h3>
-                  <p className="text-muted-foreground mt-2 max-w-xs mx-auto text-sm"> Choose an account from the sidebar to view your campaign performance and manage statuses.</p>
+                <Card className="h-[500px] border-none shadow-sm flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
+                  <div className="h-20 w-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
+                    <TrendingUp className="h-10 w-10 text-slate-300" />
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Select an Ad Account</h3>
+                  <p className="text-muted-foreground mt-3 max-w-xs mx-auto text-base font-medium leading-relaxed"> Use the account selector in the top right to start viewing your campaign performance.</p>
                 </Card>
               )}
             </div>
@@ -1759,95 +2348,118 @@ export function FacebookDashboard() {
             )}
           </div>
         </TabsContent>
-
         <TabsContent value="creatives" className="m-0 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-1 border-none shadow-md bg-white dark:bg-slate-900 h-fit flex flex-col max-h-[500px]">
-              <CardHeader className="flex-shrink-0">
-                <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Briefcase className="h-4 w-4 mr-2" /> Ad Accounts
+          <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-6">
+              {/* Header / Account Selector Row */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 p-3.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-3.5">
+                  <div className="h-10 w-10 bg-purple-50 dark:bg-purple-900/30 rounded-xl flex items-center justify-center text-purple-600 shadow-inner shrink-0">
+                    <FileText className="h-5 w-5" />
                   </div>
-                  <Badge variant="secondary" className="text-[10px]">{adAccounts.length}</Badge>
-                </CardTitle>
-                <div className="mt-4 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input
-                    placeholder="Search accounts..."
-                    value={adAccountSearch}
-                    onChange={(e) => setAdAccountSearch(e.target.value)}
-                    className="pl-9 h-9 bg-slate-50 border-none shadow-none text-xs focus-visible:ring-blue-500"
-                  />
+                  <div className="min-w-0">
+                    <h3 className="text-base font-black tracking-tight flex items-center gap-3">
+                      <span className="truncate">Creatives Library</span>
+                      {selectedAdAccount && <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 text-[10px] h-5 px-2 border-0 uppercase tracking-widest shrink-0">{selectedAdAccount.currency}</Badge>}
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-60 truncate">
+                      Visual Assets & Copy
+                    </p>
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent className="p-0 overflow-y-auto flex-grow bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {adAccounts
-                    .filter(acc =>
-                      acc.name?.toLowerCase().includes(adAccountSearch.toLowerCase()) ||
-                      acc.id?.toLowerCase().includes(adAccountSearch.toLowerCase()) ||
-                      acc.business?.name?.toLowerCase().includes(adAccountSearch.toLowerCase())
-                    )
-                    .map((acc) => {
-                      const statusMap: Record<number, { text: string, color: string }> = {
-                        1: { text: 'Active', color: 'bg-green-100 text-green-700' },
-                        2: { text: 'Disabled', color: 'bg-red-100 text-red-700' },
-                        3: { text: 'Unsettled', color: 'bg-amber-100 text-amber-700' },
-                        7: { text: 'Pending Review', color: 'bg-blue-100 text-blue-700' },
-                        8: { text: 'Pending Settlement', color: 'bg-blue-100 text-blue-700' },
-                        9: { text: 'In Grace Period', color: 'bg-blue-100 text-blue-700' },
-                        100: { text: 'Pending Closure', color: 'bg-slate-100 text-slate-700' },
-                        101: { text: 'Closed', color: 'bg-slate-100 text-slate-700' },
-                      };
-                      const status = statusMap[acc.account_status] || { text: 'Unknown', color: 'bg-slate-100 text-slate-700' };
-                      const businessName = acc.business?.name || 'Personal Account';
 
-                      return (
-                        <button
-                          key={acc.id}
-                          onClick={() => { setSelectedAdAccount(acc); loadCreatives(acc.id); }}
-                          className={`w-full p-4 text-left transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 ${selectedAdAccount?.id === acc.id ? 'bg-blue-50/50 dark:bg-blue-900/20 border-r-4 border-blue-500 shadow-sm' : ''} ${acc.account_status !== 1 ? 'opacity-70' : ''}`}
-                        >
-                          <div className="flex justify-between items-start mb-1">
-                            <p className="font-bold text-sm truncate flex-1">{acc.name}</p>
-                            <Badge className={`text-[9px] px-1 h-3.5 leading-none ${status.color}`} variant="outline">
-                              {status.text}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <p className="text-[10px] text-muted-foreground font-medium truncate max-w-[120px]">
-                              {businessName}
-                            </p>
-                            <span className="text-[10px] text-slate-300">•</span>
-                            <span className="text-[10px] text-muted-foreground font-mono">{acc.currency}</span>
-                          </div>
-                          <p className="text-[9px] text-slate-400 mt-0.5 font-mono">{acc.id}</p>
-                        </button>
-                      );
-                    })}
-                  {adAccounts.length === 0 && (
-                    <div className="p-8 text-center text-muted-foreground text-sm">No ad accounts found</div>
-                  ) || adAccounts.filter(acc =>
-                    acc.name?.toLowerCase().includes(adAccountSearch.toLowerCase()) ||
-                    acc.id?.toLowerCase().includes(adAccountSearch.toLowerCase()) ||
-                    acc.business?.name?.toLowerCase().includes(adAccountSearch.toLowerCase())
-                  ).length === 0 && (
-                      <div className="p-8 text-center text-muted-foreground text-sm">No accounts match search</div>
-                    )}
-                </div>
-              </CardContent>
-            </Card>
+                <Popover open={isAdAccountOpen} onOpenChange={setIsAdAccountOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={isAdAccountOpen}
+                      className="w-full md:w-[320px] justify-between h-10 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold rounded-xl shadow-sm hover:border-purple-500 hover:ring-4 hover:ring-purple-500/10 transition-all group"
+                    >
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <Search className="h-4 w-4 text-slate-400 shrink-0 group-hover:text-purple-500 transition-colors" />
+                        <span className="truncate">{selectedAdAccount ? selectedAdAccount.name : "Select Ad Account..."}</span>
+                      </div>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    className="w-[450px] p-0 border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl overflow-hidden" 
+                    align="end" 
+                    side="bottom" 
+                    sideOffset={8}
+                    avoidCollisions={false}
+                  >
+                    <div className="p-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                          placeholder="Search ad accounts..."
+                          value={adAccountSearch}
+                          onChange={(e) => setAdAccountSearch(e.target.value)}
+                          className="pl-9 h-10 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-none text-sm rounded-lg"
+                        />
+                      </div>
+                    </div>
+                    <ScrollArea className="h-[300px]">
+                      <div className="p-2 space-y-1">
+                        {adAccounts
+                          .filter(acc =>
+                            acc.name?.toLowerCase().includes(adAccountSearch.toLowerCase()) ||
+                            acc.id?.toLowerCase().includes(adAccountSearch.toLowerCase()) ||
+                            acc.business?.name?.toLowerCase().includes(adAccountSearch.toLowerCase())
+                          )
+                          .map((acc) => {
+                            const accStatus = AD_ACCOUNT_STATUS_MAP[acc.account_status] || { text: 'Unknown', color: 'bg-slate-100 text-slate-700' };
+                            return (
+                              <button
+                                key={acc.id}
+                                onClick={() => {
+                                  setSelectedAdAccount(acc);
+                                  loadCreatives(acc.id);
+                                  setIsAdAccountOpen(false);
+                                }}
+                                className={`w-full flex items-start gap-3 p-3 text-left rounded-xl transition-all bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800/80 group ${selectedAdAccount?.id === acc.id ? 'bg-purple-50 dark:bg-purple-900/30' : ''} ${acc.account_status !== 1 ? 'opacity-60' : ''}`}
+                              >
+                                <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-white dark:group-hover:bg-slate-700 transition-colors">
+                                  <Briefcase className={`h-4 w-4 ${selectedAdAccount?.id === acc.id ? 'text-purple-500' : 'text-slate-400'}`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between mb-0.5">
+                                    <span className="font-bold text-sm truncate uppercase tracking-tight">{acc.name}</span>
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                      <Badge className={`text-[9px] px-1.5 h-4 leading-none border-0 ${accStatus.color}`}>{accStatus.text}</Badge>
+                                      {selectedAdAccount?.id === acc.id && <Check className="h-3.5 w-3.5 text-purple-500" />}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest opacity-70">
+                                    <span>{acc.business?.name || 'Personal'}</span>
+                                    <span>•</span>
+                                    <span className="font-mono">{acc.id}</span>
+                                    <span>•</span>
+                                    <span className="font-mono">{acc.currency}</span>
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })
+                        }
+                      </div>
+                    </ScrollArea>
+                  </PopoverContent>
+                </Popover>
+              </div>
 
-            <Card className="lg:col-span-2 border-none shadow-md bg-white dark:bg-slate-900">
-              <CardHeader className="border-b">
+            <Card className="border-none shadow-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+              <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/50 p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Ad Creatives Library</CardTitle>
-                    <CardDescription>Reusable visual and text components for your ads</CardDescription>
+                    <CardTitle className="text-xl font-black tracking-tight">Ad Creatives Library</CardTitle>
+                    <CardDescription className="text-xs font-bold uppercase tracking-wider opacity-70">Manage visual fragments</CardDescription>
                   </div>
                   <Dialog open={isCreateCreativeDialogOpen} onOpenChange={setIsCreateCreativeDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button className="bg-blue-600 hover:bg-blue-700" disabled={!selectedAdAccount}>
+                      <Button className="bg-slate-900 hover:bg-black dark:bg-blue-600 dark:hover:bg-blue-700 px-6 font-bold rounded-xl h-11" disabled={!selectedAdAccount}>
                         <Plus className="h-4 w-4 mr-2" /> Create Creative
                       </Button>
                     </DialogTrigger>
@@ -1878,7 +2490,31 @@ export function FacebookDashboard() {
                           </div>
                         </div>
                         <div className="grid gap-2">
-                          <Label>Default Message</Label>
+                          <Label>Headline</Label>
+                          <Input 
+                            value={newCreativeHeadline}
+                            onChange={(e) => setNewCreativeHeadline(e.target.value)}
+                            placeholder="e.g. Free Consultation Offer"
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>Call to Action</Label>
+                          <Select value={newCreativeCta} onValueChange={setNewCreativeCta}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select CTA" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="SIGN_UP">Sign Up</SelectItem>
+                              <SelectItem value="LEARN_MORE">Learn More</SelectItem>
+                              <SelectItem value="GET_QUOTE">Get Quote</SelectItem>
+                              <SelectItem value="APPLY_NOW">Apply Now</SelectItem>
+                              <SelectItem value="DOWNLOAD">Download</SelectItem>
+                              <SelectItem value="GET_OFFER">Get Offer</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>Default Message (Ad Primary Text)</Label>
                           <textarea
                             className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring theme-scrollbar"
                             value={newCreativeMsg}
@@ -1902,9 +2538,11 @@ export function FacebookDashboard() {
               </CardHeader>
               <CardContent className="p-6">
                 {!selectedAdAccount ? (
-                  <div className="py-12 text-center text-slate-400 flex flex-col items-center">
-                    <Briefcase className="h-10 w-10 mb-4 opacity-10" />
-                    Select an Ad Account on the left to load its creatives
+                  <div className="py-24 text-center text-slate-400 flex flex-col items-center">
+                    <div className="h-20 w-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-6">
+                      <Briefcase className="h-10 w-10 opacity-10" />
+                    </div>
+                    <p className="text-lg font-bold text-slate-500">Select an Ad Account to view creatives</p>
                   </div>
                 ) : isCreativesLoading ? (
                   <div className="flex flex-col items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-2" /><p className="text-sm text-slate-400">Loading library...</p></div>
@@ -1923,10 +2561,24 @@ export function FacebookDashboard() {
                               {c.status || 'ACTIVE'}
                             </Badge>
                           </div>
+                          <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                            <button 
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 handleDeleteObject(c.id, 'Creative');
+                               }}
+                               className="p-1.5 bg-white/90 dark:bg-black/80 backdrop-blur-sm text-red-500 hover:bg-red-500 hover:text-white rounded-lg shadow-sm transition-all border border-slate-200 dark:border-slate-700"
+                               title="Delete Creative"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </div>
                         <div className="space-y-1">
                           <p className="font-bold text-sm truncate" title={c.name}>{c.name}</p>
-                          <p className="text-[9px] text-slate-400 font-mono tracking-tighter">CREATIVE ID: {c.id}</p>
+                          <div className="flex items-center justify-between">
+                             <p className="text-[9px] text-slate-400 font-mono tracking-tighter uppercase tracking-widest">ID: {c.id}</p>
+                          </div>
                         </div>
                         <div className="flex items-center space-x-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                           <Button size="sm" variant="ghost" className="h-7 text-[10px] w-full" disabled>
@@ -1945,6 +2597,7 @@ export function FacebookDashboard() {
                 )}
               </CardContent>
             </Card>
+            </div>
           </div>
         </TabsContent>
 
@@ -2052,30 +2705,115 @@ export function FacebookDashboard() {
         </TabsContent>
         </div>
       </Tabs>
-      <Dialog open={isErrorDialogOpen} onOpenChange={setIsErrorDialogOpen}>
-        <DialogContent className="sm:max-w-md border-red-100 bg-red-50/10 backdrop-blur-xl">
+      <ErrorDialog 
+        isOpen={isErrorDialogOpen}
+        onOpenChange={setIsErrorDialogOpen}
+        title={lastError?.title || "Meta Operation Blocked"}
+        description={lastError?.description || ""}
+        action={lastError?.action}
+        url={lastError?.url}
+      />
+
+      {/* Custom Delete Confirmation Modal */}
+      <Dialog open={deleteConfirm.isOpen} onOpenChange={(open) => !open && setDeleteConfirm(prev => ({ ...prev, isOpen: false }))}>
+        <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <div className="flex items-center space-x-2 text-red-600 mb-2">
-              <AlertCircle className="h-6 w-6" />
-              <DialogTitle className="text-xl font-black">{lastError?.title || "Meta Error"}</DialogTitle>
-            </div>
-            <DialogDescription className="text-slate-700 dark:text-slate-300 font-medium text-base">
-              {lastError?.description}
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="h-5 w-5" />
+              Confirm Deletion
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              Are you sure you want to <strong>PERMANENTLY</strong> delete this {deleteConfirm.label}? This action cannot be undone and will remove it from Meta Ads Manager.
             </DialogDescription>
           </DialogHeader>
-          <div className="bg-white/50 dark:bg-slate-900/50 p-4 rounded-xl border border-red-100/50 mt-2">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-2">What to do:</h4>
-            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
-              {lastError?.action || "Check your internet connection and try again."}
+          <DialogFooter className="mt-4 gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => !isDeletingObject && setDeleteConfirm(prev => ({ ...prev, isOpen: false }))}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDeleteObject} disabled={isDeletingObject} className="font-bold">
+              {isDeletingObject && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              Yes, Delete {deleteConfirm.label}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Custom Edit Campaign Modal */}
+      <Dialog open={isEditCampaignDialogOpen} onOpenChange={setIsEditCampaignDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-blue-500" />
+              Edit Campaign Details
+            </DialogTitle>
+            <DialogDescription>Update the settings for your Meta Campaign.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase text-slate-500">Campaign Name</Label>
+              <Input 
+                value={newCampaignName} 
+                onChange={(e) => setNewCampaignName(e.target.value)} 
+                placeholder="Enter new name" 
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsEditCampaignDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleUpdateCampaignName} disabled={isCreatingCampaign || !newCampaignName} className="bg-blue-600 hover:bg-blue-700 font-bold">
+              {isCreatingCampaign && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Custom Audience Creation Dialog */}
+      <Dialog open={isCreateAudienceDialogOpen} onOpenChange={setIsCreateAudienceDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-blue-600">
+              <Users className="h-5 w-5" />
+              Create Custom Audience
+            </DialogTitle>
+            <DialogDescription>
+              Build a custom audience from your lead activity for retargeting or lookalikes.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase text-slate-500 tracking-wider">Audience name</Label>
+              <Input
+                placeholder="e.g. LeadBajaar Form Respondents"
+                value={newAudienceName}
+                onChange={(e) => setNewAudienceName(e.target.value)}
+              />
+            </div>
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+              <p className="text-[11px] font-bold text-slate-500 uppercase mb-2">Audience Details</p>
+              <ul className="space-y-2 text-xs">
+                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                   <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> Source: Lead Forms Activity
+                </li>
+                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                   <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> Type: Custom Audience
+                </li>
+                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-400 leading-relaxed italic opacity-80">
+                   "Includes all people who opened and submitted a lead form in the past 90 days."
+                </li>
+              </ul>
+            </div>
+            <p className="text-[10px] text-muted-foreground bg-amber-50 dark:bg-amber-900/10 p-2.5 rounded-lg border border-amber-100 dark:border-amber-900/30 text-amber-700 dark:text-amber-400">
+              <strong>Note:</strong> Custom audiences can take up to 24 hours to populate fully in Meta Ads Manager.
             </p>
           </div>
-          <DialogFooter className="mt-4">
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsCreateAudienceDialogOpen(false)}>Cancel</Button>
             <Button
-              variant="outline"
-              onClick={() => setIsErrorDialogOpen(false)}
-              className="w-full sm:w-auto font-bold border-red-200 hover:bg-red-100 text-red-700 transition-all"
+              className="bg-blue-600 hover:bg-blue-700 font-bold"
+              onClick={handleCreateAudience}
+              disabled={isCreatingAudience || !newAudienceName}
             >
-              Understand & Close
+              {isCreatingAudience ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+              Create Audience
             </Button>
           </DialogFooter>
         </DialogContent>

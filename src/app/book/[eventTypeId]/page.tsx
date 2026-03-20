@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select"
 import { validateQuestionResponse } from '@/lib/validations/questions'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from "@/components/ui/dialog"
+import { ErrorDialog } from "@/components/ui/ErrorDialog"
 import { cn } from "@/lib/utils"
 import { formatInTimeZone } from 'date-fns-tz'
 
@@ -131,6 +132,7 @@ export default function BookingPage() {
           {
             headers: {
               'Content-Type': 'application/json',
+              'Accept': 'application/json',
             }
           }
         );
@@ -222,6 +224,7 @@ export default function BookingPage() {
         {
           headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
           }
         }
       );
@@ -402,6 +405,7 @@ export default function BookingPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
           },
           body: JSON.stringify(bookingData)
         }
@@ -765,34 +769,13 @@ export default function BookingPage() {
         </CardContent>
       </Card>
 
-      {/* Error Dialog */}
-      <Dialog 
-        open={errorDialog.isOpen} 
+      <ErrorDialog 
+        isOpen={errorDialog.isOpen}
         onOpenChange={(open) => setErrorDialog(prev => ({ ...prev, isOpen: open }))}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-red-600">Booking Error</DialogTitle>
-            <DialogDescription>
-              {errorDialog.message}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button 
-              variant="secondary" 
-              onClick={() => {
-                setErrorDialog({ isOpen: false, message: '' });
-                // Refresh available slots if time slot is no longer available
-                if (selectedDate) {
-                  fetchAvailableSlots(selectedDate);
-                }
-              }}
-            >
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title="Booking Error"
+        description={errorDialog.message}
+        action={errorDialog.message.includes('slot') ? "Please select a different time or date, as this one was just taken." : "Please check your information and try again."}
+      />
 
       <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
         <DialogContent className="sm:max-w-md">

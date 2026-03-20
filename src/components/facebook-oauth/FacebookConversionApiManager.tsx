@@ -76,9 +76,10 @@ export function FacebookConversionApiManager() {
       setConfigurations(configResponse.configurations || [])
       setEventTypes(eventTypesResponse.event_types || {})
     } catch (error: any) {
+      console.error('Failed to load Conversion API data:', error)
       toast({
-        title: "Error",
-        description: error.message || "Failed to load Conversion API data",
+        title: "Connection Error",
+        description: "Could not reach Meta services. Please check your connection or integration status.",
         variant: "destructive"
       })
     } finally {
@@ -125,8 +126,8 @@ export function FacebookConversionApiManager() {
 
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to send test event",
+        title: "Event Failed",
+        description: error.message?.includes('{') ? "Meta rejected the test event. Check your test code and pixel ID." : (error.message || "Failed to send test event"),
         variant: "destructive"
       })
     } finally {
