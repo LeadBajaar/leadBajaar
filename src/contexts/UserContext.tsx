@@ -13,6 +13,10 @@ interface User {
   role: UserRole
   user_type: UserType
   company_id: number | null
+  company?: {
+    name?: string;
+    plan?: string;
+  };
 }
 
 interface UserContextType {
@@ -20,6 +24,7 @@ interface UserContextType {
   isLoading: boolean
   hasRole: (roles: UserRole[]) => boolean
   hasType: (types: UserType[]) => boolean
+  hasPlan: (plans: string[]) => boolean
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -60,11 +65,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     return types.includes(user.user_type)
   }
 
+  const hasPlan = (plans: string[]) => {
+    if (!user || !user.company?.plan) return false;
+    return plans.includes(user.company.plan.toLowerCase());
+  }
+
   return (
-    <UserContext.Provider value={{ user, isLoading, hasRole, hasType }}>
+    <UserContext.Provider value={{ user, isLoading, hasRole, hasType, hasPlan }}>
       {children}
     </UserContext.Provider>
-  )
+  );
 }
 
 export function useUser() {

@@ -358,7 +358,7 @@ export default function DashboardPage() {
                   {[
                     { key: 'email', icon: Mail, text: user.email },
                     { key: 'phone', icon: Phone, text: (user as any).phone || 'Not provided' },
-                    { key: 'company', icon: Building2, text: (user as any).company || 'Not provided' },
+                    { key: 'company', icon: Building2, text: user.company?.name || 'Not provided' },
                     { key: 'member', icon: Calendar, text: `Member since ${format(new Date((user as any).created_at || new Date()), 'MMMM yyyy')}` },
                   ].map(({ key, icon: Icon, text }) => (
                     <div key={key} className="flex items-center gap-3 text-sm">

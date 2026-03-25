@@ -47,6 +47,7 @@ type NavItemDef = {
   color: string
   roles: UserRole[] 
   types?: UserType[] // Optional filter for Agency/Individual panels
+  plans?: string[] // Optional filter for plan level (e.g. ['pro', 'enterprise'])
 }
 
 type NavSection = {
@@ -62,15 +63,15 @@ const mainNav: NavSection[] = [
       { name: 'Clients', href: '/agency', icon: Briefcase, color: '#6366F1', types: ['agency', 'super_admin'], roles: ['Super Admin', 'Admin'] },
       { name: 'Leads', href: '/leads', icon: UserCheck, color: '#10B981', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
       { name: 'Live Chat', href: '/live-chat', icon: MessageCircle, color: '#3B82F6', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
-      { name: 'Chatbot', href: '/chatbot', icon: Bot, color: '#8B5CF6', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin'] },
+      { name: 'Chatbot', href: '/chatbot', icon: Bot, color: '#8B5CF6', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
     ]
   },
   {
     label: 'Productivity',
     items: [
       { name: 'Meetings', href: '/meetings', icon: CalendarCheck2, color: '#F59E0B', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
-      { name: 'Integrations', href: '/integrations', icon: Plug2, color: '#EC4899', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin'] },
-      { name: 'Analytics', href: '/analytics', icon: TrendingUp, color: '#14B8A6', roles: ['Super Admin', 'Admin', 'Manager'] },
+      { name: 'Integrations', href: '/integrations', icon: Plug2, color: '#EC4899', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
+      { name: 'Analytics', href: '/analytics', icon: TrendingUp, color: '#14B8A6', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
     ]
   },
   {
@@ -127,21 +128,23 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
   }
 
   // Filter sections and items based on role AND type
-  const { hasType } = useUser()
+  const { hasType, hasPlan } = useUser()
 
   const filteredMainNav = mainNav.map(section => ({
     ...section,
     items: section.items.filter(item => {
       const roleMatch = hasRole(item.roles)
       const typeMatch = !item.types || hasType(item.types)
-      return roleMatch && typeMatch
+      const planMatch = !item.plans || hasPlan(item.plans) || hasType(['agency', 'super_admin'])
+      return roleMatch && typeMatch && planMatch
     })
   })).filter(section => section.items.length > 0)
 
   const filteredBottomNav = bottomNav.filter(item => {
     const roleMatch = hasRole(item.roles)
     const typeMatch = !item.types || hasType(item.types)
-    return roleMatch && typeMatch
+    const planMatch = !item.plans || hasPlan(item.plans) || hasType(['agency', 'super_admin'])
+    return roleMatch && typeMatch && planMatch
   })
 
   const userRole = user?.role ? user.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Guest'
