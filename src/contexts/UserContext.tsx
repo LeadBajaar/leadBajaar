@@ -4,12 +4,14 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { getUser } from '@/lib/api'
 
 export type UserRole = 'Super Admin' | 'Admin' | 'Manager' | 'Agent'
+export type UserType = 'agency' | 'individual' | 'super_admin'
 
 interface User {
   id: number
   name: string
   email: string
   role: UserRole
+  user_type: UserType
   company_id: number | null
 }
 
@@ -17,6 +19,7 @@ interface UserContextType {
   user: User | null
   isLoading: boolean
   hasRole: (roles: UserRole[]) => boolean
+  hasType: (types: UserType[]) => boolean
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -52,8 +55,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     })
   }
 
+  const hasType = (types: UserType[]) => {
+    if (!user) return false
+    return types.includes(user.user_type)
+  }
+
   return (
-    <UserContext.Provider value={{ user, isLoading, hasRole }}>
+    <UserContext.Provider value={{ user, isLoading, hasRole, hasType }}>
       {children}
     </UserContext.Provider>
   )

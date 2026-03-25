@@ -68,10 +68,11 @@ import {
   Settings,
   Play,
   ShieldCheck,
+  AlertCircle
 } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { integrationApi, IntegrationConfig } from "@/lib/api";
-import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { FacebookOAuthButton } from "@/components/facebook-oauth/FacebookOAuthButton";
 import { FacebookServicesManager } from "@/components/facebook-oauth/FacebookServicesManager";
@@ -80,6 +81,7 @@ import { FacebookConversionApiManager } from "@/components/facebook-oauth/Facebo
 import { LeadConversionTracker } from "@/components/facebook-oauth/LeadConversionTracker";
 import { ConversionApiTester } from "@/components/facebook-oauth/ConversionApiTester";
 import { WebhookConfigDialog } from "@/components/integrations/WebhookConfigDialog";
+import { DeleteConfirmationModal } from "@/components/shared/DeleteConfirmationModal";
 
 interface WebhookConfig {
   id: string;
@@ -304,8 +306,10 @@ const dummyLogs = [
 import { RoleGuard } from "@/components/RoleGuard";
 
 export default function IntegrationsPage() {
-  const { toast } = useToast();
   const [activeIntegrations, setActiveIntegrations] = useState<string[]>([]);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [webhookToDelete, setWebhookToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [webhooks, setWebhooks] = useState<WebhookConfig[]>([
     {
       id: "1",
@@ -412,11 +416,7 @@ export default function IntegrationsPage() {
     } catch (error: any) {
       setConnectedIntegrations([]);
       setWebhooks([]);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to fetch connected integrations",
-        variant: "destructive",
-      });
+      toast.error(error.message || "Failed to fetch connected integrations");
     }
   };
 
@@ -440,17 +440,9 @@ export default function IntegrationsPage() {
   //         ? [...prev, integrationId]
   //         : prev.filter(id => id !== integrationId)
   //     );
-  //     toast({
-  //       title: isActive ? "Integration Enabled" : "Integration Disabled",
-  //       description: `The integration has been ${isActive ? 'enabled' : 'disabled'} successfully.`,
-  //       variant: "default",
-  //     });
+  //     toast.success("");
   //   } catch (error: any) {
-  //     toast({
-  //       title: "Error",
-  //       description: error.message || "Failed to update integration status. Please try again.",
-  //       variant: "destructive",
-  //     });
+  //     toast.error("Error");
   //     // Revert the UI state if the API call failed
   //     setActiveIntegrations(prev => prev);
   //   }
@@ -469,22 +461,27 @@ export default function IntegrationsPage() {
       setShowNewWebhookDialog(false);
       setNewWebhook({ name: "", url: "", events: [], mapping: [] });
       fetchConnectedIntegrations();
-      toast({ title: "Success", description: "Webhook created successfully" });
+      toast.success("Webhook created successfully");
     } catch (error: any) {
-      toast({ title: "Error", description: "Failed to create webhook", variant: "destructive" });
+      toast.error("Failed to create webhook");
     } finally {
       setIsConnecting(false);
     }
   };
 
-  const deleteWebhook = async (id: string) => {
-    if (!window.confirm("Are you sure you want to deactivate this integration?")) return;
+  const deleteWebhook = async () => {
+    if (!webhookToDelete) return;
     try {
-      await integrationApi.deleteIntegration(id);
-      toast({ title: "Success", description: "Integration deactivated successfully" });
+      setIsDeleting(true);
+      await integrationApi.deleteIntegration(webhookToDelete);
+      toast.success("Integration deactivated successfully");
+      setShowDeleteDialog(false);
       fetchConnectedIntegrations();
     } catch (error: any) {
-      toast({ title: "Error", description: "Failed to delete webhook", variant: "destructive" });
+      toast.error("Failed to deactivate integration");
+    } finally {
+      setIsDeleting(false);
+      setWebhookToDelete(null);
     }
   };
 
@@ -493,10 +490,10 @@ export default function IntegrationsPage() {
     if (!webhook) return;
     try {
       await integrationApi.updateIntegrationStatus(id, !webhook.isActive);
-      toast({ title: "Success", description: `Webhook ${webhook.isActive ? "deactivated" : "activated"} successfully` });
+      toast.success(`Webhook ${webhook.isActive ? "deactivated" : "activated"} successfully`);
       fetchConnectedIntegrations();
     } catch (error: any) {
-      toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
+      toast.error("Failed to update status");
     }
   };
 
@@ -504,7 +501,7 @@ export default function IntegrationsPage() {
     setIsListeningForWebhook(true);
     setAvailablePayloadFields([]);
     
-    toast({ title: "Listening...", description: "Waiting for test request..." });
+    toast.success("Waiting for test request...");
 
     const pollInterval = setInterval(async () => {
       try {
@@ -526,10 +523,7 @@ export default function IntegrationsPage() {
           addFieldMapping(id);
           
           console.log("Captured fields:", fields);
-          toast({ 
-            title: "Data Captured! 🚀", 
-            description: `We detected ${fields.length} fields from your test request. You can now map them to CRM fields below.`,
-          });
+          toast.success("Webhook data captured successfully!");
         }
       } catch (e) {
         console.error("Polling error:", e);
@@ -558,16 +552,16 @@ export default function IntegrationsPage() {
 
       if (webhookId) {
         await (integrationApi as any).updateIntegration(webhookId, config);
-        toast({ title: "Success", description: "Webhook mapping updated!" });
+        toast.success("Webhook mapping updated!");
       } else {
         await integrationApi.saveIntegration(config);
-        toast({ title: "Success", description: "Webhook created!" });
+        toast.success("Webhook created!");
       }
       
       setShowNewWebhookDialog(false);
       fetchConnectedIntegrations();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to save webhook configuration", variant: "destructive" });
+      toast.error("Error");
     }
   };
 
@@ -641,18 +635,10 @@ export default function IntegrationsPage() {
   //         isActive: true,
   //         environment: 'production',
   //       });
-  //       toast({
-  //         title: "Success",
-  //         description: "WhatsApp integration has been configured successfully.",
-  //         variant: "default",
-  //       });
+  //       toast.success("WhatsApp integration has been configured successfully.");
   //       setSelectedIntegrationId(null);
   //     } catch (error: any) {
-  //       toast({
-  //         title: "Configuration Failed",
-  //         description: error.message || "Unable to save WhatsApp configuration. Please try again.",
-  //         variant: "destructive",
-  //       });
+  //       toast.error("Configuration Failed");
   //     }
   //   }
   // };
@@ -686,18 +672,10 @@ export default function IntegrationsPage() {
   //         isActive: true,
   //         environment: 'production',
   //       });
-  //       toast({
-  //         title: "Success",
-  //         description: "Facebook Lead Form integration has been configured successfully.",
-  //         variant: "default",
-  //       });
+  //       toast.success("Facebook Lead Form integration has been configured successfully.");
   //       setSelectedIntegrationId(null);
   //     } catch (error: any) {
-  //       toast({
-  //         title: "Configuration Failed",
-  //         description: error.message || "Unable to save Facebook configuration. Please try again.",
-  //         variant: "destructive",
-  //       });
+  //       toast.error("Configuration Failed");
   //     }
   //   }
   // };
@@ -822,10 +800,7 @@ export default function IntegrationsPage() {
         },
       ]);
 
-      toast({
-        title: "Success",
-        description: "Integration connected successfully",
-      });
+      toast.success("Integration connected successfully");
 
       setConfigErrors({});
       setSelectedIntegrationId(null);
@@ -976,7 +951,10 @@ export default function IntegrationsPage() {
                                 className="flex-1 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
                                 onClick={() => {
                                   const connected = connectedIntegrations.find(ci => ci.type === integration.id && ci.is_active);
-                                  if (connected) deleteWebhook(connected.id.toString());
+                                  if (connected) { 
+                                    setWebhookToDelete(connected.id.toString()); 
+                                    setShowDeleteDialog(true); 
+                                  }
                                 }}
                               >
                                 Deactivate
@@ -1100,7 +1078,7 @@ export default function IntegrationsPage() {
                               </code>
                               <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => {
                                 navigator.clipboard.writeText(`https://api.leadbajaar.com/api/webhooks/incoming/${(webhook as any).uuid}`);
-                                toast({ title: "URL Copied!" });
+                                toast.success("URL Copied!");
                               }}>
                                 <ClipboardCopy className="h-3 w-3" />
                               </Button>
@@ -1124,7 +1102,10 @@ export default function IntegrationsPage() {
                           variant="ghost"
                           size="sm"
                           className="text-red-500 hover:text-red-600 hover:bg-red-50 h-8"
-                          onClick={() => deleteWebhook(webhook.id)}
+                          onClick={() => {
+                            setWebhookToDelete(webhook.id);
+                            setShowDeleteDialog(true);
+                          }}
                         >
                           <Trash2 className="h-3.5 w-3.5 mr-1.5" />
                           Delete
@@ -1411,7 +1392,10 @@ export default function IntegrationsPage() {
                               className="flex-1 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
                               onClick={() => {
                                 const connected = connectedIntegrations.find(ci => ci.type === integration.id && ci.is_active);
-                                if (connected) deleteWebhook(connected.id.toString());
+                                if (connected) {
+                                  setWebhookToDelete(connected.id.toString());
+                                  setShowDeleteDialog(true);
+                                }
                               }}
                             >
                               Deactivate
@@ -1654,6 +1638,15 @@ export default function IntegrationsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <DeleteConfirmationModal 
+        isOpen={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={deleteWebhook}
+        isLoading={isDeleting}
+        title="Deactivate Integration"
+        description="Are you sure you want to deactivate this integration? This action can be undone later by re-connecting from the integrations gallery."
+        confirmText="Confirm Deactivation"
+      />
     </div>
     </RoleGuard>
   );

@@ -13,252 +13,217 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { TimeSlotManager } from './TimeSlotManager'
+import { cn } from "@/lib/utils"
 
 interface Props {
   eventType: any
   updateScheduling: (field: string, value: any) => void
 }
 
+const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 block"
+const inputStyle = "h-10 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-all rounded-lg no-scrollbar"
+
 export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
   return (
-    <TabsContent value="scheduling">
-      <Card>
-        <CardContent className="p-6 space-y-6">
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label>Buffer Time Before</Label>
-              <Select
-                value={eventType.scheduling.bufferBefore.toString()}
-                onValueChange={(value) => updateScheduling('bufferBefore', parseInt(value))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select buffer time" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">No buffer</SelectItem>
-                  <SelectItem value="5">5 minutes</SelectItem>
-                  <SelectItem value="10">10 minutes</SelectItem>
-                  <SelectItem value="15">15 minutes</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Buffer Time After</Label>
-              <Select
-                value={eventType.scheduling.bufferAfter.toString()}
-                onValueChange={(value) => updateScheduling('bufferAfter', parseInt(value))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select buffer time" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">No buffer</SelectItem>
-                  <SelectItem value="5">5 minutes</SelectItem>
-                  <SelectItem value="10">10 minutes</SelectItem>
-                  <SelectItem value="15">15 minutes</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+    <TabsContent value="scheduling" className="mt-0 outline-none">
+      <div className="space-y-6 pb-6">
+        {/* Availability Settings */}
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-0.5">Availability Protocol</h3>
+            <p className="text-[11px] text-slate-500 font-medium tracking-tight">Define when you are available for bookings.</p>
           </div>
 
-          <div className="space-y-4">
-            <TimeSlotManager
-              slots={eventType.scheduling.timeSlots || []}
-              onSlotsChange={(slots) => updateScheduling('timeSlots', slots)}
-            />
-          </div>
+          <Card className="border-slate-200/60 dark:border-slate-800/60 shadow-sm rounded-xl overflow-hidden bg-white dark:bg-slate-900">
+            <CardContent className="p-4 space-y-6">
+              <TimeSlotManager
+                slots={eventType.scheduling.timeSlots || []}
+                onSlotsChange={(slots) => updateScheduling('timeSlots', slots)}
+              />
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Available Hours</Label>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm">Start Time</Label>
-                  <Input
-                    type="time"
-                    value={eventType.scheduling.startTime}
-                    onChange={(e) => updateScheduling('startTime', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label className="text-sm">End Time</Label>
-                  <Input
-                    type="time"
-                    value={eventType.scheduling.endTime}
-                    onChange={(e) => updateScheduling('endTime', e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Available Days</Label>
-              <div className="flex flex-wrap gap-2">
-                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
-                  <Button
-                    key={day}
-                    variant={eventType.scheduling.availableDays.includes(day) ? 'default' : 'outline'}
-                    onClick={() => {
-                      const updatedDays = eventType.scheduling.availableDays.includes(day)
-                        ? eventType.scheduling.availableDays.filter((d: string) => d !== day)
-                        : [...eventType.scheduling.availableDays, day]
-                      updateScheduling('availableDays', updatedDays)
+              <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between gap-4 mb-3.5">
+                  <div>
+                    <Label className="text-sm font-bold text-slate-900 dark:text-white mb-0.5">Recurring Availability</Label>
+                    <p className="text-[11px] text-slate-500 font-medium tracking-tight">Set this schedule to repeat automatically.</p>
+                  </div>
+                  <Switch
+                    checked={!!eventType.scheduling.recurring}
+                    onCheckedChange={(checked) => {
+                      updateScheduling('recurring', checked ? {
+                        frequency: 'weekly',
+                        interval: 1,
+                        timeslots: []
+                      } : null)
                     }}
-                  >
-                    {day}
-                  </Button>
-                ))}
-              </div>
-            </div>
+                    className="scale-90 data-[state=checked]:bg-indigo-600"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Recurring Availability</Label>
-                <Switch
-                  checked={!!eventType.scheduling.recurring}
-                  onCheckedChange={(checked) => {
-                    updateScheduling('recurring', checked ? {
-                      frequency: 'weekly',
-                      interval: 1,
-                      timeslots: []
-                    } : undefined)
-                  }}
-                />
-              </div>
-
-              {eventType.scheduling.recurring && (
-                <div className="space-y-4 mt-4">
-                  <Select
-                    value={eventType.scheduling.recurring.frequency}
-                    onValueChange={(value) => updateScheduling('recurring', {
-                      ...eventType.scheduling.recurring,
-                      frequency: value
-                    })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select frequency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <div className="space-y-2">
-                    <Label>Repeat every</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        min="1"
-                        value={eventType.scheduling.recurring.interval}
-                        onChange={(e) => updateScheduling('recurring', {
+                {eventType.scheduling.recurring && (
+                  <div className="grid sm:grid-cols-2 gap-4 p-3.5 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl border border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="space-y-1.5">
+                      <Label className={labelStyle}>Frequency</Label>
+                      <Select
+                        value={eventType.scheduling.recurring.frequency}
+                        onValueChange={(value) => updateScheduling('recurring', {
                           ...eventType.scheduling.recurring,
-                          interval: parseInt(e.target.value)
+                          frequency: value
                         })}
-                        className="w-20"
-                      />
-                      <span>{eventType.scheduling.recurring.frequency === 'daily' ? 'days' : 
-                            eventType.scheduling.recurring.frequency === 'weekly' ? 'weeks' : 'months'}</span>
+                      >
+                        <SelectTrigger className={inputStyle}>
+                          <SelectValue placeholder="Select frequency" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="daily">Daily</SelectItem>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className={labelStyle}>Repeat Every</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min="1"
+                          value={eventType.scheduling.recurring.interval}
+                          onChange={(e) => updateScheduling('recurring', {
+                            ...eventType.scheduling.recurring,
+                            interval: parseInt(e.target.value)
+                          })}
+                          className={cn(inputStyle, "w-16 text-center font-bold")}
+                        />
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          {eventType.scheduling.recurring.frequency === 'daily' ? 'Days' : 
+                           eventType.scheduling.recurring.frequency === 'weekly' ? 'Weeks' : 'Months'}
+                        </span>
+                      </div>
                     </div>
                   </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Booking Rules */}
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-0.5">Booking Limits</h3>
+            <p className="text-[11px] text-slate-500 font-medium tracking-tight">Control the frequency and timing of meetings.</p>
+          </div>
+
+          <Card className="border-slate-200/60 dark:border-slate-800/60 shadow-sm rounded-xl overflow-hidden bg-white dark:bg-slate-900">
+            <CardContent className="p-4 space-y-5">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
+                <div className="space-y-1.5">
+                  <Label className={labelStyle}>Buffer Before</Label>
+                  <Select
+                    value={eventType.scheduling.bufferBefore.toString()}
+                    onValueChange={(value) => updateScheduling('bufferBefore', parseInt(value))}
+                  >
+                    <SelectTrigger className={inputStyle}>
+                      <SelectValue placeholder="Select buffer" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="0">No buffer</SelectItem>
+                      <SelectItem value="5">5 minutes</SelectItem>
+                      <SelectItem value="10">10 minutes</SelectItem>
+                      <SelectItem value="15">15 minutes</SelectItem>
+                      <SelectItem value="30">30 minutes</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
-            </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label>Minimum Notice Period</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  min="0"
-                  value={eventType.scheduling.minimumNotice}
-                  onChange={(e) => updateScheduling('minimumNotice', parseInt(e.target.value))}
-                  className="w-20"
-                />
-                <span>hours</span>
+                <div className="space-y-1.5">
+                  <Label className={labelStyle}>Buffer After</Label>
+                  <Select
+                    value={eventType.scheduling.bufferAfter.toString()}
+                    onValueChange={(value) => updateScheduling('bufferAfter', parseInt(value))}
+                  >
+                    <SelectTrigger className={inputStyle}>
+                      <SelectValue placeholder="Select buffer" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="0">No buffer</SelectItem>
+                      <SelectItem value="5">5 minutes</SelectItem>
+                      <SelectItem value="10">10 minutes</SelectItem>
+                      <SelectItem value="15">15 minutes</SelectItem>
+                      <SelectItem value="30">30 minutes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={labelStyle}>Minimum Notice</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={eventType.scheduling.minimumNotice}
+                      onChange={(e) => updateScheduling('minimumNotice', parseInt(e.target.value))}
+                      className={cn(inputStyle, "w-16 text-center font-bold")}
+                    />
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hours</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={labelStyle}>Max Date Range</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="1"
+                      value={eventType.scheduling.dateRange}
+                      onChange={(e) => updateScheduling('dateRange', parseInt(e.target.value))}
+                      className={cn(inputStyle, "w-16 text-center font-bold")}
+                    />
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Days</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={labelStyle}>Daily Limit</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={eventType.scheduling.dailyLimit || ''}
+                      onChange={(e) => updateScheduling('dailyLimit', parseInt(e.target.value))}
+                      className={cn(inputStyle, "w-16 text-center font-bold")}
+                      placeholder="∞"
+                    />
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Count</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={labelStyle}>Time Zone</Label>
+                  <Select
+                    value={eventType.scheduling.timezone}
+                    onValueChange={(value) => updateScheduling('timezone', value)}
+                  >
+                    <SelectTrigger className={inputStyle}>
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl max-h-[250px]">
+                      {Intl.supportedValuesOf('timeZone').map((tz) => (
+                        <SelectItem key={tz} value={tz} className="text-[10px] font-medium">
+                          {tz.split('/').pop()?.replace(/_/g, ' ')}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground">
-                How far in advance can people book?
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Maximum Booking Period</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  min="1"
-                  value={eventType.scheduling.dateRange}
-                  onChange={(e) => updateScheduling('dateRange', parseInt(e.target.value))}
-                  className="w-20"
-                />
-                <span>days</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                How far in the future can people book?
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label>Daily Booking Limit</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  min="0"
-                  value={eventType.scheduling.dailyLimit || ''}
-                  onChange={(e) => updateScheduling('dailyLimit', parseInt(e.target.value))}
-                  className="w-20"
-                  placeholder="No limit"
-                />
-                <span>meetings per day</span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Weekly Booking Limit</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  min="0"
-                  value={eventType.scheduling.weeklyLimit || ''}
-                  onChange={(e) => updateScheduling('weeklyLimit', parseInt(e.target.value))}
-                  className="w-20"
-                  placeholder="No limit"
-                />
-                <span>meetings per week</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Time Zone</Label>
-            <Select
-              value={eventType.scheduling.timezone}
-              onValueChange={(value) => updateScheduling('timezone', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select time zone" />
-              </SelectTrigger>
-              <SelectContent>
-                {Intl.supportedValuesOf('timeZone').map((tz) => (
-                  <SelectItem key={tz} value={tz}>
-                    {tz.replace(/_/g, ' ')}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-sm text-muted-foreground">
-              All times will be displayed in this time zone
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </TabsContent>
   )
-} 
+}
+
+ 

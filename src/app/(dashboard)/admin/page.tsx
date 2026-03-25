@@ -69,7 +69,14 @@ import {
   Globe,
   Settings,
   Plus,
-  ArrowRight
+  ArrowRight,
+  UserCheck,
+  CalendarCheck2,
+  Plug2,
+  ChevronRight,
+  History,
+  Clock,
+  Loader2
 } from 'lucide-react'
 import { 
   DropdownMenu, 
@@ -79,9 +86,11 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu'
-import { useToast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { RoleGuard } from '@/components/RoleGuard'
+import { setSession } from '@/lib/auth'
+import { ConfirmationModal } from '@/components/shared/ConfirmationModal'
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -104,6 +113,10 @@ interface Company {
   activeServices: string[]
   monthlySpend: number
   joinedDate: string
+  type: 'agency' | 'individual'
+  parent_id?: number | null
+  subscription_started_at?: string | null
+  expires_at?: string | null
 }
 
 interface PlanFeature {
@@ -135,7 +148,8 @@ const initialCompanies: Company[] = [
     usersCount: 24,
     activeServices: ['Facebook Ads', 'WhatsApp CRM', 'Google Forms'],
     monthlySpend: 499,
-    joinedDate: 'Jan 12, 2026'
+    joinedDate: 'Jan 12, 2026',
+    type: 'agency'
   },
   {
     id: 'c2',
@@ -147,7 +161,8 @@ const initialCompanies: Company[] = [
     usersCount: 8,
     activeServices: ['Facebook Ads', 'WhatsApp CRM'],
     monthlySpend: 149,
-    joinedDate: 'Feb 05, 2026'
+    joinedDate: 'Feb 05, 2026',
+    type: 'agency'
   },
   {
     id: 'c3',
@@ -159,9 +174,74 @@ const initialCompanies: Company[] = [
     usersCount: 2,
     activeServices: ['Facebook Ads'],
     monthlySpend: 0,
-    joinedDate: 'Feb 20, 2026'
+    joinedDate: 'Feb 20, 2026',
+    type: 'individual'
+  },
+  {
+    id: 'demo-4',
+    name: 'Global EduTech',
+    owner: 'Zoya Qureshi',
+    email: 'zoya@edutech.com',
+    plan: 'Pro',
+    status: 'Active',
+    usersCount: 15,
+    activeServices: ['Meta Ads', 'Lead Forms'],
+    monthlySpend: 149,
+    joinedDate: 'Mar 01, 2026',
+    type: 'individual'
+  },
+  {
+    id: 'demo-5',
+    name: 'Nexus Digital',
+    owner: 'Rahul Verma',
+    email: 'rahul@nexus.io',
+    plan: 'Enterprise',
+    status: 'Active',
+    usersCount: 42,
+    activeServices: ['WhatsApp', 'Messenger', 'Instagram'],
+    monthlySpend: 499,
+    joinedDate: 'Dec 15, 2025',
+    type: 'agency'
+  },
+  {
+    id: 'demo-6',
+    name: 'Zenith Logistics',
+    owner: 'Neha Kapoor',
+    email: 'neha@zenith.in',
+    plan: 'Free',
+    status: 'Suspended',
+    usersCount: 3,
+    activeServices: [],
+    monthlySpend: 0,
+    joinedDate: 'Mar 10, 2026',
+    type: 'individual'
   }
 ]
+
+const initialUsers = [
+  { id: 1, name: 'Arjun Sharma', email: 'arjun@techsolutions.com', company: { name: 'Tech Solutions Inc' }, role: 'Super Admin', status: 'Active' },
+  { id: 101, name: 'Sriya Patel', email: 'sriya@growth.io', company: { name: 'Growth Marketers' }, role: 'Admin', status: 'Active' },
+  { id: 102, name: 'Vikram Singh', email: 'vikram@rehub.in', company: { name: 'Real Estate Hub' }, role: 'User', status: 'Active' },
+  { id: 103, name: 'Zoya Qureshi', email: 'zoya@edutech.com', company: { name: 'Global EduTech' }, role: 'Admin', status: 'Active' },
+  { id: 104, name: 'Rahul Verma', email: 'rahul@nexus.io', company: { name: 'Nexus Digital' }, role: 'User', status: 'Active' },
+  { id: 105, name: 'Neha Kapoor', email: 'neha@zenith.in', company: { name: 'Zenith Logistics' }, role: 'Manager', status: 'Suspended' },
+  { id: 106, name: 'Amit Desai', email: 'amit@demo.com', company: { name: 'Tech Solutions Inc' }, role: 'User', status: 'Active' },
+  { id: 107, name: 'Pooja Hegde', email: 'pooja@demo.com', company: { name: 'Nexus Digital' }, role: 'Manager', status: 'Active' },
+  { id: 108, name: 'Kabir Khan', email: 'kabir@demo.com', company: { name: 'Global EduTech' }, role: 'User', status: 'Inactive' },
+]
+
+const demoStats = {
+  revenue: { value: '₹14,50,000', sub: '+12.5% from last month', trend: '+12.5%' },
+  active_companies: { value: '142', sub: '8 new this week', trend: '+5.4%' },
+  total_users: { value: '1,284', sub: 'Across 142 orgs', trend: '+8.2%' },
+  api_health: { value: '99.98%', sub: 'Latency: 42ms', trend: 'Stable' },
+  platformMetrics: {
+    total_leads: 12450,
+    total_meetings: 842,
+    active_integrations: 312,
+    system_load: 'Medium'
+  }
+}
 
 const initialPlans: PlanDefinition[] = [
   {
@@ -219,6 +299,7 @@ const initialPlans: PlanDefinition[] = [
 
 export default function SuperAdminPage() {
   const [companies, setCompanies] = useState<Company[]>([])
+  const [users, setUsers] = useState<any[]>([])
   const [stats, setStats] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
@@ -228,22 +309,117 @@ export default function SuperAdminPage() {
   const [activeTab, setActiveTab] = useState('companies')
   const [editingPlan, setEditingPlan] = useState<PlanDefinition | null>(null)
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false)
-  const { toast } = useToast()
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false)
+  const [editingUser, setEditingUser] = useState<any>(null)
+  const [demoMode, setDemoMode] = useState(false)
+  const [isUpdatingCompany, setIsUpdatingCompany] = useState(false)
+  
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    type: 'delete_user' | 'delete_company';
+    id: number;
+    name: string;
+    variant: 'destructive' | 'primary' | 'success';
+  }>({ isOpen: false, type: 'delete_user', id: 0, name: '', variant: 'primary' })
+
+  const [historyModal, setHistoryModal] = useState({ isOpen: false, companyId: 0, companyName: '', logs: [] as any[] })
+  const [renewModal, setRenewModal] = useState({ isOpen: false, companyId: 0, companyName: '', days: 30, notes: '' })
+  const [editDays, setEditDays] = useState(30)
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  // ── Date Synchronizer Logic ────────────────────────────────────────────────
+  useEffect(() => {
+    if (isEditModalOpen && editingCompany) {
+       // Only default if they are COMPLETELY missing from the object OR truly null
+       const hasStart = !!editingCompany.subscription_started_at
+       const hasEnd = !!editingCompany.expires_at
+
+       const startStr = editingCompany.subscription_started_at || new Date().toISOString()
+       const endStr = editingCompany.expires_at || new Date(new Date().setDate(new Date().getDate() + 30)).toISOString()
+
+       const start = new Date(startStr)
+       const end = new Date(endStr)
+      
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        const diffTime = end.getTime() - start.getTime()
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+        setEditDays(diffDays > 0 ? diffDays : 0)
+        
+        // Only update state if we are actually applying defaults for the first time
+        if (!hasStart || !hasEnd) {
+          setEditingCompany(prev => prev ? { 
+            ...prev, 
+            subscription_started_at: startStr,
+            expires_at: endStr
+          } : null)
+        }
+      }
+    }
+  }, [isEditModalOpen])
+
+  const handleStartDateChange = (dateStr: string) => {
+    const newStart = new Date(dateStr)
+    if (isNaN(newStart.getTime())) return
+    
+    setEditingCompany(prev => {
+      if (!prev) return null
+      const newEnd = new Date(newStart)
+      newEnd.setDate(newEnd.getDate() + editDays)
+      return { 
+        ...prev, 
+        subscription_started_at: newStart.toISOString(),
+        expires_at: newEnd.toISOString()
+      }
+    })
+  }
+
+  const handleEndDateChange = (dateStr: string) => {
+    const newEnd = new Date(dateStr)
+    const start = new Date(editingCompany?.subscription_started_at || new Date())
+    if (isNaN(newEnd.getTime()) || isNaN(start.getTime())) return
+
+    const diffTime = newEnd.getTime() - start.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    
+    setEditDays(diffDays > 0 ? diffDays : 0)
+    setEditingCompany(prev => prev ? { ...prev, expires_at: newEnd.toISOString() } : null)
+  }
+
+  const handleEditDaysChange = (days: number) => {
+    setEditDays(days)
+    const start = new Date(editingCompany?.subscription_started_at || new Date())
+    if (isNaN(start.getTime())) return
+
+    const newEnd = new Date(start)
+    newEnd.setDate(newEnd.getDate() + days)
+    setEditingCompany(prev => prev ? { ...prev, expires_at: newEnd.toISOString() } : null)
+  }
 
   const fetchData = async () => {
+    if (demoMode) {
+      setCompanies(initialCompanies)
+      setStats(demoStats)
+      setUsers(initialUsers)
+      setIsLoading(false)
+      return
+    }
+
     try {
       setIsLoading(true)
-      const [companiesData, statsData] = await Promise.all([
+      const [companiesData, statsData, usersData] = await Promise.all([
         adminApi.getCompanies(),
-        adminApi.getStats()
+        adminApi.getStats(),
+        adminApi.getUsers()
       ])
       setCompanies(companiesData)
       setStats(statsData)
+      setUsers(usersData)
     } catch (error: any) {
-      toast({
-        title: "Platform Error",
+      toast.error("Platform Error", {
         description: error.message,
-        variant: "destructive"
       })
     } finally {
       setIsLoading(false)
@@ -252,7 +428,7 @@ export default function SuperAdminPage() {
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [demoMode])
 
   const filteredCompanies = companies.filter((c: Company) => 
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -263,16 +439,13 @@ export default function SuperAdminPage() {
   const handleStatusChange = async (id: number | string, newStatus: AccountStatus) => {
     try {
       await adminApi.updateCompany(Number(id), { status: newStatus })
-      toast({
-        title: "Status Synchronized",
+      toast.success("Status Synchronized", {
         description: `Account status updated to ${newStatus}`,
       })
       fetchData()
     } catch (error: any) {
-      toast({
-        title: "Status Update Failed",
+      toast.error("Status Update Failed", {
         description: error.message,
-        variant: "destructive"
       })
     }
   }
@@ -280,35 +453,127 @@ export default function SuperAdminPage() {
   const handleUpdateCompany = async () => {
     if (!editingCompany) return
     try {
+      setIsUpdatingCompany(true)
       await adminApi.updateCompany(Number(editingCompany.id), {
         plan: editingCompany.plan,
-        status: editingCompany.status
+        status: editingCompany.status,
+        expires_at: editingCompany.expires_at ? new Date(editingCompany.expires_at).toISOString() : undefined,
+        subscription_started_at: editingCompany.subscription_started_at ? new Date(editingCompany.subscription_started_at).toISOString() : undefined
       })
+      
+      toast.success("Global Sync Complete", {
+        description: `${editingCompany.name} configuration updated successfully.`,
+      })
+
       setIsEditModalOpen(false)
-      toast({
-        title: "Global Sync Complete",
-        description: `${editingCompany.name} configuration pushed to all nodes.`,
+      fetchData()
+    } catch (error: any) {
+      toast.error("Update Failed", {
+        description: error.message,
+      })
+    } finally {
+      setIsUpdatingCompany(false)
+    }
+  }
+
+  const handleUpdateUser = async () => {
+    if (!editingUser) return
+    try {
+      await adminApi.updateUser(Number(editingUser.id), {
+        role: editingUser.role,
+        status: editingUser.status,
+        company_id: editingUser.company_id
+      })
+      setIsUserModalOpen(false)
+      toast.success("User Updated", {
+        description: `${editingUser.name} permissions modified successfully.`,
       })
       fetchData()
     } catch (error: any) {
-      toast({
-        title: "Update Failed",
+      toast.error("Update Failed", {
         description: error.message,
-        variant: "destructive"
       })
     }
   }
 
+  const handleDeleteUser = async () => {
+    const { id, name } = confirmModal
+    try {
+      await adminApi.deleteUser(id)
+      toast.success("User Removed", { description: `${name}'s account has been wiped.` })
+      setConfirmModal({ ...confirmModal, isOpen: false })
+      fetchData()
+    } catch (error: any) {
+      toast.error("Deletion Failed", { description: error.message })
+    }
+  }
+
+  const handleDeleteCompany = async () => {
+    const { id, name } = confirmModal
+    try {
+      await adminApi.deleteCompany(id)
+      toast.success("Company Wiped", { description: `${name} workspace has been deleted.` })
+      setConfirmModal({ ...confirmModal, isOpen: false })
+      fetchData()
+    } catch (error: any) {
+      toast.error("Deletion Failed", { description: error.message })
+    }
+  }
+
+  const handleRenewCompany = async () => {
+    try {
+      await adminApi.renewCompany(renewModal.companyId, renewModal.days, renewModal.notes)
+      toast.success("Subscription Prolonged", { description: `${renewModal.companyName} extended for ${renewModal.days} days.` })
+      setRenewModal({ ...renewModal, isOpen: false })
+      fetchData()
+    } catch (error: any) {
+      toast.error("Renewal Failed", { description: error.message })
+    }
+  }
+
+  const handleViewHistory = async (id: number, name: string) => {
+    try {
+      const logs = await adminApi.getCompanyHistory(id)
+      setHistoryModal({ isOpen: true, companyId: id, companyName: name, logs })
+    } catch (error: any) {
+      toast.error("History Recall Failed", {
+        description: error.message,
+      })
+    }
+  }
+
+  const handleImpersonate = async (userId: number) => {
+    try {
+      toast.info("Gateway Opening", { description: "Bypassing protocols for admin entry..." })
+      
+      const currentToken = localStorage.getItem('token')
+      if (currentToken) {
+        localStorage.setItem('admin_token', currentToken)
+      }
+
+      const { token } = await adminApi.loginAsAnyUser(userId)
+      setSession(token)
+      window.location.href = '/dashboard'
+    } catch (error: any) {
+      toast.error("Impersonation Failed", { description: error.message })
+    }
+  }
+
+  const handleConfirmAction = () => {
+    switch(confirmModal.type) {
+      case 'delete_user': handleDeleteUser(); break;
+      case 'delete_company': handleDeleteCompany(); break;
+    }
+  }
+
   const handleSync = () => {
-    toast({
-      title: "Syncing Data",
+    toast.info("Syncing Data", {
       description: "Pulling latest metrics from Meta and WhatsApp gateways...",
     })
   }
 
   const handleExport = () => {
-    toast({
-      title: "Export Started",
+    toast.info("Export Started", {
       description: "Platform audit log is being generated (CSV).",
     })
   }
@@ -341,10 +606,10 @@ export default function SuperAdminPage() {
     const exists = plans.some(p => p.id === editingPlan.id)
     if (exists) {
       setPlans(plans.map(p => p.id === editingPlan.id ? editingPlan : p) as any)
-      toast({ title: "Plan Synchronized", description: `${editingPlan.name} features updated across system.` })
+      toast.success("Plan Synchronized", { description: `${editingPlan.name} features updated across system.` })
     } else {
       setPlans([...plans, editingPlan])
-      toast({ title: "New Plan Launched", description: `${editingPlan.name} tier is now live for all users.` })
+      toast.success("New Plan Launched", { description: `${editingPlan.name} tier is now live for all users.` })
     }
     setIsPlanModalOpen(false)
   }
@@ -386,23 +651,70 @@ export default function SuperAdminPage() {
               </div>
               <p className="text-sm text-slate-500 font-medium italic">Master control for LeadBajaar Platform</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Demo Data</p>
+                <button 
+                  onClick={() => setDemoMode(!demoMode)}
+                  className={cn(
+                    "w-10 h-5 rounded-full transition-all relative",
+                    demoMode ? "bg-indigo-600" : "bg-slate-300"
+                  )}
+                >
+                  <div className={cn(
+                    "absolute top-1 w-3 h-3 rounded-full bg-white transition-all",
+                    demoMode ? "right-1" : "left-1"
+                  )} />
+                </button>
+              </div>
               <Button variant="outline" onClick={handleSync} className="rounded-xl border-slate-200 h-10 font-bold text-sm">
                 <RefreshCw className="h-4 w-4 mr-2" /> Sync Data
               </Button>
-              <Button onClick={() => toast({ title: "System Healthy", description: "All 14 services operating within normal parameters." })} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md rounded-xl h-10 px-5">
+              <Button onClick={() => toast.success("System Healthy", { description: "All 14 services operating within normal parameters." })} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md rounded-xl h-10 px-5">
                 <Zap className="h-4 w-4 mr-2" /> System Status
               </Button>
+            </div>
           </div>
-        </div>
 
         {/* Global Summary */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Total Revenue', value: '$12,450', sub: 'Last 30 days', icon: DollarSign, color: 'emerald', trend: '+12%', items: true },
-            { label: 'Active Companies', value: '142', sub: '12 new this week', icon: Building2, color: 'blue', trend: '+8%', items: true },
-            { label: 'Platform Users', value: '1,890', sub: '92% Active rate', icon: Users, color: 'indigo', trend: '+15%', items: true },
-            { label: 'API Health', value: '99.9%', sub: 'No downtime reported', icon: Activity, color: 'purple', trend: 'Stable', items: false }
+            { 
+              label: 'Total Revenue', 
+              value: stats?.revenue?.value || '₹0', 
+              sub: stats?.revenue?.sub || 'Last 30 days', 
+              icon: DollarSign, 
+              color: 'emerald', 
+              trend: stats?.revenue?.trend || '+0%', 
+              items: true 
+            },
+            { 
+              label: 'Active Companies', 
+              value: stats?.active_companies?.value || '0', 
+              sub: stats?.active_companies?.sub || 'Live on platform', 
+              icon: Building2, 
+              color: 'blue', 
+              trend: stats?.active_companies?.trend || '+0%', 
+              items: true 
+            },
+            { 
+              label: 'Platform Users', 
+              value: stats?.total_users?.value || '0', 
+              sub: stats?.total_users?.sub || 'Registered users', 
+              icon: Users, 
+              color: 'indigo', 
+              trend: stats?.total_users?.trend || '+0%', 
+              items: true 
+            },
+            { 
+              label: 'API Health', 
+              value: stats?.api_health?.value || '99.9%', 
+              sub: stats?.api_health?.sub || 'System status', 
+              icon: Activity, 
+              color: 'purple', 
+              trend: stats?.api_health?.trend || 'Stable', 
+              items: false 
+            }
           ].map((stat, i) => (
             <Card key={i} className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden relative group">
               <div className={cn("absolute top-0 right-0 -mt-2 -mr-2 h-16 w-16 rounded-full blur-2xl opacity-10", `bg-${stat.color}-500 group-hover:opacity-20 transition-opacity`)}></div>
@@ -416,18 +728,27 @@ export default function SuperAdminPage() {
                   </div>
                 </div>
                 <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">{stat.label}</p>
-                <p className="text-2xl font-black text-slate-900 dark:text-white leading-tight">{stat.value}</p>
+                {isLoading ? (
+                  <div className="h-8 w-24 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-lg mt-1" />
+                ) : (
+                  <p className="text-2xl font-black text-slate-900 dark:text-white leading-tight">{stat.value}</p>
+                )}
                 <p className="text-[10px] text-slate-400 mt-1.5 font-medium">{stat.sub}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
+
         <Tabs defaultValue="companies" onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl h-11 border border-slate-200 dark:border-slate-800 w-fit">
             <TabsTrigger value="companies" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
               <Building2 className="h-4 w-4 mr-2" />
               Manage Companies
+            </TabsTrigger>
+            <TabsTrigger value="users" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
+              <Users className="h-4 w-4 mr-2" />
+              Manage Users
             </TabsTrigger>
             <TabsTrigger value="billing" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
               <CreditCard className="h-4 w-4 mr-2" />
@@ -442,6 +763,90 @@ export default function SuperAdminPage() {
               Service Status
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="users" className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="relative w-full sm:w-96">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <Search className="h-4 w-4" />
+                </div>
+                <Input 
+                  placeholder="Search users by name, email..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-10 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl text-sm shadow-sm pl-10"
+                />
+              </div>
+            </div>
+
+            <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden">
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader className="bg-slate-50/80 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="font-bold text-slate-500 py-4 pl-6">User</TableHead>
+                      <TableHead className="font-bold text-slate-500 py-4">Company</TableHead>
+                      <TableHead className="font-bold text-slate-500 py-4">Account Type</TableHead>
+                      <TableHead className="font-bold text-slate-500 py-4">Role</TableHead>
+                      <TableHead className="font-bold text-slate-500 py-4">Status</TableHead>
+                      <TableHead className="text-right font-bold text-slate-500 py-4 pr-6">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase()) || u.email.toLowerCase().includes(searchQuery.toLowerCase())).map((u) => (
+                      <TableRow key={u.id} className="border-slate-100 dark:border-slate-800">
+                        <TableCell className="py-4 pl-6">
+                          <div>
+                            <p className="font-bold text-sm">{u.name}</p>
+                            <p className="text-[10px] text-slate-400">{u.email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm font-medium">{u.company?.name || 'No Company'}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-[10px] font-bold uppercase bg-slate-50">{u.user_type || 'Individual'}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="default" className="text-[10px] font-bold uppercase">{u.role}</Badge>
+                        </TableCell>
+                        <TableCell>
+                           <Badge className={cn("text-[10px] font-bold", u.status === 'Active' ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600")}>
+                            {u.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right pr-6">
+                           <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => { setEditingUser(u); setIsUserModalOpen(true); }}>
+                                Edit Role
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="text-indigo-600 font-bold"
+                                onClick={() => handleImpersonate(u.id)}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-2" /> Impersonate
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                className="text-red-600 font-bold"
+                                onClick={() => setConfirmModal({ isOpen: true, type: 'delete_user', id: u.id, name: u.name, variant: 'destructive' })}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" /> Wipe Account
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="companies" className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {/* Filter Row */}
@@ -475,11 +880,14 @@ export default function SuperAdminPage() {
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-xs py-5 pl-6">Company & Owner</TableHead>
                       <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-xs py-5">Plan</TableHead>
+                      <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-xs py-5">Entity Type</TableHead>
                       <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-xs py-5">Status</TableHead>
-                      <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-xs py-5">Users</TableHead>
-                      <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-xs py-5">Active Services</TableHead>
-                      <TableHead className="text-right font-bold text-slate-500 uppercase tracking-wider text-xs py-5 pr-6">Monthly MRR</TableHead>
-                      <TableHead className="text-right font-bold text-slate-500 uppercase tracking-wider text-xs py-5 pr-6"></TableHead>
+                      <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px] py-5">Node</TableHead>
+                      <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px] py-5">Users</TableHead>
+                      <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px] py-5">Expiration</TableHead>
+                      <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px] py-5">Started</TableHead>
+                      <TableHead className="text-right font-bold text-slate-500 uppercase tracking-wider text-[10px] py-5 pr-6">Monthly MRR</TableHead>
+                      <TableHead className="text-right font-bold text-slate-500 uppercase tracking-wider text-[10px] py-5 pr-6"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -506,6 +914,11 @@ export default function SuperAdminPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
+                           <Badge variant="secondary" className={cn("text-[10px] uppercase font-black tracking-widest px-2 py-0.5", company.type === 'agency' ? "bg-indigo-50 text-indigo-700 border-indigo-100" : "bg-slate-50 text-slate-600 border-slate-100")}>
+                            {company.type || 'individual'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
                           {getStatusBadge(company.status)}
                         </TableCell>
                         <TableCell>
@@ -515,16 +928,23 @@ export default function SuperAdminPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex flex-wrap gap-1.5 max-w-[200px]">
-                            {company.activeServices.map((service, idx) => (
-                              <div key={idx} className="h-5 px-1.5 rounded flex items-center bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                                {service}
-                              </div>
-                            ))}
-                          </div>
+                           <div className="space-y-0.5">
+                              <p className="text-xs font-black text-indigo-600 dark:text-indigo-400">
+                                 {company.expires_at ? new Date(company.expires_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }) : 'Never'}
+                              </p>
+                              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Automatic Expiry</p>
+                           </div>
+                        </TableCell>
+                        <TableCell>
+                           <div className="space-y-0.5">
+                              <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                 {company.subscription_started_at ? new Date(company.subscription_started_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }) : 'N/A'}
+                              </p>
+                              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Plan Started</p>
+                           </div>
                         </TableCell>
                         <TableCell className="text-right pr-6">
-                          <p className="font-black text-slate-900 dark:text-white text-sm">${company.monthlySpend}</p>
+                          <p className="font-black text-slate-900 dark:text-white text-sm">₹{company.monthlySpend}</p>
                           <p className="text-[10px] text-slate-500">Joined {company.joinedDate}</p>
                         </TableCell>
                         <TableCell className="text-right pr-6">
@@ -547,18 +967,36 @@ export default function SuperAdminPage() {
                                 <Edit className="mr-3 h-4 w-4 text-slate-400" /> Edit Plan & Billing
                               </DropdownMenuItem>
                               <DropdownMenuItem 
-                                className="cursor-pointer font-medium py-2.5 px-3 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-xl"
-                                onClick={() => toast({ title: "Session Redirect", description: `Assuming identity of ${company.owner}...` })}
+                                className="cursor-pointer font-bold py-2.5 px-3 text-indigo-600 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-xl"
+                                onClick={() => handleImpersonate(Number(company.id))}
                               >
-                                <ExternalLink className="mr-3 h-4 w-4 text-slate-400" /> Login as Owner
+                                <ExternalLink className="mr-3 h-4 w-4" /> Enter Account
                               </DropdownMenuItem>
                               <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
                               <DropdownMenuLabel className="font-bold text-[10px] uppercase tracking-wider text-slate-400 px-3 py-1">Advanced Actions</DropdownMenuLabel>
+                              <DropdownMenuItem 
+                                className="cursor-pointer font-bold py-2.5 px-3 text-emerald-600 focus:bg-emerald-50 dark:focus:bg-emerald-950/30 rounded-xl"
+                                onClick={() => setRenewModal({ isOpen: true, companyId: Number(company.id), companyName: company.name, days: 30, notes: '' })}
+                              >
+                                <RefreshCw className="mr-3 h-4 w-4 text-emerald-400" /> Prolong Plan
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="cursor-pointer font-bold py-2.5 px-3 text-slate-600 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-xl"
+                                onClick={() => handleViewHistory(Number(company.id), company.name)}
+                              >
+                                <History className="mr-3 h-4 w-4 text-slate-400" /> Audit History
+                              </DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="cursor-pointer font-medium py-2.5 px-3 text-red-600 focus:bg-red-50 dark:focus:bg-red-950/30 focus:text-red-600 rounded-xl"
                                 onClick={() => handleStatusChange(company.id, 'Suspended')}
                               >
                                 <ShieldAlert className="mr-3 h-4 w-4" /> Suspend Account
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="cursor-pointer font-bold py-2.5 px-3 text-red-600 focus:bg-red-100 dark:focus:bg-red-900/40 rounded-xl"
+                                onClick={() => setConfirmModal({ isOpen: true, type: 'delete_company', id: Number(company.id), name: company.name, variant: 'destructive' })}
+                              >
+                                <Trash2 className="mr-3 h-4 w-4" /> Terminate Node
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -619,7 +1057,7 @@ export default function SuperAdminPage() {
                 <div className="absolute top-0 right-0 -mt-8 -mr-8 h-32 w-32 rounded-full bg-white/10 blur-3xl"></div>
                 <div className="relative z-10 flex flex-col h-full">
                   <p className="text-indigo-100 text-xs font-bold uppercase tracking-widest mb-2">Total MRR</p>
-                  <h3 className="text-4xl font-black mb-6">$42,890</h3>
+                  <h3 className="text-4xl font-black mb-6">{stats?.revenue?.value || '₹0'}</h3>
                   <div className="space-y-4 flex-1">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-indigo-100">Pro Subscriptions</span>
@@ -728,6 +1166,27 @@ export default function SuperAdminPage() {
           </TabsContent>
 
           <TabsContent value="health" className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+               {[
+                 { label: 'Platform Leads', value: stats?.platformMetrics?.totalLeads || 0, icon: UserCheck, color: 'emerald' },
+                 { label: 'Bookings', value: stats?.platformMetrics?.totalMeetings || 0, icon: CalendarCheck2, color: 'blue' },
+                 { label: 'Integrations', value: stats?.platformMetrics?.activeIntegrations || 0, icon: Plug2, color: 'violet' },
+                 { label: 'System Load', value: stats?.platformMetrics?.systemLoad || 'N/A', icon: Activity, color: 'indigo' },
+               ].map((m, i) => (
+                 <Card key={i} className="bg-white dark:bg-slate-900 border-none ring-1 ring-slate-200 dark:ring-slate-800 p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center", `bg-${m.color}-50 text-${m.color}-600 dark:bg-${m.color}-950/30 dark:text-${m.color}-400`)}>
+                        <m.icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-500 uppercase">{m.label}</p>
+                        <p className="text-xl font-black">{m.value}</p>
+                      </div>
+                    </div>
+                 </Card>
+               ))}
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden">
                 <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
@@ -798,52 +1257,97 @@ export default function SuperAdminPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="plan" className="font-bold text-slate-700">Service Plan</Label>
-                <Select 
-                  value={editingCompany?.plan} 
-                  onValueChange={(v: Plan) => setEditingCompany((prev: Company | null) => prev ? { ...prev, plan: v } : null)}
-                >
-                  <SelectTrigger className="h-11 rounded-lg bg-slate-50 border-slate-200">
-                    <SelectValue placeholder="Select a plan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Free">Free Plan ($0/mo)</SelectItem>
-                    <SelectItem value="Pro">Pro Plan ($149/mo)</SelectItem>
-                    <SelectItem value="Enterprise">Enterprise Plan ($499/mo)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="mrr" className="font-bold text-slate-700">Override MRR ($)</Label>
-                <Input 
-                  id="mrr" 
-                  type="number"
-                  value={editingCompany?.monthlySpend}
-                  onChange={(e) => setEditingCompany((prev: Company | null) => prev ? { ...prev, monthlySpend: parseInt(e.target.value) || 0 } : null)}
-                  className="h-11 rounded-lg bg-slate-50 border-slate-200"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status-select" className="font-bold text-slate-700">Account Status</Label>
-                <Select 
-                  value={editingCompany?.status} 
-                  onValueChange={(v: AccountStatus) => setEditingCompany((prev: Company | null) => prev ? { ...prev, status: v } : null)}
-                >
-                  <SelectTrigger className="h-11 rounded-lg bg-slate-50 border-slate-200">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Delinquent">Delinquent</SelectItem>
-                    <SelectItem value="Suspended">Suspended</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                       <Label className="text-xs font-bold uppercase text-slate-500">Plan Tier</Label>
+                       <Select 
+                        value={editingCompany?.plan} 
+                        onValueChange={(val) => setEditingCompany(prev => prev ? { ...prev, plan: val as Plan } : null)}
+                      >
+                        <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-200">
+                          <SelectValue placeholder="Select Plan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Free">Free</SelectItem>
+                          <SelectItem value="Pro">Pro</SelectItem>
+                          <SelectItem value="Enterprise">Enterprise</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase text-slate-500">Node Status</Label>
+                      <Select 
+                        value={editingCompany?.status} 
+                        onValueChange={(val) => setEditingCompany(prev => prev ? { ...prev, status: val as AccountStatus } : null)}
+                      >
+                        <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-200">
+                          <SelectValue placeholder="Select Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Active">Active</SelectItem>
+                          <SelectItem value="Delinquent">Delinquent</SelectItem>
+                          <SelectItem value="Suspended">Suspended</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                       <Label className="text-xs font-bold uppercase text-slate-500">Subscription Start</Label>
+                       <Input 
+                        type="date"
+                        value={editingCompany?.subscription_started_at ? new Date(editingCompany.subscription_started_at).toISOString().split('T')[0] : ''}
+                        onChange={(e) => handleStartDateChange(e.target.value)}
+                        className="h-11 rounded-xl bg-slate-50 border-slate-200 font-bold"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                       <Label className="text-xs font-bold uppercase text-slate-500">Duration (Days)</Label>
+                       <Input 
+                        type="number"
+                        value={editDays}
+                        onChange={(e) => handleEditDaysChange(parseInt(e.target.value) || 0)}
+                        className="h-11 rounded-xl bg-white border-slate-200 font-black text-indigo-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase text-slate-500">Auto Expiration Date</Label>
+                    <Input 
+                      type="date"
+                      value={editingCompany?.expires_at ? new Date(editingCompany.expires_at).toISOString().split('T')[0] : ''}
+                      onChange={(e) => handleEndDateChange(e.target.value)}
+                      className="h-11 rounded-xl bg-slate-50 border-slate-200 font-bold"
+                    />
+                  </div>
+                </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="rounded-lg h-10 font-bold border-slate-200">Cancel</Button>
-              <Button onClick={handleUpdateCompany} className="rounded-lg h-10 font-bold bg-indigo-600 hover:bg-indigo-700 shadow-sm">Save Changes</Button>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsEditModalOpen(false)} 
+                className="rounded-xl h-11 font-bold border-slate-200"
+                disabled={isUpdatingCompany}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleUpdateCompany} 
+                className={cn("rounded-xl h-11 font-black px-8 shadow-lg transition-all", 
+                  isUpdatingCompany ? "bg-slate-400" : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20"
+                )}
+                disabled={isUpdatingCompany}
+              >
+                {isUpdatingCompany ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Syncing...
+                  </>
+                ) : "Push Changes"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -908,6 +1412,137 @@ export default function SuperAdminPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Manual Renewal Modal */}
+        <Dialog open={renewModal.isOpen} onOpenChange={(open) => setRenewModal({ ...renewModal, isOpen: open })}>
+          <DialogContent className="sm:max-w-md rounded-3xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-black">Manual License Extension</DialogTitle>
+              <DialogDescription className="font-medium text-slate-500">
+                Prolonging platform access for <strong>{renewModal.companyName}</strong>.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase text-slate-500">Extension Duration (Days)</Label>
+                <div className="relative">
+                  <Input 
+                    type="number" 
+                    value={renewModal.days}
+                    onChange={(e) => setRenewModal({ ...renewModal, days: parseInt(e.target.value) || 0 })}
+                    className="h-11 rounded-xl bg-slate-50 border-slate-200 pl-10 font-black"
+                  />
+                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                </div>
+                <p className="text-[10px] text-slate-400 font-medium italic">* To reduce duration, use negative values.</p>
+              </div>
+              <div className="space-y-2">
+                 <Label className="text-xs font-bold uppercase text-slate-500">Audit Notes (Optional)</Label>
+                 <Input 
+                  placeholder="e.g., Client loyalty credit, Backdated activation..."
+                  value={renewModal.notes}
+                  onChange={(e) => setRenewModal({ ...renewModal, notes: e.target.value })}
+                  className="h-11 rounded-xl bg-white border-slate-200 text-sm"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setRenewModal({ ...renewModal, isOpen: false })} className="rounded-xl h-11 font-bold">Cancel</Button>
+              <Button onClick={handleRenewCompany} className="rounded-xl h-11 font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20">Apply Extension</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Global Audit History Modal */}
+        <Dialog open={historyModal.isOpen} onOpenChange={(open) => setHistoryModal({ ...historyModal, isOpen: open })}>
+          <DialogContent className="sm:max-w-[700px] border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden p-0 shadow-2xl">
+            <div className="p-6 bg-slate-900 text-white relative overflow-hidden">
+               <div className="absolute top-0 right-0 -mt-8 -mr-8 h-32 w-32 rounded-full bg-white/5 blur-3xl"></div>
+               <div className="relative z-10">
+                  <DialogTitle className="text-xl font-black flex items-center gap-2">
+                    <History className="h-5 w-5 text-indigo-400" />
+                    Subscription Audit Trail
+                  </DialogTitle>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Workspace: {historyModal.companyName}</p>
+               </div>
+            </div>
+            
+            <div className="max-h-[500px] overflow-y-auto">
+              <Table>
+                <TableHeader className="bg-slate-50 dark:bg-slate-900 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-800">
+                  <TableRow>
+                    <TableHead className="text-[10px] uppercase font-black py-4 pl-6">Timestamp</TableHead>
+                    <TableHead className="text-[10px] uppercase font-black py-4">Event Node</TableHead>
+                    <TableHead className="text-[10px] uppercase font-black py-4">Processor</TableHead>
+                    <TableHead className="text-[10px] uppercase font-black py-4">New Expiry</TableHead>
+                    <TableHead className="text-[10px] uppercase font-black py-4 pr-6">Narrative</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {historyModal.logs.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-16">
+                        <div className="flex flex-col items-center gap-3 text-slate-300">
+                          <History className="h-10 w-10 opacity-20" />
+                          <p className="font-bold text-sm">No recorded transactions for this node.</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    historyModal.logs.map((log) => (
+                      <TableRow key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                        <TableCell className="text-xs font-bold text-slate-600 dark:text-slate-400 py-4 pl-6">
+                          {new Date(log.created_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={cn("text-[8px] font-black uppercase px-2", 
+                            log.type === 'RENEWAL' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
+                            log.type === 'ADJUSTMENT' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-slate-50 text-slate-500'
+                          )}>
+                            {log.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                          {log.processor?.name || 'System Auto'}
+                        </TableCell>
+                        <TableCell className="text-xs font-black text-indigo-600 dark:text-indigo-400">
+                          {log.new_expiry ? new Date(log.new_expiry).toLocaleDateString() : '—'}
+                        </TableCell>
+                        <TableCell className="text-[10px] text-slate-500 font-medium pr-6 max-w-[200px] truncate italic">
+                          {log.notes || 'No narrative provided.'}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center px-6">
+              <p className="text-[10px] text-slate-400 font-bold uppercase">End of audit log</p>
+              <Button onClick={() => setHistoryModal({ ...historyModal, isOpen: false })} className="rounded-xl font-bold bg-slate-900 dark:bg-white dark:text-slate-900 px-8 h-10">Close Audit</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Universal Confirmation Modal */}
+        <ConfirmationModal 
+          isOpen={confirmModal.isOpen}
+          onOpenChange={(open) => setConfirmModal({ ...confirmModal, isOpen: open })}
+          onConfirm={handleConfirmAction}
+          variant={confirmModal.variant}
+          title={
+            confirmModal.type === 'delete_user' ? "Wipe User Account" :
+            "Terminate Workspace Node"
+          }
+          description={
+            confirmModal.type === 'delete_user' ? `Are you sure you want to permanently delete ${confirmModal.name}? This cannot be reversed.` :
+            `Are you sure you want to terminate ${confirmModal.name}? All workspace nodes, leads, and integrations will be purged.`
+          }
+          confirmText={
+            confirmModal.type === 'delete_user' ? "Yes, Wipe Account" :
+            "Yes, Terminate Node"
+          }
+        />
         </div>
       </div>
     </RoleGuard>

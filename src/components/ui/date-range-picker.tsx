@@ -39,27 +39,20 @@ export function DateRangePicker({
   }, [value])
 
   const formatDateRange = (range: DateRange | undefined) => {
-    console.log('formatDateRange called with:', range)
     if (!range?.from) return placeholder
-    
+
     if (range.to) {
-      const formatted = `${format(range.from, "MMM dd")} - ${format(range.to, "MMM dd")}`
-      console.log('Formatted range:', formatted)
-      return formatted
+      return `${format(range.from, "MMM dd")} - ${format(range.to, "MMM dd")}`
     }
-    
-    const formatted = format(range.from, "MMM dd")
-    console.log('Formatted single date:', formatted)
-    return formatted
+
+    return format(range.from, "MMM dd")
   }
 
   const handleDateClick = (date: Date) => {
-    console.log('Date clicked:', date, 'Current selectedRange:', selectedRange)
     
     if (!selectedRange?.from || (selectedRange.from && selectedRange.to)) {
       // Start new selection
       const newRange = { from: date, to: undefined }
-      console.log('Starting new selection:', newRange)
       setSelectedRange(newRange)
       setHoveredDate(undefined)
     } else {
@@ -75,7 +68,6 @@ export function DateRangePicker({
         newRange = { from, to }
       }
       
-      console.log('Completing range (internal only):', newRange)
       setSelectedRange(newRange)
       setHoveredDate(undefined)
       // Don't call onChange here - wait for Apply button

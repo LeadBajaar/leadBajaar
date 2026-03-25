@@ -2,21 +2,6 @@
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts"
 
-const monthlyData = [
-  { name: "Jan", meetings: 42, leads: 78 },
-  { name: "Feb", meetings: 58, leads: 95 },
-  { name: "Mar", meetings: 35, leads: 62 },
-  { name: "Apr", meetings: 75, leads: 110 },
-  { name: "May", meetings: 63, leads: 88 },
-  { name: "Jun", meetings: 89, leads: 132 },
-  { name: "Jul", meetings: 52, leads: 74 },
-  { name: "Aug", meetings: 71, leads: 115 },
-  { name: "Sep", meetings: 94, leads: 148 },
-  { name: "Oct", meetings: 68, leads: 102 },
-  { name: "Nov", meetings: 83, leads: 127 },
-  { name: "Dec", meetings: 97, leads: 155 },
-]
-
 interface CustomTooltipProps {
   active?: boolean
   payload?: Array<{ value: number; dataKey: string; color: string }>
@@ -39,10 +24,16 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   )
 }
 
-export function Overview() {
+interface OverviewProps {
+  data?: any[]
+}
+
+export function Overview({ data }: OverviewProps) {
+  const chartData = data || []
+
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={monthlyData} barCategoryGap="30%" barGap={4}>
+      <BarChart data={chartData} barCategoryGap="30%" barGap={4}>
         <CartesianGrid vertical={false} stroke="hsl(214 32% 91%)" strokeDasharray="3 3" />
         <XAxis
           dataKey="name"
@@ -62,3 +53,4 @@ export function Overview() {
     </ResponsiveContainer>
   )
 }
+

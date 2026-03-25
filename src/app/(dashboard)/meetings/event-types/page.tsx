@@ -9,10 +9,11 @@ import {
   Clock, Video, MapPin, Phone, Users,
   Link as LinkIcon, Plus, Calendar, Copy, ExternalLink,
   ChevronRight, MoreHorizontal, Globe2, Trash2, Edit2,
-  CalendarCheck, ArrowRight, Zap, X
+  CalendarCheck, ArrowRight, Zap, X, AlertCircle, Loader2
 } from 'lucide-react'
 import Link from 'next/link'
-import { useToast } from "@/components/ui/use-toast"
+import { toast } from 'sonner'
+import { DeleteConfirmationModal } from "@/components/shared/DeleteConfirmationModal";
 import {
   Dialog,
   DialogContent,
@@ -39,10 +40,12 @@ const locationIcons = {
 }
 
 export default function EventTypesPage() {
-  const { toast } = useToast()
   const [eventTypes, setEventTypes] = useState<EventType[]>([])
   const [loading, setLoading] = useState(true)
   const [showShareDialog, setShowShareDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [typeToDelete, setTypeToDelete] = useState<string | number | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [selectedEventType, setSelectedEventType] = useState<EventType | null>(null)
 
   useEffect(() => {
@@ -59,11 +62,7 @@ export default function EventTypesPage() {
         setEventTypes(processedData)
       } catch (error) {
         console.error('Error loading event types:', error)
-        toast({
-          title: "Error",
-          description: "Failed to load event types",
-          variant: "destructive",
-        })
+        toast.error("Failed to load event types")
         setEventTypes([])
       } finally {
         setLoading(false)
@@ -76,31 +75,26 @@ export default function EventTypesPage() {
   const copyBookingLink = (eventType: EventType) => {
     const bookingLink = `${window.location.origin}/book/${eventType.id}`
     navigator.clipboard.writeText(bookingLink)
-    toast({
-      title: "Link Copied",
-      description: "Booking link has been copied to clipboard",
-    })
+    toast.success("Booking link copied to clipboard")
   }
 
   const openPreview = (eventType: EventType) => {
     window.open(`/book/${eventType.id}`, '_blank')
   }
 
-  const deleteEventType = async (id: string | number) => {
-    if (!confirm('Are you sure you want to delete this event type?')) return
+  const deleteEventType = async () => {
+    if (!typeToDelete) return
     try {
-      await eventTypeService.delete(id)
-      setEventTypes(eventTypes.filter(et => et.id !== id))
-      toast({
-        title: "Success",
-        description: "Event type deleted successfully",
-      })
+      setIsDeleting(true)
+      await eventTypeService.delete(typeToDelete)
+      setEventTypes(eventTypes.filter(et => et.id !== typeToDelete))
+      toast.success("Event type deleted successfully")
+      setShowDeleteDialog(false)
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete event type",
-        variant: "destructive",
-      })
+      toast.error("Failed to delete event type")
+    } finally {
+      setIsDeleting(false)
+      setTypeToDelete(null)
     }
   }
 
@@ -205,8 +199,8 @@ export default function EventTypesPage() {
                             <ExternalLink className="h-4 w-4" /> Preview Live
                           </DropdownMenuItem>
                           <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800 mx-1" />
-                          <DropdownMenuItem onClick={() => deleteEventType(eventType.id)} className="rounded-lg focus:bg-red-50 dark:focus:bg-red-900/20 focus:text-red-600 dark:focus:text-red-400 cursor-pointer flex items-center gap-2 text-red-600 dark:text-red-400">
-                            <Trash2 className="h-4 w-4" /> Delete Event
+                          <DropdownMenuItem onClick={() => { setTypeToDelete(eventType.id); setShowDeleteDialog(true); }} className="rounded-lg focus:bg-red-50 dark:focus:bg-red-900/20 focus:text-red-600 dark:focus:text-red-400 cursor-pointer flex items-center gap-2 text-red-600 dark:text-red-400">
+                             <Trash2 className="h-4 w-4" /> Delete Event
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -299,7 +293,7 @@ export default function EventTypesPage() {
                   onClick={() => {
                     const bookingLink = `${window.location.origin}/book/${selectedEventType.id}`
                     navigator.clipboard.writeText(bookingLink)
-                    toast({ title: "Copied!", description: "Link copied to clipboard." })
+                    toast.success("Link copied to clipboard.")
                   }}
                   className="absolute right-2 top-2 h-10 px-4 bg-white dark:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-900 dark:text-white"
                 >
@@ -328,6 +322,17 @@ export default function EventTypesPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <DeleteConfirmationModal
+        isOpen={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={deleteEventType}
+        isLoading={isDeleting}
+        title="Delete Event Type"
+        description="This action is permanent and cannot be undone. Are you sure you want to delete this event type?"
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   )
-} 
+}

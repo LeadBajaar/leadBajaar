@@ -2,30 +2,40 @@
 
 import React, { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useUser, UserRole } from '../contexts/UserContext'
+import { useUser, UserRole, UserType } from '../contexts/UserContext'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface RoleGuardProps {
   children: React.ReactNode
-  allowedRoles: UserRole[]
+  allowedRoles?: UserRole[]
+  allowedTypes?: UserType[]
   fallbackPath?: string
 }
 
 export function RoleGuard({ 
   children, 
   allowedRoles, 
+  allowedTypes,
   fallbackPath = '/dashboard' 
 }: RoleGuardProps) {
-  const { user, isLoading, hasRole } = useUser()
+  const { user, isLoading, hasRole, hasType } = useUser()
   const router = useRouter()
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.push('/signin')
-    } else if (!isLoading && user && !hasRole(allowedRoles)) {
-      router.push(fallbackPath)
+    if (!isLoading) {
+      if (!user) {
+        router.push('/signin')
+        return
+      }
+
+      const roleMatch = !allowedRoles || hasRole(allowedRoles)
+      const typeMatch = !allowedTypes || hasType(allowedTypes)
+
+      if (!roleMatch || !typeMatch) {
+         router.push(fallbackPath)
+      }
     }
-  }, [user, isLoading, allowedRoles, router, fallbackPath, hasRole])
+  }, [user, isLoading, allowedRoles, allowedTypes, router, fallbackPath, hasRole, hasType])
 
   if (isLoading) {
     return (
@@ -36,7 +46,10 @@ export function RoleGuard({
     )
   }
 
-  if (!user || !hasRole(allowedRoles)) {
+  const roleMatch = !allowedRoles || (user && hasRole(allowedRoles))
+  const typeMatch = !allowedTypes || (user && hasType(allowedTypes))
+
+  if (!user || !roleMatch || !typeMatch) {
     return null
   }
 

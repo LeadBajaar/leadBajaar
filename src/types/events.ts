@@ -4,14 +4,7 @@ export interface EventType {
   description: string
   duration: number
   location: string
-  questions: Array<{
-    id: string
-    question: string
-    type: string
-    required: boolean
-    description?: string
-    placeholder?: string
-  }>
+  questions: Question[]
   scheduling: {
     bufferBefore: number
     bufferAfter: number
@@ -22,21 +15,36 @@ export interface EventType {
     dateRange: number
     timezone: string
     timeSlots: any[]
-    startTime: string
-    endTime: string
+    startTime?: string
+    endTime?: string
     recurring?: {
       frequency: string
       interval: number
       timeslots: any[]
     } | null
   }
-  teamMembers: Array<{
-    id: number
-    name: string
-    email: string
-    avatar?: string
-  }>
+  slots?: TimeSlot[]
+  teamMembers: TeamMember[]
+  sections?: QuestionSection[]
 }
+
+export interface Question {
+  id: string
+  question: string
+  type: 'text' | 'textarea' | 'radio' | 'checkbox' | 'dropdown' | 'date' | 'time' | 'phone' | 'email'
+  required: boolean
+  options?: string[]
+  placeholder?: string
+  description?: string
+}
+
+export interface QuestionSection {
+  id: string
+  title: string
+  description?: string
+  questions: Question[]
+}
+
 
 export interface EventQuestion {
   id: string

@@ -13,80 +13,49 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Overview } from '@/components/overview'
-import { getUser } from '@/lib/api'
+import { getDashboardStats } from '@/lib/api'
 import { cn } from '@/lib/utils'
+import * as LucideIcons from 'lucide-react'
+import { useUser } from '@/contexts/UserContext'
 
 // ── Types ─────────────────────────────────────────────────────
-interface UserData {
-  id: number
-  name: string
-  email: string
-  phone: string
-  company: string
-  created_at: string
-  avatar: string | null
+interface DashboardData {
+  stats: any[]
+  monthly_overview: any[]
+  pipeline: any[]
+  recent_activity: any[]
 }
 
-// ── Static stat cards data ────────────────────────────────────
-const stats = [
-  {
-    label: 'Total Leads',
-    value: '2,847',
-    change: '+18.2%',
-    trend: 'up',
-    icon: Users,
-    color: 'text-indigo-600',
-    bg: 'bg-indigo-50 dark:bg-indigo-900/20',
-    iconBg: 'bg-indigo-100 dark:bg-indigo-900/40',
-  },
-  {
-    label: 'Meetings Booked',
-    value: '341',
-    change: '+20.1%',
-    trend: 'up',
-    icon: CalendarCheck2,
-    color: 'text-emerald-600',
-    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-    iconBg: 'bg-emerald-100 dark:bg-emerald-900/40',
-  },
-  {
-    label: 'Conversion Rate',
-    value: '24.8%',
-    change: '+5.3%',
-    trend: 'up',
-    icon: Target,
-    color: 'text-violet-600',
-    bg: 'bg-violet-50 dark:bg-violet-900/20',
-    iconBg: 'bg-violet-100 dark:bg-violet-900/40',
-  },
-  {
-    label: 'Avg. Response Time',
-    value: '1.4h',
-    change: '-8.2%',
-    trend: 'down',
-    icon: Zap,
-    color: 'text-amber-600',
-    bg: 'bg-amber-50 dark:bg-amber-900/20',
-    iconBg: 'bg-amber-100 dark:bg-amber-900/40',
-  },
-]
-
-// ── Recent activity ───────────────────────────────────────────
-const recentActivity = [
-  { icon: CheckCircle2, color: 'text-emerald-500', label: 'New lead closed', time: '2m ago', sub: 'Arjun Sharma → Deal Closed' },
-  { icon: CalendarCheck2, color: 'text-indigo-500', label: 'Meeting booked', time: '18m ago', sub: 'Priya Mehta scheduled a call' },
-  { icon: Users, color: 'text-blue-500', label: 'Lead imported', time: '34m ago', sub: '47 leads from Facebook' },
-  { icon: XCircle, color: 'text-rose-500', label: 'Lead lost', time: '1h ago', sub: 'Rahul Verma → Not Interested' },
-  { icon: TrendingUp, color: 'text-violet-500', label: 'Stage updated', time: '2h ago', sub: 'Sneha Patel → Qualified' },
-]
-
-// ── Pipeline stages ───────────────────────────────────────────
-const pipeline = [
-  { stage: 'New Leads', count: 842, pct: 100, color: 'bg-indigo-500' },
-  { stage: 'Qualified', count: 531, pct: 63, color: 'bg-violet-500' },
-  { stage: 'Appointment', count: 284, pct: 34, color: 'bg-blue-500' },
-  { stage: 'Deal Closed', count: 127, pct: 15, color: 'bg-emerald-500' },
-]
+const demoDashboardData: DashboardData = {
+  stats: [
+    { label: 'Total Leads', value: '1,284', key: 'leads', trend: 'up', change: '+12%' },
+    { label: 'Meetings Set', value: '42', key: 'meetings', trend: 'up', change: '+8%' },
+    { label: 'Conversion Rate', value: '18.5%', key: 'conversion', trend: 'up', change: '+2.4%' },
+    { label: 'Avg Response', value: '4m 12s', key: 'response', trend: 'down', change: '-15%' },
+  ],
+  monthly_overview: [
+    { name: 'Jan', value: 400, meetings: 120 },
+    { name: 'Feb', value: 520, meetings: 156 },
+    { name: 'Mar', value: 480, meetings: 142 },
+    { name: 'Apr', value: 610, meetings: 184 },
+    { name: 'May', value: 590, meetings: 172 },
+    { name: 'Jun', value: 720, meetings: 210 },
+    { name: 'Jul', value: 840, meetings: 245 },
+    { name: 'Aug', value: 950, meetings: 280 },
+  ],
+  pipeline: [
+    { stage: 'New Leads', count: 450, pct: 100, color: 'bg-blue-500' },
+    { stage: 'Qualified', count: 280, pct: 62, color: 'bg-indigo-500' },
+    { stage: 'Negotiating', count: 120, pct: 26, color: 'bg-violet-500' },
+    { stage: 'Closing', count: 42, pct: 9, color: 'bg-emerald-500' },
+  ],
+  recent_activity: [
+    { label: 'Sarah Connor', sub: 'Scheduled a viewing for Hubli Residency', time: '2m ago', icon_name: 'CalendarCheck2', color: 'text-emerald-500' },
+    { label: 'New Meta Lead', sub: 'Came through "Premium Villas" campaign', time: '15m ago', icon_name: 'Target', color: 'text-indigo-500' },
+    { label: 'Vikram Singh', sub: 'Replied via WhatsApp integration', time: '1h ago', icon_name: 'MessageCircle', color: 'text-blue-500' },
+    { label: 'Email Opened', sub: 'Amit Shah viewed "Pricing Catalog"', time: '3h ago', icon_name: 'Mail', color: 'text-slate-500' },
+  ]
+}
 
 // ─────────────────────────────────────────────────────────────
 // Skeleton components
@@ -180,28 +149,66 @@ function ActivitySkeleton() {
   )
 }
 
-import { useUser } from '@/contexts/UserContext'
-
 // ── Main Dashboard ─────────────────────────────────────────────
 export default function DashboardPage() {
   const { user, isLoading: userLoading } = useUser()
   const [isLoading, setIsLoading] = useState(true)
-  // Date must be set client-side only to prevent hydration mismatch
+  const [data, setData] = useState<DashboardData | null>(null)
   const [todayLabel, setTodayLabel] = useState<string | null>(null)
+  const [isDemo, setIsDemo] = useState(false)
 
   useEffect(() => {
     setTodayLabel(format(new Date(), 'EEEE, d MMM yyyy'))
   }, [])
 
   useEffect(() => {
-    if (!userLoading) {
-      setIsLoading(false)
+    const fetchDashboardData = async () => {
+      try {
+        const statsData = await getDashboardStats()
+        // If data is empty or brand new, use high-fidelity demo data to show potential
+        if (!statsData || !statsData.stats || statsData.stats.length === 0 || statsData.stats.every((s: any) => s.value == 0)) {
+          setData(demoDashboardData)
+          setIsDemo(true)
+        } else {
+          setData(statsData)
+          setIsDemo(false)
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error)
+        setData(demoDashboardData) // Fallback to demo on error for preview
+        setIsDemo(true)
+      } finally {
+        setIsLoading(false)
+      }
     }
-  }, [userLoading])
+
+    if (!userLoading) {
+      if (user) {
+        fetchDashboardData()
+      } else {
+        setIsLoading(false)
+      }
+    }
+  }, [userLoading, user])
 
   const initials = user?.name
     ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
     : '?'
+
+  const getStatIcon = (key: string) => {
+    switch (key) {
+      case 'leads': return { icon: Users, color: 'text-indigo-600', iconBg: 'bg-indigo-100 dark:bg-indigo-900/40' };
+      case 'meetings': return { icon: CalendarCheck2, color: 'text-emerald-600', iconBg: 'bg-emerald-100 dark:bg-emerald-900/40' };
+      case 'conversion': return { icon: Target, color: 'text-violet-600', iconBg: 'bg-violet-100 dark:bg-violet-900/40' };
+      case 'response': return { icon: Zap, color: 'text-amber-600', iconBg: 'bg-amber-100 dark:bg-amber-900/20' };
+      default: return { icon: Zap, color: 'text-slate-600', iconBg: 'bg-slate-100' };
+    }
+  }
+
+  const getLucideIcon = (name: string) => {
+    const Icon = (LucideIcons as any)[name] || LucideIcons.Zap;
+    return Icon;
+  }
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 h-full overflow-auto">
@@ -234,44 +241,52 @@ export default function DashboardPage() {
             {todayLabel}
           </Badge>
         )}
+        {isDemo && !isLoading && (
+          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 ml-2">
+            Demo Preview Mode
+          </Badge>
+        )}
       </div>
 
       {/* ── Stat cards ─────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {isLoading
+        {isLoading || !data
           ? Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
-          : stats.map((s) => (
-            <Card
-              key={s.label}
-              className={cn(
-                'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800',
-                'hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5',
-              )}
-            >
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                    {s.label}
-                  </span>
-                  <div className={cn('flex h-10 w-10 items-center justify-center rounded-xl', s.iconBg)}>
-                    <s.icon className={cn('h-5 w-5', s.color)} />
+          : data.stats.map((s) => {
+            const { icon: Icon, color, iconBg } = getStatIcon(s.key);
+            return (
+              <Card
+                key={s.label}
+                className={cn(
+                  'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800',
+                  'hover:shadow-card-md transition-all duration-200 hover:-translate-y-0.5',
+                )}
+              >
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                      {s.label}
+                    </span>
+                    <div className={cn('flex h-10 w-10 items-center justify-center rounded-xl', iconBg)}>
+                      <Icon className={cn('h-5 w-5', color)} />
+                    </div>
                   </div>
-                </div>
-                <div className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
-                  {s.value}
-                </div>
-                <div className={cn(
-                  'flex items-center gap-1 text-xs font-medium',
-                  s.trend === 'up' ? 'text-emerald-600' : 'text-red-500'
-                )}>
-                  {s.trend === 'up'
-                    ? <ArrowUpRight className="h-3.5 w-3.5" />
-                    : <ArrowDownRight className="h-3.5 w-3.5" />}
-                  {s.change} from last month
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                  <div className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
+                    {s.value}
+                  </div>
+                  <div className={cn(
+                    'flex items-center gap-1 text-xs font-medium',
+                    s.trend === 'up' ? 'text-emerald-600' : 'text-red-500'
+                  )}>
+                    {s.trend === 'up'
+                      ? <ArrowUpRight className="h-3.5 w-3.5" />
+                      : <ArrowDownRight className="h-3.5 w-3.5" />}
+                    {s.change} from last month
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })
         }
       </div>
 
@@ -305,7 +320,7 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent className="pr-4 pt-2">
-              <Overview />
+              <Overview data={data?.monthly_overview} />
             </CardContent>
           </Card>
         )}
@@ -377,7 +392,7 @@ export default function DashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {pipeline.map((p) => (
+              {data && data.pipeline.map((p) => (
                 <div key={p.stage} className="space-y-1.5">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-slate-700 dark:text-slate-300 font-medium">{p.stage}</span>
@@ -413,26 +428,29 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
-                {recentActivity.map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex items-start gap-3 rounded-xl px-2 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-                  >
-                    <div className={cn(
-                      'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
-                      'bg-slate-100 dark:bg-slate-800',
-                    )}>
-                      <item.icon className={cn('h-4 w-4', item.color)} />
+                {data && data.recent_activity.map((item, i) => {
+                  const Icon = getLucideIcon(item.icon_name);
+                  return (
+                    <div
+                      key={i}
+                      className="flex items-start gap-3 rounded-xl px-2 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                    >
+                      <div className={cn(
+                        'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
+                        'bg-slate-100 dark:bg-slate-800',
+                      )}>
+                        <Icon className={cn('h-4 w-4', item.color)} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-none">
+                          {item.label}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-0.5 truncate">{item.sub}</p>
+                      </div>
+                      <span className="text-xs text-slate-400 shrink-0 mt-0.5">{item.time}</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-none">
-                        {item.label}
-                      </p>
-                      <p className="text-xs text-slate-400 mt-0.5 truncate">{item.sub}</p>
-                    </div>
-                    <span className="text-xs text-slate-400 shrink-0 mt-0.5">{item.time}</span>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </CardContent>
           </Card>

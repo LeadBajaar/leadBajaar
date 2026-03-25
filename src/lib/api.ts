@@ -172,6 +172,8 @@ export interface CreateLeadDto {
   stage: string;
   status?: 'Hot' | 'Warm' | 'Cold';
   source?: string;
+  city?: string;
+  profession?: string;
 }
 
 export interface ImportLeadDto {
@@ -231,6 +233,8 @@ export interface Lead {
   stage: string;
   status: 'Hot' | 'Warm' | 'Cold';
   source: string;
+  city: string;
+  profession: string;
   notes?: string;
   deal_value?: number;
   paid_amount?: number;
@@ -295,6 +299,11 @@ export const getLeads = async (params: GetLeadsParams) => {
     console.error('Error fetching leads:', error);
     throw error;
   }
+};
+
+export const getLead = async (id: number) => {
+  const response = await api.get<Lead>(`/leads/${id}`);
+  return response.data;
 };
 
 export const deleteLead = async (id: number) => {
@@ -1452,12 +1461,141 @@ export const adminApi = {
     }
   },
 
-  updateCompany: async (id: number, data: { plan?: string, status?: string }) => {
+  updateCompany: async (id: number, data: { plan?: string, status?: string, expires_at?: string, subscription_started_at?: string }) => {
     try {
       const response = await api.patch(`/admin/companies/${id}`, data);
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to update company');
+    }
+  },
+
+  getUsers: async () => {
+    try {
+      const response = await api.get('/admin/users');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch users');
+    }
+  },
+
+  updateUser: async (id: number, data: any) => {
+    try {
+      const response = await api.patch(`/admin/users/${id}`, data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to update user');
+    }
+  },
+
+  deleteUser: async (id: number) => {
+    try {
+      const response = await api.delete(`/admin/users/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to delete user');
+    }
+  },
+
+  deleteCompany: async (id: number) => {
+    try {
+      const response = await api.delete(`/admin/companies/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to delete company');
+    }
+  },
+
+  renewCompany: async (id: number, days: number, notes?: string) => {
+    try {
+      const response = await api.post(`/admin/companies/${id}/renew`, { days, notes });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to renew company');
+    }
+  },
+
+  getCompanyHistory: async (id: number) => {
+    try {
+      const response = await api.get(`/admin/companies/${id}/history`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch subscription history');
+    }
+  },
+
+  loginAsAnyUser: async (id: number) => {
+    try {
+      const response = await api.post(`/admin/users/${id}/login`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to impersonate user');
+    }
+  }
+};
+
+// Agency Management API
+export const agencyApi = {
+  getClients: async () => {
+    try {
+      const response = await api.get('/agency/clients');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch clients');
+    }
+  },
+
+  onboardClient: async (data: any) => {
+    try {
+      const response = await api.post('/agency/onboard', data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to onboard client');
+    }
+  },
+
+  getStats: async () => {
+    try {
+      const response = await api.get('/agency/stats');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch agency stats');
+    }
+  },
+
+  loginAsClient: async (id: number) => {
+    try {
+      const response = await api.post(`/agency/clients/${id}/login`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to impersonate client');
+    }
+  },
+
+  deleteClient: async (id: number) => {
+    try {
+      const response = await api.delete(`/agency/clients/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to delete client');
+    }
+  },
+
+  renewClient: async (id: number) => {
+    try {
+      const response = await api.post(`/agency/clients/${id}/renew`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to renew client');
+    }
+  },
+
+  getClientHistory: async (id: number) => {
+    try {
+      const response = await api.get(`/agency/clients/${id}/history`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch history');
     }
   }
 };
@@ -1466,3 +1604,12 @@ export default api;
 
 
 
+export const getDashboardStats = async () => {
+  const response = await api.get('/dashboard/stats');
+  return response.data;
+};
+
+export const getAnalyticsData = async () => {
+  const response = await api.get('/analytics');
+  return response.data;
+};

@@ -2,9 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Button } from '@/components/ui/button'
 import {
   Gauge,
   UserCheck,
@@ -22,7 +23,9 @@ import {
   Users,
   Shield,
   Activity,
-  Bell
+  Bell,
+  Briefcase,
+  ArrowLeft
 } from 'lucide-react'
 import { logout } from '@/lib/api'
 import { clearSession } from '@/lib/auth'
@@ -34,7 +37,7 @@ import {
 } from '@/components/ui/tooltip'
 
 // ── Nav config ───────────────────────────────────────────────
-import { useUser, UserRole } from '@/contexts/UserContext'
+import { useUser, UserRole, UserType } from '@/contexts/UserContext'
 
 // ── Nav config ───────────────────────────────────────────────
 type NavItemDef = {
@@ -42,7 +45,8 @@ type NavItemDef = {
   href: string
   icon: React.ElementType
   color: string
-  roles: UserRole[] // Added roles
+  roles: UserRole[] 
+  types?: UserType[] // Optional filter for Agency/Individual panels
 }
 
 type NavSection = {
@@ -55,23 +59,24 @@ const mainNav: NavSection[] = [
     label: 'Core',
     items: [
       { name: 'Dashboard', href: '/dashboard', icon: Gauge, color: '#6366F1', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+      { name: 'Clients', href: '/agency', icon: Briefcase, color: '#6366F1', types: ['agency', 'super_admin'], roles: ['Super Admin', 'Admin'] },
       { name: 'Leads', href: '/leads', icon: UserCheck, color: '#10B981', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
       { name: 'Live Chat', href: '/live-chat', icon: MessageCircle, color: '#3B82F6', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
-      { name: 'Chatbot', href: '/chatbot', icon: Bot, color: '#8B5CF6', roles: ['Super Admin', 'Admin', 'Manager'] },
+      { name: 'Chatbot', href: '/chatbot', icon: Bot, color: '#8B5CF6', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin'] },
     ]
   },
   {
     label: 'Productivity',
     items: [
       { name: 'Meetings', href: '/meetings', icon: CalendarCheck2, color: '#F59E0B', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
-      { name: 'Integrations', href: '/integrations', icon: Plug2, color: '#EC4899', roles: ['Super Admin', 'Admin'] },
+      { name: 'Integrations', href: '/integrations', icon: Plug2, color: '#EC4899', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin'] },
       { name: 'Analytics', href: '/analytics', icon: TrendingUp, color: '#14B8A6', roles: ['Super Admin', 'Admin', 'Manager'] },
     ]
   },
   {
     label: 'Platform Control',
     items: [
-      { name: 'Admin Portal', href: '/admin', icon: Shield, color: '#EF4444', roles: ['Super Admin'] },
+      { name: 'Admin Portal', href: '/admin', icon: Shield, color: '#EF4444', roles: ['Super Admin'], types: ['super_admin'] },
       { name: 'Dev Hub', href: '/developer', icon: Code2, color: '#10B981', roles: ['Super Admin', 'Admin'] },
     ]
   },
@@ -93,23 +98,51 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
   const router = useRouter()
   const { user, hasRole } = useUser() // Get user and hasRole from context
 
+  const [mounted, setMounted] = useState(false)
+  const [isImpersonating, setIsImpersonating] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    setIsImpersonating(!!localStorage.getItem('admin_token'))
+  }, [])
+
   const handleLogout = async () => {
     try {
       await logout()
       clearSession()
+      localStorage.removeItem('admin_token')
       router.push('/signin')
     } catch (error) {
       console.error('Logout failed:', error)
     }
   }
 
-  // Filter sections and items based on role
+  const handleExitImpersonation = () => {
+    const adminToken = localStorage.getItem('admin_token')
+    if (adminToken) {
+      localStorage.setItem('token', adminToken)
+      localStorage.removeItem('admin_token')
+      window.location.href = '/agency'
+    }
+  }
+
+  // Filter sections and items based on role AND type
+  const { hasType } = useUser()
+
   const filteredMainNav = mainNav.map(section => ({
     ...section,
-    items: section.items.filter(item => hasRole(item.roles))
+    items: section.items.filter(item => {
+      const roleMatch = hasRole(item.roles)
+      const typeMatch = !item.types || hasType(item.types)
+      return roleMatch && typeMatch
+    })
   })).filter(section => section.items.length > 0)
 
-  const filteredBottomNav = bottomNav.filter(item => hasRole(item.roles))
+  const filteredBottomNav = bottomNav.filter(item => {
+    const roleMatch = hasRole(item.roles)
+    const typeMatch = !item.types || hasType(item.types)
+    return roleMatch && typeMatch
+  })
 
   const userRole = user?.role ? user.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Guest'
 
@@ -135,6 +168,18 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
       >
         {/* Subtle top gradient glow */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-indigo-600/10 to-transparent" />
+
+        {mounted && isImpersonating && (
+          <div className="px-4 py-3 bg-indigo-600/20 border-b border-indigo-500/20">
+            <Button 
+              onClick={handleExitImpersonation}
+              variant="ghost" 
+              className="w-full h-9 rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all gap-2"
+            >
+              <ArrowLeft className="h-3 w-3" /> Return to Agency
+            </Button>
+          </div>
+        )}
 
         {/* Collapse toggle — floats over the sidebar/content boundary */}
         <button

@@ -17,7 +17,15 @@ import {
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
-import { ArrowLeft, Save, Plus, Trash2, GripVertical } from 'lucide-react'
+import { 
+  ArrowLeft, 
+  Save, 
+  Plus, 
+  Trash2, 
+  GripVertical, 
+  AlertCircle, 
+  XCircle 
+} from 'lucide-react'
 import {
   DndContext,
   closestCenter,
@@ -36,6 +44,14 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { useToast } from "@/components/ui/use-toast"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog"
 
 import { BasicInfoTab } from './components/BasicInfoTab'
 import { QuestionsTab } from './components/QuestionsTab'
@@ -43,67 +59,9 @@ import { SchedulingTab } from './components/SchedulingTab'
 import { TeamTab } from './components/TeamTab'
 import { eventTypeService } from '@/services/event-types'
 
-// Add interfaces for form state
-interface Question {
-  id: string
-  question: string
-  type: 'text' | 'textarea' | 'radio' | 'checkbox' | 'dropdown' | 'date' | 'time' | 'phone' | 'email'
-  required: boolean
-  options?: string[]
-  placeholder?: string
-  description?: string
-  validation?: {
-    pattern?: string
-    minLength?: number
-    maxLength?: number
-    min?: number
-    max?: number
-  }
-  conditional?: {
-    dependsOn: string // Question ID
-    showIf: {
-      value: string | string[]
-      operator: 'equals' | 'contains' | 'not_equals' | 'not_contains'
-    }
-  }
-}
+import { EventType, Question, QuestionSection, SchedulingSettings, TimeSlot, TeamMember } from '@/types/events'
 
-interface TimeSlot {
-  day: string
-  startTime: string
-  endTime: string
-}
-
-interface SchedulingSettings {
-  bufferBefore: number
-  bufferAfter: number
-  minimumNotice: number
-  dailyLimit: number
-  weeklyLimit: number
-  availableDays: string[]
-  dateRange: number
-  timezone: string
-  recurring?: {
-    frequency: 'daily' | 'weekly' | 'monthly'
-    interval: number
-    endDate?: string
-    daysOfWeek?: number[]
-    timeslots: {
-      startTime: string
-      endTime: string
-    }[]
-  }
-}
-
-interface TeamMember {
-  id: number
-  name: string
-  email: string
-  avatar: string
-  role: string
-}
-
-// Dummy team members data
+// ... (teamMembers constant remains)
 const teamMembers = [
   {
     id: 1,
@@ -119,230 +77,7 @@ const teamMembers = [
     avatar: "https://www.svgrepo.com/show/65453/avatar.svg",
     role: "Senior Sales Executive"
   },
-  // Add more team members...
 ]
-
-// Add this new component for sortable question items
-const SortableQuestion = ({ question, index, updateQuestion, removeQuestion }: {
-  question: Question
-  index: number
-  updateQuestion: (index: number, field: keyof Question, value: any) => void
-  removeQuestion: (index: number) => void
-}) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: question.id })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  }
-
-  const questionTypes = [
-    { value: 'text', label: 'Short Text' },
-    { value: 'textarea', label: 'Long Text' },
-    { value: 'radio', label: 'Radio Buttons' },
-    { value: 'checkbox', label: 'Checkboxes' },
-    { value: 'dropdown', label: 'Dropdown' },
-    { value: 'date', label: 'Date' },
-    { value: 'time', label: 'Time' },
-    { value: 'phone', label: 'Phone Number' },
-    { value: 'email', label: 'Email' }
-  ]
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="bg-muted p-4 rounded-lg mb-4"
-    >
-      <div className="flex items-center gap-4">
-        <div {...attributes} {...listeners}>
-          <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
-        </div>
-        <div className="flex-1 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Question</Label>
-              <Input
-                value={question.question}
-                onChange={(e) => updateQuestion(index, 'question', e.target.value)}
-                placeholder="Enter your question"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Type</Label>
-              <Select
-                value={question.type}
-                onValueChange={(value: Question['type']) => updateQuestion(index, 'type', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select question type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {questionTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Description (Optional)</Label>
-            <Input
-              value={question.description || ''}
-              onChange={(e) => updateQuestion(index, 'description', e.target.value)}
-              placeholder="Add a description or help text"
-            />
-          </div>
-
-          {question.type === 'text' && (
-            <div className="space-y-2">
-              <Label>Placeholder</Label>
-              <Input
-                value={question.placeholder || ''}
-                onChange={(e) => updateQuestion(index, 'placeholder', e.target.value)}
-                placeholder="Enter placeholder text"
-              />
-            </div>
-          )}
-
-          {question.type === 'textarea' && (
-            <div className="space-y-2">
-              <Label>Placeholder</Label>
-              <Input
-                value={question.placeholder || ''}
-                onChange={(e) => updateQuestion(index, 'placeholder', e.target.value)}
-                placeholder="Enter placeholder text"
-              />
-            </div>
-          )}
-
-          {(question.type === 'radio' || question.type === 'checkbox' || question.type === 'dropdown') && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Options</Label>
-                <p className="text-sm text-muted-foreground">One option per line</p>
-              </div>
-              <Textarea
-                placeholder={`Option 1\nOption 2\nOption 3`}
-                value={question.options?.join('\n') || ''}
-                onChange={(e) => updateQuestion(index, 'options', e.target.value.split('\n').filter(Boolean))}
-                className="min-h-[100px]"
-              />
-            </div>
-          )}
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              checked={question.required}
-              onCheckedChange={(checked) => updateQuestion(index, 'required', checked)}
-            />
-            <Label>Required</Label>
-          </div>
-
-          {/* Preview section */}
-          <div className="mt-4 border-t pt-4">
-            <Label className="text-sm text-muted-foreground">Preview:</Label>
-            <div className="mt-2 p-4 bg-background rounded-lg">
-              <p className="font-medium mb-1">
-                {question.question}
-                {question.required && <span className="text-destructive ml-1">*</span>}
-              </p>
-              {question.description && (
-                <p className="text-sm text-muted-foreground mb-2">{question.description}</p>
-              )}
-              
-              {question.type === 'text' && (
-                <Input placeholder={question.placeholder || 'Enter your answer'} disabled />
-              )}
-              
-              {question.type === 'textarea' && (
-                <Textarea placeholder={question.placeholder || 'Enter your answer'} disabled />
-              )}
-              
-              {question.type === 'radio' && question.options && (
-                <div className="space-y-2">
-                  {question.options.map((option, i) => (
-                    <div key={i} className="flex items-center space-x-2">
-                      <input type="radio" disabled />
-                      <Label>{option}</Label>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {question.type === 'checkbox' && question.options && (
-                <div className="space-y-2">
-                  {question.options.map((option, i) => (
-                    <div key={i} className="flex items-center space-x-2">
-                      <input type="checkbox" disabled />
-                      <Label>{option}</Label>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {question.type === 'dropdown' && (
-                <Select disabled>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an option" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {question.options?.map((option, i) => (
-                      <SelectItem key={i} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              
-              {question.type === 'date' && (
-                <Input type="date" disabled />
-              )}
-              
-              {question.type === 'time' && (
-                <Input type="time" disabled />
-              )}
-              
-              {question.type === 'phone' && (
-                <Input type="tel" placeholder="Enter phone number" disabled />
-              )}
-              
-              {question.type === 'email' && (
-                <Input type="email" placeholder="Enter email address" disabled />
-              )}
-            </div>
-          </div>
-        </div>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => removeQuestion(index)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-// Add new interface for sections
-interface QuestionSection {
-  id: string
-  title: string
-  description?: string
-  questions: Question[]
-}
 
 export default function EventTypeForm() {
   const params = useParams()
@@ -350,9 +85,14 @@ export default function EventTypeForm() {
   const { toast } = useToast()
   const isNew = params.id === 'new'
 
-  // Move all hooks to the top
   const [loading, setLoading] = useState(!isNew)
-  const [eventType, setEventType] = useState({
+  const [isSaving, setIsSaving] = useState(false)
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+  const [showErrorDialog, setShowErrorDialog] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  const [eventType, setEventType] = useState<EventType>({
+    id: isNew ? 'new' : '', // Satisfy interface
     title: '',
     description: '',
     duration: 30,
@@ -367,14 +107,23 @@ export default function EventTypeForm() {
       availableDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
       dateRange: 60,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      timeSlots: [],
-      recurring: undefined as any
+      timeSlots: [
+        {
+          id: 'default-1',
+          startTime: '09:00',
+          endTime: '17:00',
+          daysOfWeek: [1, 2, 3, 4, 5], // Mon-Fri
+          breaks: []
+        }
+      ],
+      recurring: null
     },
     slots: [] as TimeSlot[],
     teamMembers: [] as TeamMember[],
     sections: [] as QuestionSection[],
   })
 
+  // ... (sensors, useEffect remain same)
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -392,9 +141,8 @@ export default function EventTypeForm() {
       try {
         setLoading(true)
         const data = await eventTypeService.getById(params.id as string)
-        
-        // Create a new state object with defaults for missing properties
-        const newEventType = {
+        const newEventType: EventType = {
+          id: data.id,
           title: data.title || '',
           description: data.description || '',
           duration: data.duration || 30,
@@ -410,16 +158,14 @@ export default function EventTypeForm() {
             dateRange: data.scheduling?.dateRange || 60,
             timezone: data.scheduling?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
             timeSlots: data.scheduling?.timeSlots || [],
-            recurring: data.scheduling?.recurring
+            recurring: data.scheduling?.recurring || null
           },
           slots: data.slots || [],
           teamMembers: data.teamMembers || [],
           sections: data.sections || [],
         }
-        
         setEventType(newEventType)
       } catch (error) {
-        console.error('Error loading event type:', error)
         toast({
           title: "Error",
           description: "Failed to load event type",
@@ -429,199 +175,153 @@ export default function EventTypeForm() {
         setLoading(false)
       }
     }
-
     loadEventType()
-  }, [isNew, params.id]) // Remove toast from dependencies
+  }, [isNew, params.id])
 
-  if (loading) {
-    return <LoadingSpinner />
-  }
+  if (loading) return <LoadingSpinner />
 
-  // Questions tab handlers
+  // Handlers (Questions, Scheduling, Team - unchanged logic but omitted for brevity in chunk)
   const addQuestion = () => {
-    const newQuestion: Question = {
-      id: Date.now().toString(),
-      question: '',
-      type: 'text',
-      required: false,
-      description: '',
-      placeholder: ''
-    }
-    setEventType({
-      ...eventType,
-      questions: [...eventType.questions, newQuestion]
-    })
+    const newQuestion: Question = { id: Date.now().toString(), question: '', type: 'text', required: false }
+    setEventType({ ...eventType, questions: [...eventType.questions, newQuestion] })
   }
-
   const updateQuestion = (index: number, field: keyof Question, value: any) => {
-    const updatedQuestions = [...eventType.questions]
-    updatedQuestions[index] = {
-      ...updatedQuestions[index],
-      [field]: value
-    }
-    setEventType({
-      ...eventType,
-      questions: updatedQuestions
-    })
+    const updated = [...eventType.questions]; updated[index] = { ...updated[index], [field]: value }
+    setEventType({ ...eventType, questions: updated })
   }
-
   const removeQuestion = (index: number) => {
-    const updatedQuestions = eventType.questions.filter((_, i) => i !== index)
-    setEventType({
-      ...eventType,
-      questions: updatedQuestions
-    })
+    setEventType({ ...eventType, questions: eventType.questions.filter((_, i) => i !== index) })
   }
-
   const handleQuestionDragEnd = (event: any) => {
     const { active, over } = event
-
     if (active.id !== over.id) {
       setEventType((prev) => {
         const oldIndex = prev.questions.findIndex((q) => q.id === active.id)
         const newIndex = prev.questions.findIndex((q) => q.id === over.id)
-
-        return {
-          ...prev,
-          questions: arrayMove(prev.questions, oldIndex, newIndex),
-        }
+        return { ...prev, questions: arrayMove(prev.questions, oldIndex, newIndex) }
       })
     }
   }
-
-  // Scheduling tab handlers
   const updateScheduling = (field: keyof SchedulingSettings, value: any) => {
-    setEventType({
-      ...eventType,
-      scheduling: {
-        ...eventType.scheduling,
-        [field]: value
-      }
-    })
+    setEventType({ ...eventType, scheduling: { ...eventType.scheduling, [field]: value } })
   }
-
-  // Team members tab handlers
   const toggleTeamMember = (member: TeamMember) => {
-    const isSelected = eventType.teamMembers.some(m => m.id === member.id)
-    const updatedMembers = isSelected
-      ? eventType.teamMembers.filter(m => m.id !== member.id)
-      : [...eventType.teamMembers, member]
-    
-    setEventType({
-      ...eventType,
-      teamMembers: updatedMembers
-    })
-  }
-
-  // Add section management functions
-  const addSection = () => {
-    const newSection: QuestionSection = {
-      id: Date.now().toString(),
-      title: '',
-      questions: []
-    }
-    setEventType(prev => ({
-      ...prev,
-      sections: [...prev.sections, newSection]
-    }))
-  }
-
-  const updateSection = (sectionId: string, field: keyof QuestionSection, value: any) => {
-    setEventType(prev => ({
-      ...prev,
-      sections: prev.sections.map(section => 
-        section.id === sectionId ? { ...section, [field]: value } : section
-      )
-    }))
-  }
-
-  const removeSection = (sectionId: string) => {
-    setEventType(prev => ({
-      ...prev,
-      sections: prev.sections.filter(section => section.id !== sectionId)
-    }))
+    const members = eventType.teamMembers || []; const isSelected = members.some(m => m.id === member.id)
+    setEventType({ ...eventType, teamMembers: isSelected ? members.filter(m => m.id !== member.id) : [...members, member] })
   }
 
   const handleSave = async () => {
+    // Basic frontend validation
+    const errors: Record<string, string> = {}
+    if (!eventType.title?.trim()) errors.title = 'Title is required'
+    if (!eventType.duration) errors.duration = 'Duration is required'
+    if (!eventType.description?.trim()) errors.description = 'Description is required'
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors)
+      setErrorMessage("Please fill in all mandatory fields highlighted in red (Title, Description, Duration).")
+      setShowErrorDialog(true)
+      return
+    }
+
     try {
+      setIsSaving(true)
+      setFormErrors({})
       if (isNew) {
         await eventTypeService.create(eventType)
-        toast({
-          title: "Success",
-          description: "Event type created successfully",
-        })
       } else {
         await eventTypeService.update(params.id as string, eventType)
-        toast({
-          title: "Success",
-          description: "Event type updated successfully",
-        })
       }
+      toast({ title: "Success", description: "Event type saved successfully" })
       router.push('/meetings/event-types')
-    } catch (error) {
-      console.error('Error saving event type:', error)
-      toast({
-        title: "Error",
-        description: "Failed to save event type",
-        variant: "destructive",
-      })
+    } catch (error: any) {
+      if (error.response?.status === 422) {
+        const beErrors = error.response.data.errors || {}
+        setFormErrors(beErrors)
+        setErrorMessage(error.response.data.message || "The data provided is invalid.")
+        setShowErrorDialog(true)
+      } else {
+        toast({ title: "Error", description: "A system error occurred.", variant: "destructive" })
+      }
+    } finally {
+      setIsSaving(false)
     }
   }
 
   return (
-    <React.Fragment>
-      <div className="container mx-auto py-10 p-2 h-full overflow-y-scroll">
-        <div className="flex items-center mb-8">
-          <Button variant="ghost" onClick={() => router.back()} className="mr-4">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-4xl font-bold">
-              {isNew ? 'Create Event Type' : 'Edit Event Type'}
-            </h1>
-            <p className="text-muted-foreground">
-              Configure your scheduling event type
-            </p>
+    <div className="flex flex-col h-full bg-white dark:bg-slate-950 overflow-hidden font-sans">
+      <div className="shrink-0 flex flex-col border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm z-50">
+        <div className="px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="icon" onClick={() => router.back()} className="h-8 w-8 rounded-lg shrink-0">
+              <ArrowLeft className="h-3.5 w-3.5 text-slate-600" />
+            </Button>
+            <div>
+              <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+                <span>Dashboard</span> <span className="h-0.5 w-0.5 rounded-full bg-slate-300" /> <span>Event Config</span>
+              </div>
+              <h1 className="text-base font-bold text-slate-900 dark:text-white leading-none">
+                {isNew ? 'Create Event Type' : eventType.title || 'Edit Event'}
+              </h1>
+            </div>
           </div>
         </div>
-
-        <Tabs defaultValue="basic" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="basic">Basic Info</TabsTrigger>
-            <TabsTrigger value="questions">Questions</TabsTrigger>
-            <TabsTrigger value="scheduling">Scheduling</TabsTrigger>
-            <TabsTrigger value="team">Team Members</TabsTrigger>
-          </TabsList>
-
-          <BasicInfoTab eventType={eventType} setEventType={setEventType} />
-          
-          <QuestionsTab 
-            eventType={eventType}
-            addQuestion={addQuestion}
-            updateQuestion={(index: number, field: string, value: any) => updateQuestion(index, field as keyof Question, value)}
-            removeQuestion={removeQuestion}
-            handleQuestionDragEnd={handleQuestionDragEnd}
-            sensors={sensors}
-          />
-          
-          <SchedulingTab 
-            eventType={eventType} 
-            updateScheduling={(field: string, value: any) => updateScheduling(field as keyof SchedulingSettings, value)}
-          />
-          
-          <TeamTab 
-            eventType={eventType} 
-            toggleTeamMember={toggleTeamMember} 
-          />
-        </Tabs>
-
-        <div className="mt-6 flex justify-end">
-          <Button onClick={handleSave}>
-            <Save className="mr-2 h-4 w-4" />
-            Save Event Type
-          </Button>
-        </div>
       </div>
-    </React.Fragment>
+
+      <div className="flex-1 overflow-y-auto no-scrollbar scroll-smooth bg-slate-50/30 dark:bg-slate-900/10">
+        <Tabs defaultValue="basic" className="w-full">
+          <div className="sticky top-0 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-6 py-2">
+            <div className="max-w-4xl mx-auto flex items-center justify-between">
+              <TabsList className="bg-slate-100/50 p-1 h-8 rounded-lg">
+                <TabsTrigger value="basic" className="rounded-md px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white data-[state=active]:text-indigo-600 shadow-sm">Basic</TabsTrigger>
+                <TabsTrigger value="questions" className="rounded-md px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white data-[state=active]:text-indigo-600 shadow-sm">Questions</TabsTrigger>
+                <TabsTrigger value="scheduling" className="rounded-md px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white data-[state=active]:text-indigo-600 shadow-sm">Scheduling</TabsTrigger>
+                <TabsTrigger value="team" className="rounded-md px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white data-[state=active]:text-indigo-600 shadow-sm">Team</TabsTrigger>
+              </TabsList>
+              <Button onClick={handleSave} disabled={isSaving} className="h-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-[11px] px-4 gap-2 transition-all active:scale-95 shadow-sm">
+                {isSaving ? <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Save className="h-3.5 w-3.5" />}
+                <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+              </Button>
+            </div>
+          </div>
+
+          <div className="max-w-4xl mx-auto px-6 py-6 space-y-8">
+            <BasicInfoTab eventType={eventType} setEventType={setEventType} errors={formErrors} />
+            <QuestionsTab eventType={eventType} setEventType={setEventType} addQuestion={addQuestion} updateQuestion={(index: number, field: string, value: any) => updateQuestion(index, field as keyof Question, value)} removeQuestion={removeQuestion} handleQuestionDragEnd={handleQuestionDragEnd} sensors={sensors} />
+            <SchedulingTab eventType={eventType} updateScheduling={(field: string, value: any) => updateScheduling(field as keyof SchedulingSettings, value)} />
+            <TeamTab eventType={eventType} toggleTeamMember={toggleTeamMember} />
+          </div>
+        </Tabs>
+      </div>
+
+      {/* Error Modal */}
+      <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+        <DialogContent className="sm:max-w-md rounded-2xl overflow-hidden p-0 gap-0 border-none bg-white dark:bg-slate-900 shadow-2xl">
+          <div className="bg-red-50 dark:bg-red-900/20 p-6 flex flex-col items-center justify-center text-center space-y-3">
+            <div className="h-12 w-12 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center">
+              <XCircle className="h-7 w-7 text-red-600" />
+            </div>
+            <div>
+              <DialogTitle className="text-lg font-black text-red-900 dark:text-red-400 uppercase tracking-tighter">Configuration Failure</DialogTitle>
+              <DialogDescription className="text-red-700/70 dark:text-red-400/60 font-medium text-xs">Some fields require your immediate attention.</DialogDescription>
+            </div>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-100 dark:border-slate-800">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-4 w-4 text-red-500 mt-0.5" />
+                <p className="text-xs font-bold text-slate-700 dark:text-slate-300 leading-relaxed uppercase tracking-wide">{errorMessage}</p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => setShowErrorDialog(false)} className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black text-[10px] uppercase tracking-widest h-11 rounded-xl shadow-lg hover:opacity-90 transition-all">
+                Review Fields
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   )
 }
+

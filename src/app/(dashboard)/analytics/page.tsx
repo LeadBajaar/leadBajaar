@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   PieChart, Pie, Cell, RadialBarChart, RadialBar,
@@ -13,10 +15,11 @@ import {
 import {
   TrendingUp, TrendingDown, Users, Target, DollarSign,
   Calendar, Activity, Zap, ArrowUpRight, ArrowDownRight,
-  BarChart2, PieChart as PieIcon, Filter
+  BarChart2, PieChart as PieIcon, Filter, Database, EyeOff
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { RoleGuard } from '@/components/RoleGuard'
+import { getAnalyticsData } from '@/lib/api'
 
 // ─── Dummy Data ────────────────────────────────────────────────────────────────
 
@@ -168,23 +171,64 @@ const PERIODS = ['This Month', 'Last 6M', 'This Year', 'All Time']
 
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState('This Year')
+  const [useRealData, setUseRealData] = useState(false)
+  const [realData, setRealData] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const totalLeads = monthlyLeads.reduce((s, m) => s + m.leads, 0)
-  const totalConverted = monthlyLeads.reduce((s, m) => s + m.converted, 0)
-  const totalRevenue = monthlyLeads.reduce((s, m) => s + m.revenue, 0)
-  const convRate = ((totalConverted / totalLeads) * 100).toFixed(1)
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        const data = await getAnalyticsData()
+        setRealData(data)
+      } catch (err) {
+        console.error('Error fetching analytics:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  // ── Data selection ──
+  const activeMonthlyLeads = (useRealData && realData) ? realData.monthlyLeads : monthlyLeads
+  const activeConversionRateData = (useRealData && realData) ? realData.conversionRateData : conversionRateData
+  const activeLeadSourceData = (useRealData && realData) ? realData.leadSourceData : leadSourceData
+  const activeStageData = (useRealData && realData) ? realData.stageData : stageData
+  const activeWeeklyActivity = (useRealData && realData) ? realData.weeklyActivity : weeklyActivity
+  const activeDealValueRanges = (useRealData && realData) ? realData.dealValueRanges : dealValueRanges
+  const activeTopPerformers = (useRealData && realData) ? realData.topPerformers : topPerformers
+
+  const totalLeads = activeMonthlyLeads.reduce((s: number, m: any) => s + m.leads, 0)
+  const totalConverted = activeMonthlyLeads.reduce((s: number, m: any) => s + m.converted, 0)
+  const totalRevenue = activeMonthlyLeads.reduce((s: number, m: any) => s + m.revenue, 0)
+  const convRate = totalLeads > 0 ? ((totalConverted / totalLeads) * 100).toFixed(1) : '0.0'
 
   return (
     <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager']}>
       <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 h-full overflow-y-auto">
 
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white">Analytics</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Track performance across your entire sales pipeline</p>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white">Analytics</h1>
+            <p className="text-sm text-slate-500 mt-0.5">Track performance across your entire sales pipeline</p>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+            <Switch 
+              id="data-mode" 
+              checked={useRealData} 
+              onCheckedChange={setUseRealData}
+              disabled={isLoading || !realData}
+            />
+            <Label htmlFor="data-mode" className="text-xs font-bold flex items-center gap-2 cursor-pointer">
+              {useRealData ? <Database className="h-3 w-3 text-indigo-500" /> : <EyeOff className="h-3 w-3 text-slate-400" />}
+              {useRealData ? 'REAL DATA' : 'DEMO MODE'}
+            </Label>
+          </div>
         </div>
-        <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 w-full sm:w-auto overflow-x-auto no-scrollbar shrink-0">
+        <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 w-full lg:w-auto overflow-x-auto no-scrollbar shrink-0">
           {PERIODS.map(p => (
             <button
               key={p}
@@ -254,7 +298,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={monthlyLeads} barGap={2} barCategoryGap="28%">
+              <BarChart data={activeMonthlyLeads} barGap={2} barCategoryGap="28%">
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={28} />
@@ -283,7 +327,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={monthlyLeads}>
+              <AreaChart data={activeMonthlyLeads}>
                 <defs>
                   <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.25} />
@@ -314,7 +358,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={conversionRateData}>
+              <LineChart data={activeConversionRateData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={28}
@@ -343,9 +387,9 @@ export default function AnalyticsPage() {
             <div className="flex items-center gap-3">
               <ResponsiveContainer width={130} height={150}>
                 <PieChart>
-                  <Pie data={leadSourceData} cx="50%" cy="50%" innerRadius={38} outerRadius={58}
+                  <Pie data={activeLeadSourceData} cx="50%" cy="50%" innerRadius={38} outerRadius={58}
                     dataKey="value" paddingAngle={3} stroke="none">
-                    {leadSourceData.map((entry, i) => (
+                    {activeLeadSourceData.map((entry: any, i: number) => (
                       <Cell key={i} fill={entry.color} />
                     ))}
                   </Pie>
@@ -356,9 +400,9 @@ export default function AnalyticsPage() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex flex-col gap-1.5 flex-1">
-                {leadSourceData.map((s) => {
-                  const total = leadSourceData.reduce((a, b) => a + b.value, 0)
-                  const pct = ((s.value / total) * 100).toFixed(0)
+                {activeLeadSourceData.map((s: any) => {
+                  const total = activeLeadSourceData.reduce((a: number, b: any) => a + b.value, 0)
+                  const pct = total > 0 ? ((s.value / total) * 100).toFixed(0) : '0'
                   return (
                     <div key={s.name} className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
@@ -382,9 +426,9 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <div className="space-y-2 mt-1">
-              {stageData.map((s) => {
-                const max = stageData[0].count
-                const pct = (s.count / max) * 100
+              {activeStageData.map((s: any) => {
+                const max = activeStageData.length > 0 ? activeStageData[0].count : 0
+                const pct = max > 0 ? (s.count / max) * 100 : 0
                 return (
                   <div key={s.stage} className="flex items-center gap-2">
                     <span className="text-xs text-slate-500 w-20 shrink-0">{s.stage}</span>
@@ -415,7 +459,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={weeklyActivity} barGap={2}>
+              <BarChart data={activeWeeklyActivity} barGap={2}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                 <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={24} />
@@ -436,7 +480,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={dealValueRanges} layout="vertical">
+              <BarChart data={activeDealValueRanges} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                 <YAxis dataKey="range" type="category" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={60} />
@@ -446,7 +490,7 @@ export default function AnalyticsPage() {
                   cursor={{ fill: '#f8fafc' }}
                 />
                 <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]}>
-                  {dealValueRanges.map((_, i) => (
+                  {activeDealValueRanges.map((_: any, i: number) => (
                     <Cell key={i} fill={`hsl(${239 + i * 12}, ${70 - i * 4}%, ${55 + i * 3}%)`} />
                   ))}
                 </Bar>
@@ -463,14 +507,14 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <div className="space-y-3 mt-1">
-              {topPerformers.map((rep, i) => {
+              {activeTopPerformers.map((rep: any, i: number) => {
                 const convPct = Math.round((rep.converted / rep.leads) * 100)
                 const accentColors = ['bg-indigo-500', 'bg-violet-500', 'bg-cyan-500', 'bg-emerald-500', 'bg-amber-500']
                 return (
                   <div key={rep.name} className="flex items-center gap-3">
                     <div className={cn(
                       'flex h-8 w-8 items-center justify-center rounded-full text-white text-xs font-bold shrink-0',
-                      accentColors[i]
+                      accentColors[i % accentColors.length]
                     )}>
                       {rep.avatar}
                     </div>
@@ -485,7 +529,7 @@ export default function AnalyticsPage() {
                         <span className="text-[10px] text-slate-400">₹{(rep.revenue / 1000).toFixed(0)}K</span>
                       </div>
                       <div className="mt-1 h-1 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                        <div className={cn('h-full rounded-full', accentColors[i])}
+                        <div className={cn('h-full rounded-full', accentColors[i % accentColors.length])}
                           style={{ width: `${convPct}%` }} />
                       </div>
                     </div>

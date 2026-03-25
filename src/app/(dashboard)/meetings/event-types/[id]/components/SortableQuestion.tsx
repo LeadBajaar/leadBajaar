@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Trash2 } from 'lucide-react'
+import { GripVertical, Trash2, CheckCircle2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -14,23 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
-interface Question {
-  id: string
-  question: string
-  type: 'text' | 'textarea' | 'radio' | 'checkbox' | 'dropdown' | 'date' | 'time' | 'phone' | 'email'
-  required: boolean
-  options?: string[]
-  placeholder?: string
-  description?: string
-  validation?: {
-    pattern?: string
-    minLength?: number
-    maxLength?: number
-    min?: number
-    max?: number
-  }
-}
+import { cn } from "@/lib/utils"
+import { Question } from '@/types/events'
 
 interface Props {
   question: Question
@@ -39,6 +24,9 @@ interface Props {
   removeQuestion: (index: number) => void
 }
 
+const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1 block"
+const inputStyle = "h-10 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-all rounded-lg no-scrollbar"
+
 export const SortableQuestion = ({ question, index, updateQuestion, removeQuestion }: Props) => {
   const {
     attributes,
@@ -46,11 +34,13 @@ export const SortableQuestion = ({ question, index, updateQuestion, removeQuesti
     setNodeRef,
     transform,
     transition,
+    isDragging
   } = useSortable({ id: question.id })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    zIndex: isDragging ? 50 : 0
   }
 
   const questionTypes = [
@@ -75,6 +65,7 @@ export const SortableQuestion = ({ question, index, updateQuestion, removeQuesti
             type={question.type === 'phone' ? 'tel' : question.type}
             placeholder={question.placeholder || `Enter your ${question.type}`}
             disabled
+            className={inputStyle}
           />
         )
       case 'textarea':
@@ -82,26 +73,20 @@ export const SortableQuestion = ({ question, index, updateQuestion, removeQuesti
           <Textarea
             placeholder={question.placeholder || 'Enter your answer'}
             disabled
+            className={cn(inputStyle, "min-h-[60px] py-2")}
           />
         )
       case 'radio':
-        return (
-          <div className="space-y-2">
-            {question.options?.map((option, i) => (
-              <div key={i} className="flex items-center space-x-2">
-                <input type="radio" disabled />
-                <Label>{option}</Label>
-              </div>
-            ))}
-          </div>
-        )
       case 'checkbox':
         return (
-          <div className="space-y-2">
+          <div className="space-y-2 mt-1">
             {question.options?.map((option, i) => (
-              <div key={i} className="flex items-center space-x-2">
-                <input type="checkbox" disabled />
-                <Label>{option}</Label>
+              <div key={i} className="flex items-center space-x-2.5 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                <div className={cn(
+                  "h-3.5 w-3.5 rounded-full border border-slate-300 dark:border-slate-700",
+                  question.type === 'checkbox' ? 'rounded-sm' : 'rounded-full'
+                )} />
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{option}</span>
               </div>
             ))}
           </div>
@@ -109,7 +94,7 @@ export const SortableQuestion = ({ question, index, updateQuestion, removeQuesti
       case 'dropdown':
         return (
           <Select disabled>
-            <SelectTrigger>
+            <SelectTrigger className={inputStyle}>
               <SelectValue placeholder="Select an option" />
             </SelectTrigger>
             <SelectContent>
@@ -122,9 +107,8 @@ export const SortableQuestion = ({ question, index, updateQuestion, removeQuesti
           </Select>
         )
       case 'date':
-        return <Input type="date" disabled />
       case 'time':
-        return <Input type="time" disabled />
+        return <Input type={question.type} disabled className={inputStyle} />
       default:
         return null
     }
@@ -166,32 +150,41 @@ export const SortableQuestion = ({ question, index, updateQuestion, removeQuesti
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-muted p-4 rounded-lg mb-4"
+      className={cn(
+        "bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-xl shadow-sm transition-all duration-200 group relative",
+        isDragging && "opacity-50 scale-[0.98] shadow-lg border-indigo-500"
+      )}
     >
-      <div className="flex items-start gap-4">
-        <div {...attributes} {...listeners} className="mt-2">
-          <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
+      <div className="flex items-start gap-3 p-4 sm:p-5">
+        <div 
+          {...attributes} 
+          {...listeners} 
+          className="mt-0.5 cursor-grab active:cursor-grabbing p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"
+        >
+          <GripVertical className="h-4 w-4" />
         </div>
+
         <div className="flex-1 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Question</Label>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label className={labelStyle}>Question Text <span className="text-red-500">*</span></Label>
               <Input
                 value={question.question}
                 onChange={(e) => updateQuestion(index, 'question', e.target.value)}
                 placeholder="Enter your question"
+                className={inputStyle}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Type</Label>
+            <div className="space-y-1">
+              <Label className={labelStyle}>Answer Type</Label>
               <Select
                 value={question.type}
                 onValueChange={(value: Question['type']) => updateQuestion(index, 'type', value)}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select question type" />
+                <SelectTrigger className={inputStyle}>
+                  <SelectValue placeholder="Select type" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl">
                   {questionTypes.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
                       {type.label}
@@ -202,86 +195,77 @@ export const SortableQuestion = ({ question, index, updateQuestion, removeQuesti
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Description (Optional)</Label>
+          <div className="space-y-1">
+            <Label className={labelStyle}>Help Text (Optional)</Label>
             <Input
               value={question.description || ''}
               onChange={(e) => updateQuestion(index, 'description', e.target.value)}
-              placeholder="Add a description or help text"
+              placeholder="e.g., Please include your country code"
+              className={inputStyle}
             />
           </div>
 
-          {(question.type === 'text' || question.type === 'textarea') && (
-            <div className="space-y-2">
-              <Label>Placeholder</Label>
-              <Input
-                value={question.placeholder || ''}
-                onChange={(e) => updateQuestion(index, 'placeholder', e.target.value)}
-                placeholder="Enter placeholder text"
-              />
-            </div>
-          )}
-
           {(question.type === 'radio' || question.type === 'checkbox' || question.type === 'dropdown') && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Options</Label>
-                <p className="text-sm text-muted-foreground">Press Enter for new option</p>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between gap-4">
+                <Label className={labelStyle}>Options</Label>
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5 rounded-full border border-slate-100 dark:border-slate-800">
+                  New line for each
+                </span>
               </div>
               <Textarea
-                placeholder={`Option 1\nOption 2\nOption 3`}
+                placeholder={`Option 1\nOption 2`}
                 value={question.options?.join('\n') || ''}
                 onChange={handleOptionsChange}
                 onKeyDown={handleKeyDown}
-                className="min-h-[100px]"
+                className={cn(inputStyle, "min-h-[80px] py-2 leading-relaxed")}
               />
-              <div className="space-y-2 mt-2">
-                <Label className="text-sm text-muted-foreground">Current Options:</Label>
-                <div className="space-y-1">
-                  {question.options?.map((option, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <span className="text-sm">{i + 1}.</span>
-                      <span className="text-sm">{option}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           )}
 
-          <div className="flex items-center space-x-2">
-            <Switch
-              checked={question.required}
-              onCheckedChange={(checked) => updateQuestion(index, 'required', checked)}
-            />
-            <Label>Required</Label>
+          <div className="flex items-center gap-4 pt-1">
+            <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-slate-800/50 px-3 py-1 rounded-lg border border-slate-100 dark:border-slate-800 transition-colors">
+              <Switch
+                id={`required-${question.id}`}
+                checked={question.required}
+                onCheckedChange={(checked) => updateQuestion(index, 'required', checked)}
+                className="scale-90 data-[state=checked]:bg-indigo-600"
+              />
+              <Label htmlFor={`required-${question.id}`} className="text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer select-none">Required</Label>
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => removeQuestion(index)}
+              className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 font-bold text-[10px] uppercase tracking-widest gap-1.5 rounded-lg transition-all"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Remove
+            </Button>
           </div>
 
           {/* Preview section */}
-          <div className="mt-4 border-t pt-4">
-            <Label className="text-sm text-muted-foreground">Preview:</Label>
-            <div className="mt-2 p-4 bg-background rounded-lg">
-              <p className="font-medium mb-1">
-                {question.question}
-                {question.required && <span className="text-destructive ml-1">*</span>}
+          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-1 w-1 rounded-full bg-indigo-500" />
+              <Label className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-500/80">Preview</Label>
+            </div>
+            <div className="p-4 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl border border-slate-100 dark:border-slate-800">
+              <p className="text-[13px] font-bold text-slate-900 dark:text-white mb-0.5">
+                {question.question || 'New Question'}
+                {question.required && <span className="text-red-500 ml-1 font-black">*</span>}
               </p>
               {question.description && (
-                <p className="text-sm text-muted-foreground mb-2">{question.description}</p>
+                <p className="text-[11px] text-slate-500 font-medium mb-3 leading-tight font-sans tracking-tight">{question.description}</p>
               )}
-              {renderPreview()}
+              <div className="relative">
+                {renderPreview()}
+              </div>
             </div>
           </div>
         </div>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => removeQuestion(index)}
-          className="mt-2"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
       </div>
     </div>
   )
-} 
+}
