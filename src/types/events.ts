@@ -36,6 +36,7 @@ export interface Question {
   options?: string[]
   placeholder?: string
   description?: string
+  isLocked?: boolean
 }
 
 export interface QuestionSection {

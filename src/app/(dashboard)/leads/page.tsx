@@ -131,8 +131,8 @@ export default function LeadsPage() {
     // 'status',
     'city',
     'profession',
-    'deal_value',
-    'paid_amount',
+    // 'deal_value',
+    // 'paid_amount',
     'created_at',
     'actions'
   ])
@@ -149,7 +149,7 @@ export default function LeadsPage() {
 
   const [currentPage, setCurrentPage] = useState(1)
   const [isInitialLoading, setIsInitialLoading] = useState(true)
-  const itemsPerPage = 10
+  const [itemsPerPage, setItemsPerPage] = useState(25)
 
   // Add ref for file input
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -483,7 +483,7 @@ export default function LeadsPage() {
 
   useEffect(() => {
     fetchLeads();
-  }, [currentPage, debouncedSearch, filters.status, filters.stage, filters.source, filters.dateRange, filters.createdAt]);
+  }, [currentPage, itemsPerPage, debouncedSearch, filters.status, filters.stage, filters.source, filters.dateRange, filters.createdAt]);
 
   // Prefill deal value when dialog opens
   useEffect(() => {
@@ -773,46 +773,77 @@ export default function LeadsPage() {
     fileInputRef.current?.click()
   }
 
-  // Update pagination controls
+  // Pagination controls with per-page selector
   const PaginationControls = () => (
-    <div className="flex items-center justify-between px-2">
-      <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-        Page {currentPage} of {totalPages}
+    <div className="flex items-center justify-between px-2 gap-4 flex-wrap">
+
+      {/* Left: results summary + per-page */}
+      <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+        <span>
+          {totalItems > 0
+            ? `${(currentPage - 1) * itemsPerPage + 1}–${Math.min(currentPage * itemsPerPage, totalItems)} of ${totalItems} leads`
+            : '0 leads'}
+        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-slate-400">Rows:</span>
+          <select
+            value={itemsPerPage}
+            onChange={e => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="h-7 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-700 dark:text-slate-300 px-2 focus:outline-none focus:ring-1 focus:ring-indigo-400 cursor-pointer"
+          >
+            {[10, 25, 50, 100].map(n => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+        </div>
       </div>
-      <div className="flex items-center space-x-2">
+
+      {/* Right: page navigation */}
+      <div className="flex items-center gap-1">
+        <span className="text-xs text-slate-500 dark:text-slate-400 mr-2">
+          Page {currentPage} of {totalPages}
+        </span>
         <Button
           variant="outline"
           size="sm"
+          className="h-7 w-7 p-0"
           onClick={() => setCurrentPage(1)}
           disabled={currentPage === 1}
         >
-          <ChevronsLeft className="h-4 w-4" />
+          <ChevronsLeft className="h-3.5 w-3.5" />
         </Button>
         <Button
           variant="outline"
           size="sm"
+          className="h-7 w-7 p-0"
           onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
           disabled={currentPage === 1}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-3.5 w-3.5" />
         </Button>
         <Button
           variant="outline"
           size="sm"
+          className="h-7 w-7 p-0"
           onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-          disabled={currentPage === totalPages}
+          disabled={currentPage === totalPages || totalPages === 0}
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-3.5 w-3.5" />
         </Button>
         <Button
           variant="outline"
           size="sm"
+          className="h-7 w-7 p-0"
           onClick={() => setCurrentPage(totalPages)}
-          disabled={currentPage === totalPages}
+          disabled={currentPage === totalPages || totalPages === 0}
         >
-          <ChevronsRight className="h-4 w-4" />
+          <ChevronsRight className="h-3.5 w-3.5" />
         </Button>
       </div>
+
     </div>
   );
 

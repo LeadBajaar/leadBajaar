@@ -25,6 +25,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, Di
 import { ErrorDialog } from "@/components/ui/ErrorDialog"
 import { cn } from "@/lib/utils"
 import { formatInTimeZone } from 'date-fns-tz'
+import { API_BASE_URL } from '@/lib/api'
 
 interface EventType {
   id: string
@@ -45,17 +46,30 @@ interface TimeSlot {
 const isDateAvailable = (date: Date, eventType: EventType) => {
   const today = startOfDay(new Date());
   const maxDate = addDays(today, eventType.scheduling.dateRange);
-  
+
   // Check if date is within allowed range
   if (isBefore(date, today) || isAfter(date, maxDate)) {
     return false;
   }
 
-  // Get day of week (0 = Sunday, 1 = Monday, etc.)
-  const dayOfWeek = format(date, 'EEEE');
-  
-  // Check if day is in available days
-  return eventType.scheduling.availableDays.includes(dayOfWeek);
+  // Derive available days from timeSlots[].daysOfWeek (0=Sun, 1=Mon … 6=Sat)
+  // This is the real source of truth — the legacy 'availableDays' string array
+  // does not reflect Saturday/Sunday changes made in TimeSlotManager.
+  const timeSlots: Array<{ daysOfWeek: number[] }> =
+    eventType.scheduling.timeSlots ?? [];
+
+  if (timeSlots.length > 0) {
+    // Collect all day numbers configured across all time slots
+    const availableDayNumbers = new Set<number>(
+      timeSlots.flatMap((slot) => slot.daysOfWeek)
+    );
+    // date-fns getDay(): 0=Sun, 1=Mon … 6=Sat — same convention as the backend
+    return availableDayNumbers.has(date.getDay());
+  }
+
+  // Fallback: use the legacy string-name array if no timeSlots configured
+  const dayName = format(date, 'EEEE'); // 'Monday', 'Saturday', etc.
+  return (eventType.scheduling.availableDays ?? []).includes(dayName);
 };
 
 function CalendarSkeleton() {
@@ -113,6 +127,7 @@ export default function BookingPage() {
   const [error, setError] = useState<string | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [bookingDetails, setBookingDetails] = useState<any>(null)
   const [errorDialog, setErrorDialog] = useState({
@@ -128,7 +143,7 @@ export default function BookingPage() {
         console.log('Fetching event type with ID:', params.eventTypeId);
         
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_LARAVEL_API_URL}api/event-types/${params.eventTypeId}`,
+          `${API_BASE_URL}/event-types/${params.eventTypeId}`,
           {
             headers: {
               'Content-Type': 'application/json',
@@ -208,6 +223,7 @@ export default function BookingPage() {
   }, [selectedTime])
 
   const fetchAvailableSlots = async (date: Date) => {
+    setIsLoadingSlots(true);
     try {
       console.log('Fetching slots for date:', format(date, 'yyyy-MM-dd'));
       
@@ -220,7 +236,7 @@ export default function BookingPage() {
       });
       
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_LARAVEL_API_URL}api/event-types/${params.eventTypeId}/availability?${queryParams.toString()}`,
+        `${API_BASE_URL}/event-types/${params.eventTypeId}/availability?${queryParams.toString()}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -249,6 +265,8 @@ export default function BookingPage() {
     } catch (error) {
       console.error('Error fetching availability:', error);
       setAvailableSlots([]);
+    } finally {
+      setIsLoadingSlots(false);
     }
   }
 
@@ -400,7 +418,7 @@ export default function BookingPage() {
       console.log('Submitting booking with data:', bookingData);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_LARAVEL_API_URL}api/bookings`, 
+        `${API_BASE_URL}/bookings`, 
         {
           method: 'POST',
           headers: {
@@ -646,7 +664,13 @@ export default function BookingPage() {
                           </div>
                         </div>
 
-                        {availableSlots.length > 0 ? (
+                        {isLoadingSlots ? (
+                          <div className="grid grid-cols-3 gap-2">
+                            {[...Array(6)].map((_, i) => (
+                              <div key={i} className="h-10 bg-muted/50 rounded animate-pulse" />
+                            ))}
+                          </div>
+                        ) : availableSlots.length > 0 ? (
                           <div className="grid grid-cols-3 gap-2">
                             {availableSlots.map((slot) => (
                               <Button

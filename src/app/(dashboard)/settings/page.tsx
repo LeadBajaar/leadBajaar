@@ -12,6 +12,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { cn } from '@/lib/utils'
+import { useUser } from '@/contexts/UserContext'
+import { api } from '@/lib/api'
+import { toast } from 'sonner'
 import {
   User, Bell, Shield, Mail,
   Settings, ChevronRight, Camera,
@@ -36,15 +39,30 @@ const SECTIONS: SettingsSection[] = [
 ]
 
 export default function SettingsPage() {
+  const { user } = useUser()
   const [activeTab, setActiveTab] = useState('profile')
+  const [isSaving, setIsSaving] = useState(false)
   const [profileSettings, setProfileSettings] = useState({
-    name: 'John Doe',
-    email: 'john@example.com',
-    company: 'LeadBajaar Inc',
-    phone: '+1 234 567 890',
-    bio: 'Sales Operations Manager focused on growth.',
+    name: '',
+    email: '',
+    company: '',
+    phone: '',
+    bio: '',
     image: null
   })
+
+  useEffect(() => {
+    if (user) {
+      setProfileSettings({
+        name: user.name || '',
+        email: user.email || '',
+        company: user.company?.name || '',
+        phone: (user as any).phone || '',
+        bio: (user as any).bio || '',
+        image: (user as any).avatar_url || null
+      })
+    }
+  }, [user])
 
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -55,6 +73,29 @@ export default function SettingsPage() {
       const previewUrl = URL.createObjectURL(file)
       setImagePreview(previewUrl)
       setProfileSettings(prev => ({ ...prev, image: previewUrl as any }))
+    }
+  }
+
+  const handleSaveProfile = async () => {
+    if (!user) return
+    
+    try {
+      setIsSaving(true)
+      const response = await api.put(`/users/${user.id}`, {
+        name: profileSettings.name,
+        // email: profileSettings.email, // Usually email change is a separate flow
+        // phone: profileSettings.phone,
+        // bio: profileSettings.bio,
+      })
+      
+      if (response.status === 200) {
+        toast.success('Profile updated successfully')
+      }
+    } catch (error) {
+      console.error('Failed to update profile:', error)
+      toast.error('Failed to update profile settings')
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -120,8 +161,15 @@ export default function SettingsPage() {
                   <p className="text-sm text-slate-500">Update your photo and personal information here.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" className="h-10 rounded-xl border-slate-200 dark:border-slate-800 px-6 font-bold">Cancel</Button>
-                  <Button className="h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 px-8 font-bold shadow-lg shadow-indigo-500/20">Save</Button>
+                  <Button variant="outline" className="h-10 rounded-xl border-slate-200 dark:border-slate-800 px-6 font-bold" onClick={() => window.location.reload()}>Cancel</Button>
+                  <Button 
+                    onClick={handleSaveProfile} 
+                    disabled={isSaving}
+                    className="h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 px-8 font-bold shadow-lg shadow-indigo-500/20 gap-2"
+                  >
+                    {isSaving && <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />}
+                    {isSaving ? 'Saving...' : 'Save'}
+                  </Button>
                 </div>
               </div>
 
@@ -131,7 +179,9 @@ export default function SettingsPage() {
                   <div className="relative group shrink-0">
                     <Avatar className="h-24 w-24 lg:h-28 lg:w-28 ring-4 ring-indigo-50 dark:ring-indigo-900/20 shadow-xl">
                       <AvatarImage src={imagePreview || undefined} />
-                      <AvatarFallback className="text-2xl font-bold bg-slate-50 dark:bg-slate-800">JD</AvatarFallback>
+                      <AvatarFallback className="text-2xl font-bold bg-slate-50 dark:bg-slate-800">
+                        {profileSettings.name.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                      </AvatarFallback>
                     </Avatar>
                     <button
                       onClick={() => fileInputRef.current?.click()}

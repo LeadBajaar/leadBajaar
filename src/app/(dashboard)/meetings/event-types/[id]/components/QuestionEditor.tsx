@@ -130,9 +130,13 @@ export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: P
                 id="required-editor"
                 checked={question.required}
                 onCheckedChange={(checked) => updateQuestion('required', checked)}
+                disabled={question.isLocked}
                 className="scale-75 data-[state=checked]:bg-indigo-600"
               />
-              <Label htmlFor="required-editor" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest cursor-pointer select-none">Required</Label>
+              <Label htmlFor="required-editor" className={cn(
+                "text-[10px] font-bold text-slate-500 uppercase tracking-widest cursor-pointer select-none",
+                question.isLocked && "opacity-50 cursor-default"
+              )}>Required</Label>
             </div>
           </div>
 
@@ -144,6 +148,7 @@ export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: P
                   value={question.question}
                   onChange={(e) => updateQuestion('question', e.target.value)}
                   placeholder="e.g., What is your phone number?"
+                  disabled={question.isLocked}
                   className={inputStyle}
                 />
               </div>
@@ -152,6 +157,7 @@ export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: P
                 <Select
                   value={question.type}
                   onValueChange={(value: Question['type']) => updateQuestion('type', value)}
+                  disabled={question.isLocked}
                 >
                   <SelectTrigger className={inputStyle}>
                     <SelectValue placeholder="Select type" />

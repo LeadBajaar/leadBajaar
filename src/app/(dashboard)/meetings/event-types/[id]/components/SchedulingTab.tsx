@@ -209,9 +209,9 @@ export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl max-h-[250px]">
-                      {Intl.supportedValuesOf('timeZone').map((tz) => (
+                      {Array.from(new Set([...Intl.supportedValuesOf('timeZone'), eventType.scheduling.timezone || 'Asia/Kolkata'])).map((tz) => (
                         <SelectItem key={tz} value={tz} className="text-[10px] font-medium">
-                          {tz.split('/').pop()?.replace(/_/g, ' ')}
+                          {tz === 'Asia/Kolkata' || tz === 'Asia/Calcutta' ? 'Calcutta' : tz.split('/').pop()?.replace(/_/g, ' ')}
                         </SelectItem>
                       ))}
                     </SelectContent>

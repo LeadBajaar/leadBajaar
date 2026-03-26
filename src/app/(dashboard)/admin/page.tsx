@@ -313,6 +313,17 @@ export default function SuperAdminPage() {
   const [editingUser, setEditingUser] = useState<any>(null)
   const [demoMode, setDemoMode] = useState(false)
   const [isUpdatingCompany, setIsUpdatingCompany] = useState(false)
+
+  // Pagination states
+  const [companiesPage, setCompaniesPage] = useState(1)
+  const [usersPage, setUsersPage] = useState(1)
+  const [billingPage, setBillingPage] = useState(1)
+  const [companiesMeta, setCompaniesMeta] = useState<any>(null)
+  const [usersMeta, setUsersMeta] = useState<any>(null)
+  const [billingMeta, setBillingMeta] = useState<any>(null)
+  const [billingData, setBillingData] = useState<any[]>([])
+  const [filterPlan, setFilterPlan] = useState('all')
+  const [filterStatus, setFilterStatus] = useState('all')
   
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -403,20 +414,55 @@ export default function SuperAdminPage() {
       setCompanies(initialCompanies)
       setStats(demoStats)
       setUsers(initialUsers)
+      setBillingData([])
       setIsLoading(false)
       return
     }
 
     try {
       setIsLoading(true)
-      const [companiesData, statsData, usersData] = await Promise.all([
-        adminApi.getCompanies(),
+      const [companiesRes, statsData, usersRes, billingRes] = await Promise.all([
+        adminApi.getCompanies(companiesPage, 10, searchQuery, filterPlan, filterStatus),
         adminApi.getStats(),
-        adminApi.getUsers()
+        adminApi.getUsers(usersPage, 10, searchQuery),
+        adminApi.getBilling(billingPage, 10, searchQuery)
       ])
-      setCompanies(companiesData)
+      
+      // Handle paginated responses
+      if (companiesRes.data) {
+        setCompanies(companiesRes.data)
+        setCompaniesMeta({
+          current_page: companiesRes.current_page,
+          last_page: companiesRes.last_page,
+          total: companiesRes.total,
+          from: companiesRes.from,
+          to: companiesRes.to
+        })
+      } else {
+        setCompanies(companiesRes)
+      }
+
+      if (usersRes.data) {
+        setUsers(usersRes.data)
+        setUsersMeta({
+          current_page: usersRes.current_page,
+          last_page: usersRes.last_page,
+          total: usersRes.total
+        })
+      } else {
+        setUsers(usersRes)
+      }
+
+      if (billingRes.data) {
+        setBillingData(billingRes.data)
+        setBillingMeta({
+          current_page: billingRes.current_page,
+          last_page: billingRes.last_page,
+          total: billingRes.total
+        })
+      }
+
       setStats(statsData)
-      setUsers(usersData)
     } catch (error: any) {
       toast.error("Platform Error", {
         description: error.message,
@@ -427,8 +473,17 @@ export default function SuperAdminPage() {
   }
 
   useEffect(() => {
-    fetchData()
-  }, [demoMode])
+    setCompaniesPage(1)
+    setUsersPage(1)
+    setBillingPage(1)
+  }, [searchQuery])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchData()
+    }, 500) // Debounce search
+    return () => clearTimeout(timer)
+  }, [demoMode, companiesPage, usersPage, billingPage, searchQuery, filterPlan, filterStatus])
 
   const filteredCompanies = companies.filter((c: Company) => 
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -793,7 +848,7 @@ export default function SuperAdminPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase()) || u.email.toLowerCase().includes(searchQuery.toLowerCase())).map((u) => (
+                    {users.map((u) => (
                       <TableRow key={u.id} className="border-slate-100 dark:border-slate-800">
                         <TableCell className="py-4 pl-6">
                           <div>
@@ -845,6 +900,38 @@ export default function SuperAdminPage() {
                   </TableBody>
                 </Table>
               </CardContent>
+              {usersMeta && (
+                <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 py-4 px-6">
+                  <div className="flex items-center justify-between w-full">
+                    <p className="text-xs text-slate-500 font-medium italic">
+                      Showing {users.length} of {usersMeta.total} total users.
+                    </p>
+                    <div className="flex items-center gap-2">
+                       <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setUsersPage(p => Math.max(1, p - 1))}
+                        disabled={usersPage === 1}
+                        className="h-8 rounded-lg text-xs font-bold"
+                      >
+                        Previous
+                      </Button>
+                      <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                        {usersPage}
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setUsersPage(p => Math.min(usersMeta.last_page, p + 1))}
+                        disabled={usersPage >= usersMeta.last_page}
+                        className="h-8 rounded-lg text-xs font-bold"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                </CardFooter>
+              )}
             </Card>
           </TabsContent>
 
@@ -863,9 +950,52 @@ export default function SuperAdminPage() {
                 />
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Button variant="outline" className="rounded-xl border-slate-200 h-10 w-full sm:w-auto">
-                  <Filter className="h-4 w-4 mr-2" /> Filter
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="rounded-xl border-slate-200 h-10 w-full sm:w-auto">
+                      <Filter className="h-4 w-4 mr-2" /> 
+                      {filterPlan === 'all' && filterStatus === 'all' ? 'Filter' : 'Filtered'}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 border-slate-200">
+                    <DropdownMenuLabel className="font-bold text-xs uppercase text-slate-500">Filter by Plan</DropdownMenuLabel>
+                    <DropdownMenuItem className="p-0 border-none">
+                       <Select value={filterPlan} onValueChange={setFilterPlan}>
+                          <SelectTrigger className="border-none shadow-none h-9 focus:ring-0">
+                             <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                             <SelectItem value="all">All Plans</SelectItem>
+                             <SelectItem value="Free">Free Tier</SelectItem>
+                             <SelectItem value="Pro">Pro Tier</SelectItem>
+                             <SelectItem value="Enterprise">Enterprise</SelectItem>
+                          </SelectContent>
+                       </Select>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="my-2" />
+                    <DropdownMenuLabel className="font-bold text-xs uppercase text-slate-500">Filter by Status</DropdownMenuLabel>
+                    <DropdownMenuItem className="p-0 border-none">
+                       <Select value={filterStatus} onValueChange={setFilterStatus}>
+                          <SelectTrigger className="border-none shadow-none h-9 focus:ring-0">
+                             <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                             <SelectItem value="all">All Status</SelectItem>
+                             <SelectItem value="Active">Active</SelectItem>
+                             <SelectItem value="Delinquent">Delinquent</SelectItem>
+                             <SelectItem value="Suspended">Suspended</SelectItem>
+                          </SelectContent>
+                       </Select>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="my-2" />
+                    <DropdownMenuItem 
+                       className="justify-center font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-xl"
+                       onClick={() => { setFilterPlan('all'); setFilterStatus('all'); }}
+                    >
+                       Reset All Filters
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button variant="outline" onClick={handleExport} className="rounded-xl border-slate-200 h-10 w-full sm:w-auto text-indigo-600 border-indigo-100 bg-indigo-50/50">
                   <ArrowUpRight className="h-4 w-4 mr-2" /> Export CSV
                 </Button>
@@ -891,7 +1021,7 @@ export default function SuperAdminPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredCompanies.map((company: Company) => (
+                    {companies.map((company: Company) => (
                       <TableRow key={company.id} className="border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
                         <TableCell className="py-5 pl-6">
                           <div className="flex items-center gap-4">
@@ -1008,11 +1138,31 @@ export default function SuperAdminPage() {
               </CardContent>
               <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 py-4 px-6">
                 <div className="flex items-center justify-between w-full">
-                  <p className="text-xs text-slate-500 font-medium italic">Showing {companies.length} of 142 total registered companies.</p>
+                  <p className="text-xs text-slate-500 font-medium italic">
+                    {companiesMeta ? `Showing ${companiesMeta.from || 0} to ${companiesMeta.to || 0} of ${companiesMeta.total} total companies.` : `Showing ${companies.length} entries.`}
+                  </p>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" className="h-8 rounded-lg text-xs font-bold disabled:opacity-50" disabled>Previous</Button>
-                    <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-sm shadow-indigo-500/20">1</div>
-                    <Button variant="ghost" size="sm" className="h-8 rounded-lg text-xs font-bold">Next</Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setCompaniesPage(p => Math.max(1, p - 1))}
+                      disabled={companiesPage === 1}
+                      className="h-8 rounded-lg text-xs font-bold"
+                    >
+                      Previous
+                    </Button>
+                    <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-sm shadow-indigo-500/20">
+                      {companiesPage}
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setCompaniesPage(p => Math.min(companiesMeta?.last_page || 1, p + 1))}
+                      disabled={companiesPage === (companiesMeta?.last_page || 1)}
+                      className="h-8 rounded-lg text-xs font-bold"
+                    >
+                      Next
+                    </Button>
                   </div>
                 </div>
               </CardFooter>
@@ -1029,28 +1179,68 @@ export default function SuperAdminPage() {
                   <Table>
                     <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
                       <TableRow>
-                        <TableHead className="font-bold text-[11px] uppercase pl-6">Invoice ID</TableHead>
+                        <TableHead className="font-bold text-[11px] uppercase pl-6">ID</TableHead>
                         <TableHead className="font-bold text-[11px] uppercase">Company</TableHead>
+                        <TableHead className="font-bold text-[11px] uppercase">Type</TableHead>
                         <TableHead className="font-bold text-[11px] uppercase text-right">Amount</TableHead>
                         <TableHead className="font-bold text-[11px] uppercase text-right pr-6">Date</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {[
-                        {id: 'INV-001', company: 'Tech Solutions Inc', amount: '$499.00', date: 'Mar 01, 2026' },
-                        { id: 'INV-002', company: 'Growth Marketers', amount: '$149.00', date: 'Feb 28, 2026' },
-                        { id: 'INV-003', company: 'Lead Gen Pro', amount: '$149.00', date: 'Feb 25, 2026' }
-                      ].map((inv: { id: string, company: string, amount: string, date: string }) => (
+                      {billingData.length > 0 ? billingData.map((inv: any) => (
                         <TableRow key={inv.id} className="border-slate-100 dark:border-slate-800">
-                          <TableCell className="font-medium pl-6 text-sm">{inv.id}</TableCell>
-                          <TableCell className="font-bold text-sm text-slate-800 dark:text-slate-200">{inv.company}</TableCell>
-                          <TableCell className="text-right font-black text-sm">{inv.amount}</TableCell>
-                          <TableCell className="text-right text-slate-500 text-xs pr-6">{inv.date}</TableCell>
+                          <TableCell className="font-medium pl-6 text-sm">#{inv.id}</TableCell>
+                          <TableCell className="font-bold text-sm text-slate-800 dark:text-slate-200">{inv.company?.name || 'Deleted'}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-[10px] font-bold uppercase">{inv.type}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-black text-sm">
+                            ₹{inv.amount && parseFloat(inv.amount) > 0 ? (parseFloat(inv.amount) * 80).toLocaleString() : '0'}
+                          </TableCell>
+                          <TableCell className="text-right text-slate-500 text-xs pr-6">
+                            {new Date(inv.created_at).toLocaleDateString()}
+                          </TableCell>
                         </TableRow>
-                      ))}
+                      )) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="py-10 text-center text-slate-500 italic">No billing history found.</TableCell>
+                        </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 </CardContent>
+                {billingMeta && (
+                  <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 py-4 px-6">
+                    <div className="flex items-center justify-between w-full">
+                      <p className="text-xs text-slate-500 font-medium italic">
+                        Showing {billingData.length} records of {billingMeta.total}.
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setBillingPage(p => Math.max(1, p - 1))}
+                          disabled={billingPage === 1}
+                          className="h-8 rounded-lg text-xs font-bold"
+                        >
+                          Previous
+                        </Button>
+                        <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                          {billingPage}
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setBillingPage(p => Math.min(billingMeta.last_page, p + 1))}
+                          disabled={billingPage === billingMeta.last_page}
+                          className="h-8 rounded-lg text-xs font-bold"
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  </CardFooter>
+                )}
               </Card>
 
               <Card className="border-none shadow-sm bg-indigo-600 rounded-2xl p-6 text-white relative overflow-hidden">
@@ -1061,15 +1251,15 @@ export default function SuperAdminPage() {
                   <div className="space-y-4 flex-1">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-indigo-100">Pro Subscriptions</span>
-                      <span className="font-bold">92</span>
+                      <span className="font-bold">{stats?.revenue?.breakdown?.pro || 0}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-indigo-100">Enterprise Deals</span>
-                      <span className="font-bold">14</span>
+                      <span className="font-bold">{stats?.revenue?.breakdown?.enterprise || 0}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-indigo-100">Custom Add-ons</span>
-                      <span className="font-bold">$2,400</span>
+                      <span className="font-bold">{stats?.revenue?.breakdown?.custom || '₹0'}</span>
                     </div>
                   </div>
                   <Button className="mt-8 bg-white/20 hover:bg-white/30 backdrop-blur-md border-none text-white font-bold w-full rounded-xl">

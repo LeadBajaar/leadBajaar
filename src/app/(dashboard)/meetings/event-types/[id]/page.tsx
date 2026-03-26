@@ -43,6 +43,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useToast } from "@/components/ui/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import {
   Dialog,
@@ -58,6 +59,7 @@ import { QuestionsTab } from './components/QuestionsTab'
 import { SchedulingTab } from './components/SchedulingTab'
 import { TeamTab } from './components/TeamTab'
 import { eventTypeService } from '@/services/event-types'
+import { useUser } from '@/contexts/UserContext'
 
 import { EventType, Question, QuestionSection, SchedulingSettings, TimeSlot, TeamMember } from '@/types/events'
 
@@ -82,6 +84,7 @@ const teamMembers = [
 export default function EventTypeForm() {
   const params = useParams()
   const router = useRouter()
+  const { user } = useUser()
   const { toast } = useToast()
   const isNew = params.id === 'new'
 
@@ -93,27 +96,56 @@ export default function EventTypeForm() {
 
   const [eventType, setEventType] = useState<EventType>({
     id: isNew ? 'new' : '', // Satisfy interface
-    title: '',
-    description: '',
+    title: isNew ? `30 Minutes with ${user?.name || 'Coach'} Health & Wellness Coach` : '',
+    description: isNew ? 'Take out 30 minutes for your health. Sit in a comfortable, less noise area and make sure you have a stable internet connection.' : '',
     duration: 30,
     location: 'video',
-    questions: [] as Question[],
+    questions: isNew ? [
+      { id: 'q-name', question: 'NAME', type: 'text', required: true, isLocked: true },
+      { id: 'q-phone', question: 'PHONE', type: 'text', required: true, isLocked: true },
+      { id: 'q-reason', question: 'What is the reason for the call?', type: 'text', required: true },
+      { 
+        id: 'q-tried', 
+        question: 'Have you tried anything before for your weight loss/weight gain?', 
+        type: 'radio', 
+        required: true,
+        options: ['Yes', 'No']
+      },
+      { id: 'q-describe', question: 'If YES, then describe shortly.', type: 'text', required: false },
+      { 
+        id: 'q-health', 
+        question: 'What are your current health problems?', 
+        type: 'checkbox', 
+        required: true,
+        options: ['Tiredness', 'Belly fat', 'Poor digestion', 'PCOD', 'Stress', 'Hyper tension']
+      },
+      { 
+        id: 'q-confirm', 
+        question: "Do you 100% confirm that you'll be available for the call at the selected date and time in a noise-free environment?", 
+        type: 'radio', 
+        required: true,
+        options: ['Yes', 'No']
+      }
+    ] as Question[] : [] as Question[],
     scheduling: {
       bufferBefore: 0,
       bufferAfter: 0,
-      minimumNotice: 24,
+      minimumNotice: 4,
       dailyLimit: 0,
       weeklyLimit: 0,
-      availableDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-      dateRange: 60,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      availableDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      dateRange: 7,
+      timezone: 'Asia/Kolkata',
       timeSlots: [
         {
           id: 'default-1',
           startTime: '09:00',
           endTime: '17:00',
-          daysOfWeek: [1, 2, 3, 4, 5], // Mon-Fri
-          breaks: []
+          daysOfWeek: [1, 2, 3, 4, 5, 6], // Mon-Sat
+          breaks: [
+            { id: 'break-1', label: 'Lunch Break', startTime: '15:00', endTime: '16:30' },
+            { id: 'break-2', label: 'Lunch Break', startTime: '19:00', endTime: '20:30' }
+          ]
         }
       ],
       recurring: null
@@ -178,7 +210,17 @@ export default function EventTypeForm() {
     loadEventType()
   }, [isNew, params.id])
 
-  if (loading) return <LoadingSpinner />
+  useEffect(() => {
+    if (isNew && user?.name && !eventType.title) {
+      setEventType(prev => ({
+        ...prev,
+        title: `30 Minutes with ${user.name} Health & Wellness Coach`
+      }))
+    }
+  }, [isNew, user?.name])
+
+  // Use specific skeletons instead of a full-page loading spinner
+  // if (loading) return <LoadingSpinner />
 
   // Handlers (Questions, Scheduling, Team - unchanged logic but omitted for brevity in chunk)
   const addQuestion = () => {
@@ -190,6 +232,15 @@ export default function EventTypeForm() {
     setEventType({ ...eventType, questions: updated })
   }
   const removeQuestion = (index: number) => {
+    const question = eventType.questions[index]
+    if (question.isLocked) {
+      toast({
+        title: "Action Denied",
+        description: "This mandatory question cannot be deleted.",
+        variant: "destructive",
+      })
+      return
+    }
     setEventType({ ...eventType, questions: eventType.questions.filter((_, i) => i !== index) })
   }
   const handleQuestionDragEnd = (event: any) => {
@@ -258,10 +309,10 @@ export default function EventTypeForm() {
             </Button>
             <div>
               <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
-                <span>Dashboard</span> <span className="h-0.5 w-0.5 rounded-full bg-slate-300" /> <span>Event Config</span>
+                <span>Meetings</span> <span className="h-0.5 w-0.5 rounded-full bg-slate-300" /> <span>Event Config</span>
               </div>
               <h1 className="text-base font-bold text-slate-900 dark:text-white leading-none">
-                {isNew ? 'Create Event Type' : eventType.title || 'Edit Event'}
+                {loading ? <Skeleton className="h-4 w-32" /> : (isNew ? 'Create Event Type' : eventType.title || 'Edit Event')}
               </h1>
             </div>
           </div>
@@ -286,10 +337,33 @@ export default function EventTypeForm() {
           </div>
 
           <div className="max-w-4xl mx-auto px-6 py-6 space-y-8">
-            <BasicInfoTab eventType={eventType} setEventType={setEventType} errors={formErrors} />
-            <QuestionsTab eventType={eventType} setEventType={setEventType} addQuestion={addQuestion} updateQuestion={(index: number, field: string, value: any) => updateQuestion(index, field as keyof Question, value)} removeQuestion={removeQuestion} handleQuestionDragEnd={handleQuestionDragEnd} sensors={sensors} />
-            <SchedulingTab eventType={eventType} updateScheduling={(field: string, value: any) => updateScheduling(field as keyof SchedulingSettings, value)} />
-            <TeamTab eventType={eventType} toggleTeamMember={toggleTeamMember} />
+            {loading ? (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              </div>
+            ) : (
+              <>
+                <TabsContent value="basic" className="m-0">
+                  <BasicInfoTab eventType={eventType} setEventType={setEventType} errors={formErrors} />
+                </TabsContent>
+                <TabsContent value="questions" className="m-0">
+                   <QuestionsTab eventType={eventType} setEventType={setEventType} addQuestion={addQuestion} updateQuestion={(index: number, field: string, value: any) => updateQuestion(index, field as keyof Question, value)} removeQuestion={removeQuestion} handleQuestionDragEnd={handleQuestionDragEnd} sensors={sensors} />
+                </TabsContent>
+                <TabsContent value="scheduling" className="m-0">
+                   <SchedulingTab eventType={eventType} updateScheduling={(field: string, value: any) => updateScheduling(field as keyof SchedulingSettings, value)} />
+                </TabsContent>
+                <TabsContent value="team" className="m-0">
+                   <TeamTab eventType={eventType} toggleTeamMember={toggleTeamMember} />
+                </TabsContent>
+              </>
+            )}
           </div>
         </Tabs>
       </div>

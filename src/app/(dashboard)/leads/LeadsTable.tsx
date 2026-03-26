@@ -248,7 +248,7 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                           </div>
                         ) : column.id === 'created_at' ? (
                           <span className="text-slate-400 text-[10px] tabular-nums">
-                            {format(new Date(lead.created_at), 'dd MMM, yy')}
+                            {format(new Date(lead.created_at), 'dd MMM, yy | hh:mm a')}
                           </span>
                         ) : column.id === 'deal_value' ? (
                           <div className="flex items-center gap-0.5 text-slate-800 dark:text-slate-200 font-bold tabular-nums">

@@ -90,14 +90,16 @@ export const QuestionSummary = ({ question, index, onEdit, onRemove }: Props) =>
         >
           <Edit2 className="h-3.5 w-3.5" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onRemove(index)}
-          className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
+        {!question.isLocked && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onRemove(index)}
+            className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
       </div>
     </div>
   )

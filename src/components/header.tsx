@@ -13,6 +13,7 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   '/live-chat': { title: 'Live Chat', description: 'Real-time conversations' },
   '/chatbot': { title: 'Chatbot', description: 'Automated messaging flows' },
   '/meetings': { title: 'Meetings', description: 'Schedule and manage meetings' },
+  '/meetings/event-types': { title: 'Meetings', description: 'Configure your scheduling cards' },
   '/integrations': { title: 'Integrations', description: 'Connect your tools' },
   '/analytics': { title: 'Analytics', description: 'Insights and reports' },
   '/settings': { title: 'Settings', description: 'Preferences and configuration' },

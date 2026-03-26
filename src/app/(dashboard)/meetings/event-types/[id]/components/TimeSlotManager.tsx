@@ -38,6 +38,19 @@ const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-slate-50
 const inputStyle = "h-10 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-all rounded-lg no-scrollbar"
 
 export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
+  const formatTo12Hour = (time: string) => {
+    if (!time) return '';
+    try {
+      const [hours, minutes] = time.split(':');
+      const h = parseInt(hours);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const h12 = h % 12 || 12;
+      return `${h12}:${minutes} ${ampm}`;
+    } catch (e) {
+      return time;
+    }
+  };
+
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
   const addSlot = () => {
@@ -245,7 +258,7 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                                   <div>
                                     <p className="text-[11px] font-bold text-slate-900 dark:text-white uppercase tracking-tight leading-none">{breakItem.label}</p>
                                     <p className="text-[9px] font-bold text-indigo-500 uppercase tracking-widest mt-1">
-                                      {breakItem.startTime} — {breakItem.endTime}
+                                      {formatTo12Hour(breakItem.startTime)} — {formatTo12Hour(breakItem.endTime)}
                                     </p>
                                   </div>
                                 </div>
@@ -264,7 +277,7 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                             </DialogTrigger>
                             <DialogContent className="rounded-xl border-none shadow-2xl p-0 overflow-hidden max-w-sm">
                               <DialogHeader className="p-5 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700">
-                                <DialogTitle className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white">Edit Break Sequence</DialogTitle>
+                                <DialogTitle className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white">Edit {breakItem.label} ({formatTo12Hour(breakItem.startTime)} — {formatTo12Hour(breakItem.endTime)})</DialogTitle>
                               </DialogHeader>
                               <div className="p-6 space-y-6">
                                 <div className="space-y-1.5">

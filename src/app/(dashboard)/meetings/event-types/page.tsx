@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,7 +10,7 @@ import {
   Clock, Video, MapPin, Phone, Users,
   Link as LinkIcon, Plus, Calendar, Copy, ExternalLink,
   ChevronRight, MoreHorizontal, Globe2, Trash2, Edit2,
-  CalendarCheck, ArrowRight, Zap, X, AlertCircle, Loader2
+  CalendarCheck, ArrowRight, Zap, X, AlertCircle, Loader2, ArrowLeft
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -40,6 +41,7 @@ const locationIcons = {
 }
 
 export default function EventTypesPage() {
+  const router = useRouter()
   const [eventTypes, setEventTypes] = useState<EventType[]>([])
   const [loading, setLoading] = useState(true)
   const [showShareDialog, setShowShareDialog] = useState(false)
@@ -103,12 +105,22 @@ export default function EventTypesPage() {
 
       {/* ── Header ───────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between shrink-0">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-            Event Types
-            <Zap className="h-5 w-5 text-indigo-500 fill-indigo-500" />
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">Configure your availability and booking page settings</p>
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={() => router.push('/meetings')} 
+            className="h-9 w-9 border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95"
+          >
+            <ArrowLeft className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+              Event Types
+              <Zap className="h-5 w-5 text-indigo-500 fill-indigo-500" />
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">Configure your availability and booking page settings</p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <Button

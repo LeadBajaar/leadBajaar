@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { setSession, clearSession, getSession } from './auth';
 
 // const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
-const API_BASE_URL = 'https://api.leadbajaar.com/api'
+export const API_BASE_URL = 'https://api.leadbajaar.com/api'
 // const API_BASE_URL = 'http://localhost:8000/api'
 
 // Export both httpClient and api
@@ -1452,9 +1452,13 @@ export const adminApi = {
     }
   },
 
-  getCompanies: async () => {
+  getCompanies: async (page = 1, limit = 10, search?: string, plan?: string, status?: string) => {
     try {
-      const response = await api.get('/admin/companies');
+      let url = `/admin/companies?page=${page}&limit=${limit}`;
+      if (search) url += `&search=${search}`;
+      if (plan && plan !== 'all') url += `&plan=${plan}`;
+      if (status && status !== 'all') url += `&status=${status}`;
+      const response = await api.get(url);
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch companies');
@@ -1470,9 +1474,10 @@ export const adminApi = {
     }
   },
 
-  getUsers: async () => {
+  getUsers: async (page = 1, limit = 10, search?: string) => {
     try {
-      const response = await api.get('/admin/users');
+      const url = `/admin/users?page=${page}&limit=${limit}${search ? `&search=${search}` : ''}`;
+      const response = await api.get(url);
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch users');
@@ -1530,6 +1535,16 @@ export const adminApi = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to impersonate user');
+    }
+  },
+  
+  getBilling: async (page = 1, limit = 10, search?: string) => {
+    try {
+      const url = `/admin/billing?page=${page}&limit=${limit}${search ? `&search=${search}` : ''}`;
+      const response = await api.get(url);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch billing data');
     }
   }
 };
