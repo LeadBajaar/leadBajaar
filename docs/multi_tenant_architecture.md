@@ -1,7 +1,7 @@
 # Frontend Architecture Guide: Multi-Tenant Workspace Integration
 
-> **Last Updated:** March 25, 2026  
-> **Status:** Production-Ready (deploy pending for dashboard rendering fix)
+> **Last Updated:** March 28, 2026 (Refined RBAC Audit Completed)  
+> **Status:** Production-Ready (Full Page-Level Guards Implemented)
 
 ---
 
@@ -82,6 +82,11 @@ import { RoleGuard } from '@/components/RoleGuard'
 // Restrict by account type:
 <RoleGuard allowedTypes={['agency', 'super_admin']} fallbackPath="/dashboard">
   <AgencyContent />
+</RoleGuard>
+
+// Restrict by plan (NEW):
+<RoleGuard allowedPlans={['pro', 'enterprise']}>
+  <PremiumContent />
 </RoleGuard>
 ```
 
@@ -196,7 +201,6 @@ When building a new feature that respects multi-tenancy:
 | Item | Priority | Notes |
 | :--- | :--- | :--- |
 | **Upgrade Banner Component** | High | Show when a user hits a plan gate, with CTA to upgrade |
-| **Plan Route Guard** | Medium | Extend `RoleGuard` with `requiredPlan` prop |
 | **Settings Page — Real Data** | Medium | Currently uses hardcoded placeholders; should load from `/api/user` |
 | **Global Revenue Dashboard** | Low | Super Admin analytics: per-agency MRR, growth, churn |
 | **Automated Expiry UI** | Low | Show "subscription expired" state when `company.status === 'Suspended'` |

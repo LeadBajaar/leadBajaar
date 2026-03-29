@@ -135,6 +135,17 @@ interface PlanDefinition {
   color: string
 }
 
+interface AdminUser {
+  id: number | string
+  name: string
+  email: string
+  company?: { name: string }
+  company_id?: number
+  role: string
+  status: string
+  user_type?: string
+}
+
 // ── Mock Data ───────────────────────────────────────────────────────────────
 
 const initialCompanies: Company[] = [
@@ -221,13 +232,13 @@ const initialCompanies: Company[] = [
 const initialUsers = [
   { id: 1, name: 'Arjun Sharma', email: 'arjun@techsolutions.com', company: { name: 'Tech Solutions Inc' }, role: 'Super Admin', status: 'Active' },
   { id: 101, name: 'Sriya Patel', email: 'sriya@growth.io', company: { name: 'Growth Marketers' }, role: 'Admin', status: 'Active' },
-  { id: 102, name: 'Vikram Singh', email: 'vikram@rehub.in', company: { name: 'Real Estate Hub' }, role: 'User', status: 'Active' },
+  { id: 102, name: 'Vikram Singh', email: 'vikram@rehub.in', company: { name: 'Real Estate Hub' }, role: 'Agent', status: 'Active' },
   { id: 103, name: 'Zoya Qureshi', email: 'zoya@edutech.com', company: { name: 'Global EduTech' }, role: 'Admin', status: 'Active' },
-  { id: 104, name: 'Rahul Verma', email: 'rahul@nexus.io', company: { name: 'Nexus Digital' }, role: 'User', status: 'Active' },
+  { id: 104, name: 'Rahul Verma', email: 'rahul@nexus.io', company: { name: 'Nexus Digital' }, role: 'Agent', status: 'Active' },
   { id: 105, name: 'Neha Kapoor', email: 'neha@zenith.in', company: { name: 'Zenith Logistics' }, role: 'Manager', status: 'Suspended' },
-  { id: 106, name: 'Amit Desai', email: 'amit@demo.com', company: { name: 'Tech Solutions Inc' }, role: 'User', status: 'Active' },
+  { id: 106, name: 'Amit Desai', email: 'amit@demo.com', company: { name: 'Tech Solutions Inc' }, role: 'Agent', status: 'Active' },
   { id: 107, name: 'Pooja Hegde', email: 'pooja@demo.com', company: { name: 'Nexus Digital' }, role: 'Manager', status: 'Active' },
-  { id: 108, name: 'Kabir Khan', email: 'kabir@demo.com', company: { name: 'Global EduTech' }, role: 'User', status: 'Inactive' },
+  { id: 108, name: 'Kabir Khan', email: 'kabir@demo.com', company: { name: 'Global EduTech' }, role: 'Agent', status: 'Inactive' },
 ]
 
 const demoStats = {
@@ -299,7 +310,7 @@ const initialPlans: PlanDefinition[] = [
 
 export default function SuperAdminPage() {
   const [companies, setCompanies] = useState<Company[]>([])
-  const [users, setUsers] = useState<any[]>([])
+  const [users, setUsers] = useState<AdminUser[]>([])
   const [stats, setStats] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
@@ -310,7 +321,7 @@ export default function SuperAdminPage() {
   const [editingPlan, setEditingPlan] = useState<PlanDefinition | null>(null)
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false)
   const [isUserModalOpen, setIsUserModalOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState<any>(null)
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
   const [demoMode, setDemoMode] = useState(false)
   const [isUpdatingCompany, setIsUpdatingCompany] = useState(false)
 
@@ -361,7 +372,7 @@ export default function SuperAdminPage() {
         
         // Only update state if we are actually applying defaults for the first time
         if (!hasStart || !hasEnd) {
-          setEditingCompany(prev => prev ? { 
+          setEditingCompany((prev: Company | null) => prev ? { 
             ...prev, 
             subscription_started_at: startStr,
             expires_at: endStr
@@ -375,7 +386,7 @@ export default function SuperAdminPage() {
     const newStart = new Date(dateStr)
     if (isNaN(newStart.getTime())) return
     
-    setEditingCompany(prev => {
+    setEditingCompany((prev: Company | null) => {
       if (!prev) return null
       const newEnd = new Date(newStart)
       newEnd.setDate(newEnd.getDate() + editDays)
@@ -396,7 +407,7 @@ export default function SuperAdminPage() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     
     setEditDays(diffDays > 0 ? diffDays : 0)
-    setEditingCompany(prev => prev ? { ...prev, expires_at: newEnd.toISOString() } : null)
+    setEditingCompany((prev: Company | null) => prev ? { ...prev, expires_at: newEnd.toISOString() } : null)
   }
 
   const handleEditDaysChange = (days: number) => {
@@ -406,7 +417,7 @@ export default function SuperAdminPage() {
 
     const newEnd = new Date(start)
     newEnd.setDate(newEnd.getDate() + days)
-    setEditingCompany(prev => prev ? { ...prev, expires_at: newEnd.toISOString() } : null)
+    setEditingCompany((prev: Company | null) => prev ? { ...prev, expires_at: newEnd.toISOString() } : null)
   }
 
   const fetchData = async () => {
@@ -881,14 +892,14 @@ export default function SuperAdminPage() {
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="text-indigo-600 font-bold"
-                                onClick={() => handleImpersonate(u.id)}
+                                onClick={() => handleImpersonate(Number(u.id))}
                               >
                                 <ExternalLink className="h-4 w-4 mr-2" /> Impersonate
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem 
                                 className="text-red-600 font-bold"
-                                onClick={() => setConfirmModal({ isOpen: true, type: 'delete_user', id: u.id, name: u.name, variant: 'destructive' })}
+                                onClick={() => setConfirmModal({ isOpen: true, type: 'delete_user', id: Number(u.id), name: u.name, variant: 'destructive' })}
                               >
                                 <Trash2 className="h-4 w-4 mr-2" /> Wipe Account
                               </DropdownMenuItem>
@@ -1557,7 +1568,7 @@ export default function SuperAdminPage() {
                   <Label className="text-xs font-bold uppercase text-slate-500">Plan Name</Label>
                   <Input 
                     value={editingPlan?.name}
-                    onChange={(e) => setEditingPlan(prev => prev ? { ...prev, name: e.target.value as Plan } : null)}
+                    onChange={(e) => setEditingPlan((prev: PlanDefinition | null) => prev ? { ...prev, name: e.target.value as Plan } : null)}
                     className="h-11 rounded-xl bg-slate-50 border-slate-200 font-bold"
                   />
                 </div>
@@ -1566,7 +1577,7 @@ export default function SuperAdminPage() {
                   <Input 
                     type="number"
                     value={editingPlan?.price}
-                    onChange={(e) => setEditingPlan(prev => prev ? { ...prev, price: parseInt(e.target.value) || 0 } : null)}
+                    onChange={(e) => setEditingPlan((prev: PlanDefinition | null) => prev ? { ...prev, price: parseInt(e.target.value) || 0 } : null)}
                     className="h-11 rounded-xl bg-slate-50 border-slate-200 font-bold"
                   />
                 </div>
@@ -1711,6 +1722,67 @@ export default function SuperAdminPage() {
               <p className="text-[10px] text-slate-400 font-bold uppercase">End of audit log</p>
               <Button onClick={() => setHistoryModal({ ...historyModal, isOpen: false })} className="rounded-xl font-bold bg-slate-900 dark:bg-white dark:text-slate-900 px-8 h-10">Close Audit</Button>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* User Permission Modal */}
+        <Dialog open={isUserModalOpen} onOpenChange={setIsUserModalOpen}>
+          <DialogContent className="sm:max-w-md rounded-3xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-black text-slate-900 dark:text-white">User Permissions</DialogTitle>
+              <DialogDescription className="font-medium text-slate-500">
+                Modify role and access status for <strong>{editingUser?.name}</strong>.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6 py-4">
+               <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase text-slate-500">System Role</Label>
+                    <Select 
+                      value={editingUser?.role} 
+                      onValueChange={(val: string) => setEditingUser((prev: AdminUser | null) => prev ? { ...prev, role: val } : null)}
+                    >
+                      <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                        <SelectValue placeholder="Select Role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Super Admin">Super Admin</SelectItem>
+                        <SelectItem value="Admin">Admin</SelectItem>
+                        <SelectItem value="Manager">Manager</SelectItem>
+                        <SelectItem value="Agent">Agent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase text-slate-500">Account Status</Label>
+                    <Select 
+                      value={editingUser?.status} 
+                      onValueChange={(val: string) => setEditingUser((prev: AdminUser | null) => prev ? { ...prev, status: val } : null)}
+                    >
+                      <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                        <SelectValue placeholder="Select Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="Inactive">Inactive</SelectItem>
+                        <SelectItem value="Suspended">Suspended</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+               </div>
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="ghost" onClick={() => setIsUserModalOpen(false)} className="rounded-xl h-11 font-bold text-slate-500">
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleUpdateUser} 
+                className="rounded-xl h-11 font-black bg-indigo-600 hover:bg-indigo-700 text-white px-8 shadow-xl shadow-indigo-500/20"
+              >
+                Save Permissions
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
 

@@ -71,7 +71,7 @@ export default function ChatbotPage() {
   }
 
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager']}>
+    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager']} allowedPlans={['pro', 'enterprise']}>
       <div className="container mx-auto py-8 p-2">
       <div className="flex justify-between items-center mb-6">
         <div>

@@ -22,11 +22,18 @@ import {
   FileText, Edit, Save, X, Users, CheckCircle2,
   CalendarCheck, CircleDot, ExternalLink, Settings2,
   ChevronRight, Mail, Building2, AlignLeft, Loader2,
+  Trash2, CalendarRange,
 } from 'lucide-react'
 import Link from 'next/link'
 import { formatInTimeZone } from 'date-fns-tz'
-import { getBookings } from '@/lib/api'
+import { format } from 'date-fns'
+import { getBookings, deleteBooking, rescheduleBooking, teamApi } from '@/lib/api'
+import { toast } from 'sonner'
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Input } from "@/components/ui/input"
 import { cn } from '@/lib/utils'
+import { RoleGuard } from '@/components/RoleGuard'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,6 +55,8 @@ interface Meeting {
   questionnaire?: QuestionnaireItem[]; source: string
   notes?: string; outcome?: string; followUpDate?: string
   start_time?: string; timezone: string
+  event_type_id: number
+  duration_minutes: number
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -113,25 +122,50 @@ function MeetingsSkeleton() {
 // ─── Detail Dialog ─────────────────────────────────────────────────────────────
 
 function MeetingDetailDialog({
-  meeting, open, onOpenChange, onUpdate
+  meeting, open, onOpenChange, onUpdate, onDelete, onReschedule, team = []
 }: {
   meeting: Meeting | null
   open: boolean
   onOpenChange: (v: boolean) => void
   onUpdate?: (m: Meeting) => void
+  onDelete?: (id: number) => void
+  onReschedule?: (id: number, date: string, time: string) => void
+  team: TeamMember[]
 }) {
   const [isEditing, setIsEditing] = useState(false)
+  const [isRescheduling, setIsRescheduling] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  
   const [notes, setNotes] = useState(meeting?.notes ?? '')
   const [outcome, setOutcome] = useState(meeting?.outcome ?? '')
   const [assignedTo, setAssignedTo] = useState(meeting?.assignedTo ?? teamMembers[0])
 
+  const [newDate, setNewDate] = useState<Date | undefined>(undefined)
+  const [newTime, setNewTime] = useState('')
+  const [popoverOpen, setPopoverOpen] = useState(false)
+
   // Sync state when meeting changes
+  const resetReschedule = () => {
+    if (meeting?.start_time) {
+      const date = new Date(meeting.start_time)
+      setNewDate(date)
+      const hours = date.getHours().toString().padStart(2, '0')
+      const minutes = date.getMinutes().toString().padStart(2, '0')
+      setNewTime(`${hours}:${minutes}`)
+    }
+  }
+
   React.useEffect(() => {
     if (meeting) {
       setNotes(meeting.notes ?? '')
       setOutcome(meeting.outcome ?? '')
       setAssignedTo(meeting.assignedTo)
       setIsEditing(false)
+      setIsRescheduling(false)
+      setPopoverOpen(false)
+      setIsDeleting(false)
+      resetReschedule()
     }
   }, [meeting])
 
@@ -144,6 +178,33 @@ function MeetingDetailDialog({
   const handleSave = () => {
     onUpdate?.({ ...meeting, notes, outcome, assignedTo })
     setIsEditing(false)
+  }
+
+  const handleDeleteClick = () => {
+    setIsDeleting(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!meeting) return
+    setIsSubmitting(true)
+    try {
+      await onDelete?.(meeting.id)
+      onOpenChange(false)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleRescheduleSubmit = async () => {
+    if (!meeting || !newDate || !newTime) return
+    setIsSubmitting(true)
+    try {
+      const dateStr = format(newDate, 'yyyy-MM-dd')
+      await onReschedule?.(meeting.id, dateStr, newTime)
+      setIsRescheduling(false)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const initials = (name: string) => name.split(' ').map(n => n[0]).join('')
@@ -168,15 +229,12 @@ function MeetingDetailDialog({
               <Badge className={cn('text-xs font-semibold border', statusInfo.className)}>
                 {statusInfo.label}
               </Badge>
-              <DialogClose className="ml-1 text-white/80 hover:text-white transition-colors">
-                <X className="h-4 w-4" />
-              </DialogClose>
             </div>
           </div>
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-5 max-h-[60vh] overflow-y-auto">
+        <div className="p-6 space-y-5 max-h-[50vh] overflow-y-auto border-b border-slate-100 dark:border-slate-800">
 
           {/* Lead Info */}
           <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50">
@@ -253,7 +311,7 @@ function MeetingDetailDialog({
               }}>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {teamMembers.map(m => (
+                  {team.map(m => (
                     <SelectItem key={m.id} value={m.email}>
                       <div className="flex items-center gap-2">
                         <div className="h-5 w-5 rounded-full bg-indigo-600 text-white text-[10px] flex items-center justify-center font-bold">
@@ -264,6 +322,9 @@ function MeetingDetailDialog({
                       </div>
                     </SelectItem>
                   ))}
+                  {team.length === 0 && (
+                    <SelectItem value={assignedTo.email} disabled>{assignedTo.name}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             ) : (
@@ -327,13 +388,158 @@ function MeetingDetailDialog({
             )}
           </div>
 
-          {/* Save button */}
+          {/* Save button moved inside footer */}
+          {/* Notes and Outcome stay in scrollable body */}
+        </div>
+
+        {/* Footer (Sticky) */}
+        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800">
           {isEditing && (
             <div className="flex gap-2 justify-end">
               <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>Cancel</Button>
               <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white" onClick={handleSave}>
                 <Save className="h-3.5 w-3.5 mr-1.5" />Save Changes
               </Button>
+            </div>
+          )}
+
+          {/* Reschedule UI */}
+          {isRescheduling && (
+            <div className="bg-white dark:bg-slate-900 border border-violet-100 dark:border-violet-800/50 rounded-xl p-4 shadow-sm space-y-4 ring-1 ring-black/5">
+              <div className="flex items-center justify-between border-b border-slate-50 dark:border-slate-800 pb-3 mb-1">
+                <p className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <CalendarRange className="h-4 w-4 text-violet-500" />
+                  Reschedule Appointment
+                </p>
+                <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 border-violet-200 dark:border-violet-800">
+                  New Slot
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide px-0.5">Pick Date</label>
+                  <Popover modal={true} open={popoverOpen} onOpenChange={setPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full justify-start text-xs h-10 border-slate-200 dark:border-slate-700 px-3 bg-slate-50/50 dark:bg-slate-800/50">
+                        <CalendarDays className="h-4 w-4 mr-2.5 text-slate-400" />
+                        {newDate ? format(newDate, 'PPP') : 'Select Date'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 z-[70] shadow-2xl border-slate-200 dark:border-slate-700" align="start" side="top" sideOffset={12}>
+                      <Calendar
+                        mode="single"
+                        selected={newDate}
+                        onSelect={(date) => {
+                          setNewDate(date)
+                          setPopoverOpen(false)
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide px-0.5">Select Time</label>
+                  <div className="relative">
+                    <Input 
+                      type="time" 
+                      value={newTime} 
+                      onChange={e => setNewTime(e.target.value)}
+                      className="h-10 text-xs border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 focus:ring-violet-500/20" 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 justify-end pt-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-9 px-4 text-xs font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" 
+                  onClick={() => {
+                    resetReschedule()
+                    setIsRescheduling(false)
+                  }} 
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="h-9 bg-violet-600 hover:bg-violet-700 text-white px-5 shadow-lg shadow-violet-500/20 font-semibold" 
+                  onClick={handleRescheduleSubmit} 
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <CalendarCheck className="h-4 w-4 mr-2" />
+                  )}
+                  Confirm New Time
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Actions Footer */}
+          {!isEditing && !isRescheduling && !isDeleting && (
+            <div className="flex items-center justify-between">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-red-500 hover:text-red-600 hover:bg-red-50 h-8"
+                onClick={handleDeleteClick}
+                disabled={isSubmitting}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Cancel Meeting
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-indigo-600 border-indigo-200 hover:bg-indigo-50 h-8"
+                onClick={() => setIsRescheduling(true)}
+                disabled={isSubmitting}
+              >
+                <CalendarRange className="h-4 w-4 mr-2" />
+                Reschedule
+              </Button>
+            </div>
+          )}
+
+          {/* Delete confirmation UI */}
+          {isDeleting && (
+            <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/50 rounded-xl p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+                  <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-red-950 dark:text-red-100">Cancel Meeting?</h4>
+                  <p className="text-xs text-red-700/80 dark:text-red-300/60 mt-0.5">This action cannot be undone. Are you sure you want to cancel this appointment?</p>
+                </div>
+              </div>
+              <div className="flex gap-2 justify-end pt-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 text-xs font-semibold text-red-800 dark:text-red-200 hover:bg-red-200/50 dark:hover:bg-red-900/30"
+                  onClick={() => setIsDeleting(false)}
+                  disabled={isSubmitting}
+                >
+                  No, Keep It
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="h-8 bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/20 text-xs font-bold px-4"
+                  onClick={handleConfirmDelete}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
+                  Yes, Cancel Meeting
+                </Button>
+              </div>
             </div>
           )}
         </div>
@@ -421,30 +627,57 @@ function useInfiniteScroll(onLoadMore: () => void, hasMore: boolean, debugName: 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
 const mapBooking = (booking: any, defaultStatus: string): Meeting => {
-  const nameAnswer = booking.answers?.find((a: any) => a.question === 'NAME')
-  const emailAnswer = booking.answers?.find((a: any) => a.question === 'EMAIL')
-  const mobileAnswer = booking.answers?.find((a: any) => a.question === 'MOBILE NUMBER')
+  const getAnswer = (key: string) => {
+    if (Array.isArray(booking.answers)) {
+      return booking.answers.find((a: any) => a.question?.toUpperCase() === key.toUpperCase())?.answer
+    }
+    if (typeof booking.answers === 'object' && booking.answers !== null) {
+      // Try q-key, then key, then case-insensitive match
+      const k = key.toLowerCase()
+      return booking.answers[`q-${k}`] || booking.answers[k] || booking.answers[key] || 
+             Object.entries(booking.answers).find(([ak]) => ak.toLowerCase().includes(k))?.[1]
+    }
+    return null
+  }
+
+  const name = booking.lead?.name || getAnswer('NAME') || getAnswer('name') || 'Guest'
+  const email = booking.lead?.email || getAnswer('EMAIL') || getAnswer('email') || ''
+  const phone = booking.lead?.phone || getAnswer('phone') || getAnswer('MOBILE NUMBER') || ''
   const startTime = new Date(booking.start_time)
 
   return {
     id: booking.id,
-    title: `Meeting with ${nameAnswer?.answer || 'Guest'}`,
+    title: `Meeting with ${name}`,
     date: formatInTimeZone(startTime, 'UTC', 'EEEE, MMMM d, yyyy'),
     time: formatInTimeZone(startTime, 'UTC', 'h:mm a'),
     duration: `${booking.eventType?.duration || 30} minutes`,
     type: (booking.eventType?.location as Meeting['type']) || 'video',
     status: (booking.status || defaultStatus) as Meeting['status'],
     lead: {
-      name: nameAnswer?.answer || 'Guest', email: emailAnswer?.answer || '',
-      phone: mobileAnswer?.answer || '', profession: '', company: '',
+      name, email, phone, profession: '', company: booking.lead?.company || '',
       state: '', requirements: '', avatar: '',
     },
-    assignedTo: { id: booking.user_id, name: 'Host', email: '', role: 'Host', avatar: '' },
+    assignedTo: { 
+      id: booking.user_id || 0, 
+      name: booking.user?.name || 'Host', 
+      email: booking.user?.email || '', 
+      role: 'Host', 
+      avatar: '' 
+    },
     meetingLink: booking.meeting_link || '',
-    source: 'Website',
-    questionnaire: booking.answers?.map((a: any) => ({ question: a.question, answer: a.answer })) || [],
+    source: booking.lead?.source || 'Website',
+    questionnaire: Array.isArray(booking.answers) 
+      ? booking.answers.map((a: any) => ({ question: a.question, answer: a.answer }))
+      : typeof booking.answers === 'object' && booking.answers !== null
+        ? Object.entries(booking.answers).map(([k, v]) => ({ 
+            question: k.replace(/^q-/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), 
+            answer: String(v) 
+          }))
+        : [],
     start_time: booking.start_time,
     timezone: booking.timezone || 'UTC',
+    event_type_id: booking.event_type_id,
+    duration_minutes: booking.eventType?.duration || 30
   }
 }
 
@@ -459,6 +692,23 @@ export default function MeetingsPage() {
     upcoming: { page: 1, hasMore: true },
     history: { page: 1, hasMore: true }
   })
+
+  // ─── Team Data ─────────────────────────────────────────────────────────────
+  const [team, setTeam] = useState<TeamMember[]>([])
+
+  useEffect(() => {
+    const fetchTeam = async () => {
+      try {
+        const members = await teamApi.getMembers()
+        if (Array.isArray(members)) {
+          setTeam(members)
+        }
+      } catch (err) {
+        console.error('Error fetching team:', err)
+      }
+    }
+    fetchTeam()
+  }, [])
 
   const loadMoreUpcoming = useCallback(async () => {
     if (isFetchingMore.upcoming || !pagination.upcoming.hasMore) return
@@ -563,6 +813,41 @@ export default function MeetingsPage() {
     setSelectedMeeting(updated)
   }
 
+  const handleMeetingDelete = async (id: number) => {
+    try {
+      await deleteBooking(id)
+      setMeetings(prev => ({
+        upcoming: prev.upcoming.filter(m => m.id !== id),
+        history: prev.history.filter(m => m.id !== id),
+      }))
+      toast.success('Meeting canceled successfully')
+    } catch (err) {
+      toast.error('Failed to cancel meeting')
+    }
+  }
+
+  const handleMeetingReschedule = async (id: number, date: string, time: string) => {
+    try {
+      const meeting = [...meetings.upcoming, ...meetings.history].find(m => m.id === id)
+      const duration = meeting?.duration_minutes || 30
+      const response = await rescheduleBooking(id, { date, time, duration })
+      const updated = mapBooking(response.data.booking, 'confirmed')
+      
+      setMeetings(prev => ({
+        upcoming: prev.upcoming.map(m => m.id === id ? updated : m),
+        history: prev.history.map(m => m.id === id ? updated : m),
+      }))
+      setSelectedMeeting(updated)
+      toast.success('Meeting rescheduled successfully')
+    } catch (err: any) {
+      if (err.response?.status !== 422) {
+        console.error('Frontend reschedule error:', err)
+      }
+      const msg = err.response?.data?.message || err.message || 'Failed to reschedule meeting'
+      toast.error(msg)
+    }
+  }
+
   const openMeeting = (m: Meeting) => {
     setSelectedMeeting(m)
     setDialogOpen(true)
@@ -577,7 +862,8 @@ export default function MeetingsPage() {
   const totalCompleted = meetings.history.filter(m => m.status === 'completed').length
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-slate-50/30 dark:bg-slate-950/30">
+    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
+      <div className="flex flex-col h-full overflow-hidden bg-slate-50/30 dark:bg-slate-950/30">
       <div className="flex items-center justify-between gap-4 shrink-0 px-6 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
         {/* ── Header ── */}
         <div>
@@ -806,8 +1092,12 @@ export default function MeetingsPage() {
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           onUpdate={handleMeetingUpdate}
+          onDelete={handleMeetingDelete}
+          onReschedule={handleMeetingReschedule}
+          team={team}
         />
       </div>
     </div>
+    </RoleGuard>
   )
 }

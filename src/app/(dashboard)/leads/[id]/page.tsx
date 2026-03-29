@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
+import { RoleGuard } from '@/components/RoleGuard'
 
 export default function LeadDetailsPage() {
   const { id } = useParams()
@@ -87,7 +88,8 @@ export default function LeadDetailsPage() {
   const stage = (defaultStages as any)[lead.stage] || { color: 'bg-slate-100 text-slate-600', icon: User };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-950 overflow-hidden relative">
+    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
+      <div className="flex flex-col h-full bg-white dark:bg-slate-950 overflow-hidden relative">
       {/* Subtle Header */}
       <div className="relative z-20 shrink-0 px-4 py-3 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md">
         <div className="flex items-center gap-3">
@@ -284,6 +286,7 @@ export default function LeadDetailsPage() {
         </Button>
       </div>
     </div>
+    </RoleGuard>
   )
 }
 

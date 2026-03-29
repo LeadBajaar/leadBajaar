@@ -35,6 +35,10 @@ interface EventType {
   questions: any[]
   scheduling: any
   teamMembers: any[]
+  owner?: {
+    name: string;
+    avatar_url?: string;
+  }
 }
 
 interface TimeSlot {
@@ -185,7 +189,11 @@ export default function BookingPage() {
           },
           teamMembers: data.team_members ? 
             (Array.isArray(data.team_members) ? data.team_members : [data.team_members]) 
-            : []
+            : [],
+          owner: data.owner ? {
+            name: data.owner.name,
+            avatar_url: data.owner.avatar_url
+          } : undefined
         };
 
         console.log('Mapped Event Type:', mappedEventType);
@@ -548,8 +556,10 @@ export default function BookingPage() {
             <div className="p-6 border-r">
               <div className="flex flex-col items-center text-center mb-6">
                 <Avatar className="w-16 h-16 mb-4">
-                  <AvatarImage src={eventType?.teamMembers?.[0]?.avatar} />
-                  <AvatarFallback>AT</AvatarFallback>
+                  <AvatarImage src={eventType?.owner?.avatar_url || eventType?.teamMembers?.[0]?.avatar} />
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                    {eventType?.owner?.name?.[0]?.toUpperCase() || 'LB'}
+                  </AvatarFallback>
                 </Avatar>
                 <h2 className="text-xl font-semibold mb-1">{eventType?.title}</h2>
                 <div className="flex items-center text-muted-foreground mb-4">

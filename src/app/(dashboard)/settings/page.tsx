@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
 import { useUser } from '@/contexts/UserContext'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
+import { RoleGuard } from '@/components/RoleGuard'
 import {
   User, Bell, Shield, Mail,
   Settings, ChevronRight, Camera,
@@ -48,31 +49,33 @@ export default function SettingsPage() {
     company: '',
     phone: '',
     bio: '',
-    image: null
+    image: null as string | null
   })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) {
       setProfileSettings({
         name: user.name || '',
         email: user.email || '',
-        company: user.company?.name || '',
-        phone: (user as any).phone || '',
-        bio: (user as any).bio || '',
-        image: (user as any).avatar_url || null
+        company: user.company_name || user.company?.name || '',
+        phone: user.phone || '',
+        bio: user.bio || '',
+        image: user.avatar_url || null
       })
+      if (user.avatar_url) setImagePreview(user.avatar_url)
     }
   }, [user])
 
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      setSelectedFile(file)
       const previewUrl = URL.createObjectURL(file)
       setImagePreview(previewUrl)
-      setProfileSettings(prev => ({ ...prev, image: previewUrl as any }))
     }
   }
 
@@ -81,26 +84,69 @@ export default function SettingsPage() {
     
     try {
       setIsSaving(true)
+      
+      let avatarUrl = user.avatar_url;
+
+      // 1. If a new file was selected, upload it to R2 first
+      if (selectedFile) {
+        const formData = new FormData()
+        formData.append('image', selectedFile)
+        
+        try {
+          const uploadRes = await api.post('/storage/r2/upload-image', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          })
+          
+          if (uploadRes.data.success) {
+            // Delete old avatar if it exists on R2
+            if (user.avatar_url) {
+              try {
+                await api.delete('/storage/r2/delete', { 
+                  data: { path: user.avatar_url } 
+                })
+              } catch (e) {
+                console.warn('Failed to delete old avatar:', e) // Non-blocking
+              }
+            }
+            avatarUrl = uploadRes.data.url
+          } else {
+            throw new Error(uploadRes.data.message || 'Upload failed')
+          }
+        } catch (uploadError: any) {
+          console.error('Failed to upload image to R2:', uploadError)
+          const errorMsg = uploadError.response?.data?.message || uploadError.response?.data?.errors?.image?.[0] || 'Image upload failed'
+          toast.error(`Image upload failed: ${errorMsg}`)
+          return
+        }
+      }
+
+      // 2. Update the user profile
       const response = await api.put(`/users/${user.id}`, {
         name: profileSettings.name,
-        // email: profileSettings.email, // Usually email change is a separate flow
-        // phone: profileSettings.phone,
-        // bio: profileSettings.bio,
+        company_name: profileSettings.company,
+        phone: profileSettings.phone,
+        bio: profileSettings.bio,
+        avatar_url: avatarUrl,
       })
       
       if (response.status === 200) {
         toast.success('Profile updated successfully')
+        setSelectedFile(null) 
+        // Force refresh user data or reload to show changes globally
+        window.location.reload()
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update profile:', error)
-      toast.error('Failed to update profile settings')
+      const message = error.response?.data?.message || 'Failed to update profile settings'
+      toast.error(message)
     } finally {
       setIsSaving(false)
     }
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-full p-4 md:p-6 lg:p-8 gap-6 lg:gap-8 overflow-hidden bg-slate-50/50 dark:bg-slate-950/20">
+    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
+      <div className="flex flex-col lg:flex-row h-full p-4 md:p-6 lg:p-8 gap-6 lg:gap-8 overflow-hidden bg-slate-50/50 dark:bg-slate-950/20">
 
       {/* ── Sidebar Navigation ── */}
       <div className="w-full lg:w-72 flex flex-col gap-4 lg:gap-6 shrink-0">
@@ -323,5 +369,6 @@ export default function SettingsPage() {
         </div>
       </div>
     </div>
+    </RoleGuard>
   )
 }

@@ -53,6 +53,7 @@ import { useMediaQuery } from '@/hooks/use-media-query'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { useDebounce } from '@/hooks/use-debounce'
+import { RoleGuard } from '@/components/RoleGuard'
 // import axios from 'axios'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -1332,7 +1333,8 @@ export default function LeadsPage() {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-950 overflow-hidden">
+    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
+      <div className="flex flex-col h-full bg-white dark:bg-slate-950 overflow-hidden">
       <div className="shrink-0">
         <LeadsFilters
           filters={filters}
@@ -1583,5 +1585,6 @@ export default function LeadsPage() {
         onChange={handleFileChange}
       />
     </div>
+    </RoleGuard>
   )
 }

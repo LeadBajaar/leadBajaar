@@ -16,7 +16,7 @@ export default function ChatbotBuilderPage({ params }: PageParams) {
   const isNewFlow = flowId === 'new'
 
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager']}>
+    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager']} allowedPlans={['pro', 'enterprise']}>
       <FlowBuilder 
       flowId={isNewFlow ? null : flowId} 
       isNew={isNewFlow}

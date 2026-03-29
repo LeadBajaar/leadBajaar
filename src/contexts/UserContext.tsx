@@ -10,6 +10,10 @@ interface User {
   id: number
   name: string
   email: string
+  avatar_url?: string
+  phone?: string
+  bio?: string
+  company_name?: string
   role: UserRole
   user_type: UserType
   company_id: number | null

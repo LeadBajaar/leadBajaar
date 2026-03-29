@@ -3,7 +3,7 @@ import { setSession, clearSession, getSession } from './auth';
 
 // const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 export const API_BASE_URL = 'https://api.leadbajaar.com/api'
-// const API_BASE_URL = 'http://localhost:8000/api'
+// export const API_BASE_URL = 'http://localhost:8000/api'
 
 // Export both httpClient and api
 export const httpClient = {
@@ -424,7 +424,7 @@ export const integrationApi = {
     } catch (error: any) {
       if (error.response?.status === 422) {
         const validationErrors = error.response.data.errors;
-        const message = validationErrors && typeof validationErrors === 'object' 
+        const message = validationErrors && typeof validationErrors === 'object'
           ? Object.entries(validationErrors).map(([f, m]) => `${f}: ${Array.isArray(m) ? m.join(', ') : m}`).join('; ')
           : error.response.data.message || 'Validation failed';
         throw new Error(message);
@@ -1393,6 +1393,14 @@ export const getBookings = async (params?: { page?: number; per_page?: number; t
   return api.get('/bookings', { params });
 };
 
+export const deleteBooking = async (id: number) => {
+  return api.delete(`/bookings/${id}`);
+};
+
+export const rescheduleBooking = async (id: number, data: { date: string, time: string, duration: number }) => {
+  return api.patch(`/bookings/${id}/reschedule`, data);
+};
+
 // Team API Methods
 export const teamApi = {
   getMembers: async () => {
@@ -1537,7 +1545,7 @@ export const adminApi = {
       throw new Error(error.response?.data?.message || 'Failed to impersonate user');
     }
   },
-  
+
   getBilling: async (page = 1, limit = 10, search?: string) => {
     try {
       const url = `/admin/billing?page=${page}&limit=${limit}${search ? `&search=${search}` : ''}`;

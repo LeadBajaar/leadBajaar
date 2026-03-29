@@ -205,7 +205,7 @@ export default function AnalyticsPage() {
   const convRate = totalLeads > 0 ? ((totalConverted / totalLeads) * 100).toFixed(1) : '0.0'
 
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager']}>
+    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager']} allowedPlans={['pro', 'enterprise']}>
       <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 h-full overflow-y-auto">
 
       {/* ── Header ── */}

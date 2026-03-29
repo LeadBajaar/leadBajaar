@@ -25,6 +25,7 @@ import {
   getConversationMessages
 } from '@/lib/api'
 import { format } from 'date-fns'
+import { RoleGuard } from '@/components/RoleGuard'
 
 interface WhatsAppInteractive {
   type: string;
@@ -222,7 +223,8 @@ export default function LiveChatPage() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-full p-2 sm:p-4 lg:p-6 gap-2 sm:gap-4 lg:gap-6 overflow-hidden bg-slate-50/50 dark:bg-slate-950/20">
+    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
+      <div className="flex flex-col lg:flex-row h-full p-2 sm:p-4 lg:p-6 gap-2 sm:gap-4 lg:gap-6 overflow-hidden bg-slate-50/50 dark:bg-slate-950/20">
 
       {/* ── Sidebar: Conversations ─────────────────────────────────────── */}
       <div className={cn(
@@ -580,5 +582,6 @@ export default function LiveChatPage() {
         )}
       </div>
     </div>
+    </RoleGuard>
   )
 }

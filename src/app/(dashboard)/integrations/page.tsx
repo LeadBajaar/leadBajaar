@@ -859,7 +859,7 @@ export default function IntegrationsPage() {
   };
 
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin']}>
+    <RoleGuard allowedRoles={['Super Admin', 'Admin']} allowedPlans={['pro', 'enterprise']}>
       <div className="w-full h-full overflow-y-auto p-4 md:p-6 lg:p-10">
       
 
