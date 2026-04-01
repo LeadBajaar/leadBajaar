@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Pencil, Plus, Trash2, MessageSquare, RefreshCcw, ChevronLeft, ChevronRight, AlertCircle, X } from 'lucide-react'
+import { Pencil, Plus, Trash2, MessageSquare, RefreshCcw, ChevronLeft, ChevronRight, AlertCircle, X, Loader2, CheckCircle2 } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
 import { integrationApi } from '@/lib/api'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -99,6 +99,8 @@ export default function WhatsAppManagementPage() {
   const [isUpdatingToken, setIsUpdatingToken] = useState(false)
   const [previewUrls, setPreviewUrls] = useState<string[]>([])
   const [isCreatingTemplate, setIsCreatingTemplate] = useState(false)
+  const [isSyncing, setIsSyncing] = useState<Record<number, boolean>>({})
+  const [syncSuccess, setSyncSuccess] = useState<Record<number, boolean>>({})
   const [currentAccount, setCurrentAccount] = useState<WhatsAppAccount | null>(null)
   const [showEditTemplate, setShowEditTemplate] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null)
@@ -234,18 +236,26 @@ export default function WhatsAppManagementPage() {
 
   const syncTemplates = async (accountId: number) => {
     try {
+      setIsSyncing(prev => ({ ...prev, [accountId]: true }))
+      setSyncSuccess(prev => ({ ...prev, [accountId]: false }))
       await integrationApi.syncWhatsAppTemplates(accountId)
       toast({
         title: "Success",
         description: "Templates synced successfully",
       })
-      fetchTemplates(accountId)
+      await fetchTemplates(accountId)
+      setSyncSuccess(prev => ({ ...prev, [accountId]: true }))
+      setTimeout(() => {
+        setSyncSuccess(prev => ({ ...prev, [accountId]: false }))
+      }, 3000)
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to sync templates",
         variant: "destructive",
       })
+    } finally {
+      setIsSyncing(prev => ({ ...prev, [accountId]: false }))
     }
   }
 
@@ -712,8 +722,15 @@ export default function WhatsAppManagementPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => syncTemplates(account.id)}
+                            disabled={isSyncing[account.id]}
                           >
-                            <RefreshCcw className="h-4 w-4" />
+                            {isSyncing[account.id] ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                            ) : syncSuccess[account.id] ? (
+                              <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            ) : (
+                              <RefreshCcw className="h-4 w-4" />
+                            )}
                           </Button>
                           <Button
                             variant="ghost"

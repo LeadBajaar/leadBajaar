@@ -46,7 +46,14 @@ import {
   importLeads,
   exportLeads,
   integrationApi,
-  createPayment
+  createPayment,
+  getStages,
+  createStage,
+  updateStage,
+  deleteStage,
+  reorderStages,
+  syncDefaultStages,
+  type Stage as ApiStage
 } from '@/lib/api'
 import { LeadsMobileView } from './LeadsMobileView'
 import { useMediaQuery } from '@/hooks/use-media-query'
@@ -162,7 +169,8 @@ export default function LeadsPage() {
   const tableInnerRef = useRef<HTMLDivElement>(null)
 
   // Add these states
-  const [stages, setStages] = useState<Record<string, { color: string; icon: LucideIcon }>>(defaultStages)
+  const [stages, setStages] = useState<Record<string, { color: string; icon: LucideIcon; id?: number }>>(defaultStages)
+  const [stagesList, setStagesList] = useState<ApiStage[]>([])
   const [showStageManager, setShowStageManager] = useState(false)
   const [newStageName, setNewStageName] = useState('')
   const [selectedColor, setSelectedColor] = useState('blue')
@@ -436,6 +444,29 @@ export default function LeadsPage() {
     });
     setCurrentPage(1);
   };
+ 
+  const fetchStagesData = async () => {
+     try {
+       const data = await getStages();
+       setStagesList(data);
+       
+       if (data.length > 0) {
+         const stagesRecord: Record<string, { color: string; icon: LucideIcon; id?: number }> = {};
+         data.forEach(s => {
+           stagesRecord[s.name] = {
+             id: s.id,
+             color: s.color.startsWith('bg-') 
+               ? s.color 
+               : `bg-${s.color}-100 text-${s.color}-800 dark:bg-${s.color}-900 dark:text-${s.color}-100`,
+             icon: iconMapping[s.icon as keyof typeof iconMapping] || User
+           };
+         });
+         setStages(stagesRecord);
+       }
+     } catch (error) {
+       console.error('Failed to fetch stages:', error);
+     }
+   };
 
   const fetchLeads = async () => {
     try {
@@ -483,6 +514,7 @@ export default function LeadsPage() {
   };
 
   useEffect(() => {
+    fetchStagesData();
     fetchLeads();
   }, [currentPage, itemsPerPage, debouncedSearch, filters.status, filters.stage, filters.source, filters.dateRange, filters.createdAt]);
 
@@ -848,16 +880,22 @@ export default function LeadsPage() {
     </div>
   );
 
-  const handleAddStage = () => {
+  const handleAddStage = async () => {
     if (newStageName && !stages[newStageName]) {
-      setStages(prev => ({
-        ...prev,
-        [newStageName]: {
-          color: `bg-${selectedColor}-100 text-${selectedColor}-800 dark:bg-${selectedColor}-900 dark:text-${selectedColor}-100`,
-          icon: iconMapping[selectedIcon as keyof typeof iconMapping] || User
-        }
-      }))
-      setNewStageName('')
+      try {
+        await createStage({
+          name: newStageName,
+          color: selectedColor,
+          icon: selectedIcon,
+          order: Object.keys(stages).length + 1
+        });
+        await fetchStagesData();
+        setNewStageName('')
+        toast.success("Stage created successfully")
+      } catch (error) {
+        console.error('Failed to create stage:', error);
+        toast.error("Failed to create stage")
+      }
     }
   }
 
@@ -946,38 +984,62 @@ export default function LeadsPage() {
     setEditedStageColor(stages[stageName].color.split(' ')[0].replace('bg-', '').replace('-100', ''))
   }
 
-  const handleUpdateStage = () => {
+  const handleUpdateStage = async () => {
     if (editedStageName && editingStage) {
       const stageConfig = stages[editingStage]
-      const updatedStages = { ...stages }
+      if (!stageConfig.id) return
 
-      // Delete old stage if name changed
-      if (editingStage !== editedStageName) {
-        delete updatedStages[editingStage]
+      try {
+        await updateStage(stageConfig.id, {
+          name: editedStageName,
+          color: editedStageColor,
+        });
+        await fetchStagesData();
+        setEditingStage(null)
+        setEditedStageName('')
+        setEditedStageColor('')
+        toast.success("Stage updated successfully")
+      } catch (error) {
+        console.error('Failed to update stage:', error);
+        toast.error("Failed to update stage")
       }
-
-      // Add updated stage
-      updatedStages[editedStageName] = {
-        ...stageConfig,
-        color: `bg-${editedStageColor}-100 text-${editedStageColor}-800 dark:bg-${editedStageColor}-900 dark:text-${editedStageColor}-100`
-      }
-
-      setStages(updatedStages)
-      setEditingStage(null)
-      setEditedStageName('')
-      setEditedStageColor('')
     }
   }
 
-  const handleDeleteStage = (stageName: string) => {
-    const updatedStages = { ...stages }
-    delete updatedStages[stageName]
-    setStages(updatedStages)
+  const handleSyncDefaultStages = async () => {
+    try {
+      await syncDefaultStages();
+      await fetchStagesData();
+      toast.success("Default stages synced successfully");
+    } catch (error) {
+      console.error('Failed to sync default stages:', error);
+      toast.error("Failed to sync default stages");
+    }
+  };
+
+  const handleDeleteStage = async (stageName: string) => {
+    const stageConfig = stages[stageName]
+    if (!stageConfig.id) return
+
+    if (!confirm(`Are you sure you want to delete the stage "${stageName}"?`)) return
+
+    try {
+      await deleteStage(stageConfig.id);
+      await fetchStagesData();
+      toast.success("Stage deleted successfully")
+    } catch (error) {
+      console.error('Failed to delete stage:', error);
+      toast.error("Failed to delete stage")
+    }
   }
 
   const handleEditLead = (lead: Lead) => {
     setEditedLead({ ...lead })
     setShowEditLead(true)
+  }
+
+  const handleDeleteLead = (lead: Lead) => {
+    setDeleteConfirmation({ isOpen: true, leadId: lead.id, leadName: lead.name })
   }
 
   const handleUpdateLead = async (updatedLead: Lead | null) => {
@@ -1348,6 +1410,7 @@ export default function LeadsPage() {
           setShowExportDialog={setShowExportDialog}
           handleImportClick={handleImportClick}
           openFacebookRetrieval={openFacebookRetrieval}
+          stages={stages}
         />
       </div>
 
@@ -1389,12 +1452,13 @@ export default function LeadsPage() {
               error={error}
               selectedLeads={selectedLeads}
               handleSelectLead={handleSelectLead}
-              handleEdit={handleEdit}
-              handleDelete={handleDelete}
+              handleEdit={handleEditLead}
+              handleDelete={handleDeleteLead}
               handleWhatsAppClick={handleWhatsAppClick}
               handleCallClick={handleCallClick}
               handleDealValueClick={handleDealValueClick}
               handleCardClick={(id) => router.push(`/leads/${id}`)}
+              stages={stages}
             />
           </div>
         ) : (
@@ -1406,13 +1470,14 @@ export default function LeadsPage() {
             selectedLeads={selectedLeads}
             handleSelectLead={handleSelectLead}
             handleSelectAll={handleSelectAll}
-            handleEdit={handleEdit}
-            handleDelete={handleDelete}
+            handleEdit={handleEditLead}
+            handleDelete={handleDeleteLead}
             handleWhatsAppClick={handleWhatsAppClick}
             handleCallClick={handleCallClick}
             handleDealValueClick={handleDealValueClick}
             fetchLeads={fetchLeads}
             setError={setError}
+            stages={stages}
           />
         )}
         <div className="shrink-0 mt-2 border-t border-slate-50 dark:border-slate-800/50 pt-2 pb-6 px-4">
@@ -1439,6 +1504,7 @@ export default function LeadsPage() {
         setEditedStageColor={setEditedStageColor}
         handleUpdateStage={handleUpdateStage}
         handleAddStage={handleAddStage}
+        onSyncDefault={handleSyncDefaultStages}
       />
 
       <StageChangeDialog

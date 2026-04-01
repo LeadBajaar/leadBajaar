@@ -99,6 +99,7 @@ export default function EventTypeForm() {
     title: isNew ? `30 Minutes with ${user?.name || 'Coach'} Health & Wellness Coach` : '',
     description: isNew ? 'Take out 30 minutes for your health. Sit in a comfortable, less noise area and make sure you have a stable internet connection.' : '',
     duration: 30,
+    slot_interval: 30,
     location: 'video',
     questions: isNew ? [
       { id: 'q-name', question: 'NAME', type: 'text', required: true, isLocked: true },
@@ -178,6 +179,7 @@ export default function EventTypeForm() {
           title: data.title || '',
           description: data.description || '',
           duration: data.duration || 30,
+          slot_interval: data.slot_interval || data.duration || 30,
           location: data.location || 'video',
           questions: data.questions || [],
           scheduling: {

@@ -28,6 +28,8 @@ import {
   ChevronRight,
   Plus,
   Search,
+  ShieldAlert,
+  ArrowRight,
   AlertCircle,
   X,
   Trash2,
@@ -46,8 +48,11 @@ import {
   Share2,
   Layout,
   Layers,
-  List
+  List,
+  ShieldCheck,
+  Clock
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { integrationApi } from '@/lib/api'
 import { PixelTestConsole } from './PixelTestConsole'
@@ -79,6 +84,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import {
   Popover,
   PopoverContent,
@@ -138,10 +149,15 @@ export function FacebookDashboard() {
   const [isLaunchingTemplate, setIsLaunchingTemplate] = useState(false)
   const [insights, setInsights] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [statusData, setStatusData] = useState<any>(null)
+  const [businesses, setBusinesses] = useState<any[]>([])
+  const [selectedBusiness, setSelectedBusiness] = useState<any | null>(null)
   const [isSyncingAssets, setIsSyncingAssets] = useState(false)
   const [isSubscribing, setIsSubscribing] = useState(false)
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [isLoadingForms, setIsLoadingForms] = useState(false)
+  const [isConnectingMeta, setIsConnectingMeta] = useState(false)
+  const [formsError, setFormsError] = useState<string | null>(null)
   const [isLoadingAds, setIsLoadingAds] = useState(false)
   const [isLoadingAdSets, setIsLoadingAdSets] = useState(false)
   const [isLoadingSpecificAds, setIsLoadingSpecificAds] = useState(false)
@@ -201,6 +217,11 @@ export function FacebookDashboard() {
   const [isDeletingObject, setIsDeletingObject] = useState(false)
   const [resourceFilter, setResourceFilter] = useState<'all' | 'active'>('all')
   const [isSyncingHistory, setIsSyncingHistory] = useState<string | null>(null)
+  const [isDataDeletionDialogOpen, setIsDataDeletionDialogOpen] = useState(false)
+  const [isDisconnectMetaDialogOpen, setIsDisconnectMetaDialogOpen] = useState(false)
+  const [isDeletingData, setIsDeletingData] = useState(false)
+  const [isDisconnecting, setIsDisconnecting] = useState(false)
+  const [isDeletionStatusDialogOpen, setIsDeletionStatusDialogOpen] = useState(false)
 
   useEffect(() => {
     // Check for success/error parameters from Meta OAuth redirect
@@ -237,8 +258,7 @@ export function FacebookDashboard() {
           }
         }
       } catch (err: any) {
-        console.error("Error loading forms for ad:", err)
-        toast.error("LeadBajaar System Error", { description: "Refresh your browser and click Deep Sync." })
+        // Silent handling for restricted assets as it's a known state
       } finally {
         setIsLoadingAdCreationForms(false)
       }
@@ -258,6 +278,37 @@ export function FacebookDashboard() {
       loadCreatives(selectedAdAccount.id)
     }
   }, [selectedAdAccount])
+
+  useEffect(() => {
+    if (selectedBusiness) {
+      const fetchBusinessAssets = async () => {
+        try {
+          setIsLoading(true)
+          const response = await integrationApi.getMetaBusinessAssets(selectedBusiness.business_id)
+          if (response.status === 'success') {
+            setAdAccounts(response.ad_accounts || [])
+            setPages(response.facebook_pages || [])
+            if (response.ad_accounts?.length > 0) {
+                setSelectedAdAccount(response.ad_accounts[0])
+            }
+            if (response.facebook_pages?.length > 0) {
+                setSelectedAdPageId(response.facebook_pages[0].id)
+            }
+          }
+        } catch (err) {
+          console.error("Error loading business assets:", err)
+          toast.error("Asset Sync Failed", { description: "Could not retrieve assets for this business." })
+        } finally {
+          setIsLoading(false)
+        }
+      }
+      fetchBusinessAssets()
+    } else {
+      // Reload defaults if "all/personal" selected
+      loadAdAccounts()
+      loadPages()
+    }
+  }, [selectedBusiness])
 
   // Helper to humanize Meta API errors & provide "what to do next"
   const formatMetaError = (errorMsg: any) => {
@@ -376,8 +427,10 @@ export function FacebookDashboard() {
     try {
       setIsLoading(true)
       const response = await integrationApi.getMetaStatus()
+      setStatusData(response)
       if (response.connected) {
         setPages(response.facebook_pages || [])
+        setBusinesses(response.businesses || [])
         setSetupChecklist(response.setup_checklist || null)
       }
     } catch (error: any) {
@@ -389,6 +442,83 @@ export function FacebookDashboard() {
       })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleManualDataDeletionRequest = () => {
+    setIsDataDeletionDialogOpen(true)
+  }
+
+  const handleConfirmDataDeletion = async () => {
+    try {
+      setIsDeletingData(true)
+      const response = await integrationApi.dataDeletionRequest()
+      
+      if (response.confirmation_code) {
+        toast.success("Request Sent", { 
+          description: `Your data deletion request (ID: ${response.confirmation_code}) has been registered.` 
+        })
+      }
+      setIsDataDeletionDialogOpen(false)
+    } catch (error: any) {
+      toast.error("Request Failed", { description: error.message })
+    } finally {
+      setIsDeletingData(false)
+    }
+  }
+
+  const handleDisconnectMeta = () => {
+    setIsDisconnectMetaDialogOpen(true)
+  }
+
+  const confirmDisconnectMeta = async () => {
+    try {
+      setIsDisconnecting(true)
+      const response = await integrationApi.disconnectMeta()
+      if (response.status === 'success') {
+        toast.success("Disconnected", { description: "Your Meta account has been disconnected successfully." })
+        window.location.reload()
+      }
+    } catch (error: any) {
+      toast.error("Disconnect Failed", { description: error.message })
+    } finally {
+      setIsDisconnecting(false)
+      setIsDisconnectMetaDialogOpen(false)
+    }
+  }
+
+  const handleRefreshStatus = async () => {
+    try {
+      setIsSyncingAssets(true)
+      await loadPages()
+      
+      if (selectedBusiness) {
+        const response = await integrationApi.getMetaBusinessAssets(selectedBusiness.business_id)
+        if (response.status === 'success') {
+          setAdAccounts(response.ad_accounts || [])
+          setPages(response.facebook_pages || [])
+        }
+      } else {
+        await loadAdAccounts()
+      }
+      
+      await loadTemplates()
+      await loadPixels()
+      
+      toast.success("Sync Complete", { description: "Your Meta assets have been synchronized." })
+    } catch (err) {
+      console.error("Refresh failed:", err)
+      toast.error("Sync Failed", { description: "Could not refresh your Meta assets." })
+    } finally {
+      setIsSyncingAssets(false)
+    }
+  }
+
+  const handleCheckDeletionStatus = () => {
+    if (statusData?.status === 'deletion_pending') {
+      setIsDeletionStatusDialogOpen(true)
+    } else {
+      toast.info("No Active Deletion", { description: "You don't have a pending data deletion request for this account." })
     }
   }
 
@@ -469,18 +599,52 @@ export function FacebookDashboard() {
       setIsSubscribed(false)
       setIsLoadingForms(true)
       setForms([])
+      setFormsError(null)
 
       const response = await integrationApi.getMetaPageForms(page.id)
       if (response.status === 'success') {
         setForms(response.forms || [])
+      } else {
+        setFormsError(response.error || "Could not load forms for this page.")
+        toast.error("Access Restricted", {
+          description: response.error || "Could not load forms for this page.",
+        })
       }
     } catch (error: any) {
-      console.error('Failed to load lead forms:', error)
-      toast.error("Error", {
-        description: "Failed to load lead forms for this page",
-      })
+      const errorMessage = error.response?.data?.error || error.message || "Failed to load lead forms for this page"
+      setFormsError(errorMessage)
     } finally {
       setIsLoadingForms(false)
+    }
+  }
+
+  const handleMetaConnect = async () => {
+    setIsConnectingMeta(true)
+    try {
+      const response = await integrationApi.connectMeta()
+      const popup = window.open(
+        response.auth_url,
+        'facebook-oauth',
+        'width=600,height=700,scrollbars=yes,resizable=yes'
+      )
+
+      if (!popup) {
+        throw new Error('Popup blocked. Please allow popups for this site.')
+      }
+
+      const checkClosed = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(checkClosed)
+          setIsConnectingMeta(false)
+          toast.success("Connection Updated", { description: "Refreshing your assets from Meta..." })
+          loadPages()
+          // Optional: Trigger a manual sync to be sure
+          handleManualSyncAssets()
+        }
+      }, 1000)
+    } catch (error: any) {
+      toast.error("Connection Failed", { description: error.message })
+      setIsConnectingMeta(false)
     }
   }
 
@@ -1053,23 +1217,90 @@ export function FacebookDashboard() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-extrabold tracking-tight">Meta Business Suite</h2>
-          <p className="text-muted-foreground">Manage your Facebook Pages and Ads (v25.0)</p>
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-2 border-b border-slate-100 dark:border-slate-800/50 mb-6">
+        <div className="space-y-1">
+          <h2 className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
+            Meta Business Suite
+            <Badge className="bg-blue-600 text-white border-none px-2 rounded-lg font-black text-[10px] tracking-widest uppercase">Agency Pro</Badge>
+          </h2>
+          <p className="text-muted-foreground">Manage your agency portfolios, ad accounts and lead generation assets (v25.1-Agency).</p>
         </div>
+        
+        {/* Meta Business Selector (Justification for business_management) */}
+        <div className="bg-white dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2 min-w-[300px] animate-in fade-in zoom-in duration-500">
+            <div className="h-10 w-10 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl flex items-center justify-center text-indigo-600">
+              <Briefcase className="h-5 w-5" />
+            </div>
+            <div className="flex-1 px-1">
+              <Select 
+                value={selectedBusiness?.business_id || "all"} 
+                onValueChange={(val) => {
+                  const business = businesses.find(b => b.business_id === val);
+                  setSelectedBusiness(business || null);
+                }}
+              >
+                <SelectTrigger className="border-none bg-transparent h-8 focus:ring-0 px-0 font-bold text-slate-900 dark:text-white shadow-none">
+                  <SelectValue placeholder="Select Business Manager" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-slate-200 dark:border-slate-800 shadow-2xl">
+                  <SelectItem value="all" className="font-bold">Personal Account (Default)</SelectItem>
+                  {businesses.map((biz) => (
+                    <SelectItem key={biz.business_id} value={biz.business_id} className="font-bold">
+                      {biz.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mt-0.5">
+                {selectedBusiness ? "Business Manager Portfolio" : "Standard Personal Assets"}
+              </p>
+            </div>
+          </div>
         <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
           {setupChecklist && (
-            <div className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-medium transition-all hover:bg-slate-200 dark:hover:bg-slate-700">
-              <div className={`h-2 w-2 rounded-full ${setupChecklist.oauth_connected ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-amber-500'}`} />
-              <span className="text-slate-700 dark:text-slate-300">
-                {setupChecklist.oauth_connected ? 'Meta Platform Active' : 'Setup Required'}
-              </span>
-              <span className="text-slate-400 mx-1">|</span>
-              <span className="text-slate-600 dark:text-slate-400">{pages.length} Pages</span>
-              <span className="text-slate-400 mx-1">|</span>
-              <span className="text-slate-600 dark:text-slate-400">{adAccounts.length} Ad Accounts</span>
-            </div>
+            <TooltipProvider>
+              <div className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-bold transition-all hover:bg-slate-200 dark:hover:bg-slate-700">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center space-x-1 cursor-default">
+                      <div className={`h-2 w-2 rounded-full ${setupChecklist.oauth_connected ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-amber-500'}`} />
+                      <span className="text-slate-700 dark:text-slate-300">
+                        {setupChecklist.oauth_connected ? 'Active' : 'Setup'}
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="rounded-xl border-slate-200 shadow-xl bg-white text-slate-900 font-bold text-[10px]">
+                    {setupChecklist.oauth_connected ? 'Meta Platform Active & Connected' : 'Meta Setup Required'}
+                  </TooltipContent>
+                </Tooltip>
+
+                <span className="text-slate-300 dark:text-slate-600">|</span>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-slate-600 dark:text-slate-400 cursor-default hover:text-blue-600 transition-colors">
+                      {pages.length}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="rounded-xl border-slate-200 shadow-xl bg-white text-slate-900 font-bold text-[10px]">
+                     {pages.length} Total Registered Pages
+                  </TooltipContent>
+                </Tooltip>
+
+                <span className="text-slate-300 dark:text-slate-600">|</span>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-slate-600 dark:text-slate-400 cursor-default hover:text-indigo-600 transition-colors">
+                      {adAccounts.length}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="rounded-xl border-slate-200 shadow-xl bg-white text-slate-900 font-bold text-[10px]">
+                    {adAccounts.length} Connected Ad Accounts
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           )}
           <Button
             onClick={handleManualSyncAssets}
@@ -1148,7 +1379,9 @@ export function FacebookDashboard() {
                   <Globe className="h-5 w-5 text-blue-500" />
                   <span>Managed Pages</span>
                 </CardTitle>
-                <CardDescription>{pages.length} pages found</CardDescription>
+                <CardDescription>
+                  {pages.filter(p => !!p.access_token).length}/{pages.length} Pages Accessible
+                </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
@@ -1160,17 +1393,31 @@ export function FacebookDashboard() {
                         }`}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="h-8 w-8 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
+                        <div className="h-8 w-8 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shrink-0">
                           {page.name.charAt(0)}
                         </div>
-                        <div>
-                          <p className="font-semibold line-clamp-1">{page.name}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase opacity-70 tracking-tighter">ID: {page.id}</p>
+                        <div className="min-w-0">
+                          <p className="font-semibold line-clamp-1 flex items-center gap-1.5">
+                            {page.name}
+                          </p>
+                          <p className="text-[10px] uppercase opacity-70 tracking-tighter flex items-center gap-1">
+                            {page.access_token ? (
+                              <span className="text-green-600 font-bold flex items-center"><CheckCircle2 className="h-2 w-2 mr-0.5" /> Connected</span>
+                            ) : (
+                              <span className="text-amber-600 font-bold flex items-center"><AlertCircle className="h-2 w-2 mr-0.5" /> Not Selected</span>
+                            )}
+                            <span className="text-slate-400">| ID: {page.id}</span>
+                          </p>
                         </div>
                       </div>
-                      <ChevronRight className={`h-4 w-4 text-slate-400 ${selectedPage?.id === page.id ? 'text-blue-500' : ''}`} />
+                      <ChevronRight className={`h-4 w-4 text-slate-400 shrink-0 ${selectedPage?.id === page.id ? 'text-blue-500' : ''}`} />
                     </button>
                   ))}
+                  <div className="px-4 py-3 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800">
+                    <p className="text-[10px] text-slate-500 font-medium italic leading-tight">
+                      Only pages selected during Meta connection can be managed.
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -1186,9 +1433,16 @@ export function FacebookDashboard() {
                           <Facebook className="h-5 w-5" />
                         </div>
                         <div>
-                          <CardTitle>{selectedPage.name}</CardTitle>
-                          <CardDescription>Managed Lead Forms</CardDescription>
-                        </div>
+                           <div className="flex items-center gap-2">
+                             <CardTitle>{selectedPage.name}</CardTitle>
+                             {selectedPage.access_token && (
+                               <Badge variant="outline" className="h-5 text-[9px] font-bold bg-blue-50 text-blue-700 border-blue-200">
+                                 Connected via Meta
+                               </Badge>
+                             )}
+                           </div>
+                           <CardDescription>Managed Lead Forms</CardDescription>
+                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Dialog open={isCreateFormDialogOpen} onOpenChange={setIsCreateFormDialogOpen}>
@@ -1247,11 +1501,33 @@ export function FacebookDashboard() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-6">
+                    <CardContent className="pt-6">
                     {isLoadingForms ? (
                       <div className="flex flex-col items-center justify-center py-12 space-y-4">
                         <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
                         <p className="text-sm text-muted-foreground">Loading forms...</p>
+                      </div>
+                    ) : formsError ? (
+                      <div className="flex flex-col items-center justify-center py-10 px-6 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/20 text-center space-y-4">
+                        <div className="h-14 w-14 bg-white dark:bg-red-900/20 rounded-full shadow-sm flex items-center justify-center text-red-500">
+                          <ShieldAlert className="h-7 w-7" />
+                        </div>
+                        <div className="space-y-2">
+                          <p className="font-bold text-red-800 dark:text-red-400">Permission Required</p>
+                          <p className="text-sm text-red-600/80 dark:text-red-400/60 max-w-sm mx-auto">
+                            {formsError}
+                          </p>
+                        </div>
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          className="font-bold shadow-md rounded-xl"
+                          onClick={handleMetaConnect}
+                          disabled={isConnectingMeta}
+                        >
+                          {isConnectingMeta ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Facebook className="h-3 w-3 mr-2" />}
+                          Reconnect & Select Pages
+                        </Button>
                       </div>
                     ) : forms.length > 0 ? (
                       <div className="grid gap-4">
@@ -1299,6 +1575,68 @@ export function FacebookDashboard() {
                   <p>Select a Facebook page to manage lead forms</p>
                 </div>
               )}
+            </Card>
+          </div>
+
+          {/* Data Privacy & Compliance Section (Strongly recommended for Meta verification) */}
+          <div className="mt-8 space-y-4">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-blue-600" />
+              <h3 className="text-lg font-bold">Data Privacy & Compliance</h3>
+            </div>
+            <Card className="border-none shadow-sm bg-blue-50/30 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
+              <CardContent className="p-6">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-wrap items-center gap-3">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-indigo-50/50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 h-9 px-4 font-bold rounded-xl"
+                onClick={handleRefreshStatus}
+              >
+                <RefreshCw className={cn("h-3.5 w-3.5 mr-2", isSyncingAssets && "animate-spin")} />
+                Refresh Status
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-amber-50/50 border-amber-200 text-amber-700 hover:bg-amber-100 h-9 px-4 font-bold rounded-xl"
+                onClick={handleCheckDeletionStatus}
+              >
+                <ShieldCheck className="h-3.5 w-3.5 mr-2" />
+                Check Deletion Status
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-white dark:bg-slate-900 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 h-9 px-4 font-bold rounded-xl"
+                onClick={handleManualDataDeletionRequest}
+              >
+                <Trash2 className="h-3.5 w-3.5 mr-2" />
+                Request Data Deletion
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-white dark:bg-slate-900 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 h-9 px-4 font-bold rounded-xl"
+                onClick={handleDisconnectMeta}
+              >
+                <X className="h-3.5 w-3.5 mr-2" />
+                Disconnect Account
+              </Button>
+            </div>
+            
+            <div className="space-y-1.5 opacity-80 border-t border-blue-100/50 dark:border-blue-900/20 pt-4">
+              <p className="text-xs font-bold text-blue-900 dark:text-blue-100 flex items-center gap-2">
+                <Info className="h-3 w-3" /> Meta Data Rights & Compliance
+              </p>
+              <p className="text-[11px] text-blue-800/70 dark:text-blue-200/60 leading-relaxed max-w-4xl">
+                Once a deletion request is processed, all your Meta-related data (Leads, Forms, and Tokens) will be permanently purged from our infrastructure after manual verification. 
+                Purge target completion is typically 30 days in accordance with the Meta Platform Terms.
+              </p>
+            </div>
+          </div>
+              </CardContent>
             </Card>
           </div>
         </TabsContent>
@@ -2816,6 +3154,112 @@ export function FacebookDashboard() {
               Create Audience
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Data Deletion Dialog */}
+      <Dialog open={isDataDeletionDialogOpen} onOpenChange={setIsDataDeletionDialogOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-blue-600">
+              <ShieldCheck className="h-5 w-5" />
+              Request Data Deletion
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              This will request a permanent deletion of your Meta-sourced data (leads, forms, and ad account references) from LeadBajaar servers.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+             <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-xl border border-amber-100 dark:border-amber-900/30">
+               <div className="flex gap-3">
+                 <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                 <p className="text-xs text-amber-800 dark:text-amber-400 leading-relaxed">
+                   <strong>Important:</strong> This action cannot be undone once processed. It may take up to 30 days for all backups and distributed records to be fully purged from our infrastructure.
+                 </p>
+               </div>
+             </div>
+             <p className="text-sm text-slate-500">
+               A confirmation code will be generated and logged with your request for compliance tracking.
+             </p>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsDataDeletionDialogOpen(false)}>Cancel</Button>
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700 font-bold" 
+              onClick={handleConfirmDataDeletion}
+              disabled={isDeletingData}
+            >
+              {isDeletingData && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              Send Deletion Request
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Disconnect Meta Dialog */}
+      <Dialog open={isDisconnectMetaDialogOpen} onOpenChange={setIsDisconnectMetaDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <X className="h-5 w-5" />
+              Disconnect Meta Account
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              Are you sure you want to disconnect your Meta account? This will revoke all API permissions and immediately stop lead synchronization.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => setIsDisconnectMetaDialogOpen(false)}>Cancel</Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDisconnectMeta} 
+              disabled={isDisconnecting} 
+              className="font-bold shadow-lg"
+            >
+              {isDisconnecting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              Yes, Disconnect Account
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Status Tracking Dialog */}
+      <Dialog open={isDeletionStatusDialogOpen} onOpenChange={setIsDeletionStatusDialogOpen}>
+        <DialogContent className="sm:max-w-[400px] gap-0 border-none shadow-2xl rounded-3xl p-0 overflow-hidden">
+          <div className="bg-amber-50 dark:bg-amber-900/10 p-6 flex flex-col items-center">
+             <div className="h-14 w-14 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center text-amber-600 mb-3 shadow-sm">
+                <ShieldCheck className="h-7 w-7" />
+             </div>
+             <DialogTitle className="text-lg font-black text-slate-900 dark:text-white">Active Deletion Request</DialogTitle>
+             <p className="text-[11px] font-bold text-amber-700/70 dark:text-amber-400 uppercase tracking-widest mt-1">Status: Registered & Verified</p>
+          </div>
+          
+          <div className="p-6 space-y-5 bg-white dark:bg-slate-900">
+             <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl flex flex-col items-center gap-1 shadow-inner">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Confirmation Code</p>
+                <p className="font-mono font-black text-xl text-indigo-600 dark:text-indigo-400 tracking-wider">
+                   {statusData?.deletion_details?.code || 'LBJ-DEL-XXXXXX'}
+                </p>
+             </div>
+
+             <div className="space-y-3 px-1">
+                <div className="flex items-center justify-between text-[11px]">
+                   <span className="text-slate-500 font-bold uppercase tracking-wide">Registry Date</span>
+                   <span className="text-slate-900 dark:text-white font-black">
+                     {statusData?.deletion_details?.requested_at ? new Date(statusData.deletion_details.requested_at).toLocaleDateString() : 'N/A'}
+                   </span>
+                </div>
+                <div className="flex items-center justify-between text-[11px]">
+                   <span className="text-slate-500 font-bold uppercase tracking-wide">Queue Status</span>
+                   <Badge className="bg-emerald-100 text-emerald-700 border-none px-2 h-5 font-black uppercase text-[8px] tracking-widest">Awaiting Admin</Badge>
+                </div>
+             </div>
+          </div>
+
+          <div className="px-6 pb-6 pt-2 bg-white dark:bg-slate-900">
+            <Button className="w-full h-10 rounded-xl bg-slate-900 hover:bg-black dark:bg-slate-100 dark:text-slate-900 font-black text-xs uppercase tracking-widest shadow-lg" onClick={() => setIsDeletionStatusDialogOpen(false)}>
+              Got it
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

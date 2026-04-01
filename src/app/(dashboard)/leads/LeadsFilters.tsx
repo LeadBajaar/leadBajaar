@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { TableColumnToggle } from '@/components/ui/table-column-toggle'
 import { DateRangePicker } from "@/components/ui/date-range-picker"
 import { cn } from "@/lib/utils"
-import { defaultStages, sourceConfig, columns } from './types'
+import { sourceConfig, columns } from './types'
 import { DateRange } from "react-day-picker"
 
 interface LeadsFiltersProps {
@@ -36,6 +36,7 @@ interface LeadsFiltersProps {
   setShowExportDialog?: (show: boolean) => void;
   handleImportClick?: () => void;
   openFacebookRetrieval?: () => void;
+  stages: Record<string, any>;
 }
 
 export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
@@ -49,7 +50,8 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
   setShowStageManager,
   setShowExportDialog,
   handleImportClick,
-  openFacebookRetrieval
+  openFacebookRetrieval,
+  stages
 }) => {
   return (
     <div className="shrink-0 flex flex-col border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
@@ -180,7 +182,7 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Stages</SelectItem>
-                {Object.keys(defaultStages).map((stage) => (
+                {Object.keys(stages).map((stage) => (
                   <SelectItem key={stage} value={stage}>{stage}</SelectItem>
                 ))}
               </SelectContent>

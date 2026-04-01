@@ -3,6 +3,7 @@ export interface EventType {
   title: string
   description: string
   duration: number
+  slot_interval?: number
   location: string
   questions: Question[]
   scheduling: {

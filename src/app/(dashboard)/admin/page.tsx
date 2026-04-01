@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { adminApi } from '@/lib/api'
+import { adminApi, integrationApi } from '@/lib/api'
 import { 
   Card, 
   CardContent, 
@@ -76,7 +76,8 @@ import {
   ChevronRight,
   History,
   Clock,
-  Loader2
+  Loader2,
+  Lock
 } from 'lucide-react'
 import { 
   DropdownMenu, 
@@ -347,6 +348,7 @@ export default function SuperAdminPage() {
   const [historyModal, setHistoryModal] = useState({ isOpen: false, companyId: 0, companyName: '', logs: [] as any[] })
   const [renewModal, setRenewModal] = useState({ isOpen: false, companyId: 0, companyName: '', days: 30, notes: '' })
   const [editDays, setEditDays] = useState(30)
+  const [deletionRequests, setDeletionRequests] = useState<any[]>([])
 
   useEffect(() => {
     fetchData()
@@ -432,12 +434,17 @@ export default function SuperAdminPage() {
 
     try {
       setIsLoading(true)
-      const [companiesRes, statsData, usersRes, billingRes] = await Promise.all([
+      const [companiesRes, statsData, usersRes, billingRes, deletionsRes] = await Promise.all([
         adminApi.getCompanies(companiesPage, 10, searchQuery, filterPlan, filterStatus),
         adminApi.getStats(),
         adminApi.getUsers(usersPage, 10, searchQuery),
-        adminApi.getBilling(billingPage, 10, searchQuery)
+        adminApi.getBilling(billingPage, 10, searchQuery),
+        integrationApi.getDeletionRequests()
       ])
+      
+      if (deletionsRes.status === 'success') {
+        setDeletionRequests(deletionsRes.requests || [])
+      }
       
       // Handle paginated responses
       if (companiesRes.data) {
@@ -827,6 +834,10 @@ export default function SuperAdminPage() {
             <TabsTrigger value="health" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
               <Activity className="h-4 w-4 mr-2" />
               Service Status
+            </TabsTrigger>
+            <TabsTrigger value="meta-deletions" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
+              <ShieldAlert className="h-4 w-4 mr-2 text-red-500" />
+              Meta Compliance
             </TabsTrigger>
           </TabsList>
 
@@ -1445,6 +1456,102 @@ export default function SuperAdminPage() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="meta-deletions" className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <ShieldAlert className="h-5 w-5 text-red-500" /> Meta Data Deletion Monitor
+                </h3>
+                <p className="text-sm text-slate-500">Track and act on user requests to wipe Facebook/Meta data from the database.</p>
+              </div>
+              <Button variant="outline" onClick={fetchData} className="rounded-xl h-10">
+                <RefreshCw className="h-4 w-4 mr-2" /> Refresh List
+              </Button>
+            </div>
+
+            <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden">
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader className="bg-slate-50/80 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="font-bold text-slate-500 py-4 pl-6">Company/User</TableHead>
+                      <TableHead className="font-bold text-slate-500 py-4">Confirmation ID</TableHead>
+                      <TableHead className="font-bold text-slate-500 py-4">Request Date</TableHead>
+                      <TableHead className="font-bold text-slate-500 py-4">Current Status</TableHead>
+                      <TableHead className="text-right font-bold text-slate-500 py-4 pr-6">Database Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {deletionRequests.length > 0 ? deletionRequests.map((req, i) => (
+                      <TableRow key={i} className="border-slate-100 dark:border-slate-800">
+                        <TableCell className="py-4 pl-6">
+                          <div>
+                            <p className="font-bold text-sm text-slate-900 dark:text-white">{req.user?.name || 'Unknown'}</p>
+                            <p className="text-[10px] text-slate-400 font-medium tracking-tight uppercase">USER ID: {req.user?.id}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <code className="text-xs font-black bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg text-indigo-600 border border-slate-200 dark:border-slate-700">
+                            {req.code}
+                          </code>
+                        </TableCell>
+                        <TableCell className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                           {req.requested_at ? new Date(req.requested_at).toLocaleString() : 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                           <Badge className="bg-amber-100 text-amber-700 border-none font-bold text-[10px] uppercase">
+                             {req.status.replace('_', ' ')}
+                           </Badge>
+                        </TableCell>
+                        <TableCell className="text-right pr-6">
+                           <div className="flex justify-end gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-8 rounded-lg text-xs font-bold border-red-100 text-red-600 bg-red-50/50 hover:bg-red-100"
+                                onClick={() => toast.info('Perform manual cleanup', { description: `Please manually delete leads for User ID: ${req.user?.id} in your database manager.` })}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" /> Mark as Wiped
+                              </Button>
+                           </div>
+                        </TableCell>
+                      </TableRow>
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="py-12 text-center">
+                           <div className="flex flex-col items-center gap-2 opacity-40">
+                              <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+                              <p className="text-sm font-bold text-slate-500">No pending deletion requests.</p>
+                           </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+              <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 py-3 px-6">
+                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                   <Lock className="h-3 w-3" /> Encrypted Compliance Log
+                 </p>
+              </CardFooter>
+            </Card>
+
+            <Card className="border-none shadow-sm bg-indigo-50 dark:bg-indigo-950/20 rounded-2xl p-6 ring-1 ring-indigo-100 dark:ring-indigo-900">
+               <div className="flex gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center shrink-0">
+                     <ShieldAlert className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-indigo-900 dark:text-indigo-300">Compliance Warning</h4>
+                    <p className="text-xs text-indigo-700 dark:text-indigo-400/80 leading-relaxed max-w-2xl mt-1">
+                      Meta (Facebook) requires that all User Data be deleted within a reasonable timeframe (usually 30 days) upon request. 
+                      Use this monitor to track requests that come via the standard deauthorization webhooks or in-app buttons.
+                    </p>
+                  </div>
+               </div>
+            </Card>
           </TabsContent>
         </Tabs>
 

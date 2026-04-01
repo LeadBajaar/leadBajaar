@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Pencil, Trash, CheckCircle, X } from 'lucide-react'
+import { Plus, Pencil, Trash, CheckCircle, X, RefreshCcw } from 'lucide-react'
 import { cn } from "@/lib/utils"
 
 interface StageManagerDialogProps {
@@ -33,6 +33,7 @@ interface StageManagerDialogProps {
   handleEditStage: (name: string) => void;
   handleUpdateStage: () => void;
   handleDeleteStage: (name: string) => void;
+  onSyncDefault?: () => void;
 }
 
 export const StageManagerDialog: React.FC<StageManagerDialogProps> = ({
@@ -52,15 +53,27 @@ export const StageManagerDialog: React.FC<StageManagerDialogProps> = ({
   handleAddStage,
   handleEditStage,
   handleUpdateStage,
-  handleDeleteStage
+  handleDeleteStage,
+  onSyncDefault
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Manage Lead Stages</DialogTitle>
-          <DialogDescription>
-            Create and manage your lead stages to track your sales pipeline.
+          <DialogDescription className="flex items-center justify-between">
+            <span>Create and manage your lead stages to track your sales pipeline.</span>
+            {onSyncDefault && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={onSyncDefault}
+                className="h-7 text-[10px] gap-1 border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+              >
+                <RefreshCcw className="h-3 w-3" />
+                Sync Defaults
+              </Button>
+            )}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">

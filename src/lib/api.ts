@@ -332,6 +332,44 @@ export const updateLeadStage = async (id: number, stage: string, deal_value?: nu
   return response.data;
 };
 
+export interface Stage {
+  id: number;
+  company_id: number;
+  name: string;
+  color: string;
+  icon: string;
+  order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export const getStages = async () => {
+  const response = await api.get<Stage[]>('/stages');
+  return response.data;
+};
+
+export const createStage = async (data: Partial<Stage>) => {
+  const response = await api.post<Stage>('/stages', data);
+  return response.data;
+};
+
+export const updateStage = async (id: number, data: Partial<Stage>) => {
+  const response = await api.put<Stage>(`/stages/${id}`, data);
+  return response.data;
+};
+
+export const deleteStage = async (id: number) => {
+  await api.delete(`/stages/${id}`);
+};
+
+export const reorderStages = async (stages: { id: number; order: number }[]) => {
+  await api.post('/stages/reorder', { stages });
+};
+
+export const syncDefaultStages = async () => {
+  await api.post('/stages/initialize-default');
+};
+
 export const createPayment = async (data: {
   lead_id: number;
   amount: number;
@@ -509,7 +547,7 @@ export const integrationApi = {
 
   syncWhatsAppTemplates: async (accountId: number) => {
     try {
-      const response = await api.post(`/integrations/whatsapp/${accountId}/sync-templates`);
+      const response = await api.post(`/integrations/whatsapp/${accountId}/templates/sync`);
       return response.data;
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to sync templates';
@@ -764,6 +802,60 @@ export const integrationApi = {
     }
   },
 
+  connectMeta: async () => {
+    try {
+      const response = await api.get('/meta/connect');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to get Meta connection URL');
+    }
+  },
+
+  getMetaStatus: async () => {
+    try {
+      const response = await api.get('/meta/status');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to fetch Meta status');
+    }
+  },
+
+  disconnectMeta: async () => {
+    try {
+      const response = await api.post('/meta/deauthorize'); // Now hits the authenticated route
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to disconnect Meta');
+    }
+  },
+
+  dataDeletionRequest: async () => {
+    try {
+      const response = await api.post('/meta/data-deletion'); // Now hits the authenticated route
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to request data deletion');
+    }
+  },
+
+  getDeletionRequests: async () => {
+    try {
+      const response = await api.get('/meta/deletion-requests');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to fetch deletion requests');
+    }
+  },
+
+  getMetaBusinessAssets: async (businessId: string) => {
+    try {
+      const response = await api.get(`/meta/business/${businessId}/assets`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to fetch business assets');
+    }
+  },
+
   // Facebook Conversion API Methods
   sendConversionEvent: async (data: {
     pixel_id: string;
@@ -866,16 +958,6 @@ export const integrationApi = {
       return response.data;
     } catch (error: any) {
       const message = error.response?.data?.error || 'Failed to update Conversion API configuration';
-      throw new Error(message);
-    }
-  },
-
-  getMetaStatus: async () => {
-    try {
-      const response = await api.get('/meta/status');
-      return response.data;
-    } catch (error: any) {
-      const message = error.response?.data?.error || 'Failed to fetch Meta status';
       throw new Error(message);
     }
   },

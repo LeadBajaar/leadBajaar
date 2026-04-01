@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
-import { Lead, temperatureConfig, defaultStages } from './types'
+import { Lead, temperatureConfig } from './types'
 import { format } from 'date-fns'
 
 interface LeadsMobileViewProps {
@@ -35,6 +35,7 @@ interface LeadsMobileViewProps {
   handleCallClick: (lead: Lead) => void;
   handleDealValueClick: (lead: Lead) => void;
   handleCardClick: (id: number) => void;
+  stages: Record<string, any>;
 }
 
 export const LeadsMobileSkeleton = () => (
@@ -70,7 +71,8 @@ export const LeadsMobileView: React.FC<LeadsMobileViewProps> = ({
   handleDelete,
   handleWhatsAppClick,
   handleCallClick,
-  handleCardClick
+  handleCardClick,
+  stages
 }) => {
   if (error) {
     return (
@@ -88,7 +90,7 @@ export const LeadsMobileView: React.FC<LeadsMobileViewProps> = ({
     <div className="grid grid-cols-1 gap-2 p-3 pb-24">
       {leads.map((lead) => {
         const temp = (temperatureConfig as any)[lead.status] || temperatureConfig.Cold;
-        const stage = (defaultStages as any)[lead.stage] || { color: 'bg-slate-100 text-slate-500', icon: User };
+        const stage = stages[lead.stage] || { color: 'bg-slate-100 text-slate-500', icon: User };
         const isSelected = selectedLeads.includes(lead.id);
 
         return (

@@ -26,7 +26,7 @@ import {
   Globe
 } from 'lucide-react'
 import { cn } from "@/lib/utils"
-import { Lead, columns, temperatureConfig, defaultStages, sourceConfig } from './types'
+import { Lead, columns, temperatureConfig, sourceConfig } from './types'
 import { format } from 'date-fns'
 
 interface LeadsTableProps {
@@ -44,6 +44,7 @@ interface LeadsTableProps {
   handleDealValueClick: (lead: Lead) => void;
   fetchLeads: () => void;
   setError: (error: string | null) => void;
+  stages: Record<string, any>;
 }
 
 export const LeadsTableSkeleton = ({ columns, visibleColumns }: { columns: any[], visibleColumns: string[] }) => (
@@ -90,7 +91,8 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
   handleCallClick,
   handleDealValueClick,
   fetchLeads,
-  setError
+  setError,
+  stages
 }) => {
   if (error) {
     return (
@@ -230,7 +232,7 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                             </div>
                           </div>
                         ) : column.id === 'stage' ? (
-                          <Badge variant="secondary" className={cn("px-2 py-0 h-4.5 rounded-md text-[9px] font-bold border-none shadow-none", (defaultStages as any)[lead.stage]?.color || 'bg-slate-100 text-slate-500')}>
+                          <Badge variant="secondary" className={cn("px-2 py-0 h-4.5 rounded-md text-[9px] font-bold border-none shadow-none", stages[lead.stage]?.color || 'bg-slate-100 text-slate-500')}>
                             {lead.stage}
                           </Badge>
                         ) : column.id === 'status' ? (

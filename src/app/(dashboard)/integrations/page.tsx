@@ -174,36 +174,6 @@ interface ConfigError {
 
 const integrations: Integration[] = [
   {
-    id: "salesforce",
-    name: "Salesforce",
-    icon: Cloud,
-    category: "crm",
-    color: "#00A1E0",
-    description: "Connect and sync data with Salesforce CRM",
-    features: ["Lead Sync", "Contact Sync", "Opportunity Tracking"],
-    allowMultiple: false,
-  },
-  {
-    id: "hubspot",
-    name: "HubSpot",
-    icon: Database,
-    category: "crm",
-    color: "#FF7A59",
-    description: "Integrate with HubSpot marketing and CRM tools",
-    features: ["Contact Management", "Email Marketing", "Analytics"],
-    allowMultiple: false,
-  },
-  {
-    id: "zapier",
-    name: "Zapier",
-    icon: Zap,
-    category: "automation",
-    color: "#FF4A00",
-    description: "Automate workflows with Zapier integration",
-    features: ["Custom Workflows", "Multi-app Integration", "Automated Tasks"],
-    allowMultiple: false,
-  },
-  {
     id: "whatsapp",
     name: "WhatsApp Cloud API",
     icon: MessageCircle,
@@ -360,6 +330,7 @@ export default function IntegrationsPage() {
   const [connectedIntegrations, setConnectedIntegrations] = useState<
     ConnectedIntegration[]
   >([]);
+  const [currentUserId, setCurrentUserId] = useState<number>(1);
   const [isConnecting, setIsConnecting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -377,12 +348,8 @@ export default function IntegrationsPage() {
       [
         "all",
         "facebook",
-        "crm",
         "marketing",
         "messaging",
-        "payments",
-        "automation",
-        "scheduling",
         "webhooks",
         "settings",
       ].includes(tab)
@@ -399,6 +366,9 @@ export default function IntegrationsPage() {
     try {
       const response = await integrationApi.getConnectedIntegrations();
       setConnectedIntegrations(response);
+      if (response && response.length > 0) {
+        setCurrentUserId(response[0].user_id);
+      }
 
       const filteredWebhooks = response
         .filter((ci: any) => ci.type === "webhook")
@@ -868,12 +838,8 @@ export default function IntegrationsPage() {
           <TabsList className="inline-flex w-auto min-w-full">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="facebook">Facebook OAuth</TabsTrigger>
-            <TabsTrigger value="crm">CRM</TabsTrigger>
             <TabsTrigger value="marketing">Marketing</TabsTrigger>
             <TabsTrigger value="messaging">Messaging</TabsTrigger>
-            <TabsTrigger value="payments">Payments</TabsTrigger>
-            <TabsTrigger value="automation">Automation</TabsTrigger>
-            <TabsTrigger value="scheduling">Scheduling</TabsTrigger>
             <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
             <TabsTrigger value="settings">Integration Settings</TabsTrigger>
           </TabsList>
@@ -881,12 +847,8 @@ export default function IntegrationsPage() {
         {[
           "all",
           "facebook",
-          "crm",
           "marketing",
           "messaging",
-          "payments",
-          "automation",
-          "scheduling",
           "webhooks",
           "settings",
         ].map((category) => (
@@ -1509,6 +1471,66 @@ export default function IntegrationsPage() {
             <div className="space-y-6">
               {selectedIntegrationId === "whatsapp" ? (
                 <div className="grid gap-4">
+                  <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 space-y-4 mb-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-bold uppercase text-primary flex items-center gap-2 tracking-wider">
+                        <Globe className="h-3.5 w-3.5" /> WhatsApp Webhook Configuration
+                      </Label>
+                      <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[10px]">Meta Dashboard Setup</Badge>
+                    </div>
+                    
+                    <div className="space-y-3 pt-2">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] text-muted-foreground uppercase font-bold ml-1">Cloud API Webhook URL</Label>
+                        <div className="flex items-center gap-2">
+                          <code className="text-[11px] p-2.5 bg-background border rounded-lg flex-1 font-mono break-all whitespace-normal shadow-sm">
+                            {`https://api.leadbajaar.com/api/webhook/whatsapp?id=${currentUserId}`}
+                          </code>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="shrink-0 h-9 w-9" 
+                            onClick={() => {
+                              navigator.clipboard.writeText(`https://api.leadbajaar.com/api/webhook/whatsapp?id=${currentUserId}`);
+                              toast.success("Webhook URL Copied!");
+                            }}
+                          >
+                            <ClipboardCopy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-[10px] text-muted-foreground uppercase font-bold ml-1">Verify Token</Label>
+                        <div className="flex items-center gap-2">
+                          <code className="text-[11px] p-2.5 bg-background border rounded-lg flex-1 font-mono shadow-sm">
+                            123abc
+                          </code>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="shrink-0 h-9 w-9" 
+                            onClick={() => {
+                              navigator.clipboard.writeText("123abc");
+                              toast.success("Verify Token Copied!");
+                            }}
+                          >
+                            <ClipboardCopy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2 pt-1">
+                      <div className="h-5 w-5 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <ShieldCheck className="h-3 w-3 text-blue-600" />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Copy these values into your Meta Developer Dashboard under <strong>WhatsApp → Configuration</strong> to enable messaging features.
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <Label>Phone Number ID</Label>
                     <Input
@@ -1551,6 +1573,66 @@ export default function IntegrationsPage() {
                 </div>
               ) : (selectedIntegrationId === "leadform" || selectedIntegrationId === "facebook") ? (
                 <div className="grid gap-4">
+                  <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 space-y-4 mb-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-bold uppercase text-primary flex items-center gap-2 tracking-wider">
+                        <Globe className="h-3.5 w-3.5" /> Facebook Lead Form Webhook
+                      </Label>
+                      <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[10px]">Meta Dashboard Setup</Badge>
+                    </div>
+                    
+                    <div className="space-y-3 pt-2">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] text-muted-foreground uppercase font-bold ml-1">Webhook URL</Label>
+                        <div className="flex items-center gap-2">
+                          <code className="text-[11px] p-2.5 bg-background border rounded-lg flex-1 font-mono break-all whitespace-normal shadow-sm">
+                            {`https://api.leadbajaar.com/api/webhook/leadform?id=${currentUserId}`}
+                          </code>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="shrink-0 h-9 w-9" 
+                            onClick={() => {
+                              navigator.clipboard.writeText(`https://api.leadbajaar.com/api/webhook/leadform?id=${currentUserId}`);
+                              toast.success("Lead Form URL Copied!");
+                            }}
+                          >
+                            <ClipboardCopy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-[10px] text-muted-foreground uppercase font-bold ml-1">Verify Token</Label>
+                        <div className="flex items-center gap-2">
+                          <code className="text-[11px] p-2.5 bg-background border rounded-lg flex-1 font-mono shadow-sm">
+                            123abc
+                          </code>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="shrink-0 h-9 w-9" 
+                            onClick={() => {
+                              navigator.clipboard.writeText("123abc");
+                              toast.success("Verify Token Copied!");
+                            }}
+                          >
+                            <ClipboardCopy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2 pt-1">
+                      <div className="h-5 w-5 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <ShieldCheck className="h-3 w-3 text-blue-600" />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Copy these values into your Meta Developer Dashboard under <strong>Webhooks → Leadgen</strong> to enable real-time lead capture.
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <Label>Lead Form Name</Label>
                     <Input

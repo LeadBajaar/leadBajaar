@@ -78,6 +78,25 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
               </div>
 
               <div className="space-y-1.5">
+                <Label className={labelStyle}>Slot Interval</Label>
+                <Select
+                  value={eventType.slot_interval?.toString()}
+                  onValueChange={(value) => setEventType({ ...eventType, slot_interval: parseInt(value) })}
+                >
+                  <SelectTrigger className={inputStyle}>
+                    <SelectValue placeholder="Select gap" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="15">15 minutes</SelectItem>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="45">45 minutes</SelectItem>
+                    <SelectItem value="60">60 minutes</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[9px] text-slate-400 font-medium italic mt-1.5 leading-tight uppercase tracking-tighter">Gap between available booking slots on your calendar.</p>
+              </div>
+
+              <div className="space-y-1.5">
                 <Label className={labelStyle}>Location Type</Label>
                 <Select
                   value={eventType.location}
