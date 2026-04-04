@@ -61,7 +61,9 @@ import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { useDebounce } from '@/hooks/use-debounce'
 import { RoleGuard } from '@/components/RoleGuard'
-// import axios from 'axios'
+import { handleError as baseHandleError } from '@/utils/handleError'
+import { useErrorHandler } from '@/utils/useErrorHandler'
+import { logger } from '@/utils/logger'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from 'date-fns'
@@ -350,6 +352,8 @@ export default function LeadsPage() {
     }
   }, [leads, visibleColumns])
 
+  const { handleError } = useErrorHandler();
+
   // Add these state variables near your other states
   const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
   const [broadcastResponse, setBroadcastResponse] = useState<BroadcastResponse | null>(null);
@@ -464,7 +468,7 @@ export default function LeadsPage() {
          setStages(stagesRecord);
        }
      } catch (error) {
-       console.error('Failed to fetch stages:', error);
+       // Silent error for stages fetch as it uses defaults anyway
      }
    };
 
@@ -504,7 +508,6 @@ export default function LeadsPage() {
         throw new Error('Invalid response format from API');
       }
     } catch (error) {
-      console.error('Failed to fetch leads:', error);
       setError(error instanceof Error ? error.message : 'An error occurred');
       setLeads([]);
     } finally {
@@ -562,12 +565,7 @@ export default function LeadsPage() {
         profession: ''
       });
     } catch (error: any) {
-      console.error('Failed to create lead:', error);
-
-      // Set the error message to be displayed in the form
-      setSubmitError(error.message || 'Failed to create lead. Please try again.');
-
-      // Don't close the modal, let the user see the error
+      handleError(error, { title: 'Lead Creation Failed' });
       setIsSubmitting(false);
     }
   };
@@ -581,9 +579,8 @@ export default function LeadsPage() {
       await fetchLeads() // Refresh the list
       setSelectedLeads([])
       toast.success("Leads deleted successfully")
-    } catch (error) {
-      console.error('Failed to delete leads:', error)
-      toast.error("Failed to delete leads")
+    } catch (error: any) {
+      handleError(error, { title: 'Batch Delete Failed' });
     }
   }
 
@@ -595,9 +592,8 @@ export default function LeadsPage() {
       setShowStageChange(false)
       setSelectedStage(null)
       toast.success("Lead stages updated successfully")
-    } catch (error) {
-      console.error('Failed to update lead stages:', error)
-      toast.error("Failed to update lead stages")
+    } catch (error: any) {
+      handleError(error, { title: 'Bulk Update Failed' });
     }
   }
 
@@ -619,9 +615,8 @@ export default function LeadsPage() {
       await fetchLeads();
 
       toast.success("Lead deleted successfully");
-    } catch (error) {
-      console.error('Failed to delete lead:', error);
-      toast.error("Failed to delete lead. Please try again.");
+    } catch (error: any) {
+      handleError(error, { title: 'Delete Failed' });
     } finally {
       setDeleteConfirmation({ isOpen: false, leadId: null, leadName: '' });
     }
@@ -760,9 +755,8 @@ export default function LeadsPage() {
           toast.success(`Successfully imported ${response.successful} leads`);
 
         } catch (error: any) {
-          console.error('Import failed:', error);
           setImportError(error.message || 'Failed to import leads');
-          toast.error(error.message || "Failed to import leads");
+          handleError(error, { title: 'Import Failed' });
         }
 
         setIsImporting(false);
@@ -928,10 +922,8 @@ export default function LeadsPage() {
 
       toast.success("Lead stage has been updated successfully");
 
-    } catch (error) {
-      console.error('Failed to update lead stage:', error);
-
-      toast.error("Failed to update lead stage. Please try again.");
+    } catch (error: any) {
+      handleError(error, { title: 'Stage Update Failed' });
     }
   };
 
@@ -970,9 +962,8 @@ export default function LeadsPage() {
       setInitialPaymentAmount('');
       setRecordInitialPayment(false);
 
-    } catch (error) {
-      console.error('Failed to save deal value:', error);
-      toast.error("Failed to save deal details");
+    } catch (error: any) {
+      handleError(error, { title: 'Deal Update Failed' });
     } finally {
       setIsSavingDealValue(false);
     }
@@ -999,9 +990,8 @@ export default function LeadsPage() {
         setEditedStageName('')
         setEditedStageColor('')
         toast.success("Stage updated successfully")
-      } catch (error) {
-        console.error('Failed to update stage:', error);
-        toast.error("Failed to update stage")
+      } catch (error: any) {
+        handleError(error, { title: 'Stage Config Error' });
       }
     }
   }
@@ -1078,9 +1068,8 @@ export default function LeadsPage() {
         setEditingLead(response);
         setShowDealValue(true);
       }
-    } catch (error) {
-      console.error('Failed to update lead:', error)
-      toast.error("Failed to update lead. Please try again.")
+    } catch (error: any) {
+      handleError(error, { title: 'Update Failed' });
     } finally {
       setIsUpdating(false);
     }
@@ -1143,7 +1132,6 @@ export default function LeadsPage() {
       await handleAddLead();
       // Success! Modal will be closed by handleAddLead
     } catch (error) {
-      console.error('Failed to add lead:', error);
       toast.error(error instanceof Error ? error.message : "Failed to add lead");
       // Error handling is done in handleAddLead
     } finally {
@@ -1161,7 +1149,6 @@ export default function LeadsPage() {
 
       setShowExportDialog(false);
     } catch (error) {
-      console.error('Export failed:', error);
       toast.error(error instanceof Error ? error.message : "Failed to export leads");
     } finally {
       setIsExporting(false);
@@ -1230,8 +1217,7 @@ export default function LeadsPage() {
         toast.error(`${response.message} (Found ${response.debug_info.total_integrations} total integrations, types: ${response.debug_info.integration_types.join(', ')})`);
       }
     } catch (error: any) {
-      console.error('Failed to fetch Facebook forms:', error);
-      toast.error(error.message || "Failed to fetch Facebook lead forms");
+      handleError(error, { title: 'Connection Error' });
     }
   };
 
@@ -1308,46 +1294,7 @@ export default function LeadsPage() {
       toast.success(response.message || "Leads synced successfully");
 
     } catch (error: any) {
-      console.error('Failed to retrieve Facebook leads:', error);
-
-      // Handle specific Facebook API errors with proper error styling
-      let errorMessage = "Failed to retrieve Facebook leads";
-      let showAction = false;
-
-      if (error.response?.data?.error_code) {
-        const errorCode = error.response.data.error_code;
-
-        switch (errorCode) {
-          case 'TOKEN_EXPIRED':
-            errorMessage = "Your Facebook access token has expired. Please refresh your integration in the Integrations page.";
-            showAction = true;
-            break;
-          case 'INVALID_TOKEN':
-            errorMessage = "Your Facebook access token is invalid. Please check your integration settings.";
-            showAction = true;
-            break;
-          case 'RATE_LIMIT':
-            errorMessage = "Facebook API rate limit exceeded. Please try again later.";
-            break;
-          case 'INSUFFICIENT_PERMISSIONS':
-            errorMessage = "You don't have permission to access this lead form. Please check your Facebook permissions.";
-            showAction = true;
-            break;
-          default:
-            errorMessage = error.response.data.error || errorMessage;
-        }
-      }
-
-      if (showAction) {
-        toast.error(errorMessage, {
-          action: {
-            label: "Go to Integrations",
-            onClick: () => window.open('/integrations', '_blank')
-          }
-        });
-      } else {
-        toast.error(errorMessage);
-      }
+      handleError(error, { title: 'Facebook Sync Error' });
     } finally {
       setIsRetrievingLeads(false);
       setShowProgress(false);
@@ -1650,6 +1597,7 @@ export default function LeadsPage() {
         accept=".csv"
         onChange={handleFileChange}
       />
+
     </div>
     </RoleGuard>
   )

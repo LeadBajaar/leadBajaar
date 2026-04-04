@@ -73,6 +73,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { integrationApi, IntegrationConfig } from "@/lib/api";
+import { useErrorHandler } from "@/utils/useErrorHandler";
 import { useRouter } from "next/navigation";
 import { FacebookOAuthButton } from "@/components/facebook-oauth/FacebookOAuthButton";
 import { FacebookServicesManager } from "@/components/facebook-oauth/FacebookServicesManager";
@@ -326,13 +327,13 @@ export default function IntegrationsPage() {
     string | null
   >(null);
   const [selectedWebhookId, setSelectedWebhookId] = useState<string | null>(null);
+  const { handleError } = useErrorHandler();
   const router = useRouter();
   const [connectedIntegrations, setConnectedIntegrations] = useState<
     ConnectedIntegration[]
   >([]);
   const [currentUserId, setCurrentUserId] = useState<number>(1);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState("all");
 
@@ -386,7 +387,7 @@ export default function IntegrationsPage() {
     } catch (error: any) {
       setConnectedIntegrations([]);
       setWebhooks([]);
-      toast.error(error.message || "Failed to fetch connected integrations");
+      handleError(error, { title: "Connection Error" });
     }
   };
 
@@ -430,10 +431,11 @@ export default function IntegrationsPage() {
       });
       setShowNewWebhookDialog(false);
       setNewWebhook({ name: "", url: "", events: [], mapping: [] });
+      setSelectedIntegrationId(null);
       fetchConnectedIntegrations();
-      toast.success("Webhook created successfully");
+      toast.success("Integration connected successfully!");
     } catch (error: any) {
-      toast.error("Failed to create webhook");
+      handleError(error, { title: "Integration Failed" });
     } finally {
       setIsConnecting(false);
     }
@@ -448,7 +450,7 @@ export default function IntegrationsPage() {
       setShowDeleteDialog(false);
       fetchConnectedIntegrations();
     } catch (error: any) {
-      toast.error("Failed to deactivate integration");
+      handleError(error, { title: "Deletion Failed" });
     } finally {
       setIsDeleting(false);
       setWebhookToDelete(null);
@@ -463,8 +465,40 @@ export default function IntegrationsPage() {
       toast.success(`Webhook ${webhook.isActive ? "deactivated" : "activated"} successfully`);
       fetchConnectedIntegrations();
     } catch (error: any) {
-      toast.error("Failed to update status");
+      handleError(error, { title: "Status Update Failed" });
     }
+  };
+
+  /**
+   * Recursively flatten a nested object/array into dot-notation key-value pairs.
+   * e.g. { body: { data: ["a", "b"], event: "x" } }
+   *   → [{ key: "body.data.0", value: "a" }, { key: "body.data.1", value: "b" }, { key: "body.event", value: "x" }]
+   */
+  const flattenPayload = (obj: any, prefix = ''): { key: string; value: any }[] => {
+    const result: { key: string; value: any }[] = [];
+    if (obj === null || obj === undefined) return result;
+
+    for (const [k, v] of Object.entries(obj)) {
+      const dotKey = prefix ? `${prefix}.${k}` : k;
+
+      if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
+        // Recurse into nested objects
+        result.push(...flattenPayload(v, dotKey));
+      } else if (Array.isArray(v)) {
+        // Recurse into arrays with numeric index
+        v.forEach((item, i) => {
+          if (item !== null && typeof item === 'object') {
+            result.push(...flattenPayload(item, `${dotKey}.${i}`));
+          } else {
+            result.push({ key: `${dotKey}.${i}`, value: item });
+          }
+        });
+      } else {
+        // Scalar value — leaf node
+        result.push({ key: dotKey, value: v });
+      }
+    }
+    return result;
   };
 
   const startListening = async (id: string) => {
@@ -480,10 +514,8 @@ export default function IntegrationsPage() {
           const payloadData = result.log.details.payload || result.log.details;
           const payload = typeof payloadData === 'string' ? JSON.parse(payloadData) : payloadData;
           
-          const fields = Object.entries(payload).map(([k, v]) => ({ 
-            key: k, 
-            value: v 
-          }));
+          // Flatten nested structures into dot-notation field paths
+          const fields = flattenPayload(payload);
           
           setAvailablePayloadFields(fields);
           setIsListeningForWebhook(false);
@@ -493,7 +525,7 @@ export default function IntegrationsPage() {
           addFieldMapping(id);
           
           console.log("Captured fields:", fields);
-          toast.success("Webhook data captured successfully!");
+          toast.success(`Webhook captured — ${fields.length} mappable fields detected!`);
         }
       } catch (e) {
         console.error("Polling error:", e);
@@ -531,7 +563,7 @@ export default function IntegrationsPage() {
       setShowNewWebhookDialog(false);
       fetchConnectedIntegrations();
     } catch (error: any) {
-      toast.error("Error");
+      handleError(error, { title: "Save Failed" });
     }
   };
 
@@ -666,7 +698,6 @@ export default function IntegrationsPage() {
     }
     // Clear previous errors
     setConfigErrors({});
-    setServerError(null);
 
     // Validate based on integration type
     if (type === "whatsapp") {
@@ -775,54 +806,7 @@ export default function IntegrationsPage() {
       setConfigErrors({});
       setSelectedIntegrationId(null);
     } catch (error: any) {
-      // Check if it's an Axios error with response
-      if (error.response) {
-        // Server responded with error
-        const serverError = error.response.data;
-
-        if (error.response.status === 422) {
-          // Validation errors from server
-          if (serverError.errors) {
-            setConfigErrors((prev) => ({
-              ...prev,
-              ...Object.keys(serverError.errors).reduce((acc: any, key) => {
-                acc[key] = Array.isArray(serverError.errors[key])
-                  ? serverError.errors[key][0]
-                  : serverError.errors[key];
-                return acc;
-              }, {}),
-            }));
-          }
-          // Also set the general message
-          setServerError(
-            serverError?.message ||
-              "Validation failed. Please check the form fields.",
-          );
-        } else {
-          // Set general server error for other error types
-          setServerError(
-            serverError?.message ||
-              error.message ||
-              "An error occurred while configuring the integration. Please try again.",
-          );
-        }
-      } else if (error.message) {
-        // Handle errors thrown from api.ts (these will have message but not response)
-        // Check if the message contains validation details
-        if (error.message.includes("Validation failed:")) {
-          setServerError(error.message);
-        } else {
-          setServerError(
-            error.message ||
-              "An error occurred while configuring the integration. Please try again.",
-          );
-        }
-      } else {
-        // Handle non-response errors
-        setServerError(
-          "Unable to connect to the server. Please check your internet connection.",
-        );
-      }
+      handleError(error, { title: "Integration Failed" });
     } finally {
       setIsConnecting(false);
     }
@@ -1462,11 +1446,6 @@ export default function IntegrationsPage() {
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto pr-2">
-            {serverError && (
-              <div className="mb-4 p-4 text-sm text-red-500 bg-red-50 dark:bg-red-900/10 border border-red-500/10 rounded-md">
-                <p>{serverError}</p>
-              </div>
-            )}
 
             <div className="space-y-6">
               {selectedIntegrationId === "whatsapp" ? (

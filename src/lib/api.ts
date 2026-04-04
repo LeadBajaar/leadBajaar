@@ -1,5 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { setSession, clearSession, getSession } from './auth';
+import { parseError } from '@/utils/errorParser';
+import { logger } from '@/utils/logger';
 
 // const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 export const API_BASE_URL = 'https://api.leadbajaar.com/api'
@@ -64,11 +66,17 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
-// Add response interceptor to handle 401 Unauthorized
+// Add response interceptor to handle errors globally
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const parsedError = parseError(error);
+
+    // Log the error centrally
+    logger.error("API Error", error);
+
+    // Global session handling (401)
+    if (parsedError.status === 401) {
       clearSession();
       if (typeof window !== 'undefined') {
         const currentPath = window.location.pathname;
@@ -77,7 +85,8 @@ api.interceptors.response.use(
         }
       }
     }
-    return Promise.reject(error);
+
+    return Promise.reject(parsedError);
   }
 );
 
@@ -180,42 +189,15 @@ export interface ImportLeadDto {
   leads: CreateLeadDto[];
 }
 
+// API functions
+
 // Add these functions
 export const createLead = async (data: CreateLeadDto) => {
-  try {
-    const response = await api.post('/leads', {
-      ...data,
-      stage: data.stage || 'New'
-    });
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      // Handle validation errors (422)
-      if (error.response?.status === 422) {
-        const validationErrors = error.response.data.errors;
-        if (typeof validationErrors === 'object') {
-          const messages = Object.entries(validationErrors)
-            .map(([field, errors]) => `${field}: ${(errors as string[]).join(', ')}`)
-            .join('\n');
-          throw new Error(messages);
-        }
-      }
-
-      // Handle server errors (500) - Show generic message instead of actual error
-      if (error.response?.status === 500) {
-        // Still log the actual error for debugging
-        console.error('Server Error:', error.response.data);
-        throw new Error('An error occurred. Please try again later or contact support if the problem persists.');
-      }
-
-      // Handle other HTTP errors with generic messages
-      throw new Error('Unable to create lead. Please try again.');
-    }
-
-    // Log unexpected errors but show generic message
-    console.error('Unexpected error:', error);
-    throw new Error('An unexpected error occurred. Please try again later.');
-  }
+  const response = await api.post('/leads', {
+    ...data,
+    stage: data.stage || 'New'
+  });
+  return response.data;
 };
 
 export const importLeads = async (data: ImportLeadDto) => {

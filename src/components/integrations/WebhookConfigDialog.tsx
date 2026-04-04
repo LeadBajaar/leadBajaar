@@ -203,7 +203,7 @@ export function WebhookConfigDialog({
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">
                         <h4 className="text-sm font-semibold">Incoming Data Mapping</h4>
-                        <p className="text-xs text-muted-foreground">Tell us which JSON fields match our CRM fields.</p>
+                        <p className="text-xs text-muted-foreground">Map JSON paths to CRM fields. Supports nested data via dot-notation (e.g. <code className="font-mono text-[10px] bg-muted px-1 rounded">body.data.13</code>).</p>
                       </div>
                       <Button
                         variant="outline"
@@ -223,32 +223,40 @@ export function WebhookConfigDialog({
                           {mapping.map((map, index) => (
                             <div key={index} className="group flex gap-3 items-center bg-muted/30 p-3 rounded-lg border border-transparent hover:border-border hover:bg-muted/50 transition-all">
                               <div className="flex-1 space-y-1">
-                                <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">Source Field (JSON Key)</Label>
+                                <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">Source Field (JSON Path)</Label>
                                 {availableFields.length > 0 ? (
                                   <Select
                                     value={map.sourceField}
                                     onValueChange={(val) => updateFieldMapping(webhookId, index, "sourceField", val)}
                                   >
                                     <SelectTrigger className="h-9 bg-background shadow-sm">
-                                      <SelectValue placeholder="Select field from payload" />
+                                      <SelectValue placeholder="Select field from payload">
+                                        {map.sourceField && (
+                                          <span className="font-mono text-xs">{map.sourceField}</span>
+                                        )}
+                                      </SelectValue>
                                     </SelectTrigger>
-                                    <SelectContent>
-                                      {availableFields.map((f) => (
-                                        <SelectItem key={f.key} value={f.key}>
-                                          <div className="flex justify-between items-center w-full gap-4">
-                                            <span className="font-medium">{f.key}</span>
-                                            <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">
-                                              ({String(f.value)})
-                                            </span>
-                                          </div>
-                                        </SelectItem>
-                                      ))}
+                                    <SelectContent className="max-h-[280px]">
+                                      {availableFields.map((f) => {
+                                        const preview = f.value === null ? 'null' : f.value === '' ? '(empty)' : String(f.value);
+                                        const truncated = preview.length > 80 ? preview.slice(0, 77) + '...' : preview;
+                                        return (
+                                          <SelectItem key={f.key} value={f.key}>
+                                            <div className="flex flex-col gap-0.5 py-0.5">
+                                              <span className="font-mono text-xs font-medium">{f.key}</span>
+                                              <span className="text-[10px] text-muted-foreground truncate max-w-[280px]">
+                                                = {truncated}
+                                              </span>
+                                            </div>
+                                          </SelectItem>
+                                        );
+                                      })}
                                     </SelectContent>
                                   </Select>
                                 ) : (
                                   <Input
-                                    className="h-9 bg-background shadow-sm"
-                                    placeholder="e.g. customer_name"
+                                    className="h-9 bg-background shadow-sm font-mono text-xs"
+                                    placeholder="e.g. body.data.12 or body.event"
                                     value={map.sourceField}
                                     onChange={(e) => updateFieldMapping(webhookId, index, "sourceField", e.target.value)}
                                   />
