@@ -78,6 +78,7 @@ const mainNav: NavSection[] = [
     label: 'Platform Control',
     items: [
       { name: 'Admin Portal', href: '/admin', icon: Shield, color: '#EF4444', roles: ['Super Admin'], types: ['super_admin'] },
+      { name: 'Error Monitoring', href: '/admin/errors', icon: Activity, color: '#F43F5E', roles: ['Super Admin'], types: ['super_admin'] },
       { name: 'Dev Hub', href: '/developer', icon: Code2, color: '#10B981', roles: ['Super Admin', 'Admin'] },
     ]
   },

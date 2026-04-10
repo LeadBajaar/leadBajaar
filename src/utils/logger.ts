@@ -33,7 +33,7 @@ async function sendToServer(message: string, error?: any) {
     };
 
     // Use our global API base URL for logging
-    await fetch(`${API_BASE_URL}/log-error`, {
+    await fetch(`${API_BASE_URL}/errors/log`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
