@@ -1546,9 +1546,14 @@ export const adminApi = {
     }
   },
 
-  getUsers: async (page = 1, limit = 10, search?: string) => {
+  getUsers: async (page = 1, limit = 10, search?: string, tag?: string, role?: string, status?: string, userType?: string) => {
     try {
-      const url = `/admin/users?page=${page}&limit=${limit}${search ? `&search=${search}` : ''}`;
+      let url = `/admin/users?page=${page}&limit=${limit}`;
+      if (search) url += `&search=${search}`;
+      if (tag && tag !== 'all') url += `&tag=${tag}`;
+      if (role && role !== 'all') url += `&role=${role}`;
+      if (status && status !== 'all') url += `&status=${status}`;
+      if (userType && userType !== 'all') url += `&user_type=${userType}`;
       const response = await api.get(url);
       return response.data;
     } catch (error: any) {
@@ -1617,6 +1622,24 @@ export const adminApi = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch billing data');
+    }
+  },
+
+  getPlans: async () => {
+    try {
+      const response = await api.get('/admin/plans');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch plans');
+    }
+  },
+
+  updatePlan: async (id: number, data: any) => {
+    try {
+      const response = await api.patch(`/admin/plans/${id}`, data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to update plan');
     }
   }
 };

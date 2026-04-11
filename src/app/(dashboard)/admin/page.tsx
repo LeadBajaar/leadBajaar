@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { adminApi, integrationApi } from '@/lib/api'
 import { 
   Card, 
@@ -77,7 +77,13 @@ import {
   History,
   Clock,
   Loader2,
-  Lock
+  Lock,
+  ChevronsLeft,
+  ChevronsRight,
+  ChevronLeft,
+  X,
+  Tag,
+  UserPlus
 } from 'lucide-react'
 import { 
   DropdownMenu, 
@@ -145,6 +151,7 @@ interface AdminUser {
   role: string
   status: string
   user_type?: string
+  tags?: string[]
 }
 
 // ── Mock Data ───────────────────────────────────────────────────────────────
@@ -159,7 +166,7 @@ const initialCompanies: Company[] = [
     status: 'Active',
     usersCount: 24,
     activeServices: ['Facebook Ads', 'WhatsApp CRM', 'Google Forms'],
-    monthlySpend: 499,
+    monthlySpend: 4990,
     joinedDate: 'Jan 12, 2026',
     type: 'agency'
   },
@@ -172,7 +179,7 @@ const initialCompanies: Company[] = [
     status: 'Active',
     usersCount: 8,
     activeServices: ['Facebook Ads', 'WhatsApp CRM'],
-    monthlySpend: 149,
+    monthlySpend: 1490,
     joinedDate: 'Feb 05, 2026',
     type: 'agency'
   },
@@ -198,7 +205,7 @@ const initialCompanies: Company[] = [
     status: 'Active',
     usersCount: 15,
     activeServices: ['Meta Ads', 'Lead Forms'],
-    monthlySpend: 149,
+    monthlySpend: 1490,
     joinedDate: 'Mar 01, 2026',
     type: 'individual'
   },
@@ -211,7 +218,7 @@ const initialCompanies: Company[] = [
     status: 'Active',
     usersCount: 42,
     activeServices: ['WhatsApp', 'Messenger', 'Instagram'],
-    monthlySpend: 499,
+    monthlySpend: 4990,
     joinedDate: 'Dec 15, 2025',
     type: 'agency'
   },
@@ -231,14 +238,14 @@ const initialCompanies: Company[] = [
 ]
 
 const initialUsers = [
-  { id: 1, name: 'Arjun Sharma', email: 'arjun@techsolutions.com', company: { name: 'Tech Solutions Inc' }, role: 'Super Admin', status: 'Active' },
-  { id: 101, name: 'Sriya Patel', email: 'sriya@growth.io', company: { name: 'Growth Marketers' }, role: 'Admin', status: 'Active' },
-  { id: 102, name: 'Vikram Singh', email: 'vikram@rehub.in', company: { name: 'Real Estate Hub' }, role: 'Agent', status: 'Active' },
+  { id: 1, name: 'Arjun Sharma', email: 'arjun@techsolutions.com', company: { name: 'Tech Solutions Inc' }, role: 'Super Admin', status: 'Active', tags: ['vip', 'founder'] },
+  { id: 101, name: 'Sriya Patel', email: 'sriya@growth.io', company: { name: 'Growth Marketers' }, role: 'Admin', status: 'Active', tags: ['priority'] },
+  { id: 102, name: 'Vikram Singh', email: 'vikram@rehub.in', company: { name: 'Real Estate Hub' }, role: 'Agent', status: 'Active', tags: ['new'] },
   { id: 103, name: 'Zoya Qureshi', email: 'zoya@edutech.com', company: { name: 'Global EduTech' }, role: 'Admin', status: 'Active' },
   { id: 104, name: 'Rahul Verma', email: 'rahul@nexus.io', company: { name: 'Nexus Digital' }, role: 'Agent', status: 'Active' },
-  { id: 105, name: 'Neha Kapoor', email: 'neha@zenith.in', company: { name: 'Zenith Logistics' }, role: 'Manager', status: 'Suspended' },
+  { id: 105, name: 'Neha Kapoor', email: 'neha@zenith.in', company: { name: 'Zenith Logistics' }, role: 'Manager', status: 'Suspended', tags: ['blocked'] },
   { id: 106, name: 'Amit Desai', email: 'amit@demo.com', company: { name: 'Tech Solutions Inc' }, role: 'Agent', status: 'Active' },
-  { id: 107, name: 'Pooja Hegde', email: 'pooja@demo.com', company: { name: 'Nexus Digital' }, role: 'Manager', status: 'Active' },
+  { id: 107, name: 'Pooja Hegde', email: 'pooja@demo.com', company: { name: 'Nexus Digital' }, role: 'Manager', status: 'Active', tags: ['tech'] },
   { id: 108, name: 'Kabir Khan', email: 'kabir@demo.com', company: { name: 'Global EduTech' }, role: 'Agent', status: 'Inactive' },
 ]
 
@@ -276,7 +283,7 @@ const initialPlans: PlanDefinition[] = [
   {
     id: 'p2',
     name: 'Pro' as Plan,
-    price: 149,
+    price: 1490,
     billingCycle: 'monthly',
     activeSubscribers: 42,
     color: 'blue',
@@ -293,7 +300,7 @@ const initialPlans: PlanDefinition[] = [
   {
     id: 'p3',
     name: 'Enterprise' as Plan,
-    price: 499,
+    price: 4990,
     billingCycle: 'monthly',
     activeSubscribers: 16,
     color: 'purple',
@@ -312,6 +319,13 @@ const initialPlans: PlanDefinition[] = [
 export default function SuperAdminPage() {
   const [companies, setCompanies] = useState<Company[]>([])
   const [users, setUsers] = useState<AdminUser[]>([])
+  
+  const availableTags = useMemo(() => {
+    const tags = new Set<string>()
+    users.forEach(u => u.tags?.forEach(t => tags.add(t)))
+    return Array.from(tags).sort()
+  }, [users])
+
   const [stats, setStats] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
@@ -325,6 +339,7 @@ export default function SuperAdminPage() {
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
   const [demoMode, setDemoMode] = useState(false)
   const [isUpdatingCompany, setIsUpdatingCompany] = useState(false)
+  const [isUpdatingPlan, setIsUpdatingPlan] = useState(false)
 
   // Pagination states
   const [companiesPage, setCompaniesPage] = useState(1)
@@ -336,6 +351,11 @@ export default function SuperAdminPage() {
   const [billingData, setBillingData] = useState<any[]>([])
   const [filterPlan, setFilterPlan] = useState('all')
   const [filterStatus, setFilterStatus] = useState('all')
+  const [filterTag, setFilterTag] = useState('all')
+  const [filterRole, setFilterRole] = useState('all')
+  const [filterUserType, setFilterUserType] = useState('all')
+  const [filterUserStatus, setFilterUserStatus] = useState('all')
+  const [newTag, setNewTag] = useState('')
   
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -422,6 +442,126 @@ export default function SuperAdminPage() {
     setEditingCompany((prev: Company | null) => prev ? { ...prev, expires_at: newEnd.toISOString() } : null)
   }
 
+  const PaginationSection = ({ 
+    currentPage, 
+    lastPage, 
+    onPageChange,
+    totalItems,
+    itemsShown,
+    from,
+    to
+  }: { 
+    currentPage: number; 
+    lastPage: number; 
+    onPageChange: (page: number) => void;
+    totalItems?: number;
+    itemsShown?: number;
+    from?: number;
+    to?: number;
+  }) => {
+    if (lastPage <= 1 && currentPage === 1) return null;
+
+    const getVisiblePages = () => {
+      const pages = [];
+      const range = 2;
+      let start = Math.max(1, currentPage - range);
+      let end = Math.min(lastPage, currentPage + range);
+
+      // Adjust to always show at least 5 pages if available
+      if (end - start < 4) {
+        if (start === 1) {
+          end = Math.min(lastPage, start + 4);
+        } else if (end === lastPage) {
+          start = Math.max(1, end - 4);
+        }
+      }
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      return pages;
+    };
+
+    return (
+      <div className="flex items-center justify-between w-full">
+        <p className="text-xs text-slate-500 font-medium italic">
+          {from !== undefined && to !== undefined ? (
+            `Showing ${from} to ${to} of ${totalItems} total entries.`
+          ) : (
+            `Showing ${itemsShown} of ${totalItems} total entries.`
+          )}
+        </p>
+        <div className="flex items-center gap-1">
+          {/* First Page */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => onPageChange(1)}
+            disabled={currentPage === 1}
+            className="h-8 w-8 p-0 rounded-lg"
+            title="First Page"
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+
+          {/* Previous Page */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="h-8 px-2 rounded-lg text-xs font-bold"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" /> Prev
+          </Button>
+
+          {/* Page Numbers */}
+          <div className="flex items-center gap-1 mx-1">
+            {getVisiblePages().map(page => (
+              <Button
+                key={page}
+                variant={currentPage === page ? "default" : "ghost"}
+                size="sm"
+                onClick={() => onPageChange(page)}
+                className={cn(
+                  "h-8 w-8 rounded-lg text-xs font-bold transition-all",
+                  currentPage === page 
+                    ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/20 hover:bg-indigo-700" 
+                    : "text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800"
+                )}
+              >
+                {page}
+              </Button>
+            ))}
+          </div>
+
+          {/* Next Page */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage >= lastPage}
+            className="h-8 px-2 rounded-lg text-xs font-bold"
+          >
+            Next <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+
+          {/* Last Page */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => onPageChange(lastPage)}
+            disabled={currentPage >= lastPage}
+            className="h-8 w-8 p-0 rounded-lg"
+            title="Last Page"
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   const fetchData = async () => {
     if (demoMode) {
       setCompanies(initialCompanies)
@@ -434,16 +574,21 @@ export default function SuperAdminPage() {
 
     try {
       setIsLoading(true)
-      const [companiesRes, statsData, usersRes, billingRes, deletionsRes] = await Promise.all([
+      const [companiesRes, statsData, usersRes, billingRes, deletionsRes, plansRes] = await Promise.all([
         adminApi.getCompanies(companiesPage, 10, searchQuery, filterPlan, filterStatus),
         adminApi.getStats(),
-        adminApi.getUsers(usersPage, 10, searchQuery),
+        adminApi.getUsers(usersPage, 10, searchQuery, filterTag, filterRole, filterUserStatus, filterUserType),
         adminApi.getBilling(billingPage, 10, searchQuery),
-        integrationApi.getDeletionRequests()
+        integrationApi.getDeletionRequests(),
+        adminApi.getPlans()
       ])
       
       if (deletionsRes.status === 'success') {
         setDeletionRequests(deletionsRes.requests || [])
+      }
+
+      if (plansRes.plans) {
+        setPlans(plansRes.plans)
       }
       
       // Handle paginated responses
@@ -501,7 +646,7 @@ export default function SuperAdminPage() {
       fetchData()
     }, 500) // Debounce search
     return () => clearTimeout(timer)
-  }, [demoMode, companiesPage, usersPage, billingPage, searchQuery, filterPlan, filterStatus])
+  }, [demoMode, companiesPage, usersPage, billingPage, searchQuery, filterPlan, filterStatus, filterTag, filterRole, filterUserType, filterUserStatus])
 
   const filteredCompanies = companies.filter((c: Company) => 
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -555,7 +700,8 @@ export default function SuperAdminPage() {
       await adminApi.updateUser(Number(editingUser.id), {
         role: editingUser.role,
         status: editingUser.status,
-        company_id: editingUser.company_id
+        company_id: editingUser.company_id,
+        tags: editingUser.tags
       })
       setIsUserModalOpen(false)
       toast.success("User Updated", {
@@ -674,17 +820,28 @@ export default function SuperAdminPage() {
     setIsPlanModalOpen(true)
   }
 
-  const handleSavePlan = () => {
+  const handleSavePlan = async () => {
     if (!editingPlan) return
-    const exists = plans.some(p => p.id === editingPlan.id)
-    if (exists) {
-      setPlans(plans.map(p => p.id === editingPlan.id ? editingPlan : p) as any)
-      toast.success("Plan Synchronized", { description: `${editingPlan.name} features updated across system.` })
-    } else {
-      setPlans([...plans, editingPlan])
-      toast.success("New Plan Launched", { description: `${editingPlan.name} tier is now live for all users.` })
+    
+    try {
+      setIsUpdatingPlan(true)
+      const data = {
+        price: editingPlan.price,
+        features: editingPlan.features
+      }
+      
+      // Assume editingPlan.id is a number in DB, but a string in mock.
+      // We can handle both or find the Plan in DB by name.
+      const response = await adminApi.updatePlan(Number(editingPlan.id), data)
+      
+      setPlans(plans.map(p => p.id === editingPlan.id ? { ...editingPlan, ...response.plan } : p))
+      toast.success("Plan Synchronized", { description: `${editingPlan.name} features updated in database.` })
+      setIsPlanModalOpen(false)
+    } catch (error: any) {
+      toast.error("Update Failed", { description: error.message })
+    } finally {
+      setIsUpdatingPlan(false)
     }
-    setIsPlanModalOpen(false)
   }
 
   const togglePlanFeature = (featureName: string) => {
@@ -854,6 +1011,80 @@ export default function SuperAdminPage() {
                   className="h-10 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl text-sm shadow-sm pl-10"
                 />
               </div>
+              <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                 {/* Role Filter */}
+                 <Select value={filterRole} onValueChange={setFilterRole}>
+                    <SelectTrigger className="h-10 w-full sm:w-32 rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold text-[10px] uppercase">
+                        <Users className="h-3 w-3 mr-2 text-indigo-500" />
+                        <SelectValue placeholder="Role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Roles</SelectItem>
+                        <SelectItem value="Super Admin">Super Admin</SelectItem>
+                        <SelectItem value="Admin">Admin</SelectItem>
+                        <SelectItem value="Manager">Manager</SelectItem>
+                        <SelectItem value="Agent">Agent</SelectItem>
+                    </SelectContent>
+                 </Select>
+
+                 {/* Account Type Filter */}
+                 <Select value={filterUserType} onValueChange={setFilterUserType}>
+                    <SelectTrigger className="h-10 w-full sm:w-36 rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold text-[10px] uppercase">
+                        <Building2 className="h-3 w-3 mr-2 text-indigo-500" />
+                        <SelectValue placeholder="Account" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Accounts</SelectItem>
+                        <SelectItem value="individual">Individual</SelectItem>
+                        <SelectItem value="agency">Agency</SelectItem>
+                    </SelectContent>
+                 </Select>
+
+                 {/* Status Filter */}
+                 <Select value={filterUserStatus} onValueChange={setFilterUserStatus}>
+                    <SelectTrigger className="h-10 w-full sm:w-32 rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold text-[10px] uppercase">
+                        <Activity className="h-3 w-3 mr-2 text-indigo-500" />
+                        <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="Inactive">Inactive</SelectItem>
+                        <SelectItem value="Suspended">Suspended</SelectItem>
+                    </SelectContent>
+                 </Select>
+
+                 {/* Tag Filter */}
+                 <Select value={filterTag} onValueChange={setFilterTag}>
+                    <SelectTrigger className="h-10 w-full sm:w-40 rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold text-[10px] uppercase">
+                        <div className="flex items-center">
+                          <Tag className="h-3 w-3 mr-2 text-indigo-500" />
+                          <SelectValue placeholder="Tag" />
+                        </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Tags</SelectItem>
+                        {availableTags.map(tag => (
+                          <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                        ))}
+                    </SelectContent>
+                 </Select>
+
+                 <Button 
+                   variant="outline" 
+                   onClick={() => { 
+                     setSearchQuery(''); 
+                     setFilterTag('all'); 
+                     setFilterRole('all');
+                     setFilterUserType('all');
+                     setFilterUserStatus('all');
+                     fetchData(); 
+                   }} 
+                   className="h-10 rounded-xl border-slate-200 text-slate-500 shadow-sm px-3"
+                 >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                 </Button>
+              </div>
             </div>
 
             <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden">
@@ -866,92 +1097,122 @@ export default function SuperAdminPage() {
                       <TableHead className="font-bold text-slate-500 py-4">Account Type</TableHead>
                       <TableHead className="font-bold text-slate-500 py-4">Role</TableHead>
                       <TableHead className="font-bold text-slate-500 py-4">Status</TableHead>
+                      <TableHead className="font-bold text-slate-500 py-4">Tags</TableHead>
                       <TableHead className="text-right font-bold text-slate-500 py-4 pr-6">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map((u) => (
-                      <TableRow key={u.id} className="border-slate-100 dark:border-slate-800">
-                        <TableCell className="py-4 pl-6">
-                          <div>
-                            <p className="font-bold text-sm">{u.name}</p>
-                            <p className="text-[10px] text-slate-400">{u.email}</p>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="h-64 text-center">
+                          <div className="flex flex-col items-center justify-center gap-3">
+                            <Loader2 className="h-10 w-10 text-indigo-500 animate-spin" />
+                            <p className="text-sm font-bold text-slate-500 italic">Retrieving user directory...</p>
                           </div>
                         </TableCell>
-                        <TableCell className="text-sm font-medium">{u.company?.name || 'No Company'}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-[10px] font-bold uppercase bg-slate-50">{u.user_type || 'Individual'}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="default" className="text-[10px] font-bold uppercase">{u.role}</Badge>
-                        </TableCell>
-                        <TableCell>
-                           <Badge className={cn("text-[10px] font-bold", u.status === 'Active' ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600")}>
-                            {u.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right pr-6">
-                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => { setEditingUser(u); setIsUserModalOpen(true); }}>
-                                Edit Role
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                className="text-indigo-600 font-bold"
-                                onClick={() => handleImpersonate(Number(u.id))}
-                              >
-                                <ExternalLink className="h-4 w-4 mr-2" /> Impersonate
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem 
-                                className="text-red-600 font-bold"
-                                onClick={() => setConfirmModal({ isOpen: true, type: 'delete_user', id: Number(u.id), name: u.name, variant: 'destructive' })}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" /> Wipe Account
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                      </TableRow>
+                    ) : users.length > 0 ? (
+                      users.map((u) => (
+                        <TableRow key={u.id} className="border-slate-100 dark:border-slate-800">
+                          <TableCell className="py-4 pl-6">
+                            <div>
+                              <p className="font-bold text-sm">{u.name}</p>
+                              <p className="text-[10px] text-slate-400">{u.email}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm font-medium">{u.company?.name || 'No Company'}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-[10px] font-bold uppercase bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700">{u.user_type || 'Individual'}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="default" className="text-[10px] font-bold uppercase">{u.role}</Badge>
+                          </TableCell>
+                          <TableCell>
+                             <Badge className={cn("text-[10px] font-bold", u.status === 'Active' ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600")}>
+                              {u.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1 max-w-[150px]">
+                              {u.tags && u.tags.length > 0 ? u.tags.map((tag, idx) => (
+                                <Badge key={idx} variant="secondary" className="text-[9px] px-1.5 h-4 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 border-none">
+                                  {tag}
+                                </Badge>
+                              )) : (
+                                <span className="text-[10px] text-slate-400 italic">No tags</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right pr-6">
+                             <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => { setEditingUser(u); setIsUserModalOpen(true); }}>
+                                  Edit Role
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  className="text-indigo-600 font-bold"
+                                  onClick={() => handleImpersonate(Number(u.id))}
+                                >
+                                  <ExternalLink className="h-4 w-4 mr-2" /> Impersonate
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  className="text-red-600 font-bold"
+                                  onClick={() => setConfirmModal({ isOpen: true, type: 'delete_user', id: Number(u.id), name: u.name, variant: 'destructive' })}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" /> Wipe Account
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={7} className="h-64 text-center">
+                          <div className="flex flex-col items-center justify-center gap-3">
+                            <div className="h-12 w-12 rounded-2xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+                              <Search className="h-6 w-6 text-slate-300" />
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-base font-bold text-slate-900 dark:text-white">No Users Found</p>
+                              <p className="text-sm text-slate-500 max-w-[250px] mx-auto">We couldn't find any users matching your current filters or search query.</p>
+                            </div>
+                            <Button 
+                              variant="link" 
+                              onClick={() => { 
+                                setSearchQuery(''); 
+                                setFilterTag('all'); 
+                                setFilterRole('all');
+                                setFilterUserType('all');
+                                setFilterUserStatus('all');
+                                fetchData();
+                              }} 
+                              className="text-indigo-600 font-bold"
+                            >
+                              Reset all filters
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
               {usersMeta && (
                 <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 py-4 px-6">
-                  <div className="flex items-center justify-between w-full">
-                    <p className="text-xs text-slate-500 font-medium italic">
-                      Showing {users.length} of {usersMeta.total} total users.
-                    </p>
-                    <div className="flex items-center gap-2">
-                       <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setUsersPage(p => Math.max(1, p - 1))}
-                        disabled={usersPage === 1}
-                        className="h-8 rounded-lg text-xs font-bold"
-                      >
-                        Previous
-                      </Button>
-                      <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-sm">
-                        {usersPage}
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setUsersPage(p => Math.min(usersMeta.last_page, p + 1))}
-                        disabled={usersPage >= usersMeta.last_page}
-                        className="h-8 rounded-lg text-xs font-bold"
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  </div>
+                    <PaginationSection 
+                      currentPage={usersPage}
+                      lastPage={usersMeta.last_page}
+                      onPageChange={setUsersPage}
+                      totalItems={usersMeta.total}
+                      itemsShown={users.length}
+                    />
                 </CardFooter>
               )}
             </Card>
@@ -1018,7 +1279,11 @@ export default function SuperAdminPage() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button variant="outline" onClick={handleExport} className="rounded-xl border-slate-200 h-10 w-full sm:w-auto text-indigo-600 border-indigo-100 bg-indigo-50/50">
+                <Button 
+                  variant="outline" 
+                  onClick={handleExport} 
+                  className="rounded-xl h-10 w-full sm:w-auto text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-900 bg-indigo-50/50 dark:bg-indigo-950/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40"
+                >
                   <ArrowUpRight className="h-4 w-4 mr-2" /> Export CSV
                 </Button>
               </div>
@@ -1043,150 +1308,169 @@ export default function SuperAdminPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {companies.map((company: Company) => (
-                      <TableRow key={company.id} className="border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
-                        <TableCell className="py-5 pl-6">
-                          <div className="flex items-center gap-4">
-                            <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold shadow-sm">
-                              {company.name.charAt(0)}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-bold text-slate-900 dark:text-white text-sm">{company.name}</p>
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <p className="text-xs text-slate-500 font-medium">{company.owner}</p>
-                                <span className="text-slate-300">•</span>
-                                <p className="text-[11px] text-slate-400">{company.email}</p>
-                              </div>
-                            </div>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={10} className="h-64 text-center">
+                          <div className="flex flex-col items-center justify-center gap-3">
+                            <Loader2 className="h-10 w-10 text-indigo-500 animate-spin" />
+                            <p className="text-sm font-bold text-slate-500 italic">Syncing company nodes...</p>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={cn("font-bold px-2.5 py-0.5", getPlanColor(company.plan))}>
-                            {company.plan}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                           <Badge variant="secondary" className={cn("text-[10px] uppercase font-black tracking-widest px-2 py-0.5", company.type === 'agency' ? "bg-indigo-50 text-indigo-700 border-indigo-100" : "bg-slate-50 text-slate-600 border-slate-100")}>
-                            {company.type || 'individual'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {getStatusBadge(company.status)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1.5">
-                            <Users className="h-3.5 w-3.5 text-slate-400" />
-                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{company.usersCount}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                           <div className="space-y-0.5">
-                              <p className="text-xs font-black text-indigo-600 dark:text-indigo-400">
-                                 {company.expires_at ? new Date(company.expires_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }) : 'Never'}
-                              </p>
-                              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Automatic Expiry</p>
-                           </div>
-                        </TableCell>
-                        <TableCell>
-                           <div className="space-y-0.5">
-                              <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                 {company.subscription_started_at ? new Date(company.subscription_started_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }) : 'N/A'}
-                              </p>
-                              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Plan Started</p>
-                           </div>
-                        </TableCell>
-                        <TableCell className="text-right pr-6">
-                          <p className="font-black text-slate-900 dark:text-white text-sm">₹{company.monthlySpend}</p>
-                          <p className="text-[10px] text-slate-500">Joined {company.joinedDate}</p>
-                        </TableCell>
-                        <TableCell className="text-right pr-6">
-                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-9 w-9 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-500">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56 rounded-2xl border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-slate-950 p-1.5">
-                              <DropdownMenuLabel className="font-bold text-xs uppercase tracking-wider text-slate-500 px-3 py-2">Account Control</DropdownMenuLabel>
-                              <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
-                              <DropdownMenuItem 
-                                className="cursor-pointer font-medium py-2.5 px-3 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-xl"
-                                onClick={() => {
-                                  setEditingCompany({ ...company })
-                                  setIsEditModalOpen(true)
-                                }}
-                              >
-                                <Edit className="mr-3 h-4 w-4 text-slate-400" /> Edit Plan & Billing
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                className="cursor-pointer font-bold py-2.5 px-3 text-indigo-600 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-xl"
-                                onClick={() => handleImpersonate(Number(company.id))}
-                              >
-                                <ExternalLink className="mr-3 h-4 w-4" /> Enter Account
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
-                              <DropdownMenuLabel className="font-bold text-[10px] uppercase tracking-wider text-slate-400 px-3 py-1">Advanced Actions</DropdownMenuLabel>
-                              <DropdownMenuItem 
-                                className="cursor-pointer font-bold py-2.5 px-3 text-emerald-600 focus:bg-emerald-50 dark:focus:bg-emerald-950/30 rounded-xl"
-                                onClick={() => setRenewModal({ isOpen: true, companyId: Number(company.id), companyName: company.name, days: 30, notes: '' })}
-                              >
-                                <RefreshCw className="mr-3 h-4 w-4 text-emerald-400" /> Prolong Plan
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                className="cursor-pointer font-bold py-2.5 px-3 text-slate-600 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-xl"
-                                onClick={() => handleViewHistory(Number(company.id), company.name)}
-                              >
-                                <History className="mr-3 h-4 w-4 text-slate-400" /> Audit History
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                className="cursor-pointer font-medium py-2.5 px-3 text-red-600 focus:bg-red-50 dark:focus:bg-red-950/30 focus:text-red-600 rounded-xl"
-                                onClick={() => handleStatusChange(company.id, 'Suspended')}
-                              >
-                                <ShieldAlert className="mr-3 h-4 w-4" /> Suspend Account
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                className="cursor-pointer font-bold py-2.5 px-3 text-red-600 focus:bg-red-100 dark:focus:bg-red-900/40 rounded-xl"
-                                onClick={() => setConfirmModal({ isOpen: true, type: 'delete_company', id: Number(company.id), name: company.name, variant: 'destructive' })}
-                              >
-                                <Trash2 className="mr-3 h-4 w-4" /> Terminate Node
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : companies.length > 0 ? (
+                      companies.map((company: Company) => (
+                        <TableRow key={company.id} className="border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
+                          {/* ... existing table cells ... */}
+                          <TableCell className="py-5 pl-6">
+                            <div className="flex items-center gap-4">
+                              <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold shadow-sm">
+                                {company.name.charAt(0)}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-slate-900 dark:text-white text-sm">{company.name}</p>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <p className="text-xs text-slate-500 font-medium">{company.owner}</p>
+                                  <span className="text-slate-300">•</span>
+                                  <p className="text-[11px] text-slate-400">{company.email}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={cn("font-bold px-2.5 py-0.5", getPlanColor(company.plan))}>
+                              {company.plan}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                             <Badge variant="secondary" className={cn("text-[10px] uppercase font-black tracking-widest px-2 py-0.5", company.type === 'agency' ? "bg-indigo-50 text-indigo-700 border-indigo-100" : "bg-slate-50 text-slate-600 border-slate-100")}>
+                              {company.type || 'individual'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(company.status)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1.5">
+                              <Activity className="h-3.5 w-3.5 text-slate-400" />
+                              <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{company.usersCount}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1.5">
+                              <Users className="h-3.5 w-3.5 text-slate-400" />
+                              <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{company.usersCount}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                             <div className="space-y-0.5">
+                                <p className="text-xs font-black text-indigo-600 dark:text-indigo-400">
+                                   {company.expires_at ? new Date(company.expires_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }) : 'Never'}
+                                </p>
+                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Automatic Expiry</p>
+                             </div>
+                          </TableCell>
+                          <TableCell>
+                             <div className="space-y-0.5">
+                                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                   {company.subscription_started_at ? new Date(company.subscription_started_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }) : 'N/A'}
+                                </p>
+                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Plan Started</p>
+                             </div>
+                          </TableCell>
+                          <TableCell className="text-right pr-6">
+                            <p className="font-black text-slate-900 dark:text-white text-sm">₹{company.monthlySpend}</p>
+                            <p className="text-[10px] text-slate-500">Joined {company.joinedDate}</p>
+                          </TableCell>
+                          <TableCell className="text-right pr-6">
+                             <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-9 w-9 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-500">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-56 rounded-2xl border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-slate-950 p-1.5">
+                                <DropdownMenuLabel className="font-bold text-xs uppercase tracking-wider text-slate-500 px-3 py-2">Account Control</DropdownMenuLabel>
+                                <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
+                                <DropdownMenuItem 
+                                  className="cursor-pointer font-medium py-2.5 px-3 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-xl"
+                                  onClick={() => {
+                                    setEditingCompany({ ...company })
+                                    setIsEditModalOpen(true)
+                                  }}
+                                >
+                                  <Edit className="mr-3 h-4 w-4 text-slate-400" /> Edit Plan & Billing
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  className="cursor-pointer font-bold py-2.5 px-3 text-indigo-600 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-xl"
+                                  onClick={() => handleImpersonate(Number(company.id))}
+                                >
+                                  <ExternalLink className="mr-3 h-4 w-4" /> Enter Account
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
+                                <DropdownMenuLabel className="font-bold text-[10px] uppercase tracking-wider text-slate-400 px-3 py-1">Advanced Actions</DropdownMenuLabel>
+                                <DropdownMenuItem 
+                                  className="cursor-pointer font-bold py-2.5 px-3 text-emerald-600 focus:bg-emerald-50 dark:focus:bg-emerald-950/30 rounded-xl"
+                                  onClick={() => setRenewModal({ isOpen: true, companyId: Number(company.id), companyName: company.name, days: 30, notes: '' })}
+                                >
+                                  <RefreshCw className="mr-3 h-4 w-4 text-emerald-400" /> Prolong Plan
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  className="cursor-pointer font-bold py-2.5 px-3 text-slate-600 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-xl"
+                                  onClick={() => handleViewHistory(Number(company.id), company.name)}
+                                >
+                                  <History className="mr-3 h-4 w-4 text-slate-400" /> Audit History
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  className="cursor-pointer font-medium py-2.5 px-3 text-red-600 focus:bg-red-50 dark:focus:bg-red-950/30 focus:text-red-600 rounded-xl"
+                                  onClick={() => handleStatusChange(company.id, 'Suspended')}
+                                >
+                                  <ShieldAlert className="mr-3 h-4 w-4" /> Suspend Account
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  className="cursor-pointer font-bold py-2.5 px-3 text-red-600 focus:bg-red-100 dark:focus:bg-red-900/40 rounded-xl"
+                                  onClick={() => setConfirmModal({ isOpen: true, type: 'delete_company', id: Number(company.id), name: company.name, variant: 'destructive' })}
+                                >
+                                  <Trash2 className="mr-3 h-4 w-4" /> Terminate Node
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={10} className="h-64 text-center">
+                          <div className="flex flex-col items-center justify-center gap-3">
+                            <div className="h-12 w-12 rounded-2xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+                              <Building2 className="h-6 w-6 text-slate-300" />
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-base font-bold text-slate-900 dark:text-white">No Companies Found</p>
+                              <p className="text-sm text-slate-500 max-w-[250px] mx-auto">Try adjusting your filters or search keywords.</p>
+                            </div>
+                            <Button 
+                              variant="link" 
+                              onClick={() => { setFilterPlan('all'); setFilterStatus('all'); setSearchQuery(''); fetchData(); }} 
+                              className="text-indigo-600 font-bold"
+                            >
+                              Reset all filters
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
               <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 py-4 px-6">
-                <div className="flex items-center justify-between w-full">
-                  <p className="text-xs text-slate-500 font-medium italic">
-                    {companiesMeta ? `Showing ${companiesMeta.from || 0} to ${companiesMeta.to || 0} of ${companiesMeta.total} total companies.` : `Showing ${companies.length} entries.`}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => setCompaniesPage(p => Math.max(1, p - 1))}
-                      disabled={companiesPage === 1}
-                      className="h-8 rounded-lg text-xs font-bold"
-                    >
-                      Previous
-                    </Button>
-                    <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-sm shadow-indigo-500/20">
-                      {companiesPage}
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => setCompaniesPage(p => Math.min(companiesMeta?.last_page || 1, p + 1))}
-                      disabled={companiesPage === (companiesMeta?.last_page || 1)}
-                      className="h-8 rounded-lg text-xs font-bold"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
+                  <PaginationSection 
+                    currentPage={companiesPage}
+                    lastPage={companiesMeta?.last_page || 1}
+                    onPageChange={setCompaniesPage}
+                    totalItems={companiesMeta?.total}
+                    from={companiesMeta?.from}
+                    to={companiesMeta?.to}
+                  />
               </CardFooter>
             </Card>
           </TabsContent>
@@ -1209,23 +1493,34 @@ export default function SuperAdminPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {billingData.length > 0 ? billingData.map((inv: any) => (
-                        <TableRow key={inv.id} className="border-slate-100 dark:border-slate-800">
-                          <TableCell className="font-medium pl-6 text-sm">#{inv.id}</TableCell>
-                          <TableCell className="font-bold text-sm text-slate-800 dark:text-slate-200">{inv.company?.name || 'Deleted'}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="text-[10px] font-bold uppercase">{inv.type}</Badge>
-                          </TableCell>
-                          <TableCell className="text-right font-black text-sm">
-                            ₹{inv.amount && parseFloat(inv.amount) > 0 ? (parseFloat(inv.amount) * 80).toLocaleString() : '0'}
-                          </TableCell>
-                          <TableCell className="text-right text-slate-500 text-xs pr-6">
-                            {new Date(inv.created_at).toLocaleDateString()}
+                      {isLoading ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="h-48 text-center">
+                            <div className="flex flex-col items-center justify-center gap-2">
+                              <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
+                              <p className="text-sm font-medium text-slate-500 italic">Fetching transaction history...</p>
+                            </div>
                           </TableCell>
                         </TableRow>
-                      )) : (
+                      ) : billingData.length > 0 ? (
+                        billingData.map((inv: any) => (
+                          <TableRow key={inv.id} className="border-slate-100 dark:border-slate-800">
+                            <TableCell className="font-medium pl-6 text-sm">#{inv.id}</TableCell>
+                            <TableCell className="font-bold text-sm text-slate-800 dark:text-slate-200">{inv.company?.name || 'Deleted'}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="text-[10px] font-bold uppercase">{inv.type}</Badge>
+                            </TableCell>
+                            <TableCell className="text-right font-black text-sm">
+                              ₹{inv.amount && parseFloat(inv.amount) > 0 ? parseFloat(inv.amount).toLocaleString() : '0'}
+                            </TableCell>
+                            <TableCell className="text-right text-slate-500 text-xs pr-6">
+                              {new Date(inv.created_at).toLocaleDateString()}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
                         <TableRow>
-                          <TableCell colSpan={5} className="py-10 text-center text-slate-500 italic">No billing history found.</TableCell>
+                          <TableCell colSpan={5} className="py-10 text-center text-slate-500 italic font-medium">No billing history found matching current criteria.</TableCell>
                         </TableRow>
                       )}
                     </TableBody>
@@ -1233,34 +1528,13 @@ export default function SuperAdminPage() {
                 </CardContent>
                 {billingMeta && (
                   <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 py-4 px-6">
-                    <div className="flex items-center justify-between w-full">
-                      <p className="text-xs text-slate-500 font-medium italic">
-                        Showing {billingData.length} records of {billingMeta.total}.
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => setBillingPage(p => Math.max(1, p - 1))}
-                          disabled={billingPage === 1}
-                          className="h-8 rounded-lg text-xs font-bold"
-                        >
-                          Previous
-                        </Button>
-                        <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-sm">
-                          {billingPage}
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => setBillingPage(p => Math.min(billingMeta.last_page, p + 1))}
-                          disabled={billingPage === billingMeta.last_page}
-                          className="h-8 rounded-lg text-xs font-bold"
-                        >
-                          Next
-                        </Button>
-                      </div>
-                    </div>
+                    <PaginationSection 
+                      currentPage={billingPage}
+                      lastPage={billingMeta.last_page}
+                      onPageChange={setBillingPage}
+                      totalItems={billingMeta.total}
+                      itemsShown={billingData.length}
+                    />
                   </CardFooter>
                 )}
               </Card>
@@ -1268,7 +1542,29 @@ export default function SuperAdminPage() {
               <Card className="border-none shadow-sm bg-indigo-600 rounded-2xl p-6 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 -mt-8 -mr-8 h-32 w-32 rounded-full bg-white/10 blur-3xl"></div>
                 <div className="relative z-10 flex flex-col h-full">
-                  <p className="text-indigo-100 text-xs font-bold uppercase tracking-widest mb-2">Total MRR</p>
+                  <div className="flex justify-between items-start mb-2">
+                    <p className="text-indigo-100 text-xs font-bold uppercase tracking-widest">Total MRR</p>
+                    <div className="group relative">
+                      <Activity className="h-3.5 w-3.5 text-indigo-300 cursor-help" />
+                      <div className="absolute right-0 bottom-full mb-2 w-64 p-3 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-100 dark:border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase mb-2">Calculation Logic</p>
+                        <ul className="space-y-1.5 text-xs font-medium text-slate-700 dark:text-slate-200">
+                          <li className="flex justify-between">
+                            <span>Pro Tier:</span>
+                            <span className="font-bold">Qty × ₹1,490</span>
+                          </li>
+                          <li className="flex justify-between">
+                            <span>Enterprise:</span>
+                            <span className="font-bold">Qty × ₹4,990</span>
+                          </li>
+                          <li className="flex justify-between border-t border-slate-100 dark:border-slate-800 pt-1.5">
+                            <span>Custom:</span>
+                            <span className="font-bold">Manual Adjustments</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                   <h3 className="text-4xl font-black mb-6">{stats?.revenue?.value || '₹0'}</h3>
                   <div className="space-y-4 flex-1">
                     <div className="flex justify-between items-center text-sm">
@@ -1316,7 +1612,7 @@ export default function SuperAdminPage() {
                       {plan.name} Tier
                     </Badge>
                     <div className="flex items-center justify-center gap-1 mt-2">
-                      <span className="text-sm font-bold text-slate-500">$</span>
+                      <span className="text-sm font-bold text-slate-500">₹</span>
                       <span className="text-4xl font-black text-slate-900 dark:text-white leading-none">{plan.price}</span>
                       <span className="text-sm font-bold text-slate-500">/mo</span>
                     </div>
@@ -1484,41 +1780,52 @@ export default function SuperAdminPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {deletionRequests.length > 0 ? deletionRequests.map((req, i) => (
-                      <TableRow key={i} className="border-slate-100 dark:border-slate-800">
-                        <TableCell className="py-4 pl-6">
-                          <div>
-                            <p className="font-bold text-sm text-slate-900 dark:text-white">{req.user?.name || 'Unknown'}</p>
-                            <p className="text-[10px] text-slate-400 font-medium tracking-tight uppercase">USER ID: {req.user?.id}</p>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-48 text-center">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
+                            <p className="text-sm font-medium text-slate-500 italic">Scanning compliance logs...</p>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <code className="text-xs font-black bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg text-indigo-600 border border-slate-200 dark:border-slate-700">
-                            {req.code}
-                          </code>
-                        </TableCell>
-                        <TableCell className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                           {req.requested_at ? new Date(req.requested_at).toLocaleString() : 'N/A'}
-                        </TableCell>
-                        <TableCell>
-                           <Badge className="bg-amber-100 text-amber-700 border-none font-bold text-[10px] uppercase">
-                             {req.status.replace('_', ' ')}
-                           </Badge>
-                        </TableCell>
-                        <TableCell className="text-right pr-6">
-                           <div className="flex justify-end gap-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="h-8 rounded-lg text-xs font-bold border-red-100 text-red-600 bg-red-50/50 hover:bg-red-100"
-                                onClick={() => toast.info('Perform manual cleanup', { description: `Please manually delete leads for User ID: ${req.user?.id} in your database manager.` })}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" /> Mark as Wiped
-                              </Button>
-                           </div>
-                        </TableCell>
                       </TableRow>
-                    )) : (
+                    ) : deletionRequests.length > 0 ? (
+                      deletionRequests.map((req, i) => (
+                        <TableRow key={i} className="border-slate-100 dark:border-slate-800">
+                          <TableCell className="py-4 pl-6">
+                            <div>
+                              <p className="font-bold text-sm text-slate-900 dark:text-white">{req.user?.name || 'Unknown'}</p>
+                              <p className="text-[10px] text-slate-400 font-medium tracking-tight uppercase">USER ID: {req.user?.id}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <code className="text-xs font-black bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg text-indigo-600 border border-slate-200 dark:border-slate-700">
+                              {req.code}
+                            </code>
+                          </TableCell>
+                          <TableCell className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                             {req.requested_at ? new Date(req.requested_at).toLocaleString() : 'N/A'}
+                          </TableCell>
+                          <TableCell>
+                             <Badge className="bg-amber-100 text-amber-700 border-none font-bold text-[10px] uppercase">
+                               {req.status.replace('_', ' ')}
+                             </Badge>
+                          </TableCell>
+                          <TableCell className="text-right pr-6">
+                             <div className="flex justify-end gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="h-8 rounded-lg text-xs font-bold border-red-100 text-red-600 bg-red-50/50 hover:bg-red-100"
+                                  onClick={() => toast.info('Perform manual cleanup', { description: `Please manually delete leads for User ID: ${req.user?.id} in your database manager.` })}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" /> Mark as Wiped
+                                </Button>
+                             </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
                       <TableRow>
                         <TableCell colSpan={5} className="py-12 text-center">
                            <div className="flex flex-col items-center gap-2 opacity-40">
@@ -1557,10 +1864,10 @@ export default function SuperAdminPage() {
 
         {/* Edit Company Modal */}
         <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[425px] bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-3xl">
             <DialogHeader>
-              <DialogTitle className="text-xl">Edit Company Billing</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-xl font-black text-slate-900 dark:text-white">Edit Company Billing</DialogTitle>
+              <DialogDescription className="text-slate-500 dark:text-slate-400 font-medium">
                 Modify plan and subscription details for <strong>{editingCompany?.name}</strong>.
               </DialogDescription>
             </DialogHeader>
@@ -1568,15 +1875,15 @@ export default function SuperAdminPage() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                       <Label className="text-xs font-bold uppercase text-slate-500">Plan Tier</Label>
+                       <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Plan Tier</Label>
                        <Select 
                         value={editingCompany?.plan} 
                         onValueChange={(val) => setEditingCompany(prev => prev ? { ...prev, plan: val as Plan } : null)}
                       >
-                        <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-200">
+                        <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold dark:text-white">
                           <SelectValue placeholder="Select Plan" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="dark:bg-slate-900 dark:border-slate-800">
                           <SelectItem value="Free">Free</SelectItem>
                           <SelectItem value="Pro">Pro</SelectItem>
                           <SelectItem value="Enterprise">Enterprise</SelectItem>
@@ -1584,15 +1891,15 @@ export default function SuperAdminPage() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase text-slate-500">Node Status</Label>
+                      <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Node Status</Label>
                       <Select 
                         value={editingCompany?.status} 
                         onValueChange={(val) => setEditingCompany(prev => prev ? { ...prev, status: val as AccountStatus } : null)}
                       >
-                        <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-200">
+                        <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold dark:text-white">
                           <SelectValue placeholder="Select Status" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="dark:bg-slate-900 dark:border-slate-800">
                           <SelectItem value="Active">Active</SelectItem>
                           <SelectItem value="Delinquent">Delinquent</SelectItem>
                           <SelectItem value="Suspended">Suspended</SelectItem>
@@ -1603,32 +1910,32 @@ export default function SuperAdminPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                       <Label className="text-xs font-bold uppercase text-slate-500">Subscription Start</Label>
+                       <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Subscription Start</Label>
                        <Input 
                         type="date"
                         value={editingCompany?.subscription_started_at ? new Date(editingCompany.subscription_started_at).toISOString().split('T')[0] : ''}
                         onChange={(e) => handleStartDateChange(e.target.value)}
-                        className="h-11 rounded-xl bg-slate-50 border-slate-200 font-bold"
+                        className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold dark:text-white"
                       />
                     </div>
                     <div className="space-y-2">
-                       <Label className="text-xs font-bold uppercase text-slate-500">Duration (Days)</Label>
+                       <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Duration (Days)</Label>
                        <Input 
                         type="number"
                         value={editDays}
                         onChange={(e) => handleEditDaysChange(parseInt(e.target.value) || 0)}
-                        className="h-11 rounded-xl bg-white border-slate-200 font-black text-indigo-600"
+                        className="h-11 rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-black text-indigo-600 dark:text-indigo-400"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase text-slate-500">Auto Expiration Date</Label>
+                    <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Auto Expiration Date</Label>
                     <Input 
                       type="date"
                       value={editingCompany?.expires_at ? new Date(editingCompany.expires_at).toISOString().split('T')[0] : ''}
                       onChange={(e) => handleEndDateChange(e.target.value)}
-                      className="h-11 rounded-xl bg-slate-50 border-slate-200 font-bold"
+                      className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold dark:text-white"
                     />
                   </div>
                 </div>
@@ -1637,7 +1944,7 @@ export default function SuperAdminPage() {
               <Button 
                 variant="outline" 
                 onClick={() => setIsEditModalOpen(false)} 
-                className="rounded-xl h-11 font-bold border-slate-200"
+                className="rounded-xl h-11 font-bold border-slate-200 dark:border-slate-800 dark:text-slate-400"
                 disabled={isUpdatingCompany}
               >
                 Cancel
@@ -1645,7 +1952,7 @@ export default function SuperAdminPage() {
               <Button 
                 onClick={handleUpdateCompany} 
                 className={cn("rounded-xl h-11 font-black px-8 shadow-lg transition-all", 
-                  isUpdatingCompany ? "bg-slate-400" : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20"
+                  isUpdatingCompany ? "bg-slate-400 dark:bg-slate-700" : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20"
                 )}
                 disabled={isUpdatingCompany}
               >
@@ -1662,61 +1969,72 @@ export default function SuperAdminPage() {
 
         {/* Plan Feature Modal */}
         <Dialog open={isPlanModalOpen} onOpenChange={setIsPlanModalOpen}>
-          <DialogContent className="sm:max-w-md rounded-3xl">
+          <DialogContent className="sm:max-w-md rounded-3xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800">
             <DialogHeader>
-              <DialogTitle className="text-xl font-black">Plan Configuration</DialogTitle>
-              <DialogDescription className="font-medium text-slate-500">
+              <DialogTitle className="text-xl font-black text-slate-900 dark:text-white">Plan Configuration</DialogTitle>
+              <DialogDescription className="font-medium text-slate-500 dark:text-slate-400">
                 Define pricing and feature limits for the <strong>{editingPlan?.name}</strong> tier.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-6 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-slate-500">Plan Name</Label>
+                  <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Plan Name</Label>
                   <Input 
                     value={editingPlan?.name}
                     onChange={(e) => setEditingPlan((prev: PlanDefinition | null) => prev ? { ...prev, name: e.target.value as Plan } : null)}
-                    className="h-11 rounded-xl bg-slate-50 border-slate-200 font-bold"
+                    className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold dark:text-white"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-slate-500">Price ($/mo)</Label>
+                  <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Price (₹/mo)</Label>
                   <Input 
                     type="number"
                     value={editingPlan?.price}
                     onChange={(e) => setEditingPlan((prev: PlanDefinition | null) => prev ? { ...prev, price: parseInt(e.target.value) || 0 } : null)}
-                    className="h-11 rounded-xl bg-slate-50 border-slate-200 font-bold"
+                    className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold dark:text-white"
                   />
                 </div>
               </div>
 
               <div className="space-y-3">
-                <Label className="text-xs font-bold uppercase text-slate-500">Feature Distribution</Label>
-                <div className="max-h-60 overflow-y-auto pr-2 space-y-2">
+                <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Feature Distribution</Label>
+                <div className="max-h-60 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
                   {editingPlan?.features.map((feat, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 group transition-colors hover:border-indigo-200">
+                    <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 group transition-colors hover:border-indigo-200 dark:hover:border-indigo-800">
                       <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{feat.name}</span>
                       <Button 
                         size="sm"
                         variant={feat.included ? "default" : "outline"}
                         onClick={() => togglePlanFeature(feat.name)}
                         className={cn("h-7 px-3 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all", 
-                          feat.included ? "bg-emerald-500 hover:bg-emerald-600 border-none shadow-sm shadow-emerald-500/20" : "border-slate-200 text-slate-400")
+                          feat.included ? "bg-emerald-500 hover:bg-emerald-600 border-none shadow-sm shadow-emerald-500/20" : "border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500")
                         }
                       >
                         {feat.included ? "Enabled" : "Disabled"}
                       </Button>
                     </div>
                   ))}
-                  <Button variant="ghost" className="w-full h-10 rounded-xl border-dashed border-2 border-slate-200 text-slate-400 text-xs font-bold hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200">
+                  <Button variant="ghost" className="w-full h-10 rounded-xl border-dashed border-2 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-800">
                     <Plus className="h-3 w-3 mr-2" /> Add custom feature
                   </Button>
                 </div>
               </div>
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
-              <Button variant="ghost" onClick={() => setIsPlanModalOpen(false)} className="rounded-xl h-11 font-bold text-slate-500">Discard</Button>
-              <Button onClick={handleSavePlan} className="rounded-xl h-11 font-black bg-slate-900 dark:bg-white dark:text-slate-900 px-8 shadow-xl">Apply Changes</Button>
+              <Button variant="ghost" onClick={() => setIsPlanModalOpen(false)} className="rounded-xl h-11 font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900" disabled={isUpdatingPlan}>Discard</Button>
+              <Button 
+                onClick={handleSavePlan} 
+                className="rounded-xl h-11 font-black bg-slate-900 dark:bg-white dark:text-slate-900 px-8 shadow-xl"
+                disabled={isUpdatingPlan}
+              >
+                {isUpdatingPlan ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : "Apply Changes"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -1876,6 +2194,60 @@ export default function SuperAdminPage() {
                         <SelectItem value="Suspended">Suspended</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-xs font-bold uppercase text-slate-500">User Tags</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="Add tag..." 
+                        value={newTag}
+                        onChange={(e) => setNewTag(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (newTag.trim() && editingUser) {
+                              const tags = editingUser.tags || [];
+                              if (!tags.includes(newTag.trim())) {
+                                setEditingUser({ ...editingUser, tags: [...tags, newTag.trim()] });
+                              }
+                              setNewTag('');
+                            }
+                          }
+                        }}
+                        className="h-10 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl text-sm"
+                      />
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          if (newTag.trim() && editingUser) {
+                            const tags = editingUser.tags || [];
+                            if (!tags.includes(newTag.trim())) {
+                              setEditingUser({ ...editingUser, tags: [...tags, newTag.trim()] });
+                            }
+                            setNewTag('');
+                          }
+                        }}
+                        className="h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 min-h-[40px] p-2 rounded-xl bg-slate-50/50 dark:bg-slate-900/50 border border-dashed border-slate-200 dark:border-slate-800">
+                      {editingUser?.tags && editingUser.tags.length > 0 ? editingUser.tags.map((tag, idx) => (
+                        <Badge key={idx} variant="secondary" className="gap-1 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 px-2 py-1">
+                          {tag}
+                          <button 
+                            onClick={() => setEditingUser({ ...editingUser, tags: editingUser.tags?.filter(t => t !== tag) })}
+                            className="hover:text-red-500 transition-colors"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      )) : (
+                        <p className="text-[10px] text-slate-400 italic m-auto">No tags assigned yet</p>
+                      )}
+                    </div>
                   </div>
                </div>
             </div>
