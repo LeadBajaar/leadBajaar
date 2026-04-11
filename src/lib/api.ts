@@ -1524,12 +1524,19 @@ export const adminApi = {
     }
   },
 
-  getCompanies: async (page = 1, limit = 10, search?: string, plan?: string, status?: string) => {
+  getCompanies: async (page = 1, limit = 10, search?: string, plan?: string, status?: string, tag?: string, expiration?: string, started?: string, expStart?: string, expEnd?: string, startStart?: string, startEnd?: string) => {
     try {
       let url = `/admin/companies?page=${page}&limit=${limit}`;
       if (search) url += `&search=${search}`;
       if (plan && plan !== 'all') url += `&plan=${plan}`;
       if (status && status !== 'all') url += `&status=${status}`;
+      if (tag && tag !== 'all') url += `&tag=${tag}`;
+      if (expiration && expiration !== 'all') url += `&expiration=${expiration}`;
+      if (started && started !== 'all') url += `&started=${started}`;
+      if (expStart) url += `&exp_start=${expStart}`;
+      if (expEnd) url += `&exp_end=${expEnd}`;
+      if (startStart) url += `&start_start=${startStart}`;
+      if (startEnd) url += `&start_end=${startEnd}`;
       const response = await api.get(url);
       return response.data;
     } catch (error: any) {
@@ -1640,6 +1647,15 @@ export const adminApi = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to update plan');
+    }
+  },
+
+  getTags: async () => {
+    try {
+      const response = await api.get('/admin/tags');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch tags');
     }
   }
 };
