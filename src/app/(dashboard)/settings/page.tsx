@@ -366,6 +366,62 @@ export default function SettingsPage() {
             </div>
           )}
 
+          {activeTab === 'billing' && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Billing & Usage</h2>
+                <p className="text-sm text-slate-500">View your current plan, limits, and platform usage.</p>
+              </div>
+
+              <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 p-8 rounded-3xl ring-1 ring-slate-100 dark:ring-slate-800/50">
+                <div className="space-y-6">
+                  {/* Current Plan */}
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
+                    <div>
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Current Plan</p>
+                      <h3 className="text-2xl font-bold text-slate-900 dark:text-white capitalize flex items-center gap-2">
+                        {user?.company?.plan || 'Free'} Plan
+                        <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20">Active</Badge>
+                      </h3>
+                    </div>
+                    <Button className="rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700">Upgrade Plan</Button>
+                  </div>
+
+                  {/* Email Usage limit */}
+                  <div className="pt-2">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-indigo-500" /> Monthly Email Usage
+                      </p>
+                      <p className="text-sm font-medium text-slate-500">
+                        {user?.company?.monthly_email_count || 0} sent
+                        {user?.company?.plan === 'pro' && ' / 5,000'}
+                        {user?.company?.plan === 'enterprise' && ' / 50,000'}
+                        {(!user?.company?.plan || user?.company?.plan === 'free') && ' / 100'}
+                        {(user?.company?.plan === 'agency' || user?.company?.type === 'agency') && ' (Unlimited)'}
+                      </p>
+                    </div>
+                    {/* Fake progress bar calculation */}
+                    <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full"
+                        style={{ 
+                          width: (user?.company?.plan === 'agency' || user?.company?.type === 'agency') 
+                            ? '5%' 
+                            : `${Math.min(100, ((user?.company?.monthly_email_count || 0) / (
+                                user?.company?.plan === 'pro' ? 5000 : 
+                                user?.company?.plan === 'enterprise' ? 50000 : 100
+                              )) * 100)}%` 
+                        }}
+                      />
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-2">Emails are sent via AWS SES and include full tracking. Count resets on the 1st of every month.</p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
+
         </div>
       </div>
     </div>

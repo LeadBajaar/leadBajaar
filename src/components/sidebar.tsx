@@ -25,7 +25,9 @@ import {
   Activity,
   Bell,
   Briefcase,
-  ArrowLeft
+  ArrowLeft,
+  Mail,
+  Zap
 } from 'lucide-react'
 import { logout } from '@/lib/api'
 import { clearSession } from '@/lib/auth'
@@ -70,6 +72,7 @@ const mainNav: NavSection[] = [
     label: 'Productivity',
     items: [
       { name: 'Meetings', href: '/meetings', icon: CalendarCheck2, color: '#F59E0B', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+      { name: 'Automations', href: '/automations', icon: Zap, color: '#6366F1', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
       { name: 'Integrations', href: '/integrations', icon: Plug2, color: '#EC4899', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
       { name: 'Analytics', href: '/analytics', icon: TrendingUp, color: '#14B8A6', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
     ]
@@ -78,6 +81,7 @@ const mainNav: NavSection[] = [
     label: 'Platform Control',
     items: [
       { name: 'Admin Portal', href: '/admin', icon: Shield, color: '#EF4444', roles: ['Super Admin'], types: ['super_admin'] },
+      { name: 'Email Monitoring', href: '/admin/emails', icon: Mail, color: '#6366F1', roles: ['Super Admin'], types: ['super_admin'] },
       { name: 'Error Monitoring', href: '/admin/errors', icon: Activity, color: '#F43F5E', roles: ['Super Admin'], types: ['super_admin'] },
       { name: 'Dev Hub', href: '/developer', icon: Code2, color: '#10B981', roles: ['Super Admin', 'Admin'] },
     ]

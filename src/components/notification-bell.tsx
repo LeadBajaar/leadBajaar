@@ -13,6 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { formatDistanceToNow, format } from 'date-fns';
 import { api } from '@/lib/api';
+import { useUser } from '@/contexts/UserContext';
 
 interface Notification {
   id: number;
@@ -34,6 +35,7 @@ interface Notification {
 }
 
 export function NotificationBell() {
+  const { user, isLoading: isLoadingUser } = useUser();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
@@ -42,11 +44,19 @@ export function NotificationBell() {
   const [isMounted, setIsMounted] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Check if subscription is expired or suspended
+  const expiresAt = user?.company?.expires_at ? new Date(user.company.expires_at) : null;
+  const isExpired = expiresAt ? expiresAt.getTime() < Date.now() : false;
+  const isSuspended = user?.company?.status === 'Suspended';
+  const isRestricted = isExpired || isSuspended;
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   const fetchNotifications = async (isInitial = false) => {
+    if (isLoadingUser || !user || isRestricted) return; // Skip if loading, no user, or restricted
+
     try {
       if (isInitial) {
         setLoading(true);

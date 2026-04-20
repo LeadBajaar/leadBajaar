@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import {
   Table,
   TableBody,
@@ -129,6 +130,7 @@ interface Company {
   subscription_started_at?: string | null
   expires_at?: string | null
   tags?: string[]
+  is_email_enabled?: boolean
 }
 
 interface PlanFeature {
@@ -694,7 +696,8 @@ export default function SuperAdminPage() {
         plan: editingCompany.plan,
         status: editingCompany.status,
         expires_at: editingCompany.expires_at ? new Date(editingCompany.expires_at).toISOString() : undefined,
-        subscription_started_at: editingCompany.subscription_started_at ? new Date(editingCompany.subscription_started_at).toISOString() : undefined
+        subscription_started_at: editingCompany.subscription_started_at ? new Date(editingCompany.subscription_started_at).toISOString() : undefined,
+        is_email_enabled: editingCompany.is_email_enabled
       })
 
       toast.success("Global Sync Complete", {
@@ -2065,6 +2068,18 @@ export default function SuperAdminPage() {
                       value={editingCompany?.expires_at ? new Date(editingCompany.expires_at).toISOString().split('T')[0] : ''}
                       onChange={(e) => handleEndDateChange(e.target.value)}
                       className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold dark:text-white"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/30 rounded-2xl">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-bold text-slate-900 dark:text-white">Email Feature</Label>
+                      <p className="text-[10px] text-slate-500 font-medium">Enable/Disable platform email sending for this company.</p>
+                    </div>
+                    <Switch 
+                      checked={editingCompany?.is_email_enabled ?? true} 
+                      onCheckedChange={(checked) => setEditingCompany(prev => prev ? { ...prev, is_email_enabled: checked } : null)}
+                      className="data-[state=checked]:bg-indigo-600"
                     />
                   </div>
                 </div>

@@ -136,19 +136,24 @@ export function WebhookConfigDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] h-[85vh] flex flex-col">
-        <DialogHeader className="flex-none">
-          <DialogTitle>
-            {webhookId ? "Edit Webhook" : "Create New Webhook"}
-          </DialogTitle>
-          <DialogDescription>
-            {webhookId
-              ? "Configure your webhook settings and payload mapping."
-              : "Connect a new external source via webhook."}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[700px] h-[80vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl dark:bg-slate-900">
+        <div className="bg-slate-900 dark:bg-slate-950 p-6 text-white flex-none">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                <Webhook className="h-4 w-4 text-indigo-400" />
+              </div>
+              {webhookId ? "Edit Webhook" : "Create New Webhook"}
+            </DialogTitle>
+            <DialogDescription className="text-slate-400 text-sm">
+              {webhookId
+                ? "Configure your webhook settings and payload mapping."
+                : "Connect a new external source via webhook."}
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        <div className="flex-1 overflow-y-auto pr-2">
+        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
           <div className="grid gap-4 mt-2">
             {webhookId && activeWebhook ? (
               <Tabs defaultValue="incoming" className="w-full">
@@ -416,15 +421,11 @@ export function WebhookConfigDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex-none">
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleAction}
+        <DialogFooter className="flex-none p-6 bg-slate-50 dark:bg-slate-800/50 border-t dark:border-slate-800">
+          <Button variant="ghost" className="rounded-xl font-bold dark:text-slate-400" onClick={handleCancel}>Cancel</Button>
+          <Button 
+            className="rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold px-8 shadow-lg shadow-indigo-200 dark:shadow-none"
+            onClick={handleAction} 
             disabled={isConnecting}
           >
             {isConnecting ? (

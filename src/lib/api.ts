@@ -86,6 +86,13 @@ api.interceptors.response.use(
       }
     }
 
+    // Subscription Expired (402)
+    if (parsedError.status === 402) {
+      // The SubscriptionGuard will handle the UI overlay, 
+      // but we can also trigger a toast or log here
+      logger.warn("Subscription Expired", parsedError);
+    }
+
     return Promise.reject(parsedError);
   }
 );
@@ -1544,7 +1551,7 @@ export const adminApi = {
     }
   },
 
-  updateCompany: async (id: number, data: { plan?: string, status?: string, expires_at?: string, subscription_started_at?: string }) => {
+  updateCompany: async (id: number, data: { plan?: string, status?: string, expires_at?: string, subscription_started_at?: string, is_email_enabled?: boolean }) => {
     try {
       const response = await api.patch(`/admin/companies/${id}`, data);
       return response.data;
@@ -1583,6 +1590,15 @@ export const adminApi = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to delete user');
+    }
+  },
+
+  getEmailStats: async () => {
+    try {
+      const response = await api.get('/admin/email-stats');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch email stats');
     }
   },
 

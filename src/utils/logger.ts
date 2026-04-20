@@ -18,6 +18,11 @@ export const logger = {
     if (isDev) {
       console.log(`[LEADBAJAAR INFO] ${message}`, data);
     }
+  },
+  warn: (message: string, data?: any) => {
+    if (isDev) {
+      console.warn(`[LEADBAJAAR WARN] ${message}`, data);
+    }
   }
 };
 

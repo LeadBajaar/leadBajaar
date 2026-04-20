@@ -68,11 +68,13 @@ import {
   Settings,
   Play,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  Mail,
+  Info
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { integrationApi, IntegrationConfig } from "@/lib/api";
+import { api, integrationApi, IntegrationConfig } from "@/lib/api";
 import { useErrorHandler } from "@/utils/useErrorHandler";
 import { useRouter } from "next/navigation";
 import { FacebookOAuthButton } from "@/components/facebook-oauth/FacebookOAuthButton";
@@ -82,6 +84,10 @@ import { FacebookConversionApiManager } from "@/components/facebook-oauth/Facebo
 import { LeadConversionTracker } from "@/components/facebook-oauth/LeadConversionTracker";
 import { ConversionApiTester } from "@/components/facebook-oauth/ConversionApiTester";
 import { WebhookConfigDialog } from "@/components/integrations/WebhookConfigDialog";
+import { EmailConfigDialog } from "@/components/integrations/EmailConfigDialog";
+import { TestEmailDialog } from "@/components/integrations/TestEmailDialog";
+import { UnifiedIntegrationDialog } from "@/components/integrations/UnifiedIntegrationDialog";
+import { IntegrationCard } from "@/components/integrations/IntegrationCard";
 import { DeleteConfirmationModal } from "@/components/shared/DeleteConfirmationModal";
 
 interface WebhookConfig {
@@ -115,6 +121,11 @@ interface ConnectedIntegration {
     pixel_id?: string;
     page_name?: string;
     test_event_code?: string;
+    // Email Marketing fields
+    provider?: string;
+    from_name?: string;
+    from_email?: string;
+    credentials?: any;
     // Add other possible config fields
   };
   metadata: any;
@@ -229,6 +240,21 @@ const integrations: Integration[] = [
     features: ["Incoming Lead Receiver", "Outgoing Dispatcher", "Secure Auth", "Custom Mapping"],
     allowMultiple: true,
   },
+  {
+    id: "email",
+    name: "Email Marketing",
+    icon: Mail,
+    category: "marketing",
+    color: "#4F46E5",
+    description: "Connect SES, SMTP, or Mailgun for automated drip sequences",
+    features: [
+      "Custom SMTP Support",
+      "Amazon SES Integration",
+      "Campaign Analytics",
+      "Sequences Enabled",
+    ],
+    allowMultiple: false,
+  },
 ];
 
 const dummyLogs = [
@@ -281,6 +307,9 @@ export default function IntegrationsPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [webhookToDelete, setWebhookToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [showTestEmailDialog, setShowTestEmailDialog] = useState(false);
+  const [testEmailAddress, setTestEmailAddress] = useState("");
   const [webhooks, setWebhooks] = useState<WebhookConfig[]>([
     {
       id: "1",
@@ -340,6 +369,26 @@ export default function IntegrationsPage() {
   const [isListeningForWebhook, setIsListeningForWebhook] = useState(false);
   const [availablePayloadFields, setAvailablePayloadFields] = useState<{ key: string; value: any }[]>([]);
 
+  const [emailConfig, setEmailConfig] = useState<any>({
+    provider: 'ses',
+    from_name: '',
+    from_email: '',
+    credentials: {},
+    is_active: true
+  });
+
+  const fetchEmailConfig = async () => {
+    try {
+      const res = await (integrationApi as any).get('/email/configurations');
+      if (res.data && res.data.length > 0) {
+        const active = res.data.find((c: any) => c.is_active) || res.data[0];
+        setEmailConfig(active);
+      }
+    } catch (e) {
+      console.warn("Could not fetch email config");
+    }
+  };
+
   useEffect(() => {
     // Select tab based on query parameter
     const urlParams = new URLSearchParams(window.location.search);
@@ -360,6 +409,7 @@ export default function IntegrationsPage() {
       setActiveTab("facebook");
     }
 
+    fetchEmailConfig();
     fetchConnectedIntegrations();
   }, []);
 
@@ -504,7 +554,7 @@ export default function IntegrationsPage() {
   const startListening = async (id: string) => {
     setIsListeningForWebhook(true);
     setAvailablePayloadFields([]);
-    
+
     toast.success("Waiting for test request...");
 
     const pollInterval = setInterval(async () => {
@@ -513,17 +563,17 @@ export default function IntegrationsPage() {
         if (result.log && (result.log.details?.payload || result.log.details)) {
           const payloadData = result.log.details.payload || result.log.details;
           const payload = typeof payloadData === 'string' ? JSON.parse(payloadData) : payloadData;
-          
+
           // Flatten nested structures into dot-notation field paths
           const fields = flattenPayload(payload);
-          
+
           setAvailablePayloadFields(fields);
           setIsListeningForWebhook(false);
           clearInterval(pollInterval);
-          
+
           // Provide first mapping row immediately if none exist
           addFieldMapping(id);
-          
+
           console.log("Captured fields:", fields);
           toast.success(`Webhook captured — ${fields.length} mappable fields detected!`);
         }
@@ -541,10 +591,10 @@ export default function IntegrationsPage() {
     try {
       const config = {
         type: "webhook",
-        config: { 
-          name: webhook.name, 
-          url: webhook.url, 
-          events: webhook.events, 
+        config: {
+          name: webhook.name,
+          url: webhook.url,
+          events: webhook.events,
           mapping: webhook.mapping,
           secret: (webhook as any).secret
         },
@@ -559,7 +609,7 @@ export default function IntegrationsPage() {
         await integrationApi.saveIntegration(config);
         toast.success("Webhook created!");
       }
-      
+
       setShowNewWebhookDialog(false);
       fetchConnectedIntegrations();
     } catch (error: any) {
@@ -681,6 +731,61 @@ export default function IntegrationsPage() {
   //     }
   //   }
   // };
+
+  const handleIntegrationAction = (integration: Integration) => {
+    if (integration.id === "webhook") {
+      setActiveTab("webhooks");
+      return;
+    }
+
+    const connectedIntegration = connectedIntegrations.find(
+      (ci) => ci.type === integration.id,
+    );
+
+    if (connectedIntegration) {
+      if (integration.id === "whatsapp") {
+        setWhatsappConfig({
+          phoneNumberId: connectedIntegration.config.phone_number_id || "",
+          wabaId: connectedIntegration.config.waba_id || "",
+          accessToken: connectedIntegration.config.access_token || "",
+          enableTemplates: connectedIntegration.config.enable_templates || false,
+        });
+      } else if (integration.id === "leadform") {
+        setFacebookConfig({
+          leadFormName: connectedIntegration.config.project_name || "",
+          pageId: connectedIntegration.config.page_id || "",
+          formId: connectedIntegration.config.form_id || "",
+          accessToken: connectedIntegration.config.access_token || "",
+          pixelId: connectedIntegration.config.pixel_id || "",
+          testEventCode: connectedIntegration.config.test_event_code || "",
+        });
+      } else if (integration.id === "facebook_conversion_api") {
+        setFacebookConversionApiConfig({
+          pixelId: connectedIntegration.config.pixel_id || "",
+          accessToken: connectedIntegration.config.access_token || "",
+          pageName: connectedIntegration.config.page_name || "",
+          testEventCode: connectedIntegration.config.test_event_code || "",
+        });
+      } else if (integration.id === "email") {
+        setEmailConfig({
+          id: connectedIntegration.id,
+          provider: connectedIntegration.config.provider || "ses",
+          from_name: connectedIntegration.config.from_name || "",
+          from_email: connectedIntegration.config.from_email || "",
+          credentials: connectedIntegration.config.credentials || {},
+        });
+      }
+    }
+    setSelectedIntegrationId(integration.id);
+  };
+
+  const handleDeactivateRequest = (integrationId: string) => {
+    const connected = connectedIntegrations.find(ci => ci.type === integrationId && ci.is_active);
+    if (connected) {
+      setWebhookToDelete(connected.id.toString());
+      setShowDeleteDialog(true);
+    }
+  };
 
   const handleIntegrationConnect = async () => {
     const type = selectedIntegrationId;
@@ -815,900 +920,563 @@ export default function IntegrationsPage() {
   return (
     <RoleGuard allowedRoles={['Super Admin', 'Admin']} allowedPlans={['pro', 'enterprise']}>
       <div className="w-full h-full overflow-y-auto p-4 md:p-6 lg:p-10">
-      
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="w-full overflow-x-auto no-scrollbar mb-4">
-          <TabsList className="inline-flex w-auto min-w-full">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="facebook">Facebook OAuth</TabsTrigger>
-            <TabsTrigger value="marketing">Marketing</TabsTrigger>
-            <TabsTrigger value="messaging">Messaging</TabsTrigger>
-            <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-            <TabsTrigger value="settings">Integration Settings</TabsTrigger>
-          </TabsList>
-        </div>
-        {[
-          "all",
-          "facebook",
-          "marketing",
-          "messaging",
-          "webhooks",
-          "settings",
-        ].map((category) => (
-          <TabsContent key={category} value={category}>
-            {category === "facebook" ? (
-              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="w-full space-y-8">
-                  <FacebookOAuthButton
-                    onConnect={() => {
-                      // Force a re-fetch of the dashboard data
-                      const dashTitle = document.querySelector(
-                        "h2.text-3xl.font-extrabold",
-                      );
-                      if (dashTitle) {
-                        // Small hack to trigger refresh or just reload the part
-                        window.location.reload();
-                      }
-                    }}
-                  />
-                  <FacebookDashboard />
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="w-full overflow-x-auto no-scrollbar mb-4">
+            <TabsList className="inline-flex w-auto min-w-full">
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="facebook">Facebook OAuth</TabsTrigger>
+              <TabsTrigger value="marketing">Marketing</TabsTrigger>
+              <TabsTrigger value="messaging">Messaging</TabsTrigger>
+              <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+              <TabsTrigger value="settings">Integration Settings</TabsTrigger>
+            </TabsList>
+          </div>
+          {[
+            "all",
+            "facebook",
+            "marketing",
+            "messaging",
+            "webhooks",
+            "settings",
+          ].map((category) => (
+            <TabsContent key={category} value={category}>
+              {category === "facebook" ? (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="w-full space-y-8">
+                    <FacebookOAuthButton
+                      onConnect={() => {
+                        // Force a re-fetch of the dashboard data
+                        const dashTitle = document.querySelector(
+                          "h2.text-3xl.font-extrabold",
+                        );
+                        if (dashTitle) {
+                          // Small hack to trigger refresh or just reload the part
+                          window.location.reload();
+                        }
+                      }}
+                    />
+                    <FacebookDashboard />
+                  </div>
                 </div>
-              </div>
-            ) : category === "marketing" ? (
-              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {integrations
-                    .filter((i) => i.category === "marketing")
-                    .map((integration) => (
-                      <Card key={integration.id} className="flex flex-col">
+              ) : category === "marketing" ? (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {integrations
+                      .filter((i) => i.category === "marketing")
+                      .map((integration) => (
+                        <Card key={integration.id} className="flex flex-col">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                {React.createElement(integration.icon, {
+                                  className: "h-5 w-5",
+                                  style: { color: integration.color },
+                                })}
+                                <CardTitle className="text-lg">{integration.name}</CardTitle>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="flex-1">
+                            <p className="text-sm text-muted-foreground mb-4">{integration.description}</p>
+                          </CardContent>
+                          <CardFooter className="pt-0 flex flex-col gap-2">
+                            {connectedIntegrations.some(
+                              (ci) => ci.type === integration.id && ci.is_active,
+                            ) && (
+                                <div className="flex gap-2 w-full">
+                                  {integration.id === "whatsapp" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="flex-1 text-primary border-primary/20 hover:bg-primary/5"
+                                      onClick={() => router.push("/integrations/whatsapp")}
+                                    >
+                                      Manage WhatsApp
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
+                                    onClick={() => {
+                                      const connected = connectedIntegrations.find(ci => ci.type === integration.id && ci.is_active);
+                                      if (connected) {
+                                        setWebhookToDelete(connected.id.toString());
+                                        setShowDeleteDialog(true);
+                                      }
+                                    }}
+                                  >
+                                    Deactivate
+                                  </Button>
+                                </div>
+                              )}
+                            <Button
+                              variant={
+                                connectedIntegrations.some(
+                                  (ci) => ci.type === integration.id && ci.is_active,
+                                )
+                                  ? "secondary"
+                                  : "default"
+                              }
+                              className="w-full"
+                              onClick={() => {
+                                const connectedIntegration = connectedIntegrations.find(
+                                  (ci) => ci.type === integration.id,
+                                );
+
+                                if (connectedIntegration) {
+                                  if (integration.id === "whatsapp") {
+                                    setWhatsappConfig({
+                                      phoneNumberId: connectedIntegration.config.phone_number_id || "",
+                                      wabaId: connectedIntegration.config.waba_id || "",
+                                      accessToken: connectedIntegration.config.access_token || "",
+                                      enableTemplates: connectedIntegration.config.enable_templates || false,
+                                    });
+                                  } else if (integration.id === "leadform") {
+                                    setFacebookConfig({
+                                      leadFormName: connectedIntegration.config.project_name || "",
+                                      pageId: connectedIntegration.config.page_id || "",
+                                      formId: connectedIntegration.config.form_id || "",
+                                      accessToken: connectedIntegration.config.access_token || "",
+                                      pixelId: connectedIntegration.config.pixel_id || "",
+                                      testEventCode: connectedIntegration.config.test_event_code || "",
+                                    });
+                                  } else if (integration.id === "facebook_conversion_api") {
+                                    setFacebookConversionApiConfig({
+                                      pixelId: connectedIntegration.config.pixel_id || "",
+                                      accessToken: connectedIntegration.config.access_token || "",
+                                      pageName: connectedIntegration.config.page_name || "",
+                                      testEventCode: connectedIntegration.config.test_event_code || "",
+                                    });
+                                  }
+                                }
+                                setSelectedIntegrationId(integration.id);
+                              }}
+                            >
+                              {connectedIntegrations.some(ci => ci.type === integration.id && ci.is_active) ? "Configure Settings" : "Connect Integration"}
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      ))}
+                  </div>
+
+                  {/* Conversion API Management Components */}
+                  <div className="pt-8 border-t">
+                    <div className="mb-6">
+                      <h2 className="text-xl font-bold">Conversion API Management</h2>
+                      <p className="text-sm text-muted-foreground">Manage configurations and track lead events</p>
+                    </div>
+                    <div className="space-y-6">
+                      <FacebookConversionApiManager />
+                      <LeadConversionTracker />
+                      <ConversionApiTester />
+                    </div>
+                  </div>
+                </div>
+              ) : category === "webhooks" ? (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold">Webhooks</h2>
+                      <p className="text-sm text-muted-foreground mt-1">Connect your CRM to external services via incoming or outgoing webhooks.</p>
+                    </div>
+                    <Button onClick={() => setShowNewWebhookDialog(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Webhook
+                    </Button>
+                  </div>
+
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {/* Connect New Webhook Card */}
+                    <Card className="border-dashed border-2 flex flex-col items-center justify-center p-6 text-center hover:bg-muted/50 transition-colors cursor-pointer group" onClick={() => {
+                      setSelectedWebhookId(null);
+                      setShowNewWebhookDialog(true);
+                    }}>
+                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <Plus className="h-6 w-6 text-primary" />
+                      </div>
+                      <h3 className="font-semibold text-lg">Add New Webhook</h3>
+                      <p className="text-sm text-muted-foreground mt-2">Connect another external source or automation tool.</p>
+                      <Button variant="outline" size="sm" className="mt-4">Connect Now</Button>
+                    </Card>
+
+                    {webhooks.map((webhook) => (
+                      <Card key={webhook.id}>
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
-                              {React.createElement(integration.icon, {
-                                className: "h-5 w-5",
-                                style: { color: integration.color },
-                              })}
-                              <CardTitle className="text-lg">{integration.name}</CardTitle>
+                              <Webhook className="h-5 w-5 text-blue-500" />
+                              <CardTitle>{webhook.name}</CardTitle>
+                            </div>
+                            <Switch
+                              checked={webhook.isActive}
+                              onCheckedChange={() => toggleWebhook(webhook.id)}
+                            />
+                          </div>
+                          <CardDescription className="mt-2 text-xs text-muted-foreground">
+                            {webhook.url || "No outgoing URL set"}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div className="p-3 bg-muted/40 rounded-lg border border-transparent hover:border-border transition-all space-y-2">
+                              <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Receiver Endpoint</p>
+                              <div className="flex items-center gap-2">
+                                <code className="text-[10px] truncate flex-1 font-mono text-primary bg-primary/5 p-1 rounded">
+                                  {`.../webhooks/incoming/${(webhook as any).uuid}`}
+                                </code>
+                                <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => {
+                                  navigator.clipboard.writeText(`https://api.leadbajaar.com/api/webhooks/incoming/${(webhook as any).uuid}`);
+                                  toast.success("URL Copied!");
+                                }}>
+                                  <ClipboardCopy className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              {webhook.events.slice(0, 3).map((event) => (
+                                <Badge key={event} variant="secondary" className="text-[10px] px-1.5 py-0">
+                                  {event}
+                                </Badge>
+                              ))}
+                              {webhook.events.length > 3 && (
+                                <Badge variant="outline" className="text-[10px] px-1.5 py-0">+{webhook.events.length - 3} more</Badge>
+                              )}
                             </div>
                           </div>
-                        </CardHeader>
-                        <CardContent className="flex-1">
-                          <p className="text-sm text-muted-foreground mb-4">{integration.description}</p>
                         </CardContent>
-                        <CardFooter className="pt-0 flex flex-col gap-2">
-                          {connectedIntegrations.some(
-                            (ci) => ci.type === integration.id && ci.is_active,
-                          ) && (
-                            <div className="flex gap-2 w-full">
-                              {integration.id === "whatsapp" && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="flex-1 text-primary border-primary/20 hover:bg-primary/5"
-                                  onClick={() => router.push("/integrations/whatsapp")}
-                                >
-                                  Manage WhatsApp
-                                </Button>
-                              )}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="flex-1 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
-                                onClick={() => {
-                                  const connected = connectedIntegrations.find(ci => ci.type === integration.id && ci.is_active);
-                                  if (connected) { 
-                                    setWebhookToDelete(connected.id.toString()); 
-                                    setShowDeleteDialog(true); 
-                                  }
-                                }}
-                              >
-                                Deactivate
-                              </Button>
-                            </div>
-                          )}
-                          <Button 
-                            variant={
-                              connectedIntegrations.some(
-                                (ci) => ci.type === integration.id && ci.is_active,
-                              )
-                                ? "secondary"
-                                : "default"
-                            }
-                            className="w-full"
+                        <CardFooter className="flex justify-between pt-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:text-red-600 hover:bg-red-50 h-8"
                             onClick={() => {
-                              const connectedIntegration = connectedIntegrations.find(
-                                (ci) => ci.type === integration.id,
-                              );
-
-                              if (connectedIntegration) {
-                                if (integration.id === "whatsapp") {
-                                  setWhatsappConfig({
-                                    phoneNumberId: connectedIntegration.config.phone_number_id || "",
-                                    wabaId: connectedIntegration.config.waba_id || "",
-                                    accessToken: connectedIntegration.config.access_token || "",
-                                    enableTemplates: connectedIntegration.config.enable_templates || false,
-                                  });
-                                } else if (integration.id === "leadform") {
-                                  setFacebookConfig({
-                                    leadFormName: connectedIntegration.config.project_name || "",
-                                    pageId: connectedIntegration.config.page_id || "",
-                                    formId: connectedIntegration.config.form_id || "",
-                                    accessToken: connectedIntegration.config.access_token || "",
-                                    pixelId: connectedIntegration.config.pixel_id || "",
-                                    testEventCode: connectedIntegration.config.test_event_code || "",
-                                  });
-                                } else if (integration.id === "facebook_conversion_api") {
-                                  setFacebookConversionApiConfig({
-                                    pixelId: connectedIntegration.config.pixel_id || "",
-                                    accessToken: connectedIntegration.config.access_token || "",
-                                    pageName: connectedIntegration.config.page_name || "",
-                                    testEventCode: connectedIntegration.config.test_event_code || "",
-                                  });
-                                }
-                              }
-                              setSelectedIntegrationId(integration.id);
+                              setWebhookToDelete(webhook.id);
+                              setShowDeleteDialog(true);
                             }}
                           >
-                            {connectedIntegrations.some(ci => ci.type === integration.id && ci.is_active) ? "Configure Settings" : "Connect Integration"}
+                            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                            Delete
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 hover:bg-primary/5 hover:text-primary hover:border-primary/30"
+                            onClick={() => {
+                              setSelectedWebhookId(webhook.id);
+                              setShowNewWebhookDialog(true);
+                            }}
+                          >
+                            <Settings className="h-3.5 w-3.5 mr-1.5" />
+                            Configure
                           </Button>
                         </CardFooter>
                       </Card>
                     ))}
-                </div>
-
-                {/* Conversion API Management Components */}
-                <div className="pt-8 border-t">
-                  <div className="mb-6">
-                    <h2 className="text-xl font-bold">Conversion API Management</h2>
-                    <p className="text-sm text-muted-foreground">Manage configurations and track lead events</p>
-                  </div>
-                  <div className="space-y-6">
-                    <FacebookConversionApiManager />
-                    <LeadConversionTracker />
-                    <ConversionApiTester />
                   </div>
                 </div>
-              </div>
-            ) : category === "webhooks" ? (
-              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold">Webhooks</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Connect your CRM to external services via incoming or outgoing webhooks.</p>
-                  </div>
-                  <Button onClick={() => setShowNewWebhookDialog(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Webhook
-                  </Button>
-                </div>
-
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {/* Connect New Webhook Card */}
-                  <Card className="border-dashed border-2 flex flex-col items-center justify-center p-6 text-center hover:bg-muted/50 transition-colors cursor-pointer group" onClick={() => {
-                    setSelectedWebhookId(null);
-                    setShowNewWebhookDialog(true);
-                  }}>
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <Plus className="h-6 w-6 text-primary" />
-                    </div>
-                    <h3 className="font-semibold text-lg">Add New Webhook</h3>
-                    <p className="text-sm text-muted-foreground mt-2">Connect another external source or automation tool.</p>
-                    <Button variant="outline" size="sm" className="mt-4">Connect Now</Button>
-                  </Card>
-
-                  {webhooks.map((webhook) => (
-                    <Card key={webhook.id}>
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <Webhook className="h-5 w-5 text-blue-500" />
-                            <CardTitle>{webhook.name}</CardTitle>
-                          </div>
-                          <Switch
-                            checked={webhook.isActive}
-                            onCheckedChange={() => toggleWebhook(webhook.id)}
-                          />
-                        </div>
-                        <CardDescription className="mt-2 text-xs text-muted-foreground">
-                          {webhook.url || "No outgoing URL set"}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="p-3 bg-muted/40 rounded-lg border border-transparent hover:border-border transition-all space-y-2">
-                            <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Receiver Endpoint</p>
-                            <div className="flex items-center gap-2">
-                              <code className="text-[10px] truncate flex-1 font-mono text-primary bg-primary/5 p-1 rounded">
-                                {`.../webhooks/incoming/${(webhook as any).uuid}`}
-                              </code>
-                              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => {
-                                navigator.clipboard.writeText(`https://api.leadbajaar.com/api/webhooks/incoming/${(webhook as any).uuid}`);
-                                toast.success("URL Copied!");
-                              }}>
-                                <ClipboardCopy className="h-3 w-3" />
-                              </Button>
+              ) : category === "settings" ? (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <h2 className="text-2xl font-bold mb-4">
+                    Integration Settings
+                  </h2>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="item-1">
+                          <AccordionTrigger>Data Sync Frequency</AccordionTrigger>
+                          <AccordionContent>
+                            <div className="space-y-2">
+                              <Label htmlFor="sync-frequency">Sync every</Label>
+                              <Select>
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select frequency" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="15">15 minutes</SelectItem>
+                                  <SelectItem value="30">30 minutes</SelectItem>
+                                  <SelectItem value="60">1 hour</SelectItem>
+                                  <SelectItem value="360">6 hours</SelectItem>
+                                  <SelectItem value="720">12 hours</SelectItem>
+                                  <SelectItem value="1440">24 hours</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
-                          </div>
-                          
-                          <div className="flex flex-wrap gap-1.5 pt-1">
-                            {webhook.events.slice(0, 3).map((event) => (
-                              <Badge key={event} variant="secondary" className="text-[10px] px-1.5 py-0">
-                                {event}
-                              </Badge>
-                            ))}
-                            {webhook.events.length > 3 && (
-                              <Badge variant="outline" className="text-[10px] px-1.5 py-0">+{webhook.events.length - 3} more</Badge>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="flex justify-between pt-0">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-500 hover:text-red-600 hover:bg-red-50 h-8"
-                          onClick={() => {
-                            setWebhookToDelete(webhook.id);
-                            setShowDeleteDialog(true);
-                          }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                          Delete
-                        </Button>
-                        <Button 
-                          variant="outline"
-                          size="sm"
-                          className="h-8 hover:bg-primary/5 hover:text-primary hover:border-primary/30"
-                          onClick={() => {
-                            setSelectedWebhookId(webhook.id);
-                            setShowNewWebhookDialog(true);
-                          }}
-                        >
-                          <Settings className="h-3.5 w-3.5 mr-1.5" />
-                          Configure
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            ) : category === "settings" ? (
-              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h2 className="text-2xl font-bold mb-4">
-                  Integration Settings
-                </h2>
-                <Card>
-                  <CardContent className="pt-6">
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="item-1">
-                        <AccordionTrigger>Data Sync Frequency</AccordionTrigger>
-                        <AccordionContent>
-                          <div className="space-y-2">
-                            <Label htmlFor="sync-frequency">Sync every</Label>
-                            <Select>
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select frequency" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="15">15 minutes</SelectItem>
-                                <SelectItem value="30">30 minutes</SelectItem>
-                                <SelectItem value="60">1 hour</SelectItem>
-                                <SelectItem value="360">6 hours</SelectItem>
-                                <SelectItem value="720">12 hours</SelectItem>
-                                <SelectItem value="1440">24 hours</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                      <AccordionItem value="item-2">
-                        <AccordionTrigger>Data Mapping</AccordionTrigger>
-                        <AccordionContent>
-                          <p className="mb-4">
-                            Configure how data fields from integrated services
-                            map to your CRM fields.
-                          </p>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button>Configure Mapping</Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[625px]">
-                              <DialogHeader>
-                                <DialogTitle>
-                                  Data Mapping Configuration
-                                </DialogTitle>
-                                <DialogDescription>
-                                  Map fields from your integrated services to
-                                  your CRM fields.
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="grid gap-4 py-4">
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label
-                                    htmlFor="sourceField"
-                                    className="text-right"
-                                  >
-                                    Source Field
-                                  </Label>
-                                  <Select>
-                                    <SelectTrigger className="w-full col-span-3">
-                                      <SelectValue placeholder="Select source field" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="name">Name</SelectItem>
-                                      <SelectItem value="email">
-                                        Email
-                                      </SelectItem>
-                                      <SelectItem value="phone">
-                                        Phone
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
+                          </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="item-2">
+                          <AccordionTrigger>Data Mapping</AccordionTrigger>
+                          <AccordionContent>
+                            <p className="mb-4">
+                              Configure how data fields from integrated services
+                              map to your CRM fields.
+                            </p>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button>Configure Mapping</Button>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-[625px]">
+                                <DialogHeader>
+                                  <DialogTitle>
+                                    Data Mapping Configuration
+                                  </DialogTitle>
+                                  <DialogDescription>
+                                    Map fields from your integrated services to
+                                    your CRM fields.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                  <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label
+                                      htmlFor="sourceField"
+                                      className="text-right"
+                                    >
+                                      Source Field
+                                    </Label>
+                                    <Select>
+                                      <SelectTrigger className="w-full col-span-3">
+                                        <SelectValue placeholder="Select source field" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="name">Name</SelectItem>
+                                        <SelectItem value="email">
+                                          Email
+                                        </SelectItem>
+                                        <SelectItem value="phone">
+                                          Phone
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label
+                                      htmlFor="targetField"
+                                      className="text-right"
+                                    >
+                                      Target Field
+                                    </Label>
+                                    <Select>
+                                      <SelectTrigger className="w-full col-span-3">
+                                        <SelectValue placeholder="Select target field" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="fullName">
+                                          Full Name
+                                        </SelectItem>
+                                        <SelectItem value="emailAddress">
+                                          Email Address
+                                        </SelectItem>
+                                        <SelectItem value="phoneNumber">
+                                          Phone Number
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
                                 </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label
-                                    htmlFor="targetField"
-                                    className="text-right"
-                                  >
-                                    Target Field
-                                  </Label>
-                                  <Select>
-                                    <SelectTrigger className="w-full col-span-3">
-                                      <SelectValue placeholder="Select target field" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="fullName">
-                                        Full Name
-                                      </SelectItem>
-                                      <SelectItem value="emailAddress">
-                                        Email Address
-                                      </SelectItem>
-                                      <SelectItem value="phoneNumber">
-                                        Phone Number
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
-                              <DialogFooter>
-                                <Button type="submit">Save mapping</Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
-                        </AccordionContent>
-                      </AccordionItem>
-                      <AccordionItem value="item-3">
-                        <AccordionTrigger>Integration Logs</AccordionTrigger>
-                        <AccordionContent>
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Integration</TableHead>
-                                <TableHead>Action</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Timestamp</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {dummyLogs.map((log) => (
-                                <TableRow key={log.id}>
-                                  <TableCell>
-                                    <div className="flex items-center gap-2">
-                                      {Icons[
-                                        log.integration.toLowerCase() as keyof typeof Icons
-                                      ] ? (
-                                        React.createElement(
-                                          Icons[
-                                            log.integration.toLowerCase() as keyof typeof Icons
-                                          ],
-                                          {
-                                            className: "h-4 w-4",
-                                            style: {
-                                              color: integrations.find(
-                                                (i) =>
-                                                  i.name.toLowerCase() ===
-                                                  log.integration.toLowerCase(),
-                                              )?.color,
-                                            },
-                                          },
-                                        )
-                                      ) : (
-                                        <div className="h-4 w-4" />
-                                      )}
-                                      {log.integration}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    <div className="flex items-center gap-2">
-                                      {React.createElement(log.icon, {
-                                        className: "h-4 w-4 text-gray-500",
-                                      })}
-                                      {log.action}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    <div className="flex items-center gap-2">
-                                      {log.status === "Success" ? (
-                                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 flex items-center gap-1">
-                                          <CheckCircle2 className="h-3 w-3" />
-                                          Success
-                                        </Badge>
-                                      ) : (
-                                        <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 flex items-center gap-1">
-                                          <XCircle className="h-3 w-3" />
-                                          Failed
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="text-gray-500">
-                                    {log.timestamp}
-                                  </TableCell>
+                                <DialogFooter>
+                                  <Button type="submit">Save mapping</Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="item-3">
+                          <AccordionTrigger>Integration Logs</AccordionTrigger>
+                          <AccordionContent>
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Integration</TableHead>
+                                  <TableHead>Action</TableHead>
+                                  <TableHead>Status</TableHead>
+                                  <TableHead>Timestamp</TableHead>
                                 </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </CardContent>
-                </Card>
-              </div>
-            ) : (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {integrations
-                  .filter(
-                    (integration) =>
-                      category === "all" || integration.category === category,
-                  )
-                  .map((integration) => (
-                    <Card key={integration.id} className="flex flex-col">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            {React.createElement(integration.icon, {
-                              className: "h-5 w-5",
-                              style: { color: integration.color },
-                            })}
-                            <CardTitle className="text-lg">
-                              {integration.name}
-                            </CardTitle>
-                          </div>
-                          {connectedIntegrations.some(
-                            (ci) => ci.type === integration.id && ci.is_active,
-                          ) && (
-                            <Badge
-                              variant="secondary"
-                              className="flex gap-1 items-center"
-                            >
-                              <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                              Connected
-                              {integration.allowMultiple && (
-                                <span className="ml-1 text-xs">
-                                  (
-                                  {
-                                    connectedIntegrations.filter(
-                                      (ci) =>
-                                        ci.type === integration.id &&
-                                        ci.is_active,
-                                    ).length
-                                  }
-                                  )
-                                </span>
-                              )}
-                            </Badge>
-                          )}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="flex-1">
-                        <p className="text-sm text-muted-foreground mb-4">
-                          {integration.description}
-                        </p>
-                        <div className="flex flex-wrap gap-1 mb-4">
-                          {integration.features.map((feature) => (
-                            <Badge
-                              key={feature}
-                              variant="secondary"
-                              className="text-xs font-normal"
-                            >
-                              {feature}
-                            </Badge>
-                          ))}
-                        </div>
-                      </CardContent>
-                      <CardFooter className="pt-0 flex flex-col gap-2">
-                        {connectedIntegrations.some(
-                          (ci) => ci.type === integration.id && ci.is_active,
-                        ) && (
-                          <div className="flex gap-2 w-full">
-                            {integration.id === "whatsapp" && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="flex-1 text-primary border-primary/20 hover:bg-primary/5"
-                                onClick={() => router.push("/integrations/whatsapp")}
-                              >
-                                Manage WhatsApp
-                              </Button>
-                            )}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
-                              onClick={() => {
-                                const connected = connectedIntegrations.find(ci => ci.type === integration.id && ci.is_active);
-                                if (connected) {
-                                  setWebhookToDelete(connected.id.toString());
-                                  setShowDeleteDialog(true);
-                                }
-                              }}
-                            >
-                              Deactivate
-                            </Button>
-                          </div>
-                        )}
-                        <Button
-                          variant={
-                            connectedIntegrations.some(
-                              (ci) => ci.type === integration.id && ci.is_active,
-                            )
-                              ? "secondary"
-                              : "default"
-                          }
-                          className="w-full"
-                          onClick={() => {
-                            if (integration.id === "webhook") {
-                              setActiveTab("webhooks");
-                              return;
-                            }
-
-                            const connectedIntegration = connectedIntegrations.find(
-                              (ci) => ci.type === integration.id,
-                            );
-
-                            if (connectedIntegration) {
-                              if (integration.id === "whatsapp") {
-                                setWhatsappConfig({
-                                  phoneNumberId: connectedIntegration.config.phone_number_id || "",
-                                  wabaId: connectedIntegration.config.waba_id || "",
-                                  accessToken: connectedIntegration.config.access_token || "",
-                                  enableTemplates: connectedIntegration.config.enable_templates || false,
-                                });
-                              } else if (integration.id === "leadform") {
-                                setFacebookConfig({
-                                  leadFormName: connectedIntegration.config.project_name || "",
-                                  pageId: connectedIntegration.config.page_id || "",
-                                  formId: connectedIntegration.config.form_id || "",
-                                  accessToken: connectedIntegration.config.access_token || "",
-                                  pixelId: connectedIntegration.config.pixel_id || "",
-                                  testEventCode: connectedIntegration.config.test_event_code || "",
-                                });
-                              } else if (integration.id === "facebook_conversion_api") {
-                                setFacebookConversionApiConfig({
-                                  pixelId: connectedIntegration.config.pixel_id || "",
-                                  accessToken: connectedIntegration.config.access_token || "",
-                                  pageName: connectedIntegration.config.page_name || "",
-                                  testEventCode: connectedIntegration.config.test_event_code || "",
-                                });
-                              }
-                            }
-                            setSelectedIntegrationId(integration.id);
-                          }}
-                        >
-                          {connectedIntegrations.some(
-                            (ci) => ci.type === integration.id && ci.is_active,
-                          )
-                            ? "Configure Settings"
-                            : "Connect Integration"}
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-              </div>
-            )}
-          </TabsContent>
-        ))}
-      </Tabs>
-
-      <WebhookConfigDialog
-        isOpen={showNewWebhookDialog}
-        onOpenChange={setShowNewWebhookDialog}
-        webhookId={selectedWebhookId}
-        webhooks={webhooks}
-        newWebhook={newWebhook}
-        setNewWebhook={setNewWebhook}
-        setWebhooks={setWebhooks}
-        isConnecting={isConnecting}
-        isListening={isListeningForWebhook}
-        availableFields={availablePayloadFields}
-        onSave={saveWebhookConfig}
-        onAdd={addWebhook}
-        startListening={startListening}
-        addFieldMapping={addFieldMapping}
-        updateFieldMapping={updateFieldMapping}
-        removeFieldMapping={removeFieldMapping}
-      />
-
-      {/* Unified Integration Config Dialog for all other services */}
-      <Dialog
-        open={!!selectedIntegrationId && selectedIntegrationId !== "webhook"}
-        onOpenChange={(open) => !open && setSelectedIntegrationId(null)}
-      >
-        <DialogContent className="sm:max-w-[700px] h-[85vh] flex flex-col">
-          <DialogHeader className="flex-none">
-            <DialogTitle>
-              {integrations.find(i => i.id === selectedIntegrationId)?.name} Configuration
-            </DialogTitle>
-            <DialogDescription>
-              Configure your credentials and settings for this integration.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex-1 overflow-y-auto pr-2">
-
-            <div className="space-y-6">
-              {selectedIntegrationId === "whatsapp" ? (
-                <div className="grid gap-4">
-                  <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 space-y-4 mb-2">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-bold uppercase text-primary flex items-center gap-2 tracking-wider">
-                        <Globe className="h-3.5 w-3.5" /> WhatsApp Webhook Configuration
-                      </Label>
-                      <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[10px]">Meta Dashboard Setup</Badge>
-                    </div>
-                    
-                    <div className="space-y-3 pt-2">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] text-muted-foreground uppercase font-bold ml-1">Cloud API Webhook URL</Label>
-                        <div className="flex items-center gap-2">
-                          <code className="text-[11px] p-2.5 bg-background border rounded-lg flex-1 font-mono break-all whitespace-normal shadow-sm">
-                            {`https://api.leadbajaar.com/api/webhook/whatsapp?id=${currentUserId}`}
-                          </code>
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            className="shrink-0 h-9 w-9" 
-                            onClick={() => {
-                              navigator.clipboard.writeText(`https://api.leadbajaar.com/api/webhook/whatsapp?id=${currentUserId}`);
-                              toast.success("Webhook URL Copied!");
-                            }}
-                          >
-                            <ClipboardCopy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="text-[10px] text-muted-foreground uppercase font-bold ml-1">Verify Token</Label>
-                        <div className="flex items-center gap-2">
-                          <code className="text-[11px] p-2.5 bg-background border rounded-lg flex-1 font-mono shadow-sm">
-                            123abc
-                          </code>
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            className="shrink-0 h-9 w-9" 
-                            onClick={() => {
-                              navigator.clipboard.writeText("123abc");
-                              toast.success("Verify Token Copied!");
-                            }}
-                          >
-                            <ClipboardCopy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-2 pt-1">
-                      <div className="h-5 w-5 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
-                        <ShieldCheck className="h-3 w-3 text-blue-600" />
-                      </div>
-                      <p className="text-[10px] text-muted-foreground leading-relaxed">
-                        Copy these values into your Meta Developer Dashboard under <strong>WhatsApp → Configuration</strong> to enable messaging features.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Phone Number ID</Label>
-                    <Input
-                      placeholder="Enter Phone Number ID"
-                      value={whatsappConfig.phoneNumberId}
-                      onChange={(e) => setWhatsappConfig({...whatsappConfig, phoneNumberId: e.target.value})}
-                      className={cn(configErrors.phoneNumberId && "border-red-500")}
-                    />
-                    {configErrors.phoneNumberId && <p className="text-xs text-red-500">{configErrors.phoneNumberId}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label>WABA ID</Label>
-                    <Input
-                      placeholder="Enter WABA ID"
-                      value={whatsappConfig.wabaId}
-                      onChange={(e) => setWhatsappConfig({...whatsappConfig, wabaId: e.target.value})}
-                      className={cn(configErrors.wabaId && "border-red-500")}
-                    />
-                    {configErrors.wabaId && <p className="text-xs text-red-500">{configErrors.wabaId}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Access Token</Label>
-                    <Input
-                      type="password"
-                      placeholder="Enter Access Token"
-                      value={whatsappConfig.accessToken}
-                      onChange={(e) => setWhatsappConfig({...whatsappConfig, accessToken: e.target.value})}
-                      className={cn(configErrors.accessToken && "border-red-500")}
-                    />
-                    {configErrors.accessToken && <p className="text-xs text-red-500">{configErrors.accessToken}</p>}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="enable-templates-unified"
-                      checked={whatsappConfig.enableTemplates}
-                      onCheckedChange={(checked) => setWhatsappConfig({...whatsappConfig, enableTemplates: checked})}
-                    />
-                    <Label htmlFor="enable-templates-unified">Enable Message Templates</Label>
-                  </div>
-                </div>
-              ) : (selectedIntegrationId === "leadform" || selectedIntegrationId === "facebook") ? (
-                <div className="grid gap-4">
-                  <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 space-y-4 mb-2">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-bold uppercase text-primary flex items-center gap-2 tracking-wider">
-                        <Globe className="h-3.5 w-3.5" /> Facebook Lead Form Webhook
-                      </Label>
-                      <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[10px]">Meta Dashboard Setup</Badge>
-                    </div>
-                    
-                    <div className="space-y-3 pt-2">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] text-muted-foreground uppercase font-bold ml-1">Webhook URL</Label>
-                        <div className="flex items-center gap-2">
-                          <code className="text-[11px] p-2.5 bg-background border rounded-lg flex-1 font-mono break-all whitespace-normal shadow-sm">
-                            {`https://api.leadbajaar.com/api/webhook/leadform?id=${currentUserId}`}
-                          </code>
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            className="shrink-0 h-9 w-9" 
-                            onClick={() => {
-                              navigator.clipboard.writeText(`https://api.leadbajaar.com/api/webhook/leadform?id=${currentUserId}`);
-                              toast.success("Lead Form URL Copied!");
-                            }}
-                          >
-                            <ClipboardCopy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="text-[10px] text-muted-foreground uppercase font-bold ml-1">Verify Token</Label>
-                        <div className="flex items-center gap-2">
-                          <code className="text-[11px] p-2.5 bg-background border rounded-lg flex-1 font-mono shadow-sm">
-                            123abc
-                          </code>
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            className="shrink-0 h-9 w-9" 
-                            onClick={() => {
-                              navigator.clipboard.writeText("123abc");
-                              toast.success("Verify Token Copied!");
-                            }}
-                          >
-                            <ClipboardCopy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-2 pt-1">
-                      <div className="h-5 w-5 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
-                        <ShieldCheck className="h-3 w-3 text-blue-600" />
-                      </div>
-                      <p className="text-[10px] text-muted-foreground leading-relaxed">
-                        Copy these values into your Meta Developer Dashboard under <strong>Webhooks → Leadgen</strong> to enable real-time lead capture.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Lead Form Name</Label>
-                    <Input
-                      placeholder="Enter Project Name"
-                      value={facebookConfig.leadFormName}
-                      onChange={(e) => setFacebookConfig({...facebookConfig, leadFormName: e.target.value})}
-                      className={cn(configErrors.leadFormName && "border-red-500")}
-                    />
-                    {configErrors.leadFormName && <p className="text-xs text-red-500">{configErrors.leadFormName}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Page ID</Label>
-                    <Input
-                      placeholder="Enter Page ID"
-                      value={facebookConfig.pageId}
-                      onChange={(e) => setFacebookConfig({...facebookConfig, pageId: e.target.value})}
-                      className={cn(configErrors.pageId && "border-red-500")}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Form ID</Label>
-                    <Input
-                      placeholder="Enter Form ID"
-                      value={facebookConfig.formId}
-                      onChange={(e) => setFacebookConfig({...facebookConfig, formId: e.target.value})}
-                      className={cn(configErrors.formId && "border-red-500")}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Access Token</Label>
-                    <Input
-                      type="password"
-                      placeholder="Enter Access Token"
-                      value={facebookConfig.accessToken}
-                      onChange={(e) => setFacebookConfig({...facebookConfig, accessToken: e.target.value})}
-                      className={cn(configErrors.fbAccessToken && "border-red-500")}
-                    />
-                  </div>
-                </div>
-              ) : selectedIntegrationId === "facebook_conversion_api" ? (
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <Label>Pixel ID</Label>
-                    <Input
-                      placeholder="Enter Pixel ID"
-                      value={facebookConversionApiConfig.pixelId}
-                      onChange={(e) => setFacebookConversionApiConfig({...facebookConversionApiConfig, pixelId: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Page Name</Label>
-                    <Input
-                      placeholder="Enter Page Name"
-                      value={facebookConversionApiConfig.pageName}
-                      onChange={(e) => setFacebookConversionApiConfig({...facebookConversionApiConfig, pageName: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Access Token</Label>
-                    <Input
-                      type="password"
-                      placeholder="Enter Access Token"
-                      value={facebookConversionApiConfig.accessToken}
-                      onChange={(e) => setFacebookConversionApiConfig({...facebookConversionApiConfig, accessToken: e.target.value})}
-                    />
-                  </div>
+                              </TableHeader>
+                              <TableBody>
+                                {dummyLogs.map((log) => (
+                                  <TableRow key={log.id}>
+                                    <TableCell>
+                                      <div className="flex items-center gap-2">
+                                        {Icons[
+                                          log.integration.toLowerCase() as keyof typeof Icons
+                                        ] ? (
+                                          React.createElement(
+                                            Icons[
+                                            log.integration.toLowerCase() as keyof typeof Icons
+                                            ],
+                                            {
+                                              className: "h-4 w-4",
+                                              style: {
+                                                color: integrations.find(
+                                                  (i) =>
+                                                    i.name.toLowerCase() ===
+                                                    log.integration.toLowerCase(),
+                                                )?.color,
+                                              },
+                                            },
+                                          )
+                                        ) : (
+                                          <div className="h-4 w-4" />
+                                        )}
+                                        {log.integration}
+                                      </div>
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center gap-2">
+                                        {React.createElement(log.icon, {
+                                          className: "h-4 w-4 text-gray-500",
+                                        })}
+                                        {log.action}
+                                      </div>
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center gap-2">
+                                        {log.status === "Success" ? (
+                                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 flex items-center gap-1">
+                                            <CheckCircle2 className="h-3 w-3" />
+                                            Success
+                                          </Badge>
+                                        ) : (
+                                          <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 flex items-center gap-1">
+                                            <XCircle className="h-3 w-3" />
+                                            Failed
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-gray-500">
+                                      {log.timestamp}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </CardContent>
+                  </Card>
                 </div>
               ) : (
-                <div className="grid gap-4">
-                  <p className="text-sm text-muted-foreground">Standard configuration for this service.</p>
-                  <div className="space-y-2">
-                    <Label>API Key / Token</Label>
-                    <Input type="password" placeholder="Enter API Key" />
-                  </div>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {integrations
+                    .filter(
+                      (integration) =>
+                        category === "all" || integration.category === category,
+                    )
+                    .map((integration) => (
+                      <IntegrationCard
+                        key={integration.id}
+                        integration={integration}
+                        connectedIntegrations={connectedIntegrations}
+                        onAction={handleIntegrationAction}
+                        onDeactivate={handleDeactivateRequest}
+                      />
+                    ))}
                 </div>
               )}
-            </div>
-          </div>
+              {/* </div> */}
+            </TabsContent>
+          ))}
+        </Tabs>
 
-          <DialogFooter className="flex-none">
-            <Button variant="outline" onClick={() => setSelectedIntegrationId(null)}>Cancel</Button>
-            <Button onClick={handleIntegrationConnect} disabled={isConnecting}>
-              {isConnecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Save Configuration"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <DeleteConfirmationModal 
-        isOpen={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        onConfirm={deleteWebhook}
-        isLoading={isDeleting}
-        title="Deactivate Integration"
-        description="Are you sure you want to deactivate this integration? This action can be undone later by re-connecting from the integrations gallery."
-        confirmText="Confirm Deactivation"
-      />
-    </div>
+        <EmailConfigDialog
+          isOpen={selectedIntegrationId === "email"}
+          onOpenChange={(open) => !open && setSelectedIntegrationId(null)}
+          emailConfig={emailConfig}
+          setEmailConfig={setEmailConfig}
+          onSave={async () => {
+            try {
+              setIsConnecting(true);
+              const method = (emailConfig as any).id ? 'put' : 'post';
+              const url = (emailConfig as any).id ? `/email/configurations/${(emailConfig as any).id}` : '/email/configurations';
+              await api[method](url, emailConfig);
+              toast.success('Email integration synchronized!');
+              setSelectedIntegrationId(null);
+              fetchEmailConfig();
+              fetchConnectedIntegrations();
+            } catch (e) {
+              toast.error('Synchronization failed');
+            } finally {
+              setIsConnecting(false);
+            }
+          }}
+          onSendTest={() => setShowTestEmailDialog(true)}
+          isConnecting={isConnecting}
+        />
+
+        <TestEmailDialog
+          isOpen={showTestEmailDialog}
+          onOpenChange={setShowTestEmailDialog}
+          email={testEmailAddress}
+          setEmail={setTestEmailAddress}
+          onSend={async () => {
+            if (!testEmailAddress) {
+              toast.error('Email is required');
+              return;
+            }
+            try {
+              setIsConnecting(true);
+              await api.post('/email/configurations/test', { email: testEmailAddress });
+              toast.success('Professional test email dispatched!');
+              setShowTestEmailDialog(false);
+            } catch (e) {
+              toast.error('Test dispatch failed');
+            } finally {
+              setIsConnecting(false);
+            }
+          }}
+          isConnecting={isConnecting}
+        />
+
+        <WebhookConfigDialog
+          isOpen={showNewWebhookDialog}
+          onOpenChange={setShowNewWebhookDialog}
+          webhookId={selectedWebhookId}
+          webhooks={webhooks}
+          newWebhook={newWebhook}
+          setNewWebhook={setNewWebhook}
+          setWebhooks={setWebhooks}
+          isConnecting={isConnecting}
+          isListening={isListeningForWebhook}
+          availableFields={availablePayloadFields}
+          onSave={saveWebhookConfig}
+          onAdd={addWebhook}
+          startListening={startListening}
+          addFieldMapping={addFieldMapping}
+          updateFieldMapping={updateFieldMapping}
+          removeFieldMapping={removeFieldMapping}
+        />
+
+        <UnifiedIntegrationDialog
+          isOpen={!!selectedIntegrationId && selectedIntegrationId !== "webhook" && selectedIntegrationId !== "email"}
+          onOpenChange={(open) => !open && setSelectedIntegrationId(null)}
+          selectedIntegrationId={selectedIntegrationId}
+          integrations={integrations}
+          currentUserId={currentUserId}
+          whatsappConfig={whatsappConfig}
+          setWhatsappConfig={setWhatsappConfig}
+          facebookConfig={facebookConfig}
+          setFacebookConfig={setFacebookConfig}
+          facebookConversionApiConfig={facebookConversionApiConfig}
+          setFacebookConversionApiConfig={setFacebookConversionApiConfig}
+          configErrors={configErrors}
+          isConnecting={isConnecting}
+          onSave={handleIntegrationConnect}
+        />
+        <DeleteConfirmationModal
+          isOpen={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          onConfirm={deleteWebhook}
+          isLoading={isDeleting}
+          title="Deactivate Integration"
+          description="Are you sure you want to deactivate this integration? This action can be undone later by re-connecting from the integrations gallery."
+          confirmText="Confirm Deactivation"
+        />
+      </div>
     </RoleGuard>
   );
 }

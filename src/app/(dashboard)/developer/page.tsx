@@ -13,7 +13,8 @@ import {
     ExternalLink,
     BookOpen,
     Terminal,
-    Server
+    Server,
+    Mail
 } from 'lucide-react'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
@@ -68,6 +69,14 @@ const features = [
         href: '/developer/security',
         color: 'rose',
         badge: 'Certified'
+    },
+    {
+        title: 'Email & Marketing Automation',
+        description: 'Design multi-step omnichannel drip sequences. Track CAPI attribution and manage global SES delivery infrastructure.',
+        icon: Mail,
+        href: '/developer/automations-guide',
+        color: 'blue',
+        badge: 'New & Live'
     }
 ]
 
