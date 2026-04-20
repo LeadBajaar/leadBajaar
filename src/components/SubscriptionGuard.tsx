@@ -156,7 +156,7 @@ export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
               <Button 
                 variant="ghost" 
                 className="flex-1 h-9 sm:h-10 text-slate-500 dark:text-slate-400 font-black rounded-lg sm:rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-[8px] sm:text-[10px] uppercase tracking-widest px-1"
-                onClick={() => window.location.href = 'https://wa.me/918952904106'}
+                onClick={() => window.location.href = 'https://wa.me/916376148776'}
               >
                 <Phone className="h-3.5 w-3.5 mr-1.5 sm:mr-2" /> WhatsApp
               </Button>
