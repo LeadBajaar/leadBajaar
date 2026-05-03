@@ -5,6 +5,7 @@ export interface EventType {
   duration: number
   slot_interval?: number
   location: string
+  redirect_url?: string
   questions: Question[]
   scheduling: {
     bufferBefore: number

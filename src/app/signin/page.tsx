@@ -61,16 +61,16 @@ export default function LoginPage() {
 
       await login(email, password)
       toast.success("Welcome back!")
+      // We don't set setIsLoading(false) here so the loader stays while redirecting
       router.push('/dashboard')
     } catch (error) {
+      setIsLoading(false) // Set false only on error
       setValue('password', '')
       if (error instanceof Error) {
         setError('root', { type: 'manual', message: error.message })
       } else {
         setError('root', { type: 'manual', message: 'An unexpected error occurred' })
       }
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -168,7 +168,10 @@ export default function LoginPage() {
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Signing in...</span>
+                  </div>
                 ) : (
                   <>
                     Sign in

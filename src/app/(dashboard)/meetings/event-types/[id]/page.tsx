@@ -154,6 +154,7 @@ export default function EventTypeForm() {
     slots: [] as TimeSlot[],
     teamMembers: [] as TeamMember[],
     sections: [] as QuestionSection[],
+    redirect_url: '',
   })
 
   // ... (sensors, useEffect remain same)
@@ -197,6 +198,7 @@ export default function EventTypeForm() {
           slots: data.slots || [],
           teamMembers: data.teamMembers || [],
           sections: data.sections || [],
+          redirect_url: data.redirect_url || '',
         }
         setEventType(newEventType)
       } catch (error) {
@@ -302,7 +304,7 @@ export default function EventTypeForm() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-950 overflow-hidden font-sans">
+    <div className="flex flex-col bg-white dark:bg-slate-950 font-sans">
       <div className="shrink-0 flex flex-col border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm z-50">
         <div className="px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-4">
@@ -321,15 +323,15 @@ export default function EventTypeForm() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar scroll-smooth bg-slate-50/30 dark:bg-slate-900/10">
+      <div className="flex-1 scroll-smooth bg-slate-50/30 dark:bg-slate-900/10">
         <Tabs defaultValue="basic" className="w-full">
           <div className="sticky top-0 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-6 py-2">
             <div className="max-w-4xl mx-auto flex items-center justify-between">
-              <TabsList className="bg-slate-100/50 p-1 h-8 rounded-lg">
-                <TabsTrigger value="basic" className="rounded-md px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white data-[state=active]:text-indigo-600 shadow-sm">Basic</TabsTrigger>
-                <TabsTrigger value="questions" className="rounded-md px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white data-[state=active]:text-indigo-600 shadow-sm">Questions</TabsTrigger>
-                <TabsTrigger value="scheduling" className="rounded-md px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white data-[state=active]:text-indigo-600 shadow-sm">Scheduling</TabsTrigger>
-                <TabsTrigger value="team" className="rounded-md px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white data-[state=active]:text-indigo-600 shadow-sm">Team</TabsTrigger>
+              <TabsList className="bg-slate-100/50 dark:bg-slate-800/50 p-1 h-8 rounded-lg">
+                <TabsTrigger value="basic" className="rounded-md px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 shadow-sm transition-all">Basic</TabsTrigger>
+                <TabsTrigger value="questions" className="rounded-md px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 shadow-sm transition-all">Questions</TabsTrigger>
+                <TabsTrigger value="scheduling" className="rounded-md px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 shadow-sm transition-all">Scheduling</TabsTrigger>
+                <TabsTrigger value="team" className="rounded-md px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 shadow-sm transition-all">Team</TabsTrigger>
               </TabsList>
               <Button onClick={handleSave} disabled={isSaving} className="h-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-[11px] px-4 gap-2 transition-all active:scale-95 shadow-sm">
                 {isSaving ? <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Save className="h-3.5 w-3.5" />}

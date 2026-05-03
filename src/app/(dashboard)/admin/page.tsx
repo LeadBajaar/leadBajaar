@@ -88,7 +88,9 @@ import {
   X,
   Tag,
   UserPlus,
-  Calendar
+  Calendar,
+  Megaphone,
+  Image as ImageIcon
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -385,9 +387,74 @@ export default function SuperAdminPage() {
   const [editDays, setEditDays] = useState(30)
   const [deletionRequests, setDeletionRequests] = useState<any[]>([])
 
+  // Broadcast states
+  const [broadcastData, setBroadcastData] = useState({
+    title: '',
+    message: '',
+    type: 'info',
+    target: 'all' as 'all' | 'company',
+    company_ids: [] as number[],
+    image_url: '',
+    is_modal: false,
+    frequency: 'once' as 'once' | 'session' | 'always',
+    cta_text: '',
+    cta_link: '',
+    expires_at: ''
+  })
+  const [isSendingBroadcast, setIsSendingBroadcast] = useState(false)
+  const [broadcastHistory, setBroadcastHistory] = useState<any[]>([])
+  const [broadcastPage, setBroadcastPage] = useState(1)
+  const [broadcastMeta, setBroadcastMeta] = useState<any>(null)
+  const [selectionCompanies, setSelectionCompanies] = useState<Company[]>([])
+  const [workspaceSearch, setWorkspaceSearch] = useState('')
+
+  const filteredSelectionCompanies = useMemo(() => {
+    if (!workspaceSearch) return selectionCompanies
+    return selectionCompanies.filter(c => 
+      c.name.toLowerCase().includes(workspaceSearch.toLowerCase())
+    )
+  }, [selectionCompanies, workspaceSearch])
+
   useEffect(() => {
     fetchData()
   }, [])
+
+  const handleSendBroadcast = async () => {
+    if (!broadcastData.title || !broadcastData.message) {
+      toast.error("Composition Error", { description: "Please provide both a title and message." })
+      return
+    }
+
+    try {
+      setIsSendingBroadcast(true)
+      await adminApi.sendBroadcast(broadcastData)
+      
+      toast.success("Broadcast Sent", { 
+        description: `Your announcement "${broadcastData.title}" has been dispatched.` 
+      })
+      
+      // Reset form
+      setBroadcastData({
+        title: '',
+        message: '',
+        type: 'info',
+        target: 'all',
+        company_ids: [],
+        image_url: '',
+        is_modal: false,
+        frequency: 'once',
+        cta_text: '',
+        cta_link: '',
+        expires_at: ''
+      })
+      
+      fetchData()
+    } catch (error: any) {
+      toast.error("Broadcast Failed", { description: error.message })
+    } finally {
+      setIsSendingBroadcast(false)
+    }
+  }
 
   // ── Date Synchronizer Logic ────────────────────────────────────────────────
   useEffect(() => {
@@ -589,18 +656,37 @@ export default function SuperAdminPage() {
 
     try {
       setIsLoading(true)
-      const [companiesRes, statsData, usersRes, billingRes, deletionsRes, plansRes, tagsRes] = await Promise.all([
+      const [companiesRes, statsData, usersRes, billingRes, deletionsRes, plansRes, tagsRes, broadcastRes, selectCompaniesRes] = await Promise.all([
         adminApi.getCompanies(companiesPage, 10, searchQuery, filterPlan, filterStatus, filterTag, filterExpiration, filterStarted, customExpStart, customExpEnd, customStartStart, customStartEnd),
         adminApi.getStats(),
         adminApi.getUsers(usersPage, 10, searchQuery, filterTag, filterRole, filterUserStatus, filterUserType),
         adminApi.getBilling(billingPage, 10, searchQuery),
         integrationApi.getDeletionRequests(),
         adminApi.getPlans(),
-        adminApi.getTags()
+        adminApi.getTags(),
+        adminApi.getBroadcastHistory(),
+        adminApi.getCompanies(1, 100) // Unfiltered for selection
       ])
 
       if (tagsRes) {
         setGlobalTags(tagsRes)
+      }
+
+      if (broadcastRes) {
+        setBroadcastHistory(Array.isArray(broadcastRes) ? broadcastRes : broadcastRes.data || [])
+        if (broadcastRes.current_page) {
+           setBroadcastMeta({
+             current_page: broadcastRes.current_page,
+             last_page: broadcastRes.last_page,
+             total: broadcastRes.total
+           })
+        }
+      }
+
+      if (selectCompaniesRes && selectCompaniesRes.data) {
+        setSelectionCompanies(selectCompaniesRes.data)
+      } else if (selectCompaniesRes) {
+        setSelectionCompanies(selectCompaniesRes)
       }
 
       if (deletionsRes.status === 'success') {
@@ -1019,6 +1105,10 @@ export default function SuperAdminPage() {
               <TabsTrigger value="meta-deletions" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
                 <ShieldAlert className="h-4 w-4 mr-2 text-red-500" />
                 Meta Compliance
+              </TabsTrigger>
+              <TabsTrigger value="announcements" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
+                <Megaphone className="h-4 w-4 mr-2 text-amber-500" />
+                Announcements
               </TabsTrigger>
             </TabsList>
 
@@ -1991,6 +2081,327 @@ export default function SuperAdminPage() {
                   </div>
                 </div>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="announcements" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Composition Form */}
+                <Card className="lg:col-span-1 border-none shadow-xl bg-white dark:bg-slate-900 rounded-3xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden h-fit">
+                  <CardHeader className="bg-slate-900 text-white p-6">
+                    <CardTitle className="text-xl font-black flex items-center gap-3">
+                      <div className="p-2 bg-indigo-500 rounded-xl">
+                        <Megaphone className="h-5 w-5 text-white" />
+                      </div>
+                      Broadcast System
+                    </CardTitle>
+                    <CardDescription className="text-slate-400 font-medium">Draft and dispatch platform-wide alerts.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-5">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-black uppercase text-slate-500 tracking-wider">Announcement Title</Label>
+                      <Input
+                        placeholder="e.g. Scheduled Maintenance, New Feature..."
+                        value={broadcastData.title}
+                        onChange={(e) => setBroadcastData({ ...broadcastData, title: e.target.value })}
+                        className="h-11 rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs font-black uppercase text-slate-500 tracking-wider">Message Narrative</Label>
+                      <textarea
+                        placeholder="Provide the details for the users..."
+                        value={broadcastData.message}
+                        onChange={(e) => setBroadcastData({ ...broadcastData, message: e.target.value })}
+                        className="w-full min-h-[120px] p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs font-black uppercase text-slate-500 tracking-wider">Cover Image URL (Optional)</Label>
+                      <div className="relative">
+                        <Input
+                          placeholder="https://example.com/image.jpg"
+                          value={broadcastData.image_url}
+                          onChange={(e) => setBroadcastData({ ...broadcastData, image_url: e.target.value })}
+                          className="h-11 rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold pl-10"
+                        />
+                        <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-xs font-black uppercase text-slate-500 tracking-wider">Alert Level</Label>
+                        <Select
+                          value={broadcastData.type}
+                          onValueChange={(val) => setBroadcastData({ ...broadcastData, type: val })}
+                        >
+                          <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="info">Information</SelectItem>
+                            <SelectItem value="warning">Warning</SelectItem>
+                            <SelectItem value="success">Success</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-black uppercase text-slate-500 tracking-wider">Target Audience</Label>
+                        <Select
+                          value={broadcastData.target}
+                          onValueChange={(val: 'all' | 'company') => setBroadcastData({ ...broadcastData, target: val, company_ids: [] })}
+                        >
+                          <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Users</SelectItem>
+                            <SelectItem value="company">Specific Company</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {broadcastData.target === 'company' && (
+                      <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-xs font-black uppercase text-slate-500 tracking-wider">Target Workspaces</Label>
+                          <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-600 border-indigo-100">
+                            {broadcastData.company_ids.length} Selected
+                          </Badge>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                            <Input
+                              placeholder="Search workspaces..."
+                              value={workspaceSearch}
+                              onChange={(e) => setWorkspaceSearch(e.target.value)}
+                              className="h-9 rounded-lg bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-xs pl-9"
+                            />
+                          </div>
+
+                          <div className="max-h-[200px] overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl p-2 space-y-1 bg-slate-50/50 dark:bg-slate-950/50 custom-scrollbar">
+                            {filteredSelectionCompanies.length === 0 ? (
+                              <p className="text-[10px] text-center py-4 text-slate-400 font-bold uppercase tracking-widest">No results found</p>
+                            ) : (
+                              filteredSelectionCompanies.map((c: Company) => {
+                                const isSelected = broadcastData.company_ids.includes(Number(c.id))
+                                return (
+                                  <div 
+                                    key={c.id}
+                                    onClick={() => {
+                                      const ids = [...broadcastData.company_ids]
+                                      if (isSelected) {
+                                        setBroadcastData({ ...broadcastData, company_ids: ids.filter(id => id !== Number(c.id)) })
+                                      } else {
+                                        setBroadcastData({ ...broadcastData, company_ids: [...ids, Number(c.id)] })
+                                      }
+                                    }}
+                                    className={cn(
+                                      "flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-all border group",
+                                      isSelected 
+                                        ? "bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-none" 
+                                        : "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-900"
+                                    )}
+                                  >
+                                    <div className="flex flex-col">
+                                      <span className={cn("text-xs font-black", isSelected ? "text-white" : "text-slate-900 dark:text-slate-200")}>{c.name}</span>
+                                      <span className={cn("text-[9px] font-bold uppercase tracking-tight", isSelected ? "text-indigo-100" : "text-slate-400")}>{c.plan} Plan</span>
+                                    </div>
+                                    <div className={cn(
+                                      "h-4 w-4 rounded-full border flex items-center justify-center transition-all",
+                                      isSelected ? "bg-white border-white text-indigo-600" : "border-slate-200 dark:border-slate-700"
+                                    )}>
+                                      {isSelected && <CheckCircle2 className="h-3 w-3" />}
+                                    </div>
+                                  </div>
+                                )
+                              })
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between p-4 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-800/30 mt-4">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-black text-indigo-900 dark:text-indigo-300">Promotional Modal</Label>
+                        <p className="text-[10px] text-indigo-700 dark:text-indigo-400 font-medium">Show as an interstitial overlay on page load.</p>
+                      </div>
+                      <Switch 
+                        checked={broadcastData.is_modal}
+                        onCheckedChange={(val) => setBroadcastData({ ...broadcastData, is_modal: val })}
+                      />
+                    </div>
+
+                    {broadcastData.is_modal && (
+                      <div className="space-y-5 p-4 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 mt-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase text-slate-500">Frequency</Label>
+                            <Select
+                              value={broadcastData.frequency}
+                              onValueChange={(val: any) => setBroadcastData({ ...broadcastData, frequency: val })}
+                            >
+                              <SelectTrigger className="h-9 rounded-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-xs font-bold">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="once">Once Ever</SelectItem>
+                                <SelectItem value="session">Once Per Session</SelectItem>
+                                <SelectItem value="always">Every Load</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase text-slate-500">Expiry Date</Label>
+                            <Input
+                              type="date"
+                              value={broadcastData.expires_at}
+                              onChange={(e) => setBroadcastData({ ...broadcastData, expires_at: e.target.value })}
+                              className="h-9 rounded-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-xs font-bold"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase text-slate-500">CTA Text</Label>
+                            <Input
+                              placeholder="e.g. Claim Offer"
+                              value={broadcastData.cta_text}
+                              onChange={(e) => setBroadcastData({ ...broadcastData, cta_text: e.target.value })}
+                              className="h-9 rounded-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-xs font-bold"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase text-slate-500">CTA Link</Label>
+                            <Input
+                              placeholder="https://..."
+                              value={broadcastData.cta_link}
+                              onChange={(e) => setBroadcastData({ ...broadcastData, cta_link: e.target.value })}
+                              className="h-9 rounded-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-xs font-bold"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <Button
+                      onClick={handleSendBroadcast}
+                      disabled={isSendingBroadcast}
+                      className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 mt-4 group"
+                    >
+                      {isSendingBroadcast ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <>
+                          <ArrowRight className="h-4 w-4 mr-2 group-hover:translate-x-1 transition-transform" />
+                          Dispatch Broadcast
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* History Log */}
+                <Card className="lg:col-span-2 border-none shadow-xl bg-white dark:bg-slate-900 rounded-3xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden">
+                  <CardHeader className="border-b border-slate-100 dark:border-slate-800">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <CardTitle className="text-lg font-black text-slate-900 dark:text-white">Broadcast History</CardTitle>
+                        <CardDescription>Track previous platform-wide announcements.</CardDescription>
+                      </div>
+                      <Badge variant="outline" className="bg-slate-50 dark:bg-slate-800 text-slate-500 font-black text-[10px] uppercase">{broadcastHistory.length} SENT</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="max-h-[650px] overflow-y-auto custom-scrollbar">
+                      <Table>
+                        <TableHeader className="bg-slate-50/80 dark:bg-slate-900/80 sticky top-0 z-10">
+                          <TableRow>
+                            <TableHead className="font-bold text-slate-500 py-4 pl-6">Timestamp & Subject</TableHead>
+                            <TableHead className="font-bold text-slate-500 py-4">Audience</TableHead>
+                            <TableHead className="font-bold text-slate-500 py-4">Type</TableHead>
+                            <TableHead className="text-right font-bold text-slate-500 py-4 pr-6">Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {broadcastHistory.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={4} className="py-24 text-center">
+                                <div className="flex flex-col items-center gap-3 opacity-30">
+                                  <History className="h-12 w-12 text-slate-400" />
+                                  <p className="font-bold text-sm">No broadcast history available.</p>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            broadcastHistory.map((log, i) => (
+                              <TableRow key={i} className="border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                <TableCell className="py-4 pl-6">
+                                  <div className="flex gap-4">
+                                    {log.image_url && (
+                                      <div className="h-12 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden shrink-0">
+                                        <img src={log.image_url} alt="" className="w-full h-full object-cover" />
+                                      </div>
+                                    )}
+                                    <div>
+                                      <p className="font-black text-slate-900 dark:text-white text-sm">{log.title}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <p className="text-[10px] text-slate-400 font-bold uppercase">{new Date(log.created_at).toLocaleString()}</p>
+                                      <span className="h-1 w-1 rounded-full bg-slate-300"></span>
+                                      <p className="text-[10px] text-indigo-400 font-bold uppercase">Sent by Admin</p>
+                                    </div>
+                                    <p className="text-xs text-slate-500 mt-2 line-clamp-1 max-w-md font-medium italic">"{log.message}"</p>
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className="bg-slate-50 dark:bg-slate-800 text-slate-500 font-bold text-[10px] uppercase border-slate-200 dark:border-slate-700">
+                                    {log.target === 'all' ? 'All Platform' : (log.company?.name || 'Specific Node')}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge className={cn("text-[10px] font-black uppercase px-2 py-0 h-5", 
+                                    log.type === 'info' ? 'bg-indigo-50 text-indigo-600' :
+                                    log.type === 'warning' ? 'bg-amber-50 text-amber-600' :
+                                    'bg-emerald-50 text-emerald-600'
+                                  )}>
+                                    {log.type}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-right pr-6">
+                                  <div className="flex items-center justify-end gap-2 text-emerald-500 font-bold text-xs">
+                                    <CheckCircle2 className="h-4 w-4" />
+                                    Delivered
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 py-4 px-6 flex justify-between items-center">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Platform Sync Active</p>
+                    {broadcastMeta && (
+                      <PaginationSection 
+                        currentPage={broadcastMeta.current_page}
+                        lastPage={broadcastMeta.last_page}
+                        onPageChange={setBroadcastPage}
+                        totalItems={broadcastMeta.total}
+                        itemsShown={broadcastHistory.length}
+                      />
+                    )}
+                  </CardFooter>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
 

@@ -20,7 +20,7 @@ interface Props {
 }
 
 const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 block"
-const inputStyle = "h-10 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-all rounded-lg no-scrollbar"
+const inputStyle = "h-10 text-sm bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-800 transition-all rounded-lg no-scrollbar"
 
 export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
   return (
@@ -144,6 +144,18 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
                   />
                 </div>
               )}
+
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label htmlFor="redirect_url" className={labelStyle}>Redirect URL (Optional)</Label>
+                <Input
+                  id="redirect_url"
+                  value={eventType.redirect_url}
+                  onChange={(e) => setEventType({ ...eventType, redirect_url: e.target.value })}
+                  placeholder="e.g., https://yourwebsite.com/thank-you"
+                  className={inputStyle}
+                />
+                <p className="text-[9px] text-slate-400 font-medium italic mt-1.5 leading-tight uppercase tracking-tighter">Redirect users to this URL after they successfully book a meeting.</p>
+              </div>
             </div>
           </CardContent>
         </Card>

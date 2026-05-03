@@ -101,7 +101,7 @@ export default function EventTypesPage() {
   }
 
   return (
-    <div className="flex flex-col p-6 h-full overflow-hidden gap-6">
+    <div className="flex flex-col p-6 gap-6">
 
       {/* ── Header ───────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between shrink-0">
@@ -142,7 +142,7 @@ export default function EventTypesPage() {
       </div>
 
       {/* ── Content ──────────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-auto min-h-0">
+      <div className="flex-1 min-h-0">
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map(i => (

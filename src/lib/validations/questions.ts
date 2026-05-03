@@ -1,5 +1,14 @@
-export const validateQuestionResponse = (type: string, value: any): { isValid: boolean; error?: string } => {
-  switch (type) {
+export const validateQuestionResponse = (type: string, value: any, label?: string): { isValid: boolean; error?: string } => {
+  // If type is text but label suggests it's a phone, treat as phone
+  let effectiveType = type;
+  if (type === 'text' && label) {
+    const lowerLabel = label.toLowerCase();
+    if (lowerLabel.includes('phone') || lowerLabel.includes('mobile') || lowerLabel.includes('whatsapp')) {
+      effectiveType = 'phone';
+    }
+  }
+
+  switch (effectiveType) {
     case 'email':
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       return {
@@ -8,10 +17,16 @@ export const validateQuestionResponse = (type: string, value: any): { isValid: b
       }
 
     case 'phone':
+      // Requires at least 10 digits, can have +, spaces, or dashes
       const phoneRegex = /^\+?[\d\s-]{10,}$/
+      const hasDigits = /\d/.test(value);
+      const isTest = /^[a-zA-Z]+$/.test(value);
+      
+      const isValid = phoneRegex.test(value) && hasDigits && !isTest;
+      
       return {
-        isValid: phoneRegex.test(value),
-        error: phoneRegex.test(value) ? undefined : 'Please enter a valid phone number'
+        isValid: isValid,
+        error: isValid ? undefined : 'Please enter a valid 10-digit phone number'
       }
 
     case 'date':

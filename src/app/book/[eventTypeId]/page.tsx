@@ -39,6 +39,7 @@ interface EventType {
     name: string;
     avatar_url?: string;
   }
+  redirect_url?: string
 }
 
 interface TimeSlot {
@@ -193,7 +194,8 @@ export default function BookingPage() {
           owner: data.owner ? {
             name: data.owner.name,
             avatar_url: data.owner.avatar_url
-          } : undefined
+          } : undefined,
+          redirect_url: data.redirect_url
         };
 
         console.log('Mapped Event Type:', mappedEventType);
@@ -282,8 +284,29 @@ export default function BookingPage() {
     return format(new Date(slot.startTime), 'h:mm a')
   }
 
+  const isCurrentQuestionValid = () => {
+    const currentQuestion = eventType?.questions[currentQuestionIndex]
+    if (!currentQuestion) return false
+    
+    const value = answers[currentQuestion.id]
+    
+    // Required check
+    if (currentQuestion.required && (!value || (Array.isArray(value) && value.length === 0))) {
+      return false
+    }
+    
+    // Type-specific validation check
+    if (value) {
+      const validation = validateQuestionResponse(currentQuestion.type, value, currentQuestion.question)
+      if (!validation.isValid) return false
+    }
+    
+    return true
+  }
+
   const handleAnswerChange = (questionId: string, value: any, type: string) => {
-    const validation = validateQuestionResponse(type, value)
+    const question = eventType?.questions.find(q => q.id === questionId)
+    const validation = validateQuestionResponse(type, value, question?.question)
     
     setAnswers(prev => ({
       ...prev,
@@ -412,6 +435,25 @@ export default function BookingPage() {
   }
 
   const handleSubmit = async () => {
+    // Validate all answers before submitting
+    const currentErrors: Record<string, string> = {}
+    let hasErrors = false
+
+    eventType?.questions?.forEach(question => {
+      const value = answers[question.id]
+      const validation = validateQuestionResponse(question.type, value, question.question)
+      if (!validation.isValid) {
+        currentErrors[question.id] = validation.error || 'Invalid answer'
+        hasErrors = true
+      }
+    })
+
+    if (hasErrors) {
+      setErrors(currentErrors)
+      setIsSubmitting(false)
+      return
+    }
+
     setIsSubmitting(true)
     
     try {
@@ -458,6 +500,16 @@ export default function BookingPage() {
 
       setBookingDetails(data.booking);
       setShowSuccess(true);
+
+      // Handle Redirection if configured
+      if (eventType?.redirect_url && eventType.redirect_url.trim() !== '') {
+        setTimeout(() => {
+          // Double check the value just before redirecting
+          if (eventType.redirect_url) {
+            window.location.href = eventType.redirect_url;
+          }
+        }, 2500); 
+      }
       
       // Reset form
       setAnswers({});
@@ -490,7 +542,7 @@ export default function BookingPage() {
     }
     
     if (answers[currentQuestion.id]) {
-      const validation = validateQuestionResponse(currentQuestion.type, answers[currentQuestion.id])
+      const validation = validateQuestionResponse(currentQuestion.type, answers[currentQuestion.id], currentQuestion.question)
       if (!validation.isValid) {
         setErrors({
           ...errors,
@@ -783,7 +835,7 @@ export default function BookingPage() {
                       <Button 
                         onClick={currentQuestionIndex === eventType.questions.length - 1 ? handleSubmit : handleNextQuestion}
                         className="w-[120px]"
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || !isCurrentQuestionValid()}
                       >
                         {isSubmitting ? (
                           <div className="flex items-center">
@@ -850,22 +902,24 @@ export default function BookingPage() {
             </div>
           </div>
 
-          <DialogFooter className="flex justify-center gap-4">
-            {/* <Button 
-              variant="outline" 
+          <div className="px-6 pb-6">
+            <p className="text-[11px] text-center text-muted-foreground bg-green-50 dark:bg-green-900/10 py-2 px-4 rounded-full font-bold uppercase tracking-widest animate-pulse">
+              📅 A calendar invite has been sent to your email
+            </p>
+          </div>
+
+          <DialogFooter className="flex justify-center p-6 pt-0">
+            <Button
+              className="w-full sm:w-auto px-10 font-bold uppercase tracking-widest text-[11px]"
               onClick={() => {
                 setShowSuccess(false)
-                router.push('/') // or wherever you want to redirect
+                // Only redirect if a custom redirect_url is explicitly set
+                if (eventType?.redirect_url) {
+                  window.location.href = eventType.redirect_url;
+                }
               }}
             >
-              Close
-            </Button> */}
-            <Button
-              onClick={() => {
-                window.open(bookingDetails?.calendar_link, '_blank')
-              }}
-            >
-              Add to Calendar
+              Done
             </Button>
           </DialogFooter>
         </DialogContent>

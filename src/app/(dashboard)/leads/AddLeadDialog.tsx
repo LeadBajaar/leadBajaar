@@ -89,7 +89,7 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
 
             <div className="grid gap-2">
               <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Email <span className="text-red-500">*</span>
+                Email
               </Label>
               <Input
                 id="email"

@@ -863,7 +863,7 @@ export default function MeetingsPage() {
 
   return (
     <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
-      <div className="flex flex-col h-full overflow-hidden bg-slate-50/30 dark:bg-slate-950/30">
+      <div className="flex flex-col bg-slate-50/30 dark:bg-slate-950/30">
       <div className="flex items-center justify-between gap-4 shrink-0 px-6 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
         {/* ── Header ── */}
         <div>

@@ -86,8 +86,20 @@ export const BroadcastMessageDialog: React.FC<BroadcastMessageDialogProps> = ({
                     onValueChange={(value) => {
                       const template = templates.find(t => t.id?.toString() === value);
                       setSelectedTemplate(template || null);
-                      setVariables({});
-                      setVariableColumnMapping({});
+                      if (template) {
+                        const vars = extractVariables(template);
+                        const initialMapping: Record<string, string> = {};
+                        const initialVariables: Record<string, string> = {};
+                        vars.forEach(v => {
+                          initialMapping[v] = '';
+                          initialVariables[v] = '';
+                        });
+                        setVariableColumnMapping(initialMapping);
+                        setVariables(initialVariables);
+                      } else {
+                        setVariableColumnMapping({});
+                        setVariables({});
+                      }
                     }}
                   >
                     <SelectTrigger>

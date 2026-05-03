@@ -24,7 +24,7 @@ interface Props {
 }
 
 const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 block"
-const inputBase = "text-sm bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-0 transition-all rounded-lg outline-none"
+const inputBase = "text-sm bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-0 transition-all rounded-lg outline-none text-slate-900 dark:text-slate-100"
 const inputStyle = cn(inputBase, "h-10")
 
 export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: Props) => {

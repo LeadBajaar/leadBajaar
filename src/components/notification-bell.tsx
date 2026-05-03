@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, BellRing, X, Trash2 } from 'lucide-react';
+import { Bell, BellRing, X, Trash2, CheckCircle2, UserPlus, Calendar, Facebook, Info, ChevronRight, Check, Megaphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -14,6 +14,9 @@ import { Separator } from '@/components/ui/separator';
 import { formatDistanceToNow, format } from 'date-fns';
 import { api } from '@/lib/api';
 import { useUser } from '@/contexts/UserContext';
+import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import { PromotionModal } from './promotion-modal';
 
 interface Notification {
   id: number;
@@ -43,6 +46,8 @@ export function NotificationBell() {
   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [activePromotion, setActivePromotion] = useState<any>(null);
+  const hasShownModalThisMount = useRef(false);
 
   // Check if subscription is expired or suspended
   const expiresAt = user?.company?.expires_at ? new Date(user.company.expires_at) : null;
@@ -55,12 +60,10 @@ export function NotificationBell() {
   }, []);
 
   const fetchNotifications = async (isInitial = false) => {
-    if (isLoadingUser || !user || isRestricted) return; // Skip if loading, no user, or restricted
+    if (isLoadingUser || !user || isRestricted) return;
 
     try {
-      if (isInitial) {
-        setLoading(true);
-      }
+      if (isInitial) setLoading(true);
 
       const [notificationsResponse, unreadResponse] = await Promise.all([
         api.get('/notifications'),
@@ -71,53 +74,32 @@ export function NotificationBell() {
       const newUnreadCount = unreadResponse.data.count || 0;
 
       if (isInitial) {
-        // Initial load - replace all notifications
         setNotifications(newNotifications);
         setUnreadCount(newUnreadCount);
       } else {
-        // Subsequent loads - only add new notifications
         setNotifications(prev => {
           const existingIds = new Set(prev.map((n: Notification) => n.id));
           const trulyNew = newNotifications.filter((n: Notification) => !existingIds.has(n.id));
-
-          if (trulyNew.length > 0) {
-            return [...trulyNew, ...prev];
-          }
-          return prev;
+          return trulyNew.length > 0 ? [...trulyNew, ...prev] : prev;
         });
-
-        // Update unread count
         setUnreadCount(newUnreadCount);
       }
-
       setLastFetchTime(new Date());
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
-      if (isInitial) {
-        setLoading(false);
-      }
+      if (isInitial) setLoading(false);
     }
   };
 
   const markAsRead = async (notificationIds: number[]) => {
     try {
-      await api.post('/notifications/mark-read', {
-        notification_ids: notificationIds
-      });
-
-      // Update local state
+      await api.post('/notifications/mark-read', { notification_ids: notificationIds });
       setNotifications(prev =>
-        prev.map((notification: Notification) =>
-          notificationIds.includes(notification.id)
-            ? { ...notification, is_read: true }
-            : notification
-        )
+        prev.map((n: Notification) => notificationIds.includes(n.id) ? { ...n, is_read: true } : n)
       );
-
-      // Update unread count
       setUnreadCount(prev => Math.max(0, prev - notificationIds.length));
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error marking notifications as read:', error);
     }
   };
@@ -125,40 +107,23 @@ export function NotificationBell() {
   const markAllAsRead = async () => {
     try {
       await api.post('/notifications/mark-all-read');
-      setNotifications(prev =>
-        prev.map((notification: Notification) => ({ ...notification, is_read: true }))
-      );
+      setNotifications(prev => prev.map((n: Notification) => ({ ...n, is_read: true })));
       setUnreadCount(0);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
   };
 
   const deleteNotification = async (notificationId: number) => {
     try {
-      console.log('Deleting notification:', notificationId);
-      const response = await api.delete(`/notifications/${notificationId}`);
-      console.log('Delete response:', response);
-
-      // Remove from local state
+      await api.delete(`/notifications/${notificationId}`);
       setNotifications(prev => {
         const notification = prev.find((n: Notification) => n.id === notificationId);
-        const newNotifications = prev.filter((n: Notification) => n.id !== notificationId);
-
-        // Update unread count if the deleted notification was unread
-        if (notification && !notification.is_read) {
-          setUnreadCount(prev => Math.max(0, prev - 1));
-        }
-
-        return newNotifications;
+        if (notification && !notification.is_read) setUnreadCount(p => Math.max(0, p - 1));
+        return prev.filter((n: Notification) => n.id !== notificationId);
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting notification:', error);
-      console.error('Error details:', {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data
-      });
     }
   };
 
@@ -173,207 +138,248 @@ export function NotificationBell() {
   };
 
   useEffect(() => {
-    // Initial fetch
     fetchNotifications(true);
-
-    // Poll for new notifications every 30 seconds
-    intervalRef.current = setInterval(() => {
-      fetchNotifications(false);
-    }, 30000);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
+    intervalRef.current = setInterval(() => fetchNotifications(false), 30000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []);
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'meeting_booked':
-        return '📅'; // Meeting booking
-      case 'facebook_lead_activity':
-        return '📘'; // Facebook form submission
-      case 'new_lead_created':
-        return '🎉'; // New lead
-      case 'old_lead_reactivation':
-        return '📅'; // Legacy meeting booking
-      case 'old_lead_facebook_reactivation':
-        return '📘'; // Legacy Facebook form submission
-      default:
-        return '🔔';
+  useEffect(() => {
+    if (loading || notifications.length === 0 || activePromotion) return;
+
+    const modalNotifications = notifications.filter(n => n.type === 'platform_modal' && !n.is_read);
+    
+    if (modalNotifications.length > 0) {
+      const latestModal = modalNotifications[0];
+      const data = latestModal.data || {};
+      const frequency = data.frequency || 'once';
+      const storageKey = `promo_shown_${latestModal.id}`;
+      
+      if (frequency === 'session') {
+        if (!sessionStorage.getItem(storageKey)) {
+          setActivePromotion(latestModal);
+          sessionStorage.setItem(storageKey, 'true');
+        }
+      } else if (frequency === 'always') {
+        if (!hasShownModalThisMount.current) {
+          setActivePromotion(latestModal);
+          hasShownModalThisMount.current = true;
+        }
+      } else {
+        // 'once'
+        setActivePromotion(latestModal);
+      }
+    }
+  }, [notifications, loading]);
+
+  const handleClosePromotion = () => {
+    if (activePromotion) {
+      const data = activePromotion.data || {};
+      const frequency = data.frequency || 'once';
+      
+      // If it's a 'once' promotion, mark as read in DB so it doesn't show again
+      if (frequency === 'once') {
+        markAsRead([activePromotion.id]);
+      }
+      
+      setActivePromotion(null);
     }
   };
 
-  const getNotificationColor = (type: string) => {
+  const getNotificationConfig = (type: string) => {
     switch (type) {
       case 'meeting_booked':
-        return 'text-green-600'; // Meeting booking - green
-      case 'facebook_lead_activity':
-        return 'text-blue-800'; // Facebook form - blue
-      case 'new_lead_created':
-        return 'text-purple-600'; // New lead - purple
       case 'old_lead_reactivation':
-        return 'text-green-600'; // Legacy meeting booking - green
+        return { icon: Calendar, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-100 dark:border-emerald-800/30' };
+      case 'facebook_lead_activity':
       case 'old_lead_facebook_reactivation':
-        return 'text-blue-800'; // Legacy Facebook form - blue
+        return { icon: Facebook, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-100 dark:border-blue-800/30' };
+      case 'new_lead_created':
+        return { icon: UserPlus, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20', border: 'border-indigo-100 dark:border-indigo-800/30' };
+      case 'platform_modal':
+      case 'platform_broadcast':
+        return { icon: Megaphone, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20', border: 'border-indigo-100 dark:border-indigo-800/30' };
       default:
-        return 'text-gray-600';
-    }
-  };
-
-  const formatNotificationDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return format(date, 'MMM dd, yyyy');
-    } catch (error) {
-      return 'Invalid date';
+        return { icon: Bell, color: 'text-slate-600', bg: 'bg-slate-50 dark:bg-slate-900/20', border: 'border-slate-100 dark:border-slate-800/30' };
     }
   };
 
   if (!isMounted) {
     return (
-      <Button variant="ghost" size="sm" className="relative">
-        <Bell className="h-5 w-5" />
+      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl">
+        <Bell className="h-4 w-4" />
       </Button>
     );
   }
 
   return (
+    <>
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" className="relative">
+        <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-xl transition-all active:scale-90 group">
           {unreadCount > 0 ? (
-            <BellRing className="h-5 w-5" />
+            <BellRing className="h-4 w-4 text-indigo-500 animate-pulse group-hover:scale-110 transition-transform" />
           ) : (
-            <Bell className="h-5 w-5" />
+            <Bell className="h-4 w-4 text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white transition-all" />
           )}
           {unreadCount > 0 && (
             <Badge
-              variant="destructive"
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] flex items-center justify-center p-0.5 text-[8px] font-black bg-indigo-600 hover:bg-indigo-600 text-white border-2 border-white dark:border-slate-900 shadow-sm"
             >
               {unreadCount > 99 ? '99+' : unreadCount}
             </Badge>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <div className="flex items-center justify-between p-4 pb-2">
-          <h4 className="font-semibold">Notifications</h4>
+      <PopoverContent className="w-[380px] p-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden" align="end">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Notifications</h4>
+            <p className="text-[10px] text-slate-500 font-medium">You have {unreadCount} unread alerts</p>
+          </div>
           <div className="flex items-center gap-2">
-            {notifications.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearAllNotifications}
-                className="text-xs text-red-600 hover:text-red-700"
-              >
-                <Trash2 className="h-3 w-3 mr-1" />
-                Clear All
-              </Button>
-            )}
             {unreadCount > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={markAllAsRead}
-                className="text-xs"
+                className="h-7 px-2 text-[10px] font-bold uppercase tracking-tight text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg"
               >
                 Mark all read
               </Button>
             )}
+            {notifications.length > 0 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={clearAllNotifications}
+                className="h-7 w-7 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </div>
         </div>
-        <Separator />
-        <ScrollArea className="h-96">
+
+        {/* Content */}
+        <ScrollArea className="h-[420px] no-scrollbar">
           {loading ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              Loading notifications...
+            <div className="flex flex-col items-center justify-center h-40 text-center space-y-3">
+              <div className="h-6 w-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-xs text-slate-500 font-medium italic">Scanning for updates...</p>
             </div>
           ) : notifications.length === 0 ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              No notifications yet
+            <div className="flex flex-col items-center justify-center h-60 text-center p-8">
+              <div className="h-12 w-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center mb-4 text-slate-300">
+                <CheckCircle2 className="h-6 w-6" />
+              </div>
+              <p className="text-sm font-bold text-slate-900 dark:text-white">All caught up!</p>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">No new notifications at the moment. We'll alert you when something happens.</p>
             </div>
           ) : (
-            <div className="p-2">
-              {notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`p-3 rounded-lg transition-colors group relative ${notification.is_read
-                    ? 'hover:bg-gray-50'
-                    : 'bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500'
-                    }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="text-lg">
-                      {getNotificationIcon(notification.type)}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className={`text-sm font-medium ${getNotificationColor(notification.type)}`}>
-                          {notification.title}
-                        </p>
-                        {!notification.is_read && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                        )}
+            <div className="p-1.5 space-y-1">
+              {notifications.map((n) => {
+                const config = getNotificationConfig(n.type);
+                return (
+                  <div
+                    key={n.id}
+                    className={cn(
+                      "group relative p-3 rounded-xl transition-all duration-200 border border-transparent",
+                      n.is_read
+                        ? "hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:border-slate-100 dark:hover:border-slate-800"
+                        : "bg-indigo-50/40 dark:bg-indigo-900/10 border-indigo-100/50 dark:border-indigo-800/30 shadow-[0_2px_10px_-4px_rgba(99,102,241,0.1)]"
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={cn("shrink-0 h-9 w-9 rounded-xl flex items-center justify-center border transition-all duration-300", config.bg, config.border, config.color)}>
+                        <config.icon className="h-4 w-4" />
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {(() => {
-                          const msg = String(notification.message ?? '');
-                          const match = msg.match(/after\s+([0-9]*\.?[0-9]+)\s+days/i);
-                          if (match) {
-                            const raw = Number(match[1]);
-                            const days = Number.isFinite(raw) ? Math.round(raw) : 0;
-                            const label = days === 1 ? 'day' : 'days';
-                            return msg.replace(match[0], `after ${days} ${label}`);
-                          }
-                          return msg;
-                        })()}
-                      </p>
-                      {notification.data?.days_since_creation !== undefined && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {(() => {
-                            const raw = Number(notification.data.days_since_creation);
-                            const days = Number.isFinite(raw) ? Math.round(raw) : 0;
-                            const label = days === 1 ? 'day' : 'days';
-                            return `Lead was created ${days} ${label} ago`;
-                          })()}
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className={cn("text-xs font-bold truncate leading-none", n.is_read ? "text-slate-900 dark:text-slate-100" : "text-indigo-900 dark:text-indigo-400")}>
+                            {n.title}
+                          </p>
+                          <span className="shrink-0 text-[9px] font-medium text-slate-400">
+                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                          </span>
+                        </div>
+                        
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed line-clamp-2 italic">
+                          {n.message}
                         </p>
-                      )}
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                        </p>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {!notification.is_read && (
+
+                        {/* Metadata / Days Ago badge */}
+                        {n.data?.days_since_creation !== undefined && (
+                          <div className="mt-2 flex items-center gap-1.5">
+                             <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                             <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">
+                               CREATED {Math.round(n.data.days_since_creation)} DAYS AGO
+                             </p>
+                          </div>
+                        )}
+
+                        {/* Actions Row */}
+                        <div className="mt-3 flex items-center gap-2">
+                          {n.lead && (
+                            <Link href={`/leads?id=${n.lead.id}`}>
+                              <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 hover:text-indigo-600 transition-all rounded-lg gap-1.5">
+                                View Lead <ChevronRight className="h-3 w-3" />
+                              </Button>
+                            </Link>
+                          )}
+                          {!n.is_read && (
                             <Button
                               variant="ghost"
-                              size="sm"
-                              onClick={() => markAsRead([notification.id])}
-                              className="h-6 px-2 text-xs"
+                              onClick={() => markAsRead([n.id])}
+                              className="h-7 px-2 text-[10px] font-bold text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg gap-1.5"
                             >
-                              Mark read
+                              <Check className="h-3 w-3" /> Mark Read
                             </Button>
                           )}
+                          <div className="flex-1" />
                           <Button
                             variant="ghost"
-                            size="sm"
-                            onClick={() => deleteNotification(notification.id)}
-                            className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
+                            size="icon"
+                            onClick={() => deleteNotification(n.id)}
+                            className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-all text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
                           >
-                            <X className="h-3 w-3" />
+                            <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
                     </div>
+                    
+                    {/* Unread dot */}
+                    {!n.is_read && (
+                      <div className="absolute top-3 right-3 h-1.5 w-1.5 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </ScrollArea>
+        
+        {/* Footer */}
+        <div className="p-3 bg-slate-50/50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800">
+           <Button 
+            variant="ghost" 
+            className="w-full h-8 text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-xl"
+            onClick={() => setIsOpen(false)}
+           >
+             Close Notifications
+           </Button>
+        </div>
       </PopoverContent>
     </Popover>
+    {activePromotion && (
+      <PromotionModal 
+        notification={activePromotion} 
+        onClose={handleClosePromotion} 
+      />
+    )}
+    </>
   );
 }
+

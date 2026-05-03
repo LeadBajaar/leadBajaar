@@ -6,6 +6,7 @@ import { logger } from '@/utils/logger';
 // const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 export const API_BASE_URL = 'https://api.leadbajaar.com/api'
 // export const API_BASE_URL = 'http://localhost:8000/api'
+export const WHATSAPP_BASE_URL = 'http://localhost:3000/api'
 
 // Export both httpClient and api
 export const httpClient = {
@@ -543,6 +544,10 @@ export const integrationApi = {
       throw new Error(message);
     }
   },
+
+
+
+
 
   createWhatsAppTemplate: async (accountId: number, templateData: any) => {
     try {
@@ -1398,9 +1403,18 @@ export const exportLeads = async (ids?: number[]) => {
   }
 };
 
+export const me = async () => {
+  const response = await api.get('/user', {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`
+    }
+  });
+  return response.data;
+};
+
 export const sendMessage = async (data: {
-  receiver_id: number;
-  sender_id: number;
+  receiver_id: string | number;
+  sender_id?: string | number;
   message: string;
 }) => {
   const response = await api.post('/send-message', data);
@@ -1416,14 +1430,14 @@ export const authorize = async (data: {
 };
 
 export const getMessages = async (data: {
-  user_id: number;
+  user_id: string | number;
 }) => {
   const response = await api.post('/messages', data);
   return response.data;
 };
 
 export const initializeChat = async (data: {
-  user_id: number;
+  user_id: string | number;
 }) => {
   const response = await api.post('/initialize-chat', data);
   return response.data;
@@ -1443,7 +1457,7 @@ export const getLeadsWithLatestMessages = async () => {
   }
 };
 
-export const getConversationMessages = async (conversationId: number, lastTimestamp?: string) => {
+export const getConversationMessages = async (conversationId: string | number, lastTimestamp?: string) => {
   try {
     const response = await api.get(`/conversations/${conversationId}/messages`, {
       headers: {
@@ -1672,6 +1686,37 @@ export const adminApi = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch tags');
+    }
+  },
+
+  sendBroadcast: async (data: { 
+    title: string, 
+    message: string, 
+    type: string, 
+    target?: 'all' | 'company', 
+    company_id?: number, 
+    company_ids?: number[], 
+    image_url?: string,
+    is_modal?: boolean,
+    frequency?: 'once' | 'session' | 'always',
+    cta_text?: string,
+    cta_link?: string,
+    expires_at?: string
+  }) => {
+    try {
+      const response = await api.post('/admin/broadcast', data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to send broadcast');
+    }
+  },
+
+  getBroadcastHistory: async () => {
+    try {
+      const response = await api.get('/admin/broadcast/history');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch broadcast history');
     }
   }
 };

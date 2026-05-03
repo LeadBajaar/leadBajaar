@@ -2,10 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Button } from '@/components/ui/button'
 import {
   Gauge,
   UserCheck,
@@ -16,40 +15,36 @@ import {
   TrendingUp,
   Settings2,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
-  ChevronRight as ChevronRightIcon,
   Code2,
-  Users,
   Shield,
   Activity,
-  Bell,
-  Briefcase,
-  ArrowLeft,
   Mail,
-  Zap
+  Zap,
+  Briefcase,
+  MoreHorizontal,
+  X,
+  CornerUpLeft,
 } from 'lucide-react'
 import { logout } from '@/lib/api'
-import { clearSession } from '@/lib/auth'
+import { clearSession, setSession } from '@/lib/auth'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-
-// ── Nav config ───────────────────────────────────────────────
 import { useUser, UserRole, UserType } from '@/contexts/UserContext'
 
-// ── Nav config ───────────────────────────────────────────────
+// ── Types ────────────────────────────────────────────────────
 type NavItemDef = {
   name: string
+  desc: string
   href: string
   icon: React.ElementType
   color: string
-  roles: UserRole[] 
-  types?: UserType[] // Optional filter for Agency/Individual panels
-  plans?: string[] // Optional filter for plan level (e.g. ['pro', 'enterprise'])
+  roles: UserRole[]
+  types?: UserType[]
+  plans?: string[]
 }
 
 type NavSection = {
@@ -57,40 +52,47 @@ type NavSection = {
   items: NavItemDef[]
 }
 
-const mainNav: NavSection[] = [
+// ── Pinned sidebar items (always visible, no scroll) ─────────
+// Only the 4 most-used core items live here
+const pinnedNav: NavItemDef[] = [
+  { name: 'Dashboard',    desc: 'Overview & key metrics',           href: '/dashboard',    icon: Gauge,          color: '#6366F1', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+  { name: 'Leads',        desc: 'Track and convert leads',          href: '/leads',        icon: UserCheck,      color: '#10B981', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+  { name: 'Live Chat',    desc: 'Real-time customer messaging',     href: '/live-chat',    icon: MessageCircle,  color: '#3B82F6', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+  { name: 'Chatbot',      desc: 'Automate conversations with AI',   href: '/chatbot',      icon: Bot,            color: '#8B5CF6', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
+  { name: 'Meetings',     desc: 'Schedule & track appointments',    href: '/meetings',     icon: CalendarCheck2, color: '#F59E0B', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+  { name: 'Integrations', desc: 'Connect your favourite tools',     href: '/integrations', icon: Plug2,          color: '#EC4899', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
+]
+
+// ── Flyout-only items (not shown in narrow sidebar) ──────────
+const flyoutNav: NavSection[] = [
   {
-    label: 'Core',
+    label: 'Clients & Growth',
     items: [
-      { name: 'Dashboard', href: '/dashboard', icon: Gauge, color: '#6366F1', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
-      { name: 'Clients', href: '/agency', icon: Briefcase, color: '#6366F1', types: ['agency', 'super_admin'], roles: ['Super Admin', 'Admin'] },
-      { name: 'Leads', href: '/leads', icon: UserCheck, color: '#10B981', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
-      { name: 'Live Chat', href: '/live-chat', icon: MessageCircle, color: '#3B82F6', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
-      { name: 'Chatbot', href: '/chatbot', icon: Bot, color: '#8B5CF6', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
-    ]
+      { name: 'Clients',   desc: 'Manage your client portfolio', href: '/agency',    icon: Briefcase,  color: '#6366F1', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin'] },
+      { name: 'Analytics', desc: 'Deep-dive into performance',   href: '/analytics', icon: TrendingUp, color: '#14B8A6', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
+    ],
   },
   {
-    label: 'Productivity',
+    label: 'Automation',
     items: [
-      { name: 'Meetings', href: '/meetings', icon: CalendarCheck2, color: '#F59E0B', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
-      { name: 'Automations', href: '/automations', icon: Zap, color: '#6366F1', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
-      { name: 'Integrations', href: '/integrations', icon: Plug2, color: '#EC4899', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
-      { name: 'Analytics', href: '/analytics', icon: TrendingUp, color: '#14B8A6', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
-    ]
+      { name: 'Automations', desc: 'Build powerful workflows', href: '/automations', icon: Zap, color: '#6366F1', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
+    ],
   },
   {
     label: 'Platform Control',
     items: [
-      { name: 'Admin Portal', href: '/admin', icon: Shield, color: '#EF4444', roles: ['Super Admin'], types: ['super_admin'] },
-      { name: 'Email Monitoring', href: '/admin/emails', icon: Mail, color: '#6366F1', roles: ['Super Admin'], types: ['super_admin'] },
-      { name: 'Error Monitoring', href: '/admin/errors', icon: Activity, color: '#F43F5E', roles: ['Super Admin'], types: ['super_admin'] },
-      { name: 'Dev Hub', href: '/developer', icon: Code2, color: '#10B981', roles: ['Super Admin', 'Admin'] },
-    ]
+      { name: 'Admin',        desc: 'System-level controls',           href: '/admin',         icon: Shield,       color: '#EF4444', roles: ['Super Admin'],                            types: ['super_admin'] },
+      { name: 'Emails',       desc: 'Monitor transactional emails',    href: '/admin/emails',  icon: Mail,         color: '#6366F1', roles: ['Super Admin'],                            types: ['super_admin'] },
+      { name: 'Error Logs',   desc: 'View platform error logs',        href: '/admin/errors',  icon: Activity,     color: '#F43F5E', roles: ['Super Admin'],                            types: ['super_admin'] },
+      { name: 'Dev Hub',      desc: 'API keys & developer tools',      href: '/developer',     icon: Code2,        color: '#10B981', roles: ['Super Admin', 'Admin'] },
+    ],
   },
-]
-
-const bottomNav: NavItemDef[] = [
-  { name: 'Team', href: '/team', icon: Users, color: '#6366F1', roles: ['Super Admin', 'Admin'] },
-  { name: 'Settings', href: '/settings', icon: Settings2, color: '#94A3B8', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+  {
+    label: 'Account',
+    items: [
+      { name: 'Settings', desc: 'Preferences and configuration', href: '/settings', icon: Settings2, color: '#94A3B8', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+    ],
+  },
 ]
 
 // ── Sidebar shell ────────────────────────────────────────────
@@ -100,17 +102,46 @@ interface SidebarProps {
 }
 
 export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(false)
-  const router = useRouter()
-  const { user, hasRole } = useUser() // Get user and hasRole from context
+  const router  = useRouter()
+  const pathname = usePathname()
+  const { user, hasRole, hasType, hasPlan } = useUser()
 
-  const [mounted, setMounted] = useState(false)
-  const [isImpersonating, setIsImpersonating] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const [isAdminImpersonating, setIsAdminImpersonating] = useState(false)
+  const [loadingHref, setLoadingHref] = useState<string | null>(null)
+  const moreRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setMounted(true)
-    setIsImpersonating(!!localStorage.getItem('admin_token'))
+    // Check if we have an admin token in storage (meaning we are impersonating)
+    setIsAdminImpersonating(!!localStorage.getItem('admin_token'))
   }, [])
+
+  // Clear loading state when pathname changes (navigation finished)
+  useEffect(() => {
+    setLoadingHref(null)
+  }, [pathname])
+
+  // Derive which flyout item is currently active
+  const flyoutAllItems = flyoutNav.flatMap(s => s.items)
+  const activeFlyoutItem = flyoutAllItems.find(
+    item => pathname === item.href || pathname.startsWith(`${item.href}/`)
+  )
+  const isFlyoutActive = !!activeFlyoutItem
+
+  // Close flyout on outside click / Escape
+  useEffect(() => {
+    if (!moreOpen) return
+    const onKey   = (e: KeyboardEvent) => { if (e.key === 'Escape') setMoreOpen(false) }
+    const onClick  = (e: MouseEvent)   => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    document.addEventListener('mousedown', onClick)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('mousedown', onClick)
+    }
+  }, [moreOpen])
 
   const handleLogout = async () => {
     try {
@@ -118,269 +149,424 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
       clearSession()
       localStorage.removeItem('admin_token')
       router.push('/signin')
-    } catch (error) {
-      console.error('Logout failed:', error)
+    } catch (err) {
+      console.error('Logout failed:', err)
     }
   }
 
-  const handleExitImpersonation = () => {
+  const handleReturnToAdmin = () => {
     const adminToken = localStorage.getItem('admin_token')
     if (adminToken) {
-      localStorage.setItem('token', adminToken)
+      setSession(adminToken)
       localStorage.removeItem('admin_token')
-      window.location.href = '/agency'
+      // Redirect back to admin portal or dashboard
+      window.location.href = '/dashboard'
     }
   }
 
-  // Filter sections and items based on role AND type
-  const { hasType, hasPlan } = useUser()
-
-  const filteredMainNav = mainNav.map(section => ({
-    ...section,
-    items: section.items.filter(item => {
-      const roleMatch = hasRole(item.roles)
-      const typeMatch = !item.types || hasType(item.types)
-      const planMatch = !item.plans || hasPlan(item.plans) || hasType(['agency', 'super_admin'])
-      return roleMatch && typeMatch && planMatch
-    })
-  })).filter(section => section.items.length > 0)
-
-  const filteredBottomNav = bottomNav.filter(item => {
-    const roleMatch = hasRole(item.roles)
-    const typeMatch = !item.types || hasType(item.types)
-    const planMatch = !item.plans || hasPlan(item.plans) || hasType(['agency', 'super_admin'])
+  const canSee = (item: NavItemDef) => {
+    const roleMatch  = hasRole(item.roles)
+    const typeMatch  = !item.types || hasType(item.types)
+    const planMatch  = !item.plans || hasPlan(item.plans) || hasType(['agency', 'super_admin'])
     return roleMatch && typeMatch && planMatch
-  })
+  }
 
-  const userRole = user?.role ? user.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Guest'
+  const visiblePinned  = pinnedNav.filter(canSee)
+  const visibleFlyout  = flyoutNav
+    .map(s => ({ ...s, items: s.items.filter(canSee) }))
+    .filter(s => s.items.length > 0)
 
   return (
     <TooltipProvider delayDuration={0}>
-      <aside
-        className={cn(
-          // Base — NO overflow-hidden so the toggle button peeks out
-          'fixed inset-y-0 left-0 z-[100] flex flex-col h-full shrink-0',
-          'lg:relative lg:z-[999]',
-          // Dark sidebar background
-          'bg-slate-900 dark:bg-slate-950',
-          // Border
-          'border-r border-slate-800 dark:border-slate-800',
-          // Width & Visibility
-          'transition-all duration-300 ease-in-out',
-          'w-[260px]', // Mobile width
-          mobileOpen
-            ? 'translate-x-0 opacity-100 visible'
-            : '-translate-x-full opacity-0 invisible lg:translate-x-0 lg:opacity-100 lg:visible',
-          collapsed ? 'lg:w-[68px]' : 'lg:w-[220px]',
-        )}
-      >
-        {/* Subtle top gradient glow */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-indigo-600/10 to-transparent" />
+      <div ref={moreRef} className="fixed top-4 left-4 bottom-4 z-[100] flex items-stretch pointer-events-none">
 
-        {mounted && isImpersonating && (
-          <div className="px-4 py-3 bg-indigo-600/20 border-b border-indigo-500/20">
-            <Button 
-              onClick={handleExitImpersonation}
-              variant="ghost" 
-              className="w-full h-9 rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all gap-2"
-            >
-              <ArrowLeft className="h-3 w-3" /> Return to Agency
-            </Button>
-          </div>
-        )}
-
-        {/* Collapse toggle — floats over the sidebar/content boundary */}
-        <button
-          onClick={() => setCollapsed(c => !c)}
+        {/* ────────────────────────────────────────────────────
+            Narrow icon sidebar
+        ──────────────────────────────────────────────────── */}
+        <aside
           className={cn(
-            'absolute -right-3.5 top-[70px] z-[60] hidden lg:flex',
-            'h-7 w-7 items-center justify-center rounded-full',
-            // Visible against BOTH dark sidebar and light page
-            'bg-slate-700 hover:bg-indigo-600',
-            'text-slate-200 hover:text-white',
-            // Double-ring: inner dark border + outer glow
-            'border-2 border-slate-900',
-            'ring-1 ring-slate-600 hover:ring-indigo-500',
-            'shadow-md transition-all duration-150',
+            "flex flex-col w-[280px] lg:w-[76px] lg:min-w-[76px] lg:max-w-[76px] shrink-0 pointer-events-auto",
+            "bg-slate-950/95 backdrop-blur-md border border-slate-800/60 rounded-xl shadow-2xl",
+            "transition-transform duration-300 ease-in-out overflow-hidden",
+            mobileOpen ? "translate-x-0" : "-translate-x-[calc(100%+2rem)] lg:translate-x-0"
           )}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {collapsed
-            ? <ChevronRight className="h-3.5 w-3.5" />
-            : <ChevronLeft className="h-3.5 w-3.5" />}
-        </button>
-
-
-        {/* ── Logo ────────────────────────────────────────── */}
-        <div className={cn(
-          'flex h-[58px] shrink-0 items-center border-b border-slate-800/80 px-4',
-          'transition-all duration-300 overflow-hidden',
-          collapsed ? 'justify-center' : 'gap-3',
-        )}>
-          {/* Logo mark — always shows LB */}
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/30 select-none">
-            <span className="text-xs font-black text-white tracking-tight">LB</span>
-          </div>
-
-          {!collapsed && (
-            <div className="flex flex-col leading-none">
-              <span className="text-sm font-bold text-white tracking-tight whitespace-nowrap">
-                LeadBajaar
-              </span>
-              <span className="text-[10px] text-indigo-400 font-medium tracking-widest uppercase">
-                CRM
-              </span>
+          {/* Logo & Close Button */}
+          <div className="flex h-16 shrink-0 items-center justify-between px-5 lg:justify-center border-b border-slate-800/40">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/20 border border-white/10">
+              <span className="text-[11px] font-black text-white tracking-tighter">LB</span>
             </div>
-          )}
-        </div>
-
-        {/* ── Nav ─────────────────────────────────────────── */}
-        <ScrollArea className="flex-1 py-3">
-          <div className={cn('px-3 space-y-5')}>
-            {filteredMainNav.map((section) => (
-              <div key={section.label}>
-                {/* Section label */}
-                {!collapsed && (
-                  <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                    {section.label}
-                  </p>
-                )}
-                {collapsed && (
-                  <div className="mb-1.5 mx-auto h-px w-5 bg-slate-700" />
-                )}
-
-                <nav className="flex flex-col gap-0.5">
-                  {section.items.map(item => (
-                    <NavItem key={item.href} item={item} collapsed={collapsed} setMobileOpen={setMobileOpen} />
-                  ))}
-                </nav>
-              </div>
-            ))}
+            
+            <button 
+              onClick={() => setMobileOpen?.(false)}
+              className="lg:hidden h-9 w-9 rounded-xl flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-        </ScrollArea>
 
-        {/* ── Bottom section ───────────────────────────────── */}
-        <div className="shrink-0 border-t border-slate-800 px-3 py-3 space-y-0.5">
-          {filteredBottomNav.map(item => (
-            <NavItem key={item.href} item={item} collapsed={collapsed} setMobileOpen={setMobileOpen} />
-          ))}
+          {/* Pinned nav */}
+          <nav className="flex-1 flex flex-col items-center lg:justify-center gap-1.5 px-3 py-4 overflow-y-auto no-scrollbar">
+            {visiblePinned.map(item => (
+              <PinnedNavItem 
+                key={item.href} 
+                item={item} 
+                setMobileOpen={setMobileOpen}
+                loadingHref={loadingHref}
+                setLoadingHref={setLoadingHref}
+              />
+            ))}
+          </nav>
 
-          {/* Logout */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleLogout}
-                className={cn(
-                  'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5',
-                  'text-slate-400 hover:text-red-400 hover:bg-red-500/10',
-                  'transition-all duration-150 text-sm font-medium',
-                  collapsed && 'justify-center px-2',
-                )}
-              >
-                <LogOut className="h-4 w-4 shrink-0" />
-                {!collapsed && <span>Logout</span>}
-              </button>
-            </TooltipTrigger>
-            {collapsed && (
-              <TooltipContent side="right" className="bg-slate-800 text-white border-slate-700">
+          {/* Bottom actions */}
+          <div className="shrink-0 flex flex-col items-center gap-1 pb-3 pt-2 px-2 w-full overflow-hidden border-t border-slate-800/40 bg-slate-900/40 rounded-b-xl">
+
+            {/* Return to Admin (Impersonation mode) */}
+            {isAdminImpersonating && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handleReturnToAdmin}
+                    className="group flex flex-row lg:flex-col items-center lg:justify-center gap-3 lg:gap-1 w-full lg:w-[60px] px-4 lg:px-0 py-3 lg:py-2.5 rounded-xl text-amber-500 bg-amber-500/10 border border-amber-500/20 transition-all duration-200 shadow-lg shadow-amber-500/10 hover:bg-amber-500/20"
+                  >
+                    <CornerUpLeft className="h-[18px] w-[18px] shrink-0" />
+                    <span className="text-[11px] lg:text-[8px] font-bold uppercase tracking-wide lg:tracking-tight leading-none truncate flex-1 lg:flex-none lg:text-center w-full lg:px-1">
+                      Return
+                    </span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="bg-slate-900 border-slate-800 text-white text-[10px] font-black uppercase tracking-widest">
+                  Return to Admin
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {/* Active flyout item */}
+            {isFlyoutActive && activeFlyoutItem && (
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href={activeFlyoutItem.href}
+                      className="flex flex-row lg:flex-col items-center lg:justify-center gap-3 lg:gap-1 w-full lg:w-[60px] px-4 lg:px-0 py-3 lg:py-2.5 rounded-xl transition-all duration-200 text-white bg-white/10 border border-white/10 shadow-[0_0_12px_rgba(99,102,241,0.15)]"
+                    >
+                      <activeFlyoutItem.icon
+                        className="h-[18px] w-[18px] shrink-0 scale-110"
+                        style={{ color: activeFlyoutItem.color }}
+                      />
+                      <span className="text-[11px] lg:text-[8px] font-bold uppercase tracking-wide lg:tracking-tight leading-none opacity-100 truncate flex-1 lg:flex-none lg:text-center w-full lg:px-1">
+                        {activeFlyoutItem.name}
+                      </span>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="bg-slate-900 border-slate-800 text-white text-[10px] font-black uppercase tracking-widest">
+                    {activeFlyoutItem.name}
+                  </TooltipContent>
+                </Tooltip>
+                <div className="w-8 h-px bg-slate-800/50 hidden lg:block" />
+              </>
+            )}
+
+            {/* More Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setMoreOpen(v => !v)}
+                  className={cn(
+                    "group flex flex-row lg:flex-col items-center lg:justify-center gap-3 lg:gap-1",
+                    "w-full lg:w-[60px] px-4 lg:px-0 py-3 lg:py-2.5 rounded-xl transition-all duration-200",
+                    moreOpen
+                      ? "text-indigo-400 bg-indigo-500/10 border border-indigo-500/20"
+                      : "text-slate-500 hover:text-slate-200 hover:bg-white/5 border border-transparent"
+                  )}
+                >
+                  <MoreHorizontal className="h-[18px] w-[18px] shrink-0" />
+                  <span className="text-[11px] lg:text-[8px] font-bold uppercase tracking-wide lg:tracking-tight leading-none opacity-60 group-hover:opacity-100 transition-opacity truncate flex-1 lg:flex-none lg:text-center w-full lg:px-1">
+                    More
+                  </span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-slate-900 border-slate-800 text-white text-[10px] font-black uppercase tracking-widest">
+                More options
+              </TooltipContent>
+            </Tooltip>
+
+            {/* Logout */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleLogout}
+                  className="group flex flex-row lg:flex-col items-center lg:justify-center gap-3 lg:gap-1 w-full lg:w-[60px] px-4 lg:px-0 py-3 lg:py-2.5 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/5 transition-all duration-200 border border-transparent"
+                >
+                  <LogOut className="h-[18px] w-[18px] shrink-0" />
+                  <span className="text-[11px] lg:text-[8px] font-bold uppercase tracking-wide lg:tracking-tight leading-none opacity-50 group-hover:opacity-100 transition-opacity truncate flex-1 lg:flex-none lg:text-center w-full lg:px-1">
+                    Exit
+                  </span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-slate-900 border-slate-800 text-white text-[10px] font-black uppercase tracking-widest">
                 Logout
               </TooltipContent>
-            )}
-          </Tooltip>
+            </Tooltip>
 
-          {/* User pill */}
-          {!collapsed && (
-            <div className="mt-2 flex items-center gap-3 rounded-xl bg-slate-800/60 px-3 py-2.5 border border-slate-700/50">
-              <div className="h-7 w-7 shrink-0 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold shadow">
-                {user?.name?.[0] || 'U'}
+            {/* User Profile */}
+            <div
+              onClick={() => router.push('/settings')}
+              className="mt-1 w-full lg:w-auto px-4 lg:px-0"
+            >
+              <div className="flex items-center gap-3 lg:block">
+                <div className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-white text-[11px] font-black border border-slate-600 shadow-lg cursor-pointer hover:border-indigo-500 transition-colors">
+                  {user?.name?.[0]?.toUpperCase() || 'U'}
+                </div>
+                <div className="lg:hidden">
+                  <p className="text-[12px] font-bold text-white leading-none">{user?.name || 'User'}</p>
+                  <p className="text-[10px] text-slate-500 mt-1">View Settings</p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white truncate">{user?.name || 'My Account'}</p>
-                <p className="text-[10px] text-slate-500 truncate">{userRole}</p>
-              </div>
-              <Bell className="h-3.5 w-3.5 text-slate-500 hover:text-white transition-colors cursor-pointer shrink-0" />
             </div>
+          </div>
+        </aside>
+
+        {/* ────────────────────────────────────────────────────
+            Flyout panel (slides in to the right of sidebar)
+        ──────────────────────────────────────────────────── */}
+        <div
+          className={cn(
+            "absolute left-[84px] top-0 bottom-0 w-[248px] rounded-xl pointer-events-auto",
+            "bg-slate-950/95 backdrop-blur-md border border-slate-800/60 shadow-2xl",
+            "flex flex-col overflow-hidden",
+            "transition-all duration-300 ease-out origin-left",
+            moreOpen
+              ? "opacity-100 scale-x-100 translate-x-0 pointer-events-auto"
+              : "opacity-0 scale-x-95 -translate-x-2 pointer-events-none"
           )}
+        >
+          {/* Flyout header */}
+          <div className="flex items-center justify-between px-4 h-16 shrink-0 border-b border-slate-800/40">
+            <div>
+              <p className="text-[11px] font-black text-white uppercase tracking-widest">More</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">All features</p>
+            </div>
+            <button
+              onClick={() => setMoreOpen(false)}
+              className="h-7 w-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          {/* Flyout nav list */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="py-3 px-2 flex flex-col gap-0.5">
+              {visibleFlyout.map((section, sIdx) => (
+                <div key={section.label}>
+                  <p className={cn(
+                    "px-3 text-[9px] font-black uppercase tracking-[0.15em] text-slate-600",
+                    sIdx === 0 ? "pt-1 pb-2" : "pt-4 pb-2"
+                  )}>
+                    {section.label}
+                  </p>
+                  {section.items.map(item => (
+                    <FlyoutNavItem
+                      key={item.href}
+                      item={item}
+                      onClose={() => { setMoreOpen(false); setMobileOpen?.(false) }}
+                      loadingHref={loadingHref}
+                      setLoadingHref={setLoadingHref}
+                    />
+                  ))}
+                </div>
+              ))}
+
+              {/* Logout — always at the bottom */}
+              <div className="mt-4 pt-4 border-t border-slate-800/40">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/5 transition-all group"
+                >
+                  <div className="h-8 w-8 shrink-0 rounded-lg bg-slate-800/60 flex items-center justify-center">
+                    <LogOut className="h-4 w-4 text-red-400" />
+                  </div>
+                  <div className="text-left min-w-0">
+                    <p className="text-[12px] font-semibold leading-none text-slate-300 group-hover:text-red-400 transition-colors">Logout</p>
+                    <p className="text-[10px] text-slate-500 mt-1 leading-none truncate">Sign out of your account</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* User footer */}
+          <div className="shrink-0 border-t border-slate-800/40 px-4 py-3 flex items-center gap-3 bg-slate-900/40">
+            <div className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-[11px] font-black shadow">
+              {user?.name?.[0]?.toUpperCase() || 'U'}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[12px] font-semibold text-white truncate">{user?.name || 'User'}</p>
+              <p className="text-[10px] text-slate-500 truncate">{user?.email || ''}</p>
+            </div>
+          </div>
         </div>
-      </aside>
+
+      </div>
     </TooltipProvider>
   )
 }
 
-// ── Individual nav item ──────────────────────────────────────
-function NavItem({
-  item,
-  collapsed,
-  setMobileOpen
-}: {
-  item: NavItemDef;
-  collapsed: boolean;
-  setMobileOpen?: (open: boolean) => void
+// ── Pinned sidebar NavItem ────────────────────────────────────
+function PinnedNavItem({ 
+  item, 
+  setMobileOpen,
+  loadingHref,
+  setLoadingHref 
+}: { 
+  item: NavItemDef; 
+  setMobileOpen?: (open: boolean) => void;
+  loadingHref: string | null;
+  setLoadingHref: (href: string | null) => void;
 }) {
   const pathname = usePathname()
   const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
+  const isLoading = loadingHref === item.href
 
-  const inner = (
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Link
+          href={item.href}
+          onClick={() => {
+            if (!isActive) setLoadingHref(item.href)
+            setMobileOpen?.(false)
+          }}
+          className={cn(
+            "relative flex flex-row lg:flex-col items-center lg:justify-center gap-3 lg:gap-1",
+            "w-full lg:w-[60px] px-4 lg:px-0 py-3 lg:py-2.5 rounded-xl transition-all duration-200 group",
+            isActive
+              ? "text-white bg-white/10 border border-white/10 shadow-[0_0_12px_rgba(99,102,241,0.15)]"
+              : "text-slate-500 hover:text-slate-200 hover:bg-white/5 border border-transparent"
+          )}
+        >
+          {/* Loading Border Animation */}
+          {isLoading && (
+            <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none z-0">
+              <div 
+                className="absolute inset-[-100%] animate-[spin_3s_linear_infinite]"
+                style={{ 
+                  background: `conic-gradient(from 0deg, transparent 0%, ${item.color} 50%, transparent 100%)` 
+                }}
+              />
+              <div className="absolute inset-[1px] rounded-[11px] bg-slate-950/90 backdrop-blur-sm" />
+            </div>
+          )}
+
+          {/* Icon */}
+          <div className="relative z-10">
+            <item.icon
+              className={cn(
+                "h-[18px] w-[18px] shrink-0 transition-all duration-200",
+                isActive ? "scale-110" : "group-hover:scale-105"
+              )}
+              style={isActive || isLoading ? { color: item.color } : {}}
+            />
+          </div>
+
+          {/* Label */}
+          <span
+            className={cn(
+              "text-[11px] lg:text-[8px] font-bold uppercase tracking-wide lg:tracking-tight leading-none truncate flex-1 lg:flex-none lg:text-center w-full lg:px-1",
+              "transition-opacity duration-200",
+              isActive ? "opacity-100" : "opacity-40 group-hover:opacity-100"
+            )}
+          >
+            {item.name}
+          </span>
+        </Link>
+      </TooltipTrigger>
+      <TooltipContent side="right" className="bg-slate-900 border-slate-800 text-white text-[10px] font-black uppercase tracking-widest">
+        {item.name}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+// ── Flyout panel NavItem ──────────────────────────────────────
+function FlyoutNavItem({ 
+  item, 
+  onClose,
+  loadingHref,
+  setLoadingHref
+}: { 
+  item: NavItemDef; 
+  onClose: () => void;
+  loadingHref: string | null;
+  setLoadingHref: (href: string | null) => void;
+}) {
+  const pathname = usePathname()
+  const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
+  const isLoading = loadingHref === item.href
+
+  return (
     <Link
       href={item.href}
-      onClick={() => setMobileOpen?.(false)}
+      onClick={() => {
+        if (!isActive) setLoadingHref(item.href)
+        onClose()
+      }}
       className={cn(
-        'group relative flex items-center gap-3 rounded-xl px-3 py-2.5',
-        'text-sm font-medium transition-all duration-150',
-        isActive
-          ? 'bg-white/10 text-white shadow-sm'
-          : 'text-slate-400 hover:text-white hover:bg-white/5',
-        collapsed && 'justify-center px-2',
+        "relative flex items-center gap-3 w-full px-3 py-2.5 rounded-xl transition-all duration-200 group overflow-hidden",
+        isActive ? "bg-white/8" : ""
       )}
+      style={isActive ? {
+        background: `linear-gradient(135deg, ${item.color}18 0%, ${item.color}08 100%)`,
+      } : {}}
     >
-      {/* Active left accent bar */}
-      {isActive && !collapsed && (
-        <span
-          className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-r-full"
-          style={{ backgroundColor: item.color }}
-        />
+      {/* Loading Border Animation */}
+      {isLoading && (
+        <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none z-0">
+          <div 
+            className="absolute inset-[-100%] animate-[spin_3s_linear_infinite]"
+            style={{ 
+              background: `conic-gradient(from 0deg, transparent 0%, ${item.color} 50%, transparent 100%)` 
+            }}
+          />
+          <div className="absolute inset-[1px] rounded-[11px] bg-slate-950/90 backdrop-blur-sm" />
+        </div>
+      )}
+      {/* Hover bg (inactive only) */}
+      {!isActive && (
+        <span className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-200 rounded-xl" />
       )}
 
-      {/* Icon container */}
-      <span
-        className={cn(
-          'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-all duration-150',
-          isActive
-            ? 'shadow-sm'
-            : 'bg-transparent group-hover:bg-white/5',
-        )}
-        style={isActive ? { backgroundColor: `${item.color}22`, color: item.color } : {}}
+      {/* Icon box */}
+      <div
+        className="h-8 w-8 shrink-0 rounded-lg flex items-center justify-center transition-all duration-200"
+        style={{
+          backgroundColor: isActive ? `${item.color}22` : 'rgba(30,41,59,0.6)',
+        }}
       >
         <item.icon
-          className="h-4 w-4"
-          style={isActive ? { color: item.color } : {}}
+          className="h-4 w-4 shrink-0 transition-all duration-200 group-hover:scale-110"
+          style={{ color: isActive ? item.color : '#64748B' }}
         />
-      </span>
+      </div>
 
-      {!collapsed && (
-        <span className="truncate leading-none">{item.name}</span>
-      )}
+      {/* Text */}
+      <div className="min-w-0 flex-1">
+        <p className={cn(
+          "text-[12px] font-semibold leading-none truncate transition-colors duration-200",
+          isActive ? "text-white" : "text-slate-300 group-hover:text-white"
+        )}>
+          {item.name}
+        </p>
+        <p className="text-[10px] text-slate-500 mt-1 leading-none truncate group-hover:text-slate-400 transition-colors">
+          {item.desc}
+        </p>
+      </div>
 
-      {/* Active dot indicator (collapsed) */}
-      {isActive && collapsed && (
-        <span
-          className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full"
-          style={{ backgroundColor: item.color }}
-        />
+      {/* Active indicator dot */}
+      {isActive && (
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
       )}
     </Link>
   )
-
-  if (collapsed) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>{inner}</TooltipTrigger>
-        <TooltipContent side="right" className="bg-slate-800 text-white border-slate-700 text-xs">
-          {item.name}
-        </TooltipContent>
-      </Tooltip>
-    )
-  }
-
-  return inner
 }

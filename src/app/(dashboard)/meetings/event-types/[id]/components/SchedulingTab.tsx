@@ -21,7 +21,7 @@ interface Props {
 }
 
 const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 block"
-const inputStyle = "h-10 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-all rounded-lg no-scrollbar"
+const inputStyle = "h-10 text-sm bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-800 transition-all rounded-lg no-scrollbar"
 
 export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
   return (

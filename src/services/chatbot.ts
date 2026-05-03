@@ -5,6 +5,7 @@ export interface SaveFlowPayload {
   name: string
   description: string
   trigger: string
+  is_active?: boolean
   nodes: ChatbotNode[]
   edges: ChatbotEdge[]
 }
@@ -14,7 +15,9 @@ export interface ChatbotFlow {
   name: string
   description: string
   trigger: string
+  is_active: boolean
   updatedAt: string
+  createdAt: string
   nodes: ChatbotNode[]
   edges: ChatbotEdge[]
 }
@@ -50,13 +53,14 @@ class ChatbotService {
       const response = await this.fetchApi(`${this.baseUrl}/chatbot/flows`)
       const data = await response.data || response
 
-      // Ensure we return data in the correct format
       return (Array.isArray(data) ? data : []).map(flow => ({
         id: flow.id,
         name: flow.name || '',
         description: flow.description || '',
         trigger: flow.trigger || 'message',
-        updatedAt: flow.updated_at || flow.updatedAt || new Date().toISOString(),
+        is_active: flow.is_active !== undefined ? Boolean(flow.is_active) : true,
+        updatedAt: flow.updatedAt || flow.updated_at || new Date().toISOString(),
+        createdAt: flow.createdAt || flow.created_at || new Date().toISOString(),
         nodes: flow.nodes || [],
         edges: flow.edges || [],
       }))
@@ -71,13 +75,14 @@ class ChatbotService {
       const response = await this.fetchApi(`${this.baseUrl}/chatbot/flows/${id}`)
       const data = await response.data || response
 
-      // Ensure we return data in the correct format
       return {
         id: data.id,
         name: data.name || '',
         description: data.description || '',
         trigger: data.trigger || 'message',
-        updatedAt: data.updated_at || data.updatedAt || new Date().toISOString(),
+        is_active: data.is_active !== undefined ? Boolean(data.is_active) : true,
+        updatedAt: data.updatedAt || data.updated_at || new Date().toISOString(),
+        createdAt: data.createdAt || data.created_at || new Date().toISOString(),
         nodes: data.nodes || [],
         edges: data.edges || [],
       }
@@ -105,19 +110,35 @@ class ChatbotService {
 
       const flowData = response.data || response
 
-      // Ensure we return data in the correct format
       return {
         id: flowData.id,
         name: flowData.name || '',
         description: flowData.description || '',
         trigger: flowData.trigger || 'message',
-        updatedAt: flowData.updated_at || flowData.updatedAt || new Date().toISOString(),
+        is_active: flowData.is_active !== undefined ? Boolean(flowData.is_active) : true,
+        updatedAt: flowData.updatedAt || flowData.updated_at || new Date().toISOString(),
+        createdAt: flowData.createdAt || flowData.created_at || new Date().toISOString(),
         nodes: flowData.nodes || [],
         edges: flowData.edges || [],
       }
     } catch (error) {
       console.error('Error saving flow:', error)
       throw error
+    }
+  }
+
+  /**
+   * Toggle the active / inactive status of a chatbot flow.
+   * PATCH /api/chatbot/flows/{id}/toggle
+   * Returns the new is_active value from the server.
+   */
+  async toggleFlow(id: string): Promise<{ id: string; is_active: boolean }> {
+    const response = await this.fetchApi(`${this.baseUrl}/chatbot/flows/${id}/toggle`, {
+      method: 'PATCH',
+    })
+    return {
+      id: response.id ?? id,
+      is_active: Boolean(response.is_active),
     }
   }
 
@@ -162,4 +183,4 @@ class ChatbotService {
   }
 }
 
-export const chatbotService = new ChatbotService() 
+export const chatbotService = new ChatbotService()

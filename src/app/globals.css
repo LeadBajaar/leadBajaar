@@ -107,11 +107,43 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* ── Smooth scrollbar ─────────────────────────────────── */
-  ::-webkit-scrollbar        { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track  { background: transparent; }
-  ::-webkit-scrollbar-thumb  { @apply bg-slate-300 dark:bg-slate-700 rounded-full; }
-  ::-webkit-scrollbar-thumb:hover { @apply bg-slate-400 dark:bg-slate-600; }
+  /* ── Scrollbar — slim & premium ──────────────────────── */
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(100, 116, 139, 0.25) transparent;
+  }
+
+  /* Webkit — Chrome, Safari, Edge */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.25);
+    border-radius: 100px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.55);
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Dark mode */
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(71, 85, 105, 0.4);
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.65);
+  }
+  .dark * {
+    scrollbar-color: rgba(71, 85, 105, 0.4) transparent;
+  }
 }
 
 @layer utilities {
@@ -128,5 +160,19 @@
   /* ── Primary glow (for active sidebar item) ───────────── */
   .ring-primary-glow {
     box-shadow: 0 0 0 3px hsl(var(--primary) / 0.15);
+  }
+
+  /* ── Hide scrollbars utility ──────────────────────────── */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none !important;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+
+  /* Target Radix UI ScrollArea scrollbars specifically */
+  .no-scrollbar [data-orientation] {
+    display: none !important;
   }
 }

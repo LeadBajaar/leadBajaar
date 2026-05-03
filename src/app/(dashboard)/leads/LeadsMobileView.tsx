@@ -143,6 +143,13 @@ export const LeadsMobileView: React.FC<LeadsMobileViewProps> = ({
                     </Badge>
                     <span className="text-[10px] text-slate-400 font-medium opacity-70">{lead.source}</span>
                   </div>
+                  {(lead.city || lead.profession) && (
+                    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 opacity-60">
+                      {lead.city && <span className="text-[9px] font-medium text-slate-400">{lead.city}</span>}
+                      {lead.city && lead.profession && <span className="text-[8px] text-slate-300">•</span>}
+                      {lead.profession && <span className="text-[9px] font-medium text-slate-400">{lead.profession}</span>}
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-0.5 text-xs font-bold text-slate-800 dark:text-slate-200 tabular-nums">
                       <span className="text-[10px] opacity-40">₹</span>
