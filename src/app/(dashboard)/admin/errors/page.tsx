@@ -250,7 +250,7 @@ export default function ErrorMonitoringPage() {
                           </TableCell>
                           <TableCell className="text-center">
                             <Badge className={`px-2.5 py-0.5 border-2 shadow-sm font-bold tracking-tight ${getStatusColor(log.message)}`}>
-                              {log.level.toUpperCase()}
+                              {(log.level || 'info').toUpperCase()}
                             </Badge>
                           </TableCell>
                           <TableCell className="py-4">

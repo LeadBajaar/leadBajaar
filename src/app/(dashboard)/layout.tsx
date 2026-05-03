@@ -28,9 +28,9 @@ export default function DashboardLayout({
 
           <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
-          <div className="flex-1 flex flex-col overflow-hidden min-w-0 lg:pl-[100px] transition-all duration-300">
+          <div className="flex-1 flex flex-col min-w-0 lg:pl-[100px] transition-all duration-300 p-4 gap-4">
             <Header mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-            <main className="flex-1 overflow-y-auto relative px-4 pt-4 pb-4">
+            <main className="flex-1 overflow-y-auto relative rounded-xl">
               {children}
             </main>
           </div>

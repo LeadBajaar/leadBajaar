@@ -34,7 +34,7 @@ export function Header({ setMobileOpen, mobileOpen }: HeaderProps) {
 
   return (
     <header className="
-      sticky top-4 z-40 mx-4
+      z-40 w-full
       flex h-14 items-center gap-4 px-4
       bg-white/90 dark:bg-slate-950/95 backdrop-blur-md
       border border-slate-200/80 dark:border-slate-800/60 rounded-xl shadow-lg dark:shadow-2xl

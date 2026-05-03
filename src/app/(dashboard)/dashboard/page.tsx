@@ -168,6 +168,23 @@ export default function DashboardPage() {
   const [isDemo, setIsDemo] = useState(false)
   const [showQRModal, setShowQRModal] = useState(false)
   const [isBannerMinimized, setIsBannerMinimized] = useState(false)
+  const [hasLoadedPersistence, setHasLoadedPersistence] = useState(false)
+
+  // Load persistence state on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('lb_dashboard_banner_minimized')
+    if (saved !== null) {
+      setIsBannerMinimized(saved === 'true')
+    }
+    setHasLoadedPersistence(true)
+  }, [])
+
+  // Persist state when it changes (only after initial load)
+  useEffect(() => {
+    if (hasLoadedPersistence) {
+      localStorage.setItem('lb_dashboard_banner_minimized', String(isBannerMinimized))
+    }
+  }, [isBannerMinimized, hasLoadedPersistence])
 
   useEffect(() => {
     setTodayLabel(format(new Date(), 'EEEE, d MMM yyyy'))
@@ -223,7 +240,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 h-full overflow-auto">
+    <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8">
 
       {/* ── Welcome banner ─────────────────────────────────── */}
       <div className="flex items-center justify-between">
@@ -263,19 +280,19 @@ export default function DashboardPage() {
       {/* ── Download Android App ─────────────────────────── */}
       <section
         className={cn(
-          "rounded-3xl relative flex transition-all duration-500 ease-in-out border border-slate-200 shadow-sm overflow-hidden",
+          "rounded-[2rem] relative flex transition-all duration-500 ease-in-out border border-slate-200/60 shadow-sm overflow-hidden",
           isBannerMinimized 
-            ? "flex-row items-center justify-between px-6 py-4 min-h-[80px]" 
-            : "flex-col lg:flex-row items-center justify-center gap-12 lg:gap-24 px-10 py-16 lg:py-8 min-h-[450px]"
+            ? "flex-col sm:flex-row items-center justify-between px-6 py-5 sm:py-4 gap-4 sm:gap-0 min-h-fit" 
+            : "flex-col lg:flex-row items-center justify-center gap-12 lg:gap-24 px-6 sm:px-10 pt-12 pb-0 sm:pb-12 lg:py-8 min-h-[450px]"
         )}
         style={{ 
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)',
         }}
       >
         {/* Minimize/Maximize Toggle - Highlighted Style */}
         <button
           onClick={() => setIsBannerMinimized(!isBannerMinimized)}
-          className="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-white border border-indigo-100 text-indigo-600 shadow-md hover:shadow-lg hover:scale-110 hover:bg-indigo-50 transition-all duration-200"
+          className="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/80 backdrop-blur-sm border border-indigo-100 text-indigo-600 shadow-sm hover:shadow-md hover:scale-110 hover:bg-indigo-50 transition-all duration-200"
           title={isBannerMinimized ? "Expand Dashboard Tool" : "Compact View"}
         >
           {isBannerMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
@@ -284,59 +301,61 @@ export default function DashboardPage() {
         {/* --- Background SaaS Decorations --- */}
         {!isBannerMinimized && (
           <>
-            <div className="absolute inset-0 opacity-[0.06] pointer-events-none">
+            <div className="absolute inset-0 opacity-[0.08] pointer-events-none">
               <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                   <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#6366f1" strokeWidth="1"/>
+                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#6366f1" strokeWidth="1.5"/>
                   </pattern>
                 </defs>
                 <rect width="100%" height="100%" fill="url(#grid)" />
               </svg>
             </div>
-            <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-indigo-50 rounded-full blur-[120px] pointer-events-none opacity-60" />
-            <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] bg-blue-50 rounded-full blur-[120px] pointer-events-none opacity-60" />
+            <div className="absolute -top-32 -left-32 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-indigo-100/40 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none" />
+            <div className="absolute -bottom-32 -right-32 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-blue-100/40 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none" />
           </>
         )}
 
         {/* ── Left Content (Full or Minimized) ── */}
         <div className={cn(
-          "relative z-10 flex transition-all duration-500",
-          isBannerMinimized ? "flex-row items-center gap-8" : "flex-col justify-center gap-6 max-w-sm lg:max-w-xl text-center lg:text-left"
+          "relative z-10 flex transition-all duration-500 w-full lg:w-auto",
+          isBannerMinimized 
+            ? "flex-col sm:flex-row items-center gap-4 sm:gap-8 text-center sm:text-left" 
+            : "flex-col justify-center gap-6 sm:gap-8 max-w-sm lg:max-w-xl text-center lg:text-left"
         )}>
           {/* Feature Badges - Only in full mode */}
           {!isBannerMinimized && (
-            <div className="flex flex-wrap justify-center lg:justify-start gap-3">
+            <div className="flex flex-wrap justify-center lg:justify-start gap-2.5">
               {[
-                { icon: Bell, label: 'Instant Alerts' },
-                { icon: MessageSquare, label: 'Live Chat' },
-                { icon: TrendingUp, label: 'Real-time Stats' },
+                { icon: Bell, label: 'Alerts' },
+                { icon: MessageSquare, label: 'Chat' },
+                { icon: TrendingUp, label: 'Stats' },
               ].map(({ icon: Icon, label }) => (
                 <span
                   key={label}
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white rounded-full text-indigo-600 text-[11px] font-semibold tracking-wide border border-indigo-50 shadow-sm"
+                  className="inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full text-indigo-600 text-[10px] font-bold tracking-wider border border-indigo-50 shadow-sm uppercase"
                 >
-                  <Icon className="w-3.5 h-3.5" />
-                  {label.toUpperCase()}
+                  <Icon className="w-3 h-3" />
+                  {label}
                 </span>
               ))}
             </div>
           )}
 
           {/* Headline - Modern SaaS Typography */}
-          <div className={cn("space-y-3", isBannerMinimized && "space-y-0")}>
+          <div className={cn("space-y-2 sm:space-y-3", isBannerMinimized && "space-y-0")}>
             <h2 className={cn(
               "text-slate-900 tracking-tight transition-all",
-              isBannerMinimized ? "text-base font-semibold" : "text-4xl lg:text-5xl font-bold leading-[1.15]"
+              isBannerMinimized ? "text-sm sm:text-base font-semibold" : "text-3xl sm:text-4xl lg:text-5xl font-bold leading-[1.15]"
             )}>
               {isBannerMinimized ? (
                 <>LeadBajaar for <span className="text-blue-600">Mobile</span></>
               ) : (
-                <>Your entire CRM, <span className="text-blue-600">everywhere you go</span></>
+                <>Your entire CRM, <span className="text-blue-600 block sm:inline">everywhere you go</span></>
               )}
             </h2>
             {!isBannerMinimized && (
-              <p className="text-base lg:text-lg text-slate-500 font-medium leading-relaxed max-w-lg mx-auto lg:mx-0">
+              <p className="text-sm sm:text-base lg:text-lg text-slate-500 font-medium leading-relaxed max-w-lg mx-auto lg:mx-0">
                 Manage your leads, set meetings, and track performance with the same power as your desktop — but in your pocket.
               </p>
             )}
@@ -344,59 +363,59 @@ export default function DashboardPage() {
 
           {/* CTA Buttons */}
           <div className={cn(
-            "flex flex-wrap items-center gap-4 transition-all",
+            "flex flex-wrap items-center gap-3 sm:gap-4 transition-all",
             !isBannerMinimized && "justify-center lg:justify-start pt-2"
           )}>
             <a
               href="/downloads/Leadbajaar.apk"
               download="Leadbajaar.apk"
               className={cn(
-                "inline-flex items-center gap-3 bg-blue-600 text-white rounded-xl font-semibold transition-all shadow-md shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 active:scale-95",
-                isBannerMinimized ? "px-5 py-2.5 text-sm" : "px-8 py-4 text-base"
+                "inline-flex items-center gap-3 bg-blue-600 text-white rounded-xl font-semibold transition-all shadow-md shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 active:scale-95 whitespace-nowrap",
+                isBannerMinimized ? "px-4 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm" : "px-6 py-3 sm:px-8 sm:py-4 text-sm sm:text-base"
               )}
             >
-              <Smartphone className={isBannerMinimized ? "w-4 h-4" : "w-5 h-5"} />
+              <Smartphone className={isBannerMinimized ? "w-3.5 h-3.5 sm:w-4 sm:h-4" : "w-4 h-4 sm:w-5 sm:h-5"} />
               Download APK
             </a>
             <button 
               onClick={() => setShowQRModal(true)}
               className={cn(
-                "inline-flex items-center gap-3 bg-white text-slate-700 rounded-xl font-semibold transition-all border border-slate-200 shadow-sm hover:bg-slate-50 hover:-translate-y-0.5 active:scale-95",
-                isBannerMinimized ? "px-5 py-2.5 text-sm" : "px-8 py-4 text-base"
+                "inline-flex items-center gap-3 bg-white text-slate-700 rounded-xl font-semibold transition-all border border-slate-200 shadow-sm hover:bg-slate-50 hover:-translate-y-0.5 active:scale-95 whitespace-nowrap",
+                isBannerMinimized ? "px-4 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm" : "px-6 py-3 sm:px-8 sm:py-4 text-sm sm:text-base"
               )}
             >
-              <QrCode className={isBannerMinimized ? "w-4 h-4" : "w-5 h-5"} />
+              <QrCode className={isBannerMinimized ? "w-3.5 h-3.5 sm:w-4 sm:h-4" : "w-4 h-4 sm:w-5 sm:h-5"} />
               Scan QR
             </button>
           </div>
 
           {/* Trust line - Hide in minimized mode */}
           {!isBannerMinimized && (
-            <div className="flex items-center justify-center lg:justify-start gap-2.5 text-slate-400 text-sm font-medium pt-2">
-              <Shield className="w-5 h-5 text-emerald-500 shrink-0 opacity-80" />
-              Secure, fast, and already linked to your workspace.
+            <div className="flex items-center justify-center lg:justify-start gap-2 text-slate-400 text-[11px] sm:text-sm font-medium pt-1 sm:pt-2">
+              <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 shrink-0 opacity-80" />
+              Secure, fast, and synced to your workspace.
             </div>
           )}
         </div>
 
         {/* ── Right: Phone Mockup - Hide in minimized mode ── */}
         {!isBannerMinimized && (
-          <div className="relative flex items-center justify-center w-[300px] lg:w-[400px] h-[380px] lg:h-[450px]">
-            {/* Background rings - Darkened for visibility */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] pointer-events-none">
-              <div className="absolute inset-0 border border-slate-200 rounded-full" />
-              <div className="absolute inset-[10%] border border-indigo-100 rounded-full" />
-              <div className="absolute inset-[20%] border border-indigo-50/50 rounded-full" />
+          <div className="relative flex items-center justify-center w-full sm:w-[300px] lg:w-[400px] h-[320px] sm:h-[380px] lg:h-[450px] mt-8 lg:mt-0">
+            {/* Background rings - Maximum visibility for mobile */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[450px] h-[300px] sm:h-[450px] pointer-events-none opacity-80 sm:opacity-100">
+              <div className="absolute inset-0 border-[1.5px] border-slate-400/30 rounded-full" />
+              <div className="absolute inset-[15%] border-[1.5px] border-indigo-400/40 rounded-full" />
+              <div className="absolute inset-[30%] border border-indigo-300/40 rounded-full" />
             </div>
             
-            {/* Phone image */}
-            <div className="relative z-10 w-full h-full p-4 lg:p-8 flex items-center justify-center">
+            {/* Phone image - Full visibility on mobile */}
+            <div className="relative z-10 w-full h-full flex items-center justify-center p-4">
               <img
                 src="/android-mockup.png"
                 alt="LeadBajaar Mobile App"
-                className="h-full w-auto object-contain transition-transform duration-500 hover:scale-[1.02]"
+                className="w-auto h-full max-h-full object-contain transition-transform duration-500 hover:scale-[1.02]"
                 style={{
-                  filter: 'drop-shadow(0px 20px 40px rgba(0,0,0,0.1))',
+                  filter: 'drop-shadow(0px 10px 30px rgba(0,0,0,0.08))',
                 }}
               />
             </div>
