@@ -348,8 +348,8 @@ export default function DashboardPage() {
             !isBannerMinimized && "justify-center lg:justify-start pt-2"
           )}>
             <a
-              href="/downloads/leadbajaar.apk"
-              download="leadbajaar.apk"
+              href="/downloads/Leadbajaar.apk"
+              download="Leadbajaar.apk"
               className={cn(
                 "inline-flex items-center gap-3 bg-blue-600 text-white rounded-xl font-semibold transition-all shadow-md shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 active:scale-95",
                 isBannerMinimized ? "px-5 py-2.5 text-sm" : "px-8 py-4 text-base"
@@ -427,7 +427,7 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(typeof window !== 'undefined' ? `${window.location.origin}/downloads/leadbajaar.apk` : 'https://leadbajaar.com/downloads/leadbajaar.apk')}`} 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(typeof window !== 'undefined' ? `${window.location.origin}/downloads/Leadbajaar.apk` : 'https://app.leadbajaar.com/downloads/Leadbajaar.apk')}`} 
                 alt="Download QR Code"
                 className="relative z-10 w-[200px] h-[200px]"
                 onLoad={(e) => {
