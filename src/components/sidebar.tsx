@@ -1,5 +1,6 @@
 "use client"
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
@@ -55,12 +56,12 @@ type NavSection = {
 // ── Pinned sidebar items (always visible, no scroll) ─────────
 // Only the 4 most-used core items live here
 const pinnedNav: NavItemDef[] = [
-  { name: 'Dashboard',    desc: 'Overview & key metrics',           href: '/dashboard',    icon: Gauge,          color: '#6366F1', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
-  { name: 'Leads',        desc: 'Track and convert leads',          href: '/leads',        icon: UserCheck,      color: '#10B981', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
-  { name: 'Live Chat',    desc: 'Real-time customer messaging',     href: '/live-chat',    icon: MessageCircle,  color: '#3B82F6', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
-  { name: 'Chatbot',      desc: 'Automate conversations with AI',   href: '/chatbot',      icon: Bot,            color: '#8B5CF6', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
-  { name: 'Meetings',     desc: 'Schedule & track appointments',    href: '/meetings',     icon: CalendarCheck2, color: '#F59E0B', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
-  { name: 'Integrations', desc: 'Connect your favourite tools',     href: '/integrations', icon: Plug2,          color: '#EC4899', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
+  { name: 'Dashboard', desc: 'Overview & key metrics', href: '/dashboard', icon: Gauge, color: '#6366F1', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+  { name: 'Leads', desc: 'Track and convert leads', href: '/leads', icon: UserCheck, color: '#10B981', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+  { name: 'Live Chat', desc: 'Real-time customer messaging', href: '/live-chat', icon: MessageCircle, color: '#3B82F6', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+  { name: 'Chatbot', desc: 'Automate conversations with AI', href: '/chatbot', icon: Bot, color: '#8B5CF6', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
+  { name: 'Meetings', desc: 'Schedule & track appointments', href: '/meetings', icon: CalendarCheck2, color: '#F59E0B', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'] },
+  { name: 'Integrations', desc: 'Connect your favourite tools', href: '/integrations', icon: Plug2, color: '#EC4899', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
 ]
 
 // ── Flyout-only items (not shown in narrow sidebar) ──────────
@@ -68,8 +69,8 @@ const flyoutNav: NavSection[] = [
   {
     label: 'Clients & Growth',
     items: [
-      { name: 'Clients',   desc: 'Manage your client portfolio', href: '/agency',    icon: Briefcase,  color: '#6366F1', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin'] },
-      { name: 'Analytics', desc: 'Deep-dive into performance',   href: '/analytics', icon: TrendingUp, color: '#14B8A6', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
+      { name: 'Clients', desc: 'Manage your client portfolio', href: '/agency', icon: Briefcase, color: '#6366F1', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin'] },
+      { name: 'Analytics', desc: 'Deep-dive into performance', href: '/analytics', icon: TrendingUp, color: '#14B8A6', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], plans: ['pro', 'enterprise'] },
     ],
   },
   {
@@ -81,10 +82,10 @@ const flyoutNav: NavSection[] = [
   {
     label: 'Platform Control',
     items: [
-      { name: 'Admin',        desc: 'System-level controls',           href: '/admin',         icon: Shield,       color: '#EF4444', roles: ['Super Admin'],                            types: ['super_admin'] },
-      { name: 'Emails',       desc: 'Monitor transactional emails',    href: '/admin/emails',  icon: Mail,         color: '#6366F1', roles: ['Super Admin'],                            types: ['super_admin'] },
-      { name: 'Error Logs',   desc: 'View platform error logs',        href: '/admin/errors',  icon: Activity,     color: '#F43F5E', roles: ['Super Admin'],                            types: ['super_admin'] },
-      { name: 'Dev Hub',      desc: 'API keys & developer tools',      href: '/developer',     icon: Code2,        color: '#10B981', roles: ['Super Admin', 'Admin'] },
+      { name: 'Admin', desc: 'System-level controls', href: '/admin', icon: Shield, color: '#EF4444', roles: ['Super Admin'], types: ['super_admin'] },
+      { name: 'Emails', desc: 'Monitor transactional emails', href: '/admin/emails', icon: Mail, color: '#6366F1', roles: ['Super Admin'], types: ['super_admin'] },
+      { name: 'Error Logs', desc: 'View platform error logs', href: '/admin/errors', icon: Activity, color: '#F43F5E', roles: ['Super Admin'], types: ['super_admin'] },
+      { name: 'Dev Hub', desc: 'API keys & developer tools', href: '/developer', icon: Code2, color: '#10B981', roles: ['Super Admin', 'Admin'] },
     ],
   },
   {
@@ -102,7 +103,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
-  const router  = useRouter()
+  const router = useRouter()
   const pathname = usePathname()
   const { user, hasRole, hasType, hasPlan } = useUser()
 
@@ -131,8 +132,8 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
   // Close flyout on outside click / Escape
   useEffect(() => {
     if (!moreOpen) return
-    const onKey   = (e: KeyboardEvent) => { if (e.key === 'Escape') setMoreOpen(false) }
-    const onClick  = (e: MouseEvent)   => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMoreOpen(false) }
+    const onClick = (e: MouseEvent) => {
       if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false)
     }
     document.addEventListener('keydown', onKey)
@@ -165,14 +166,14 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
   }
 
   const canSee = (item: NavItemDef) => {
-    const roleMatch  = hasRole(item.roles)
-    const typeMatch  = !item.types || hasType(item.types)
-    const planMatch  = !item.plans || hasPlan(item.plans) || hasType(['agency', 'super_admin'])
+    const roleMatch = hasRole(item.roles)
+    const typeMatch = !item.types || hasType(item.types)
+    const planMatch = !item.plans || hasPlan(item.plans) || hasType(['agency', 'super_admin'])
     return roleMatch && typeMatch && planMatch
   }
 
-  const visiblePinned  = pinnedNav.filter(canSee)
-  const visibleFlyout  = flyoutNav
+  const visiblePinned = pinnedNav.filter(canSee)
+  const visibleFlyout = flyoutNav
     .map(s => ({ ...s, items: s.items.filter(canSee) }))
     .filter(s => s.items.length > 0)
 
@@ -186,20 +187,26 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
         <aside
           className={cn(
             "flex flex-col w-[280px] lg:w-[76px] lg:min-w-[76px] lg:max-w-[76px] shrink-0 pointer-events-auto",
-            "bg-slate-950/95 backdrop-blur-md border border-slate-800/60 rounded-xl shadow-2xl",
+            "bg-[#0B1220] backdrop-blur-md border border-slate-800/60 rounded-xl shadow-2xl",
             "transition-transform duration-300 ease-in-out overflow-hidden",
             mobileOpen ? "translate-x-0" : "-translate-x-[calc(100%+2rem)] lg:translate-x-0"
           )}
         >
           {/* Logo & Close Button */}
           <div className="flex h-16 shrink-0 items-center justify-between px-5 lg:justify-center border-b border-slate-800/40">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/20 border border-white/10">
-              <span className="text-[11px] font-black text-white tracking-tighter">LB</span>
+            <div className="flex h-10 w-10 items-center justify-center">
+              <Image 
+                src="/logo-sm.png" 
+                alt="LeadBajaar Logo" 
+                width={40} 
+                height={40}
+                className="object-contain"
+              />
             </div>
-            
-            <button 
+
+            <button
               onClick={() => setMobileOpen?.(false)}
-              className="lg:hidden h-9 w-9 rounded-xl flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
+              className="lg:hidden h-9 w-9 rounded-xl flex items-center justify-center text-white hover:bg-white/10 transition-all border border-transparent hover:border-white/20"
             >
               <X className="h-4 w-4" />
             </button>
@@ -208,9 +215,9 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
           {/* Pinned nav */}
           <nav className="flex-1 flex flex-col items-center lg:justify-center gap-1.5 px-3 py-4 overflow-y-auto no-scrollbar">
             {visiblePinned.map(item => (
-              <PinnedNavItem 
-                key={item.href} 
-                item={item} 
+              <PinnedNavItem
+                key={item.href}
+                item={item}
                 setMobileOpen={setMobileOpen}
                 loadingHref={loadingHref}
                 setLoadingHref={setLoadingHref}
@@ -276,12 +283,12 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
                     "group flex flex-row lg:flex-col items-center lg:justify-center gap-3 lg:gap-1",
                     "w-full lg:w-[60px] px-4 lg:px-0 py-3 lg:py-2.5 rounded-xl transition-all duration-200",
                     moreOpen
-                      ? "text-indigo-400 bg-indigo-500/10 border border-indigo-500/20"
-                      : "text-slate-500 hover:text-slate-200 hover:bg-white/5 border border-transparent"
+                      ? "text-[#FFFFFF] bg-white/10 border border-white/10 shadow-sm"
+                      : "text-[#9CA3AF] hover:text-[#E5E7EB] hover:bg-[#1E293B] border border-transparent"
                   )}
                 >
                   <MoreHorizontal className="h-[18px] w-[18px] shrink-0" />
-                  <span className="text-[11px] lg:text-[8px] font-bold uppercase tracking-wide lg:tracking-tight leading-none opacity-60 group-hover:opacity-100 transition-opacity truncate flex-1 lg:flex-none lg:text-center w-full lg:px-1">
+                  <span className="text-[11px] lg:text-[8px] font-medium uppercase tracking-wide lg:tracking-tight leading-none opacity-100 transition-opacity truncate flex-1 lg:flex-none lg:text-center w-full lg:px-1">
                     More
                   </span>
                 </button>
@@ -296,10 +303,10 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
               <TooltipTrigger asChild>
                 <button
                   onClick={handleLogout}
-                  className="group flex flex-row lg:flex-col items-center lg:justify-center gap-3 lg:gap-1 w-full lg:w-[60px] px-4 lg:px-0 py-3 lg:py-2.5 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/5 transition-all duration-200 border border-transparent"
+                  className="group flex flex-row lg:flex-col items-center lg:justify-center gap-3 lg:gap-1 w-full lg:w-[60px] px-4 lg:px-0 py-3 lg:py-2.5 rounded-xl text-[#9CA3AF] hover:text-[#EF4444] hover:bg-[#1E293B] transition-all duration-200 border border-transparent"
                 >
                   <LogOut className="h-[18px] w-[18px] shrink-0" />
-                  <span className="text-[11px] lg:text-[8px] font-bold uppercase tracking-wide lg:tracking-tight leading-none opacity-50 group-hover:opacity-100 transition-opacity truncate flex-1 lg:flex-none lg:text-center w-full lg:px-1">
+                  <span className="text-[11px] lg:text-[8px] font-medium uppercase tracking-wide lg:tracking-tight leading-none opacity-100 transition-opacity truncate flex-1 lg:flex-none lg:text-center w-full lg:px-1">
                     Exit
                   </span>
                 </button>
@@ -315,12 +322,12 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
               className="mt-1 w-full lg:w-auto px-4 lg:px-0"
             >
               <div className="flex items-center gap-3 lg:block">
-                <div className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-white text-[11px] font-black border border-slate-600 shadow-lg cursor-pointer hover:border-indigo-500 transition-colors">
+                <div className="h-8 w-8 shrink-0 rounded-full bg-[#1E293B] flex items-center justify-center text-[#E5E7EB] text-[11px] font-black border border-slate-700 shadow-lg cursor-pointer hover:border-[#6366F1] transition-colors">
                   {user?.name?.[0]?.toUpperCase() || 'U'}
                 </div>
                 <div className="lg:hidden">
-                  <p className="text-[12px] font-bold text-white leading-none">{user?.name || 'User'}</p>
-                  <p className="text-[10px] text-slate-500 mt-1">View Settings</p>
+                  <p className="text-[12px] font-medium text-[#E5E7EB] leading-none">{user?.name || 'User'}</p>
+                  <p className="text-[10px] text-[#9CA3AF] mt-1">View Settings</p>
                 </div>
               </div>
             </div>
@@ -333,7 +340,7 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
         <div
           className={cn(
             "absolute left-[84px] top-0 bottom-0 w-[248px] rounded-xl pointer-events-auto",
-            "bg-slate-950/95 backdrop-blur-md border border-slate-800/60 shadow-2xl",
+            "bg-[#0B1220] backdrop-blur-md border border-slate-800/60 shadow-2xl",
             "flex flex-col overflow-hidden",
             "transition-all duration-300 ease-out origin-left",
             moreOpen
@@ -345,7 +352,7 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
           <div className="flex items-center justify-between px-4 h-16 shrink-0 border-b border-slate-800/40">
             <div>
               <p className="text-[11px] font-black text-white uppercase tracking-widest">More</p>
-              <p className="text-[10px] text-slate-500 mt-0.5">All features</p>
+              <p className="text-[10px] text-white mt-0.5">All features</p>
             </div>
             <button
               onClick={() => setMoreOpen(false)}
@@ -361,7 +368,7 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
               {visibleFlyout.map((section, sIdx) => (
                 <div key={section.label}>
                   <p className={cn(
-                    "px-3 text-[9px] font-black uppercase tracking-[0.15em] text-slate-600",
+                    "px-3 text-[9px] font-bold uppercase tracking-[0.15em] text-slate-600",
                     sIdx === 0 ? "pt-1 pb-2" : "pt-4 pb-2"
                   )}>
                     {section.label}
@@ -389,7 +396,7 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
                   </div>
                   <div className="text-left min-w-0">
                     <p className="text-[12px] font-semibold leading-none text-slate-300 group-hover:text-red-400 transition-colors">Logout</p>
-                    <p className="text-[10px] text-slate-500 mt-1 leading-none truncate">Sign out of your account</p>
+                    <p className="text-[10px] text-white/80 mt-1 leading-none truncate">Sign out of your account</p>
                   </div>
                 </button>
               </div>
@@ -397,13 +404,13 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
           </div>
 
           {/* User footer */}
-          <div className="shrink-0 border-t border-slate-800/40 px-4 py-3 flex items-center gap-3 bg-slate-900/40">
+          <div className="shrink-0 border-t border-slate-800/40 px-4 py-3 flex items-center gap-3 bg-[#1E293B]/40">
             <div className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-[11px] font-black shadow">
               {user?.name?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[12px] font-semibold text-white truncate">{user?.name || 'User'}</p>
-              <p className="text-[10px] text-slate-500 truncate">{user?.email || ''}</p>
+              <p className="text-[12px] font-semibold text-[#E5E7EB] truncate">{user?.name || 'User'}</p>
+              <p className="text-[10px] text-[#9CA3AF] truncate">{user?.email || ''}</p>
             </div>
           </div>
         </div>
@@ -414,13 +421,13 @@ export function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
 }
 
 // ── Pinned sidebar NavItem ────────────────────────────────────
-function PinnedNavItem({ 
-  item, 
+function PinnedNavItem({
+  item,
   setMobileOpen,
   loadingHref,
-  setLoadingHref 
-}: { 
-  item: NavItemDef; 
+  setLoadingHref
+}: {
+  item: NavItemDef;
   setMobileOpen?: (open: boolean) => void;
   loadingHref: string | null;
   setLoadingHref: (href: string | null) => void;
@@ -442,17 +449,17 @@ function PinnedNavItem({
             "relative flex flex-row lg:flex-col items-center lg:justify-center gap-3 lg:gap-1",
             "w-full lg:w-[60px] px-4 lg:px-0 py-3 lg:py-2.5 rounded-xl transition-all duration-200 group",
             isActive
-              ? "text-white bg-white/10 border border-white/10 shadow-[0_0_12px_rgba(99,102,241,0.15)]"
-              : "text-slate-500 hover:text-slate-200 hover:bg-white/5 border border-transparent"
+              ? "text-white bg-white/10 border border-white/10 shadow-sm"
+              : "text-[#9CA3AF] hover:text-[#E5E7EB] hover:bg-[#1E293B] border border-transparent"
           )}
         >
           {/* Loading Border Animation */}
           {isLoading && (
             <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none z-0">
-              <div 
+              <div
                 className="absolute inset-[-100%] animate-[spin_3s_linear_infinite]"
-                style={{ 
-                  background: `conic-gradient(from 0deg, transparent 0%, ${item.color} 50%, transparent 100%)` 
+                style={{
+                  background: `conic-gradient(from 0deg, transparent 0%, ${item.color} 50%, transparent 100%)`
                 }}
               />
               <div className="absolute inset-[1px] rounded-[11px] bg-slate-950/90 backdrop-blur-sm" />
@@ -466,23 +473,59 @@ function PinnedNavItem({
                 "h-[18px] w-[18px] shrink-0 transition-all duration-200",
                 isActive ? "scale-110" : "group-hover:scale-105"
               )}
-              style={isActive || isLoading ? { color: item.color } : {}}
+              style={isActive || isLoading ? { color: item.color } : { color: '#9CA3AF' }}
             />
           </div>
 
           {/* Label */}
           <span
             className={cn(
-              "text-[11px] lg:text-[8px] font-bold uppercase tracking-wide lg:tracking-tight leading-none truncate flex-1 lg:flex-none lg:text-center w-full lg:px-1",
+              "text-[11px] lg:text-[8px] font-medium uppercase tracking-wide lg:tracking-tight leading-none truncate flex-1 lg:flex-none lg:text-center w-full lg:px-1",
               "transition-opacity duration-200",
-              isActive ? "opacity-100" : "opacity-40 group-hover:opacity-100"
+              isActive ? "opacity-100" : "opacity-100"
             )}
           >
             {item.name}
           </span>
         </Link>
       </TooltipTrigger>
-      <TooltipContent side="right" className="bg-slate-900 border-slate-800 text-white text-[10px] font-black uppercase tracking-widest">
+      
+      {/* Mobile Link (No tooltip) */}
+      <Link
+        href={item.href}
+        onClick={() => {
+          if (!isActive) setLoadingHref(item.href)
+          setMobileOpen?.(false)
+        }}
+        className={cn(
+          "relative lg:hidden flex flex-row items-center gap-3",
+          "w-full px-4 py-3 rounded-xl transition-all duration-200 group",
+          isActive
+            ? "text-white bg-white/10 border border-white/10 shadow-sm"
+            : "text-[#9CA3AF] hover:text-[#E5E7EB] hover:bg-[#1E293B] border border-transparent"
+        )}
+      >
+        <div className="relative z-10">
+          <item.icon
+            className={cn(
+              "h-[18px] w-[18px] shrink-0 transition-all duration-200",
+              isActive ? "scale-110" : "group-hover:scale-105"
+            )}
+            style={isActive || isLoading ? { color: item.color } : { color: '#9CA3AF' }}
+          />
+        </div>
+        <span
+          className={cn(
+            "text-[11px] font-medium uppercase tracking-wide leading-none truncate flex-1",
+            "transition-opacity duration-200",
+            isActive ? "text-[#FFFFFF]" : "text-[#9CA3AF] group-hover:text-[#E5E7EB]"
+          )}
+        >
+          {item.name}
+        </span>
+      </Link>
+
+      <TooltipContent side="right" className="bg-slate-900 border-slate-800 text-white text-[10px] font-black uppercase tracking-widest lg:block hidden">
         {item.name}
       </TooltipContent>
     </Tooltip>
@@ -490,13 +533,13 @@ function PinnedNavItem({
 }
 
 // ── Flyout panel NavItem ──────────────────────────────────────
-function FlyoutNavItem({ 
-  item, 
+function FlyoutNavItem({
+  item,
   onClose,
   loadingHref,
   setLoadingHref
-}: { 
-  item: NavItemDef; 
+}: {
+  item: NavItemDef;
   onClose: () => void;
   loadingHref: string | null;
   setLoadingHref: (href: string | null) => void;
@@ -514,19 +557,21 @@ function FlyoutNavItem({
       }}
       className={cn(
         "relative flex items-center gap-3 w-full px-3 py-2.5 rounded-xl transition-all duration-200 group overflow-hidden",
-        isActive ? "bg-white/8" : ""
+        isActive ? "bg-white/10 border border-white/10 shadow-sm" : ""
       )}
       style={isActive ? {
-        background: `linear-gradient(135deg, ${item.color}18 0%, ${item.color}08 100%)`,
+        background: `rgba(255,255,255,0.08)`,
+        borderColor: `rgba(255,255,255,0.1)`,
+        borderWidth: '1px'
       } : {}}
     >
       {/* Loading Border Animation */}
       {isLoading && (
         <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none z-0">
-          <div 
+          <div
             className="absolute inset-[-100%] animate-[spin_3s_linear_infinite]"
-            style={{ 
-              background: `conic-gradient(from 0deg, transparent 0%, ${item.color} 50%, transparent 100%)` 
+            style={{
+              background: `conic-gradient(from 0deg, transparent 0%, ${item.color} 50%, transparent 100%)`
             }}
           />
           <div className="absolute inset-[1px] rounded-[11px] bg-slate-950/90 backdrop-blur-sm" />
@@ -541,24 +586,24 @@ function FlyoutNavItem({
       <div
         className="h-8 w-8 shrink-0 rounded-lg flex items-center justify-center transition-all duration-200"
         style={{
-          backgroundColor: isActive ? `${item.color}22` : 'rgba(30,41,59,0.6)',
+          backgroundColor: isActive ? `${item.color}22` : 'rgba(30,41,59,0.4)',
         }}
       >
         <item.icon
           className="h-4 w-4 shrink-0 transition-all duration-200 group-hover:scale-110"
-          style={{ color: isActive ? item.color : '#64748B' }}
+          style={{ color: isActive ? item.color : '#9CA3AF' }}
         />
       </div>
 
       {/* Text */}
       <div className="min-w-0 flex-1">
         <p className={cn(
-          "text-[12px] font-semibold leading-none truncate transition-colors duration-200",
-          isActive ? "text-white" : "text-slate-300 group-hover:text-white"
+          "text-[12px] font-medium leading-none truncate transition-colors duration-200",
+          isActive ? "text-[#FFFFFF]" : "text-[#9CA3AF] group-hover:text-[#E5E7EB]"
         )}>
           {item.name}
         </p>
-        <p className="text-[10px] text-slate-500 mt-1 leading-none truncate group-hover:text-slate-400 transition-colors">
+        <p className="text-[10px] text-[#9CA3AF]/60 mt-1 leading-none truncate group-hover:text-[#9CA3AF] transition-colors">
           {item.desc}
         </p>
       </div>

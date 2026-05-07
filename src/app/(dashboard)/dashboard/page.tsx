@@ -22,8 +22,12 @@ import {
   DialogDescription,
   DialogTrigger
 } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/components/ui/use-toast'
 import { Overview } from '@/components/overview'
-import { getDashboardStats } from '@/lib/api'
+import { getDashboardStats, submitTesterRequest } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import * as LucideIcons from 'lucide-react'
 import { useUser } from '@/contexts/UserContext'
@@ -169,6 +173,14 @@ export default function DashboardPage() {
   const [showQRModal, setShowQRModal] = useState(false)
   const [isBannerMinimized, setIsBannerMinimized] = useState(false)
   const [hasLoadedPersistence, setHasLoadedPersistence] = useState(false)
+  const [showTesterModal, setShowTesterModal] = useState(false)
+  const [isSubmittingTester, setIsSubmittingTester] = useState(false)
+  const [testerForm, setTesterForm] = useState({
+    name: '',
+    email: '',
+    phone: ''
+  })
+  const { toast } = useToast()
 
   // Load persistence state on mount
   useEffect(() => {
@@ -178,6 +190,17 @@ export default function DashboardPage() {
     }
     setHasLoadedPersistence(true)
   }, [])
+
+  // Sync tester form with user data
+  useEffect(() => {
+    if (user) {
+      setTesterForm({
+        name: user.name || '',
+        email: user.email || '',
+        phone: (user as any).phone || ''
+      })
+    }
+  }, [user])
 
   // Persist state when it changes (only after initial load)
   useEffect(() => {
@@ -220,6 +243,30 @@ export default function DashboardPage() {
     }
   }, [userLoading, user])
 
+  const handleTesterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmittingTester(true)
+    
+    try {
+      await submitTesterRequest(testerForm)
+      
+      toast({
+        title: "Request Sent",
+        description: "We've received your request. We'll add you to the Play Store tester list shortly.",
+      })
+      
+      setShowTesterModal(false)
+    } catch (error: any) {
+      toast({
+        title: "Submission Failed",
+        description: error.message || "Failed to submit your request. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsSubmittingTester(false)
+    }
+  }
+
   const initials = user?.name
     ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
     : '?'
@@ -240,42 +287,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8">
+    <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 pt-0 md:pt-0 lg:pt-0">
 
-      {/* ── Welcome banner ─────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <div>
-          {isLoading ? (
-            <>
-              <Skeleton className="h-7 w-52 mb-1.5" />
-              <Skeleton className="h-4 w-72" />
-            </>
-          ) : (
-            <>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                Good evening, {user?.name?.split(' ')[0] ?? 'there'} 👋
-              </h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                Here's what's happening with your leads today.
-              </p>
-            </>
-          )}
-        </div>
-        {todayLabel && (
-          <Badge
-            variant="outline"
-            className="hidden sm:flex items-center gap-1.5 text-xs font-medium border-indigo-200 text-indigo-700 dark:border-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5"
-          >
-            <Clock className="h-3 w-3" />
-            {todayLabel}
-          </Badge>
-        )}
-        {isDemo && !isLoading && (
-          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 ml-2">
-            Demo Preview Mode
-          </Badge>
-        )}
-      </div>
 
       {/* ── Download Android App ─────────────────────────── */}
       <section
@@ -366,12 +379,22 @@ export default function DashboardPage() {
             "flex flex-wrap items-center gap-3 sm:gap-4 transition-all",
             !isBannerMinimized && "justify-center lg:justify-start pt-2"
           )}>
+            <button
+              onClick={() => setShowTesterModal(true)}
+              className={cn(
+                "inline-flex items-center gap-3 bg-slate-900 text-white rounded-xl font-semibold transition-all shadow-md shadow-slate-200 hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95 whitespace-nowrap",
+                isBannerMinimized ? "px-4 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm" : "px-5 py-2.5 sm:px-6 sm:py-3.5 text-sm sm:text-base"
+              )}
+            >
+              <Zap className={isBannerMinimized ? "w-3.5 h-3.5 sm:w-4 sm:h-4" : "w-4 h-4 sm:w-5 sm:h-5"} />
+              Early Access
+            </button>
             <a
               href="/downloads/Leadbajaar.apk"
               download="Leadbajaar.apk"
               className={cn(
-                "inline-flex items-center gap-3 bg-blue-600 text-white rounded-xl font-semibold transition-all shadow-md shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 active:scale-95 whitespace-nowrap",
-                isBannerMinimized ? "px-4 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm" : "px-6 py-3 sm:px-8 sm:py-4 text-sm sm:text-base"
+                "inline-flex items-center gap-3 bg-white text-slate-700 rounded-xl font-semibold transition-all border border-slate-200 shadow-sm hover:bg-slate-50 hover:-translate-y-0.5 active:scale-95 whitespace-nowrap",
+                isBannerMinimized ? "px-4 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm" : "px-5 py-2.5 sm:px-6 sm:py-3.5 text-sm sm:text-base"
               )}
             >
               <Smartphone className={isBannerMinimized ? "w-3.5 h-3.5 sm:w-4 sm:h-4" : "w-4 h-4 sm:w-5 sm:h-5"} />
@@ -381,7 +404,7 @@ export default function DashboardPage() {
               onClick={() => setShowQRModal(true)}
               className={cn(
                 "inline-flex items-center gap-3 bg-white text-slate-700 rounded-xl font-semibold transition-all border border-slate-200 shadow-sm hover:bg-slate-50 hover:-translate-y-0.5 active:scale-95 whitespace-nowrap",
-                isBannerMinimized ? "px-4 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm" : "px-6 py-3 sm:px-8 sm:py-4 text-sm sm:text-base"
+                isBannerMinimized ? "px-4 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm" : "px-5 py-2.5 sm:px-6 sm:py-3.5 text-sm sm:text-base"
               )}
             >
               <QrCode className={isBannerMinimized ? "w-3.5 h-3.5 sm:w-4 sm:h-4" : "w-4 h-4 sm:w-5 sm:h-5"} />
@@ -463,6 +486,70 @@ export default function DashboardPage() {
               leadbajaar_v2.apk
             </p>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Become a Tester Modal ──────────────────────────── */}
+      <Dialog open={showTesterModal} onOpenChange={setShowTesterModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Become a Beta Tester</DialogTitle>
+            <DialogDescription>
+              Submit your details to get official Early Access via Google Play Store.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleTesterSubmit} className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="tester-name">Full Name</Label>
+              <Input 
+                id="tester-name" 
+                placeholder="Enter your name" 
+                value={testerForm.name}
+                onChange={e => setTesterForm({...testerForm, name: e.target.value})}
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tester-email">Email Address (Play Store account)</Label>
+              <Input 
+                id="tester-email" 
+                type="email" 
+                placeholder="Enter your Google email" 
+                value={testerForm.email}
+                onChange={e => setTesterForm({...testerForm, email: e.target.value})}
+                required 
+              />
+              <p className="text-[10px] text-slate-500 italic">
+                * This must be the email you use for the Google Play Store.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tester-phone">Phone Number</Label>
+              <Input 
+                id="tester-phone" 
+                placeholder="Enter your phone number" 
+                value={testerForm.phone}
+                onChange={e => setTesterForm({...testerForm, phone: e.target.value})}
+                required 
+              />
+            </div>
+            
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-lg border border-indigo-100 dark:border-indigo-800">
+              <p className="text-xs text-indigo-700 dark:text-indigo-300 leading-relaxed">
+                After submission, we will manually add your email to our Play Store testing list and notify you once access is granted.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="ghost" onClick={() => setShowTesterModal(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmittingTester} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                {isSubmittingTester ? "Submitting..." : "Request Access"}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
 

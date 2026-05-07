@@ -346,6 +346,10 @@ export default function SuperAdminPage() {
   const [isUpdatingCompany, setIsUpdatingCompany] = useState(false)
   const [isUpdatingPlan, setIsUpdatingPlan] = useState(false)
   const [isUpdatingUser, setIsUpdatingUser] = useState(false)
+  const [testerRequests, setTesterRequests] = useState<any[]>([])
+  const [testerRequestsMeta, setTesterRequestsMeta] = useState<any>(null)
+  const [testerRequestsPage, setTesterRequestsPage] = useState(1)
+  const [isUpdatingTester, setIsUpdatingTester] = useState(false)
 
   // Pagination states
   const [companiesPage, setCompaniesPage] = useState(1)
@@ -656,7 +660,7 @@ export default function SuperAdminPage() {
 
     try {
       setIsLoading(true)
-      const [companiesRes, statsData, usersRes, billingRes, deletionsRes, plansRes, tagsRes, broadcastRes, selectCompaniesRes] = await Promise.all([
+      const [companiesRes, statsData, usersRes, billingRes, deletionsRes, plansRes, tagsRes, broadcastRes, selectCompaniesRes, testerRequestsRes] = await Promise.all([
         adminApi.getCompanies(companiesPage, 10, searchQuery, filterPlan, filterStatus, filterTag, filterExpiration, filterStarted, customExpStart, customExpEnd, customStartStart, customStartEnd),
         adminApi.getStats(),
         adminApi.getUsers(usersPage, 10, searchQuery, filterTag, filterRole, filterUserStatus, filterUserType),
@@ -665,7 +669,8 @@ export default function SuperAdminPage() {
         adminApi.getPlans(),
         adminApi.getTags(),
         adminApi.getBroadcastHistory(),
-        adminApi.getCompanies(1, 100) // Unfiltered for selection
+        adminApi.getCompanies(1, 100), // Unfiltered for selection
+        adminApi.getTesterRequests(testerRequestsPage, 10, searchQuery)
       ])
 
       if (tagsRes) {
@@ -732,6 +737,17 @@ export default function SuperAdminPage() {
       }
 
       setStats(statsData)
+
+      if (testerRequestsRes) {
+        setTesterRequests(testerRequestsRes.data || [])
+        setTesterRequestsMeta({
+          current_page: testerRequestsRes.current_page,
+          last_page: testerRequestsRes.last_page,
+          total: testerRequestsRes.total,
+          from: testerRequestsRes.from,
+          to: testerRequestsRes.to
+        })
+      }
     } catch (error: any) {
       toast.error("Platform Error", {
         description: error.message,
@@ -752,7 +768,7 @@ export default function SuperAdminPage() {
       fetchData()
     }, 500) // Debounce search
     return () => clearTimeout(timer)
-  }, [demoMode, companiesPage, usersPage, billingPage, searchQuery, filterPlan, filterStatus, filterTag, filterRole, filterUserType, filterUserStatus, filterExpiration, filterStarted, customExpStart, customExpEnd, customStartStart, customStartEnd])
+  }, [demoMode, companiesPage, usersPage, billingPage, testerRequestsPage, searchQuery, filterPlan, filterStatus, filterTag, filterRole, filterUserType, filterUserStatus, filterExpiration, filterStarted, customExpStart, customExpEnd, customStartStart, customStartEnd])
 
   const filteredCompanies = companies.filter((c: Company) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -822,6 +838,19 @@ export default function SuperAdminPage() {
       })
     } finally {
       setIsUpdatingUser(false)
+    }
+  }
+
+  const handleUpdateTesterStatus = async (id: number, status: string) => {
+    try {
+      setIsUpdatingTester(true)
+      await adminApi.updateTesterRequestStatus(id, status)
+      toast.success("Status Updated", { description: "Tester request status has been updated." })
+      fetchData()
+    } catch (error: any) {
+      toast.error("Update Failed", { description: error.message })
+    } finally {
+      setIsUpdatingTester(false)
     }
   }
 
@@ -1081,36 +1110,42 @@ export default function SuperAdminPage() {
 
 
           <Tabs defaultValue="companies" onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl h-11 border border-slate-200 dark:border-slate-800 w-fit">
-              <TabsTrigger value="companies" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
+          <div className="w-full overflow-x-auto no-scrollbar pb-1">
+            <TabsList className="bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl h-12 border border-slate-200 dark:border-slate-800 w-max min-w-full justify-start flex-nowrap">
+              <TabsTrigger value="companies" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
                 <Building2 className="h-4 w-4 mr-2" />
                 Manage Companies
               </TabsTrigger>
-              <TabsTrigger value="users" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
+              <TabsTrigger value="users" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
                 <Users className="h-4 w-4 mr-2" />
                 Manage Users
               </TabsTrigger>
-              <TabsTrigger value="billing" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
+              <TabsTrigger value="billing" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
                 <CreditCard className="h-4 w-4 mr-2" />
                 Global Billing
               </TabsTrigger>
-              <TabsTrigger value="plans" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
+              <TabsTrigger value="plans" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
                 <Settings className="h-4 w-4 mr-2" />
                 Plan Management
               </TabsTrigger>
-              <TabsTrigger value="health" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
+              <TabsTrigger value="health" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
                 <Activity className="h-4 w-4 mr-2" />
                 Service Status
               </TabsTrigger>
-              <TabsTrigger value="meta-deletions" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
+              <TabsTrigger value="meta-deletions" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
                 <ShieldAlert className="h-4 w-4 mr-2 text-red-500" />
                 Meta Compliance
               </TabsTrigger>
-              <TabsTrigger value="announcements" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
+              <TabsTrigger value="announcements" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
                 <Megaphone className="h-4 w-4 mr-2 text-amber-500" />
                 Announcements
               </TabsTrigger>
+              <TabsTrigger value="testers" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
+                <Smartphone className="h-4 w-4 mr-2 text-blue-500" />
+                Beta Testers
+              </TabsTrigger>
             </TabsList>
+          </div>
 
             <TabsContent value="users" className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -2402,6 +2437,134 @@ export default function SuperAdminPage() {
                   </CardFooter>
                 </Card>
               </div>
+            </TabsContent>
+
+            <TabsContent value="testers" className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="relative w-full sm:w-96">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                    <Search className="h-4 w-4" />
+                  </div>
+                  <input
+                    placeholder="Search testers by name, email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex h-10 w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm shadow-sm pl-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden">
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader className="bg-slate-50/80 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="font-bold text-slate-500 py-4 pl-6">Tester Info</TableHead>
+                        <TableHead className="font-bold text-slate-500 py-4">Phone</TableHead>
+                        <TableHead className="font-bold text-slate-500 py-4">Requested On</TableHead>
+                        <TableHead className="font-bold text-slate-500 py-4">Status</TableHead>
+                        <TableHead className="text-right font-bold text-slate-500 py-4 pr-6">Manage Access</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {isLoading ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="h-64 text-center">
+                            <div className="flex flex-col items-center justify-center gap-3">
+                              <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
+                              <p className="text-sm font-bold text-slate-500 italic">Syncing tester applications...</p>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : testerRequests.length > 0 ? (
+                        testerRequests.map((req) => (
+                          <TableRow key={req.id} className="border-slate-100 dark:border-slate-800">
+                            <TableCell className="py-4 pl-6">
+                              <div>
+                                <p className="font-bold text-sm text-slate-900 dark:text-white">{req.name}</p>
+                                <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">{req.email}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-sm font-medium text-slate-600 dark:text-slate-400">{req.phone}</TableCell>
+                            <TableCell className="text-xs text-slate-500">
+                              {new Date(req.created_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={cn(
+                                "text-[10px] font-bold py-0.5", 
+                                req.status === 'notified' ? "bg-emerald-100 text-emerald-700" : 
+                                req.status === 'approved' ? "bg-blue-100 text-blue-700" : 
+                                "bg-amber-100 text-amber-700"
+                              )}>
+                                {req.status === 'notified' ? 'Access Granted' : req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right pr-6">
+                              <div className="flex justify-end gap-2">
+                                {req.status === 'pending' && (
+                                  <Button 
+                                    size="sm" 
+                                    className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold h-7 rounded-lg"
+                                    onClick={() => handleUpdateTesterStatus(req.id, 'approved')}
+                                    disabled={isUpdatingTester}
+                                  >
+                                    Mark Approved
+                                  </Button>
+                                )}
+                                {req.status === 'approved' && (
+                                  <Button 
+                                    size="sm" 
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold h-7 rounded-lg"
+                                    onClick={() => handleUpdateTesterStatus(req.id, 'notified')}
+                                    disabled={isUpdatingTester}
+                                  >
+                                    Mark Notified
+                                  </Button>
+                                )}
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleUpdateTesterStatus(req.id, 'pending')}>
+                                      Reset to Pending
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleUpdateTesterStatus(req.id, 'approved')}>
+                                      Set Approved
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleUpdateTesterStatus(req.id, 'notified')}>
+                                      Set Notified
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="h-64 text-center text-slate-400 italic">
+                            No tester requests found.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+                {testerRequestsMeta && (
+                  <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 py-4 px-6">
+                    <PaginationSection
+                      currentPage={testerRequestsPage}
+                      lastPage={testerRequestsMeta.last_page}
+                      onPageChange={setTesterRequestsPage}
+                      totalItems={testerRequestsMeta.total}
+                      itemsShown={testerRequests.length}
+                    />
+                  </CardFooter>
+                )}
+              </Card>
             </TabsContent>
           </Tabs>
 

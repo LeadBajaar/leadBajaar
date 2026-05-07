@@ -173,6 +173,10 @@ export const getUser = async () => {
   const response = await api.get('/user');
   return response.data;
 };
+export const submitTesterRequest = async (data: { name: string; email: string; phone: string }) => {
+  const response = await api.post('/tester-requests', data);
+  return response.data;
+};
 
 export const loginWithGoogle = async (token: string) => {
   const response = await api.post('/login/google', { token });
@@ -1595,6 +1599,26 @@ export const adminApi = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to update user');
+    }
+  },
+
+  getTesterRequests: async (page = 1, limit = 10, search?: string) => {
+    try {
+      let url = `/admin/tester-requests?page=${page}&limit=${limit}`;
+      if (search) url += `&search=${search}`;
+      const response = await api.get(url);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch tester requests');
+    }
+  },
+
+  updateTesterRequestStatus: async (id: number | string, status: string) => {
+    try {
+      const response = await api.patch(`/admin/tester-requests/${id}/status`, { status });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to update status');
     }
   },
 
