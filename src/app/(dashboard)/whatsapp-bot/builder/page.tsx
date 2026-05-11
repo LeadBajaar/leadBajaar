@@ -382,14 +382,14 @@ export default function FlowBuilderPage() {
       {/* Builder Toolbar */}
       <div className="h-16 border-b border-white/5 bg-slate-900/50 backdrop-blur-xl px-6 flex items-center justify-between z-10">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-xl hover:bg-slate-800">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-lg font-bold text-white flex items-center">
-              Visual Flow Builder <Badge className="ml-2 bg-indigo-500/20 text-indigo-400 border-none">Pro</Badge>
+            <h1 className="text-lg font-black text-white flex items-center tracking-tight">
+              Visual Flow Builder <Badge className="ml-2 bg-indigo-500/20 text-indigo-400 border-none px-2 py-0">PRO</Badge>
             </h1>
-            <p className="text-[10px] text-slate-500 font-medium">User ID: {userId}</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest opacity-80">WhatsApp Instance: {userId}</p>
           </div>
         </div>
 
@@ -416,55 +416,56 @@ export default function FlowBuilderPage() {
           nodeTypes={nodeTypes}
           fitView
           colorMode="dark"
+          defaultEdgeOptions={{
+            style: { stroke: '#818cf8', strokeWidth: 3 },
+            markerEnd: { type: MarkerType.ArrowClosed, color: '#818cf8' },
+          }}
         >
-          <Background color="#1E293B" variant={BackgroundVariant.Dots} gap={20} size={1} />
-          <Controls className="bg-slate-900 border-slate-800 fill-slate-400" />
+          <Background color="#334155" variant={BackgroundVariant.Dots} gap={20} size={1.5} />
+          <Controls className="bg-slate-800 border-slate-700 fill-white" />
           <MiniMap 
-            className="bg-slate-900 border-slate-800" 
-            nodeColor="#312e81"
-            maskColor="rgba(0, 0, 0, 0.4)"
+            className="bg-slate-800 border-slate-600 rounded-xl overflow-hidden shadow-2xl" 
+            nodeColor="#4f46e5"
+            maskColor="rgba(0, 0, 0, 0.6)"
+            style={{ height: 120, width: 200 }}
           />
           
-          <Panel position="top-right" className="space-y-2">
-            <Card className="p-3 bg-slate-900/80 border-slate-800 backdrop-blur-lg w-64 shadow-2xl">
-              <h3 className="text-xs font-bold text-indigo-400 mb-3 flex items-center uppercase tracking-tighter">
-                <Shuffle className="w-3.5 h-3.5 mr-2" /> Canvas Tools
+          <Panel position="top-right" className="space-y-3">
+            <Card className="p-4 bg-slate-900/90 border-slate-700 backdrop-blur-xl w-64 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] border-t-indigo-500/30">
+              <h3 className="text-xs font-black text-indigo-400 mb-4 flex items-center uppercase tracking-widest">
+                <Shuffle className="w-3.5 h-3.5 mr-2" /> Flow Components
               </h3>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <Button 
                   variant="outline" 
-                  className="h-20 flex-col bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10 text-emerald-500"
+                  className="h-20 flex-col bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 font-black hover:text-emerald-300"
                   onClick={() => onAddNode('root')}
                 >
                   <Zap className="w-6 h-6 mb-2" />
-                  <span className="text-[10px] font-bold">Entry Flow</span>
+                  <span className="text-[10px] uppercase tracking-tighter">New Entry</span>
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="h-20 flex-col bg-indigo-500/5 border-indigo-500/20 hover:bg-indigo-500/10 text-indigo-500"
+                  className="h-20 flex-col bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20 text-indigo-400 font-black hover:text-indigo-300"
                   onClick={() => onAddNode('step')}
                 >
                   <MessageCircle className="w-6 h-6 mb-2" />
-                  <span className="text-[10px] font-bold">Message Node</span>
-                </Button>
-                <Button variant="outline" className="h-20 flex-col bg-slate-950 border-slate-800 hover:bg-slate-800">
-                  <Database className="w-6 h-6 mb-2 text-emerald-500" />
-                  <span className="text-[10px]">History</span>
+                  <span className="text-[10px] uppercase tracking-tighter">Message</span>
                 </Button>
               </div>
             </Card>
             
-            <Card className="p-3 bg-slate-900/80 border-slate-800 backdrop-blur-lg w-64 shadow-2xl">
-              <h3 className="text-xs font-bold text-indigo-400 mb-2 uppercase tracking-tighter">Instructions</h3>
-              <ul className="text-[10px] space-y-1.5 text-slate-400">
+            <Card className="p-4 bg-slate-900/90 border-slate-700 backdrop-blur-xl w-64 shadow-2xl">
+              <h3 className="text-xs font-black text-indigo-400 mb-3 uppercase tracking-widest">Guide</h3>
+              <ul className="text-[11px] space-y-2 text-slate-300 font-medium">
                 <li className="flex items-center">
-                  <div className="w-1 h-1 bg-indigo-500 rounded-full mr-2" /> Drag nodes to repoistion
+                  <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full mr-2 shadow-[0_0_8px_rgba(99,102,241,0.5)]" /> Drag to position
                 </li>
                 <li className="flex items-center">
-                  <div className="w-1 h-1 bg-indigo-500 rounded-full mr-2" /> Connect nodes to link states
+                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-2 shadow-[0_0_8px_rgba(16,185,129,0.5)]" /> Connect sources to targets
                 </li>
                 <li className="flex items-center">
-                  <div className="w-1 h-1 bg-indigo-500 rounded-full mr-2" /> Click node to edit details
+                  <div className="w-1.5 h-1.5 bg-amber-500 rounded-full mr-2 shadow-[0_0_8px_rgba(245,158,11,0.5)]" /> Click to configure
                 </li>
               </ul>
             </Card>
@@ -503,7 +504,7 @@ export default function FlowBuilderPage() {
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="bg-slate-950 border-slate-800"
+                  className="bg-slate-950 border-slate-800 text-slate-100 placeholder:text-slate-600 focus:ring-indigo-500/20"
                   placeholder="e.g. Handle Pricing Query"
                 />
               </div>
@@ -518,7 +519,7 @@ export default function FlowBuilderPage() {
                   id="trigger"
                   value={formData.trigger_keyword}
                   onChange={(e) => setFormData({ ...formData, trigger_keyword: e.target.value })}
-                  className="bg-slate-950 border-slate-800"
+                  className="bg-slate-950 border-slate-800 text-slate-100 placeholder:text-slate-600 focus:ring-indigo-500/20"
                   placeholder={formData.required_state === 'START' ? 'e.g. hello' : 'e.g. 1 or * (Any)'}
                 />
                 {formData.required_state !== 'START' && (
@@ -531,14 +532,14 @@ export default function FlowBuilderPage() {
                   value={formData.match_type} 
                   onValueChange={(v) => setFormData({ ...formData, match_type: v })}
                 >
-                  <SelectTrigger className="bg-slate-950 border-slate-800">
+                  <SelectTrigger className="bg-slate-950 border-slate-800 text-slate-100">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-slate-800">
-                    <SelectItem value="contains">Contains</SelectItem>
-                    <SelectItem value="exact">Exact</SelectItem>
-                    <SelectItem value="starts_with">Starts With</SelectItem>
-                    <SelectItem value="wildcard">Wildcard</SelectItem>
+                  <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
+                    <SelectItem value="contains" className="focus:bg-indigo-600 focus:text-white">Contains</SelectItem>
+                    <SelectItem value="exact" className="focus:bg-indigo-600 focus:text-white">Exact</SelectItem>
+                    <SelectItem value="starts_with" className="focus:bg-indigo-600 focus:text-white">Starts With</SelectItem>
+                    <SelectItem value="wildcard" className="focus:bg-indigo-600 focus:text-white">Wildcard</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -551,15 +552,15 @@ export default function FlowBuilderPage() {
                   value={formData.media_type} 
                   onValueChange={(v) => setFormData({ ...formData, media_type: v })}
                 >
-                  <SelectTrigger className="bg-slate-950 border-slate-800">
+                  <SelectTrigger className="bg-slate-950 border-slate-800 text-slate-100">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-slate-800">
-                    <SelectItem value="none">None (Text Only)</SelectItem>
-                    <SelectItem value="image">Image</SelectItem>
-                    <SelectItem value="video">Video</SelectItem>
-                    <SelectItem value="audio">Audio/Voice</SelectItem>
-                    <SelectItem value="document">Document (PDF)</SelectItem>
+                  <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
+                    <SelectItem value="none" className="focus:bg-indigo-600 focus:text-white">None (Text Only)</SelectItem>
+                    <SelectItem value="image" className="focus:bg-indigo-600 focus:text-white">Image</SelectItem>
+                    <SelectItem value="video" className="focus:bg-indigo-600 focus:text-white">Video</SelectItem>
+                    <SelectItem value="audio" className="focus:bg-indigo-600 focus:text-white">Audio/Voice</SelectItem>
+                    <SelectItem value="document" className="focus:bg-indigo-600 focus:text-white">Document (PDF)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -570,7 +571,7 @@ export default function FlowBuilderPage() {
                     id="mediaUrl"
                     value={formData.media_url}
                     onChange={(e) => setFormData({ ...formData, media_url: e.target.value })}
-                    className="bg-slate-950 border-slate-800 flex-1"
+                    className="bg-slate-950 border-slate-800 text-slate-100 placeholder:text-slate-600 flex-1"
                     placeholder="https://..."
                     disabled={formData.media_type === 'none'}
                   />
@@ -600,7 +601,7 @@ export default function FlowBuilderPage() {
                 id="reply"
                 value={formData.reply_message}
                 onChange={(e) => setFormData({ ...formData, reply_message: e.target.value })}
-                className="bg-slate-950 border-slate-800 min-h-[80px]"
+                className="bg-slate-950 border-slate-800 text-slate-100 placeholder:text-slate-600 min-h-[80px] focus:ring-indigo-500/20"
                 placeholder="Hi! Our pricing starts from $10..."
               />
             </div>

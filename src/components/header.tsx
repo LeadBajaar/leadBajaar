@@ -3,14 +3,21 @@
 import { usePathname } from "next/navigation"
 import { ModeToggle } from "@/components/mode-toggle"
 import { NotificationBell } from "@/components/notification-bell"
-import { Menu, X } from "lucide-react"
+import { Menu, X, QrCode, Trash2, Zap, Activity } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useWhatsApp } from "@/contexts/WhatsAppContext"
+import { Badge } from "@/components/ui/badge"
+import { WhatsAppConnectModal } from "@/components/whatsapp-bot/WhatsAppConnectModal"
+import axios from "axios"
+import { WHATSAPP_BASE_URL } from "@/lib/api"
+import { toast } from "sonner"
 
 const pageMeta: Record<string, { title: string; description: string }> = {
   '/dashboard':            { title: 'Dashboard',        description: 'Overview of your performance' },
   '/leads':                { title: 'Leads',             description: 'Manage and track your leads' },
   '/live-chat':            { title: 'Live Chat',         description: 'Real-time conversations' },
   '/chatbot':              { title: 'Chatbot',           description: 'Automated messaging flows' },
+  '/whatsapp-bot':         { title: 'WhatsApp Pro Bot',  description: 'Self-hosted automation engine v2.0' },
   '/meetings':             { title: 'Meetings',          description: 'Schedule and manage meetings' },
   '/meetings/event-types': { title: 'Meetings',          description: 'Configure your scheduling cards' },
   '/integrations':         { title: 'Integrations',      description: 'Connect your tools' },
@@ -31,11 +38,21 @@ interface HeaderProps {
 export function Header({ setMobileOpen, mobileOpen }: HeaderProps) {
   const pathname = usePathname()
   const meta = pageMeta[pathname] ?? { title: 'Dashboard', description: '' }
+  const { 
+    sessions, 
+    ghostSessions, 
+    selectedUser, 
+    setIsConnectModalOpen, 
+    fetchSessions,
+    shredSession 
+  } = useWhatsApp()
+
+  const isWhatsAppPage = pathname === '/whatsapp-bot'
 
   return (
     <header className="
       z-40 w-full
-      flex h-14 items-center gap-4 px-4
+      flex h-16 items-center gap-4 px-4
       bg-white/90 dark:bg-slate-950/95 backdrop-blur-md
       border border-slate-200/80 dark:border-slate-800/60 rounded-xl shadow-lg dark:shadow-2xl
     ">
@@ -50,15 +67,18 @@ export function Header({ setMobileOpen, mobileOpen }: HeaderProps) {
       </Button>
 
       {/* Page title */}
-      <div className="flex-1 min-w-0">
-        <h1 className="text-[15px] font-semibold text-slate-900 dark:text-white truncate leading-none">
-          {meta.title}
-        </h1>
-        {meta.description && (
-          <p className="hidden sm:block text-[11px] text-slate-500 dark:text-slate-500 truncate leading-none mt-1">
-            {meta.description}
-          </p>
-        )}
+      <div className="flex-1 min-w-0 flex items-center gap-3">
+        <div>
+          <h1 className="text-[15px] font-bold text-slate-900 dark:text-white truncate leading-none flex items-center gap-2">
+            {meta.title}
+            {isWhatsAppPage && <Badge className="h-4 text-[9px] bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800 font-bold px-1.5">v2.0</Badge>}
+          </h1>
+          {meta.description && (
+            <p className="hidden sm:block text-[10px] text-slate-500 dark:text-slate-500 truncate leading-none mt-1.5 font-medium">
+              {meta.description}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Right-side actions */}
@@ -70,6 +90,7 @@ export function Header({ setMobileOpen, mobileOpen }: HeaderProps) {
           <ModeToggle />
         </div>
       </div>
+      <WhatsAppConnectModal />
     </header>
   )
 }

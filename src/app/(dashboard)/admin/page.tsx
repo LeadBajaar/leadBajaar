@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { adminApi, integrationApi } from '@/lib/api'
+import { RoleGuard } from '@/components/RoleGuard'
 import {
   Card,
   CardContent,
@@ -102,7 +103,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { RoleGuard } from '@/components/RoleGuard'
 import { setSession } from '@/lib/auth'
 import { ConfirmationModal } from '@/components/shared/ConfirmationModal'
 
@@ -141,15 +141,51 @@ interface PlanFeature {
   limit?: string | number
 }
 
+interface FeatureCapability {
+  featureId: string
+  allowedRoles: string[]
+}
+
 interface PlanDefinition {
   id: string
   name: Plan
   price: number
   billingCycle: 'monthly' | 'yearly'
   features: PlanFeature[]
+  capabilities: Record<string, string[]> // Map of featureId -> allowed roles (e.g. { "whatsapp_bot": ["Admin"] })
   activeSubscribers: number
   color: string
 }
+
+const AVAILABLE_PLATFORM_FEATURES = [
+  // Pinned Items
+  { id: 'dashboard', label: 'Dashboard' },
+  { id: 'leads', label: 'Leads' },
+  { id: 'live_chat', label: 'Live Chat' },
+  { id: 'chatbot', label: 'Chatbot' },
+  { id: 'meetings', label: 'Meetings' },
+  { id: 'integrations', label: 'Integrations' },
+  
+  // Clients & Growth
+  { id: 'agency_management', label: 'Clients' },
+  { id: 'analytics', label: 'Analytics' },
+  
+  // Automation
+  { id: 'automations', label: 'Automations' },
+  { id: 'whatsapp_bot', label: 'WhatsApp Bot' },
+  
+  // Platform Control
+  { id: 'system_admin', label: 'Admin' },
+  { id: 'email_logs', label: 'Emails' },
+  { id: 'error_logs', label: 'Error Logs' },
+  { id: 'finance_module', label: 'Finance' },
+  { id: 'developer_tools', label: 'Dev Hub' },
+  
+  // Account
+  { id: 'account_settings', label: 'Settings' },
+]
+
+const PLATFORM_ROLES = ['Admin', 'Manager', 'Agent']
 
 interface AdminUser {
   id: number | string
@@ -287,7 +323,8 @@ const initialPlans: PlanDefinition[] = [
       { name: 'WhatsApp Gateway', included: false },
       { name: 'Custom Webhooks', included: false },
       { name: 'White-labeling', included: false },
-    ]
+    ],
+    capabilities: {}
   },
   {
     id: 'p2',
@@ -304,7 +341,8 @@ const initialPlans: PlanDefinition[] = [
       { name: 'Full Analytics Suite', included: true },
       { name: 'Custom Webhooks', included: true },
       { name: 'Priority Support', included: true },
-    ]
+    ],
+    capabilities: {}
   },
   {
     id: 'p3',
@@ -321,7 +359,8 @@ const initialPlans: PlanDefinition[] = [
       { name: 'White-labeling', included: true },
       { name: 'Custom API Limits', included: true },
       { name: 'Multi-org Management', included: true },
-    ]
+    ],
+    capabilities: {}
   }
 ]
 
@@ -409,6 +448,16 @@ export default function SuperAdminPage() {
   const [broadcastHistory, setBroadcastHistory] = useState<any[]>([])
   const [broadcastPage, setBroadcastPage] = useState(1)
   const [broadcastMeta, setBroadcastMeta] = useState<any>(null)
+
+  const transformPlan = (p: any): PlanDefinition => {
+    // Robust parsing of the 'features' column (Smart JSON)
+    const raw = p.features || {};
+    return {
+      ...p,
+      features: Array.isArray(raw.display) ? raw.display : (Array.isArray(raw) ? raw : []),
+      capabilities: raw.permissions || {}
+    };
+  };
   const [selectionCompanies, setSelectionCompanies] = useState<Company[]>([])
   const [workspaceSearch, setWorkspaceSearch] = useState('')
 
@@ -698,8 +747,11 @@ export default function SuperAdminPage() {
         setDeletionRequests(deletionsRes.requests || [])
       }
 
-      if (plansRes.plans) {
-        setPlans(plansRes.plans)
+      // Handle dynamic plan structure
+      const plansList = plansRes.plans || (Array.isArray(plansRes) ? plansRes : []);
+      if (plansList && plansList.length > 0) {
+        const transformedPlans = plansList.map(transformPlan);
+        setPlans(transformedPlans);
       }
 
       // Handle paginated responses
@@ -948,7 +1000,8 @@ export default function SuperAdminPage() {
         { name: 'Feature 1', included: true },
         { name: 'Feature 2', included: true },
         { name: 'Feature 3', included: false },
-      ]
+      ],
+      capabilities: {}
     }
     setEditingPlan(newPlan)
     setIsPlanModalOpen(true)
@@ -964,17 +1017,31 @@ export default function SuperAdminPage() {
 
     try {
       setIsUpdatingPlan(true)
-      const data = {
+      const isNewPlan = String(editingPlan.id).startsWith('p');
+      
+      // Package for backend using the Smart JSON structure
+      const backendData = {
+        name: editingPlan.name, // Required for creation
         price: editingPlan.price,
-        features: editingPlan.features
+        features: {
+          display: editingPlan.features,
+          permissions: editingPlan.capabilities
+        }
       }
 
-      // Assume editingPlan.id is a number in DB, but a string in mock.
-      // We can handle both or find the Plan in DB by name.
-      const response = await adminApi.updatePlan(Number(editingPlan.id), data)
+      let response: any;
+      if (isNewPlan) {
+        response = await adminApi.createPlan(backendData);
+        const newPlan = transformPlan(response.plan);
+        setPlans([...plans.filter(p => p.id !== editingPlan.id), newPlan]);
+        toast.success("Plan Created", { description: `${editingPlan.name} added to platform.` });
+      } else {
+        response = await adminApi.updatePlan(Number(editingPlan.id), backendData);
+        const updatedPlan = transformPlan(response.plan);
+        setPlans(plans.map(p => p.id === editingPlan.id ? updatedPlan : p));
+        toast.success("Plan Synchronized", { description: `${editingPlan.name} features updated in database.` });
+      }
 
-      setPlans(plans.map(p => p.id === editingPlan.id ? { ...editingPlan, ...response.plan } : p))
-      toast.success("Plan Synchronized", { description: `${editingPlan.name} features updated in database.` })
       setIsPlanModalOpen(false)
     } catch (error: any) {
       toast.error("Update Failed", { description: error.message })
@@ -1879,9 +1946,8 @@ export default function SuperAdminPage() {
                       </div>
                     </CardHeader>
 
-                    <CardContent className="flex-1 px-8 py-4">
                       <div className="space-y-3.5">
-                        {plan.features.map((feat, idx) => (
+                        {Array.isArray(plan.features) ? plan.features.map((feat, idx) => (
                           <div key={idx} className="flex items-center gap-3">
                             {feat.included ? (
                               <div className="h-5 w-5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center shrink-0">
@@ -1896,9 +1962,10 @@ export default function SuperAdminPage() {
                               {feat.name}
                             </span>
                           </div>
-                        ))}
+                        )) : (
+                          <p className="text-xs text-slate-400 italic">No features defined.</p>
+                        )}
                       </div>
-                    </CardContent>
 
                     <CardFooter className="p-6 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800">
                       <Button
@@ -2687,73 +2754,229 @@ export default function SuperAdminPage() {
 
           {/* Plan Feature Modal */}
           <Dialog open={isPlanModalOpen} onOpenChange={setIsPlanModalOpen}>
-            <DialogContent className="sm:max-w-md rounded-3xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-black text-slate-900 dark:text-white">Plan Configuration</DialogTitle>
-                <DialogDescription className="font-medium text-slate-500 dark:text-slate-400">
-                  Define pricing and feature limits for the <strong>{editingPlan?.name}</strong> tier.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-6 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Plan Name</Label>
-                    <Input
-                      value={editingPlan?.name}
-                      onChange={(e) => setEditingPlan((prev: PlanDefinition | null) => prev ? { ...prev, name: e.target.value as Plan } : null)}
-                      className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold dark:text-white"
-                    />
+            <DialogContent className="sm:max-w-4xl rounded-3xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 p-0 overflow-hidden">
+              <div className="flex flex-col h-[85vh]">
+                <DialogHeader className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <DialogTitle className="text-2xl font-black text-slate-900 dark:text-white">Plan Configuration</DialogTitle>
+                      <DialogDescription className="font-medium text-slate-500 dark:text-slate-400">
+                        Configure pricing, marketing, and system engine for the <strong>{editingPlan?.name}</strong> tier.
+                      </DialogDescription>
+                    </div>
+                    <Badge className={cn("px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-widest shadow-lg", 
+                      editingPlan?.name === 'Enterprise' ? "bg-purple-600" : editingPlan?.name === 'Pro' ? "bg-blue-600" : "bg-slate-600"
+                    )}>
+                      {editingPlan?.name}
+                    </Badge>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Price (₹/mo)</Label>
-                    <Input
-                      type="number"
-                      value={editingPlan?.price}
-                      onChange={(e) => setEditingPlan((prev: PlanDefinition | null) => prev ? { ...prev, price: parseInt(e.target.value) || 0 } : null)}
-                      className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold dark:text-white"
-                    />
+                </DialogHeader>
+
+                <div className="flex-1 overflow-hidden flex">
+                  {/* Left Column: Core Pricing & Marketing */}
+                  <div className="w-[40%] border-r border-slate-100 dark:border-slate-800 p-6 space-y-6 overflow-y-auto custom-scrollbar">
+                    <div className="space-y-4">
+                      <Label className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-tighter">Core Economics</Label>
+                      <div className="grid grid-cols-1 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold text-slate-500">Plan Name</Label>
+                          <Input
+                            value={editingPlan?.name}
+                            onChange={(e) => setEditingPlan((prev: PlanDefinition | null) => prev ? { ...prev, name: e.target.value as Plan } : null)}
+                            className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold text-slate-500">Price (₹/mo)</Label>
+                          <Input
+                            type="number"
+                            value={editingPlan?.price}
+                            onChange={(e) => setEditingPlan((prev: PlanDefinition | null) => prev ? { ...prev, price: parseInt(e.target.value) || 0 } : null)}
+                            className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 pt-6 border-t border-slate-50 dark:border-slate-900">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-tighter">Marketing Bullets</Label>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => setEditingPlan(p => p ? { ...p, features: [...p.features, { name: 'New Feature', included: true }] } : null)}
+                          className="h-6 text-[10px] rounded-lg font-black bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600"
+                        >
+                          <Plus className="h-3 w-3 mr-1" /> Add Bullet
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        {Array.isArray(editingPlan?.features) ? editingPlan.features.map((feat, i) => (
+                          <div key={i} className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                            <Input 
+                              value={feat.name}
+                              onChange={(e) => {
+                                const newName = e.target.value;
+                                setEditingPlan(prev => prev ? {
+                                  ...prev,
+                                  features: prev.features.map((f, idx) => idx === i ? { ...f, name: newName } : f)
+                                } : null)
+                              }}
+                              className="h-7 text-[11px] border-none bg-transparent font-medium focus-visible:ring-0 px-1 flex-1"
+                            />
+                            <div className="flex items-center gap-1.5">
+                              <Switch 
+                                checked={feat.included} 
+                                onCheckedChange={(checked) => {
+                                  setEditingPlan(prev => prev ? {
+                                    ...prev,
+                                    features: prev.features.map((f, idx) => idx === i ? { ...f, included: checked } : f)
+                                  } : null)
+                                }}
+                                className="scale-75"
+                              />
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-6 w-6 text-slate-400 hover:text-rose-500"
+                                onClick={() => {
+                                  setEditingPlan(prev => prev ? {
+                                    ...prev,
+                                    features: prev.features.filter((_, idx) => idx !== i)
+                                  } : null)
+                                }}
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        )) : null}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: System Engine */}
+                  <div className="flex-1 p-6 space-y-6 overflow-y-auto custom-scrollbar bg-slate-50/30 dark:bg-slate-900/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-tighter">System Capabilities & RBAC</Label>
+                      <Badge variant="outline" className="text-[9px] font-black uppercase tracking-tighter text-indigo-500 border-indigo-500/20 bg-indigo-500/5 px-2">Backend Logic</Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-3">
+                      {AVAILABLE_PLATFORM_FEATURES.map((feature) => {
+                        const isEnabled = !!editingPlan?.capabilities[feature.id];
+                        const activeRoles = editingPlan?.capabilities[feature.id] || [];
+                        
+                        return (
+                          <div key={feature.id} className={cn(
+                            "p-4 rounded-2xl border transition-all duration-300",
+                            isEnabled 
+                              ? "bg-white dark:bg-slate-950 border-indigo-200 dark:border-indigo-800 shadow-md ring-1 ring-indigo-500/5" 
+                              : "bg-transparent border-slate-200 dark:border-slate-800 opacity-60 grayscale"
+                          )}>
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className={cn(
+                                  "w-3 h-3 rounded-full",
+                                  isEnabled ? "bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" : "bg-slate-300"
+                                )} />
+                                <span className="text-sm font-black text-slate-800 dark:text-slate-200 tracking-tight">{feature.label}</span>
+                              </div>
+                              <Switch 
+                                checked={isEnabled}
+                                onCheckedChange={(checked) => {
+                                  setEditingPlan(prev => {
+                                    if (!prev) return null;
+                                    const newCaps = { ...prev.capabilities };
+                                    if (checked) {
+                                      newCaps[feature.id] = ['*'];
+                                    } else {
+                                      delete newCaps[feature.id];
+                                    }
+                                    return { ...prev, capabilities: newCaps };
+                                  });
+                                }}
+                              />
+                            </div>
+                            
+                            {isEnabled && (
+                              <div className="pt-3 border-t border-slate-50 dark:border-slate-900 space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <Label className="text-[10px] font-bold uppercase text-slate-400">Restricted Roles</Label>
+                                  <span className="text-[10px] text-indigo-500 font-bold">{activeRoles.includes('*') ? "Global Access" : `${activeRoles.length} Roles`}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  <Badge 
+                                    variant={activeRoles.includes('*') ? "default" : "outline"}
+                                    className="text-[10px] py-1 px-3 cursor-pointer rounded-lg font-black transition-all"
+                                    onClick={() => {
+                                      setEditingPlan(prev => {
+                                        if (!prev) return null;
+                                        const newCaps = { ...prev.capabilities };
+                                        newCaps[feature.id] = ['*'];
+                                        return { ...prev, capabilities: newCaps };
+                                      });
+                                    }}
+                                  >
+                                    Everyone (*)
+                                  </Badge>
+                                  {PLATFORM_ROLES.map(role => (
+                                    <Badge 
+                                      key={role}
+                                      variant={activeRoles.includes(role) && !activeRoles.includes('*') ? "default" : "outline"}
+                                      className="text-[10px] py-1 px-3 cursor-pointer rounded-lg font-bold transition-all"
+                                      onClick={() => {
+                                        setEditingPlan(prev => {
+                                          if (!prev) return null;
+                                          const newCaps = { ...prev.capabilities };
+                                          let roles = [...(newCaps[feature.id] || [])].filter(r => r !== '*');
+                                          if (roles.includes(role)) {
+                                            roles = roles.filter(r => r !== role);
+                                          } else {
+                                            roles.push(role);
+                                          }
+                                          if (roles.length === 0) roles = ['*'];
+                                          newCaps[feature.id] = roles;
+                                          return { ...prev, capabilities: newCaps };
+                                        });
+                                      }}
+                                    >
+                                      {role}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Feature Distribution</Label>
-                  <div className="max-h-60 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
-                    {editingPlan?.features.map((feat, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 group transition-colors hover:border-indigo-200 dark:hover:border-indigo-800">
-                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{feat.name}</span>
-                        <Button
-                          size="sm"
-                          variant={feat.included ? "default" : "outline"}
-                          onClick={() => togglePlanFeature(feat.name)}
-                          className={cn("h-7 px-3 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all",
-                            feat.included ? "bg-emerald-500 hover:bg-emerald-600 border-none shadow-sm shadow-emerald-500/20" : "border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500")
-                          }
-                        >
-                          {feat.included ? "Enabled" : "Disabled"}
-                        </Button>
-                      </div>
-                    ))}
-                    <Button variant="ghost" className="w-full h-10 rounded-xl border-dashed border-2 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-800">
-                      <Plus className="h-3 w-3 mr-2" /> Add custom feature
-                    </Button>
-                  </div>
-                </div>
+                <DialogFooter className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-end gap-3">
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setIsPlanModalOpen(false)} 
+                    className="rounded-xl h-11 font-bold text-slate-500 hover:bg-slate-100" 
+                    disabled={isUpdatingPlan}
+                  >
+                    Discard Changes
+                  </Button>
+                  <Button
+                    onClick={handleSavePlan}
+                    className="rounded-xl h-11 font-black bg-indigo-600 hover:bg-indigo-700 text-white px-10 shadow-xl shadow-indigo-500/20"
+                    disabled={isUpdatingPlan}
+                  >
+                    {isUpdatingPlan ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Synchronizing...
+                      </>
+                    ) : "Save Plan Engine"}
+                  </Button>
+                </DialogFooter>
               </div>
-              <DialogFooter className="gap-2 sm:gap-0">
-                <Button variant="ghost" onClick={() => setIsPlanModalOpen(false)} className="rounded-xl h-11 font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900" disabled={isUpdatingPlan}>Discard</Button>
-                <Button
-                  onClick={handleSavePlan}
-                  className="rounded-xl h-11 font-black bg-slate-900 dark:bg-white dark:text-slate-900 px-8 shadow-xl"
-                  disabled={isUpdatingPlan}
-                >
-                  {isUpdatingPlan ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : "Apply Changes"}
-                </Button>
-              </DialogFooter>
             </DialogContent>
           </Dialog>
 

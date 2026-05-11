@@ -11,7 +11,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
     Loader2, CheckCircle2, AlertCircle, Send, Copy, Zap,
-    Terminal, RefreshCw, Info, Play, Globe, User, ShoppingCart, Eye, Plus
+    Terminal, RefreshCw, Info, Play, Globe, User, ShoppingCart, Eye, Plus,
+    Database, Activity
 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { integrationApi } from '@/lib/api'
@@ -57,8 +58,9 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
     const { toast } = useToast()
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [selectedPixelId, setSelectedPixelId] = useState<string>('')
-    const [selectedEvent, setSelectedEvent] = useState('Lead')
-    const [testEmail, setTestEmail] = useState('test@example.com')
+    const [selectedEvent, setSelectedEvent] = useState<string>('Lead')
+    const [actionSource, setActionSource] = useState<string>('website')
+    const [testEmail, setTestEmail] = useState<string>('test@example.com')
     const [testPhone, setTestPhone] = useState('+919876543210')
     const [testFirstName, setTestFirstName] = useState('Test')
     const [testValue, setTestValue] = useState('100')
@@ -140,8 +142,12 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
                 pixel_id: selectedPixelId,
                 test_event_code: testEventCode || 'TEST12345',
                 event_name: selectedEvent,
-                event_data: customData,
+                event_data: {
+                    ...customData,
+                    action_source: actionSource
+                },
                 user_data: userData,
+                event_id: eventId,
             })
 
             if (result.success) {
@@ -264,8 +270,8 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
             {/* ─── Top action bar ───────────────────────────────── */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h3 className="text-base font-bold text-slate-800">Pixel Manager</h3>
-                    <p className="text-xs text-slate-500">{pixels.length} pixel{pixels.length !== 1 ? 's' : ''} connected</p>
+                    <h3 className="text-base font-bold">Pixel Manager</h3>
+                    <p className="text-xs text-muted-foreground">{pixels.length} pixel{pixels.length !== 1 ? 's' : ''} connected</p>
                 </div>
                 <div className="flex gap-2">
                     <Button
@@ -316,9 +322,9 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Left: Config Panel */}
                         <div className="space-y-4 min-w-0">
-                            <Card className="border-none shadow-md bg-white dark:bg-slate-900 overflow-hidden min-w-0">
+                            <Card className="border-none shadow-md bg-card overflow-hidden min-w-0">
                                 <CardHeader className="pb-3">
-                                    <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                                    <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                                         <Terminal className="h-4 w-4" /> Event Configuration
                                     </CardTitle>
                                 </CardHeader>
@@ -335,9 +341,9 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
                                                     {pixels.map(px => (
                                                         <SelectItem key={px.id} value={px.pixel_id}>
                                                             <div className="flex items-center gap-2">
-                                                                <div className={`h-2 w-2 rounded-full ${px.is_active ? 'bg-green-500' : 'bg-slate-300'}`} />
+                                                                <div className={`h-2 w-2 rounded-full ${px.is_active ? 'bg-green-500' : 'bg-muted'}`} />
                                                                 <span className="font-medium">{px.name}</span>
-                                                                <span className="text-[10px] text-slate-400 font-mono">{px.pixel_id}</span>
+                                                                <span className="text-[10px] text-muted-foreground font-mono">{px.pixel_id}</span>
                                                             </div>
                                                         </SelectItem>
                                                     ))}
@@ -349,6 +355,29 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
                                                 <p className="text-xs text-amber-700">No pixels synced yet. Use "Sync from Meta" above.</p>
                                             </div>
                                         )}
+                                    </div>
+
+                                    {/* Action Source */}
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs font-bold text-slate-600">Action Source</Label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {[
+                                                { label: 'Website', value: 'website', icon: Database },
+                                                { label: 'Store', value: 'physical_store', icon: Activity }
+                                            ].map(src => (
+                                                <button
+                                                    key={src.value}
+                                                    onClick={() => setActionSource(src.value)}
+                                                    className={`flex items-center gap-2 p-2 rounded-xl border text-left transition-all text-[10px] font-bold ${actionSource === src.value
+                                                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                                                        : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-blue-300 dark:bg-slate-800 dark:border-slate-700'
+                                                        }`}
+                                                >
+                                                    <src.icon className="h-3 w-3 shrink-0" />
+                                                    {src.label}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
 
                                     {/* Event Type */}
@@ -372,26 +401,26 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
                                     </div>
 
                                     {/* User Data */}
-                                    <div className="space-y-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">User Data (will be hashed)</p>
+                                    <div className="space-y-3 p-3 bg-accent/50 rounded-xl">
+                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">User Data (will be hashed)</p>
                                         <div className="space-y-2">
                                             <Input
                                                 placeholder="Email"
                                                 value={testEmail}
                                                 onChange={e => setTestEmail(e.target.value)}
-                                                className="h-8 text-xs bg-white dark:bg-slate-800"
+                                                className="h-8 text-xs bg-background"
                                             />
                                             <Input
                                                 placeholder="Phone (e.g. +919876543210)"
                                                 value={testPhone}
                                                 onChange={e => setTestPhone(e.target.value)}
-                                                className="h-8 text-xs bg-white dark:bg-slate-800"
+                                                className="h-8 text-xs bg-background"
                                             />
                                             <Input
                                                 placeholder="First Name"
                                                 value={testFirstName}
                                                 onChange={e => setTestFirstName(e.target.value)}
-                                                className="h-8 text-xs bg-white dark:bg-slate-800"
+                                                className="h-8 text-xs bg-background"
                                             />
                                         </div>
                                     </div>
@@ -424,9 +453,7 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
 
                                     {/* Test Event Code */}
                                     <div className="space-y-1.5">
-                                        <Label className="text-xs text-slate-500">
-                                            Meta Test Event Code <span className="text-slate-400">(from Events Manager)</span>
-                                        </Label>
+                                        <Label className="text-xs font-bold text-slate-600">Meta Test Event Code</Label>
                                         <Input
                                             placeholder="e.g. TEST12345"
                                             value={testEventCode}
@@ -461,15 +488,15 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
 
                             <div className="bg-slate-950 rounded-2xl p-4 h-[480px] overflow-x-hidden overflow-y-auto font-mono text-xs space-y-2 border border-slate-800 theme-scrollbar break-all">
                                 {logs.length === 0 ? (
-                                    <div className="h-full flex flex-col items-center justify-center text-slate-600">
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-500">
                                         <Terminal className="h-8 w-8 mb-3 opacity-30" />
                                         <p className="text-center opacity-50">Configure and fire an event to see live results here.</p>
                                     </div>
                                 ) : (
                                     logs.map(log => (
-                                        <div key={log.id} className={`p-2.5 rounded-lg border ${log.status === 'pending' ? 'border-slate-700 bg-slate-900' :
-                                            log.status === 'success' ? 'border-green-800/50 bg-green-950/30' :
-                                                'border-red-800/50 bg-red-950/30'
+                                        <div key={log.id} className={`p-2.5 rounded-lg border ${log.status === 'pending' ? 'border-slate-800 bg-slate-900/50' :
+                                            log.status === 'success' ? 'border-green-900/50 bg-green-900/10' :
+                                                'border-red-900/50 bg-red-900/10'
                                             }`}>
                                             <div className="flex items-center justify-between mb-1">
                                                 <div className="flex items-center gap-2">
@@ -521,7 +548,7 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Pixel Selector */}
                         <div className="lg:col-span-1 min-w-0">
-                            <Card className="border-none shadow-md bg-white dark:bg-slate-900 overflow-hidden min-w-0">
+                            <Card className="border-none shadow-md bg-card overflow-hidden min-w-0">
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">
                                         Select Pixel
@@ -533,19 +560,19 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
                                             No pixels synced. Sync from Meta first.
                                         </div>
                                     ) : (
-                                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        <div className="divide-y divide-border">
                                             {pixels.map(px => (
                                                 <button
                                                     key={px.id}
                                                     onClick={() => { setSelectedPixelForScript(px); setSelectedPixelId(px.pixel_id); }}
-                                                    className={`w-full p-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all ${selectedPixelForScript?.id === px.id ? 'bg-blue-50/60 dark:bg-blue-900/20 border-r-2 border-blue-500' : ''
+                                                    className={`w-full p-3 text-left hover:bg-accent/50 transition-all ${selectedPixelForScript?.id === px.id ? 'bg-indigo-500/10 border-r-2 border-indigo-500' : ''
                                                         }`}
                                                 >
                                                     <div className="flex items-center gap-2 mb-0.5">
-                                                        <div className={`h-2 w-2 rounded-full shrink-0 ${px.is_active ? 'bg-green-500' : 'bg-slate-300'}`} />
+                                                        <div className={`h-2 w-2 rounded-full shrink-0 ${px.is_active ? 'bg-green-500' : 'bg-muted'}`} />
                                                         <p className="font-bold text-sm truncate">{px.name}</p>
                                                     </div>
-                                                    <p className="text-[10px] text-slate-400 font-mono pl-4">{px.pixel_id}</p>
+                                                    <p className="text-[10px] text-muted-foreground font-mono pl-4">{px.pixel_id}</p>
                                                 </button>
                                             ))}
                                         </div>
@@ -553,8 +580,8 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
                                 </CardContent>
                             </Card>
 
-                            <div className="mt-4 space-y-3 p-4 bg-slate-900 rounded-2xl text-slate-400 text-[11px] leading-relaxed">
-                                <p className="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Installation Steps</p>
+                            <div className="mt-4 space-y-3 p-4 bg-accent rounded-2xl text-muted-foreground text-[11px] leading-relaxed">
+                                <p className="text-foreground font-bold uppercase tracking-wider text-[10px]">Installation Steps</p>
                                 <div className="space-y-2">
                                     {['Copy the script on the right', 'Paste it inside <head> on every page', 'Call lbTrack() on form submits', 'Check Meta Events Manager → Test Events'].map((step, i) => (
                                         <div key={i} className="flex items-start gap-2">
@@ -568,7 +595,7 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
 
                         {/* Script Panel */}
                         <div className="lg:col-span-2 min-w-0">
-                            <Card className="border-none shadow-md bg-white dark:bg-slate-900 h-full flex flex-col overflow-hidden min-w-0">
+                            <Card className="border-none shadow-md bg-card h-full flex flex-col overflow-hidden min-w-0">
                                 <CardHeader className="border-b pb-3">
                                     <div className="flex items-center justify-between">
                                         <div>

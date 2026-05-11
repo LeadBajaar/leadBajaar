@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 
 import { UserProvider } from '@/contexts/UserContext'
 import { SubscriptionGuard } from '@/components/SubscriptionGuard'
+import { WhatsAppProvider } from '@/contexts/WhatsAppContext'
 
 export default function DashboardLayout({
   children,
@@ -16,26 +17,28 @@ export default function DashboardLayout({
 
   return (
     <UserProvider>
-      <SubscriptionGuard>
-        <div className="flex h-screen overflow-hidden bg-slate-100 dark:bg-slate-950">
-          {/* Mobile Overlay */}
-          {mobileOpen && (
-            <div
-              className="fixed inset-0 z-[90] bg-slate-950/50 backdrop-blur-sm lg:hidden transition-all duration-300"
-              onClick={() => setMobileOpen(false)}
-            />
-          )}
+      <WhatsAppProvider>
+        <SubscriptionGuard>
+          <div className="flex h-screen overflow-hidden bg-slate-100 dark:bg-slate-950">
+            {/* Mobile Overlay */}
+            {mobileOpen && (
+              <div
+                className="fixed inset-0 z-[90] bg-slate-950/50 backdrop-blur-sm lg:hidden transition-all duration-300"
+                onClick={() => setMobileOpen(false)}
+              />
+            )}
 
-          <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+            <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
-          <div className="flex-1 flex flex-col min-w-0 lg:pl-[100px] transition-all duration-300 p-4 gap-4">
-            <Header mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-            <main className="flex-1 overflow-y-auto relative rounded-xl">
-              {children}
-            </main>
+            <div className="flex-1 flex flex-col min-w-0 lg:pl-[100px] transition-all duration-300 p-4 gap-4">
+              <Header mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+              <main className="flex-1 overflow-y-auto relative rounded-xl">
+                {children}
+              </main>
+            </div>
           </div>
-        </div>
-      </SubscriptionGuard>
+        </SubscriptionGuard>
+      </WhatsAppProvider>
     </UserProvider>
   )
 }

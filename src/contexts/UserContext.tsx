@@ -17,15 +17,20 @@ interface User {
   role: UserRole
   user_type: UserType
   company_id: number | null
-  company?: {
-    id?: number;
-    name?: string;
-    plan?: string;
-    status?: string;
-    type?: string;
-    expires_at?: string;
-    monthly_email_count?: number;
-  };
+    company?: {
+      id?: number;
+      name?: string;
+      plan?: string;
+      status?: string;
+      type?: string;
+      expires_at?: string;
+      monthly_email_count?: number;
+      plan_details?: {
+        id: number;
+        name: string;
+        features: string[];
+      };
+    };
 }
 
 interface UserContextType {
@@ -34,6 +39,7 @@ interface UserContextType {
   hasRole: (roles: UserRole[]) => boolean
   hasType: (types: UserType[]) => boolean
   hasPlan: (plans: string[]) => boolean
+  hasFeature: (feature: string) => boolean
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -79,8 +85,38 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     return plans.includes(user.company.plan.toLowerCase());
   }
 
+  const hasFeature = (feature: string) => {
+    if (!user) return false;
+    
+    // Super Admin always has all features
+    if (user.role === 'Super Admin') return true;
+    
+    // Check if feature exists in plan_details
+    const planFeatures = user.company?.plan_details?.features;
+    
+    // Structured format: { display: [], permissions: { key: roles } }
+    if (planFeatures && typeof planFeatures === 'object' && !Array.isArray(planFeatures)) {
+      const permissions = (planFeatures as any).permissions || {};
+      const allowedRoles = permissions[feature];
+      
+      if (!allowedRoles) return false;
+      if (allowedRoles.includes('*')) return true;
+      
+      // Normalize role for comparison
+      const userRole = user.role.toLowerCase().replace(/_/g, ' ');
+      return allowedRoles.some((r: string) => r.toLowerCase().replace(/_/g, ' ') === userRole);
+    }
+
+    // Fallback for legacy simple array format
+    if (Array.isArray(planFeatures)) {
+      return planFeatures.includes(feature);
+    }
+    
+    return false;
+  }
+
   return (
-    <UserContext.Provider value={{ user, isLoading, hasRole, hasType, hasPlan }}>
+    <UserContext.Provider value={{ user, isLoading, hasRole, hasType, hasPlan, hasFeature }}>
       {children}
     </UserContext.Provider>
   );

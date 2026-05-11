@@ -397,7 +397,23 @@ export default function LiveChatPage() {
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 font-medium leading-relaxed break-all">
-                          {chat.user.last_message?.content || 'Started a conversation'}
+                          {(() => {
+                            const content = chat.user.last_message?.content;
+                            if (!content) return 'Started a conversation';
+                            if (typeof content === 'string') {
+                              if (content.startsWith('{')) {
+                                try {
+                                  const parsed = JSON.parse(content);
+                                  return parsed.text?.body || parsed.interactive?.body?.text || parsed.message || parsed.body || content;
+                                } catch (e) { return content; }
+                              }
+                              return content;
+                            }
+                            if (typeof content === 'object') {
+                              return (content as any).text?.body || (content as any).interactive?.body?.text || (content as any).message || (content as any).body || '[Complex Message]';
+                            }
+                            return String(content);
+                          })()}
                         </p>
                       </div>
 
@@ -525,40 +541,52 @@ export default function LiveChatPage() {
                                     )}>
                                       <div className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere [word-break:break-word] min-w-[50px]">
                                         {(() => {
-                                          const rawContent = String(msg.content || '').trim();
-
-                                          // 1. If we have raw content, try to use it
-                                          if (rawContent) {
-                                            let displayContent = rawContent;
-                                            // Clean up all types of fallback tags
-                                            displayContent = displayContent
-                                              .split('\n[Buttons:')[0]
-                                              .split('\n[CTA:')[0]
-                                              .split('\nQuick Reply:')[0]
-                                              .trim();
-
-                                            if (displayContent.startsWith('{')) {
-                                              try {
-                                                const parsed = JSON.parse(displayContent);
-                                                return parsed.message || parsed.text || parsed.interactive?.body?.text || displayContent;
-                                              } catch (e) {
-                                                return displayContent;
-                                              }
+                                          const raw = msg.content;
+                                          
+                                          const extractSafeString = (val: any): string => {
+                                            if (!val) return '';
+                                            if (typeof val === 'string') return val;
+                                            if (typeof val === 'object') {
+                                              // WhatsApp Text Object
+                                              if (val.body && typeof val.body === 'string') return val.body;
+                                              if (val.text && typeof val.text === 'string') return val.text;
+                                              if (val.text && typeof val.text === 'object' && typeof val.text.body === 'string') return val.text.body;
+                                              
+                                              // WhatsApp Interactive Object
+                                              if (val.interactive?.body?.text && typeof val.interactive.body.text === 'string') return val.interactive.body.text;
+                                              
+                                              // Generic keys
+                                              if (typeof val.message === 'string') return val.message;
+                                              
+                                              // Last resort for debugging/safeguard
+                                              return ''; 
                                             }
-                                            if (displayContent) return displayContent;
+                                            return String(val);
+                                          };
+
+                                          // Try raw content first
+                                          const fromRaw = extractSafeString(raw);
+                                          if (fromRaw && !fromRaw.startsWith('{')) return fromRaw;
+
+                                          // Try JSON parsing
+                                          if (typeof raw === 'string' && raw.trim().startsWith('{')) {
+                                            try {
+                                              const parsed = JSON.parse(raw);
+                                              const fromParsed = extractSafeString(parsed);
+                                              if (fromParsed) return fromParsed;
+                                            } catch (e) {}
                                           }
 
-                                          // 2. Fallback to metadata if content is empty
+                                          // Try metadata
                                           if (msg.metadata) {
-                                            return (
-                                              msg.metadata.interactive?.body?.text ||
-                                              msg.metadata.text?.body ||
-                                              msg.metadata.body ||
-                                              (msg.metadata.type === 'template' ? `Template: ${msg.metadata.template?.name}` : '')
-                                            );
+                                            const fromMeta = extractSafeString(msg.metadata);
+                                            if (fromMeta) return fromMeta;
+                                            if (msg.metadata.type === 'template' && typeof msg.metadata.template?.name === 'string') {
+                                              return `Template: ${msg.metadata.template.name}`;
+                                            }
                                           }
 
-                                          return '';
+                                          return typeof raw === 'string' ? raw : '';
                                         })()}
                                       </div>
 
@@ -567,16 +595,17 @@ export default function LiveChatPage() {
                                         const buttons: string[] = [];
 
                                         // Extract from metadata
-                                        if (msg.metadata?.interactive?.action?.buttons) {
-                                          msg.metadata.interactive.action.buttons.forEach((b: any) => {
-                                            if (b.reply?.title) buttons.push(b.reply.title);
+                                        const meta = msg.metadata;
+                                        if (meta?.interactive?.action?.buttons && Array.isArray(meta.interactive.action.buttons)) {
+                                          meta.interactive.action.buttons.forEach((b: any) => {
+                                            if (b.reply?.title && typeof b.reply.title === 'string') buttons.push(b.reply.title);
                                           });
                                         }
 
-                                        // Extract from text fallback (for older templates)
-                                        if (buttons.length === 0 && msg.content?.includes('Quick Reply:')) {
-                                          const lines = msg.content.split('\n');
-                                          lines.forEach(line => {
+                                        // Extract from text fallback
+                                        const contentStr = typeof msg.content === 'string' ? msg.content : '';
+                                        if (buttons.length === 0 && contentStr.includes('Quick Reply:')) {
+                                          contentStr.split('\n').forEach(line => {
                                             if (line.trim().startsWith('Quick Reply:')) {
                                               buttons.push(line.replace('Quick Reply:', '').trim());
                                             }
@@ -591,25 +620,27 @@ export default function LiveChatPage() {
                                                   key={i}
                                                   className="px-3 py-1.5 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 text-[11px] font-bold uppercase tracking-wider"
                                                 >
-                                                  {label}
+                                                  {typeof label === 'string' ? label : 'Action'}
                                                 </div>
                                               ))}
                                             </div>
                                           );
                                         }
 
-                                        // Handle CTA Link if present in metadata
-                                        if (msg.metadata?.interactive?.type === 'cta_url') {
+                                        // Handle CTA Link
+                                        if (meta?.interactive?.type === 'cta_url') {
+                                          const url = meta.interactive.action?.parameters?.url;
+                                          const text = meta.interactive.action?.parameters?.display_text;
                                           return (
                                             <div className="mt-3 border-t border-white/10 pt-3">
                                               <a
-                                                href={msg.metadata.interactive.action?.parameters?.url || '#'}
+                                                href={typeof url === 'string' ? url : '#'}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white text-indigo-600 font-bold text-xs shadow-md hover:bg-slate-50 transition-colors"
                                               >
                                                 <ExternalLink className="h-3.5 w-3.5" />
-                                                {msg.metadata.interactive.action?.parameters?.display_text || 'Visit Link'}
+                                                {typeof text === 'string' ? text : 'Visit Link'}
                                               </a>
                                             </div>
                                           );

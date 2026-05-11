@@ -115,6 +115,16 @@ export function IntegrationCard({
                 Manage Hub
               </Button>
             )}
+            {integration.id === "facebook_conversion_api" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-indigo-500 border-indigo-500/20 hover:bg-indigo-500/5 rounded-xl font-bold h-9"
+                onClick={() => router.push("/integrations/meta-capi")}
+              >
+                Manage Hub
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"

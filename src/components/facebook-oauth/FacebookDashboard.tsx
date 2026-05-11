@@ -55,8 +55,8 @@ import {
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { integrationApi } from '@/lib/api'
-import { PixelTestConsole } from './PixelTestConsole'
-import { RoiDashboard } from './RoiDashboard'
+import { PixelTestConsole } from '@/components/meta-capi/PixelTestConsole'
+import { RoiDashboard } from '@/components/meta-capi/RoiDashboard'
 import { WebhookVerificationDialog } from './WebhookVerificationDialog'
 import {
   Dialog,
