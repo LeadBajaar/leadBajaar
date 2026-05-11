@@ -64,6 +64,7 @@ const pinnedNav: NavItemDef[] = [
   { name: 'Chatbot', desc: 'Automate conversations with AI', href: '/chatbot', icon: Bot, color: '#8B5CF6', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], feature: 'chatbot' },
   { name: 'Meetings', desc: 'Schedule & track appointments', href: '/meetings', icon: CalendarCheck2, color: '#F59E0B', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'], feature: 'meetings' },
   { name: 'Integrations', desc: 'Connect your favourite tools', href: '/integrations', icon: Plug2, color: '#EC4899', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin', 'individual'], feature: 'integrations' },
+  { name: 'WhatsApp Bot', desc: 'Connect and scan WhatsApp', href: '/whatsapp-bot', icon: Bot, color: '#25D366', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin', 'individual'], feature: 'whatsapp_bot' },
 ]
 
 // ── Flyout-only items (not shown in narrow sidebar) ──────────
@@ -79,7 +80,6 @@ const flyoutNav: NavSection[] = [
     label: 'Automation',
     items: [
       { name: 'Automations', desc: 'Build powerful workflows', href: '/automations', icon: Zap, color: '#6366F1', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin', 'individual'], feature: 'automations' },
-      { name: 'WhatsApp Bot', desc: 'Connect and scan WhatsApp', href: '/whatsapp-bot', icon: Bot, color: '#25D366', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin', 'individual'], feature: 'whatsapp_bot' },
     ],
   },
   {

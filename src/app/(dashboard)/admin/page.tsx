@@ -108,7 +108,7 @@ import { ConfirmationModal } from '@/components/shared/ConfirmationModal'
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-type Plan = 'Free' | 'Pro' | 'Enterprise'
+type Plan = string | 'Free' | 'Pro' | 'Enterprise'
 type AccountStatus = 'Active' | 'Delinquent' | 'Suspended'
 
 interface ServiceStatus {
@@ -1058,11 +1058,12 @@ export default function SuperAdminPage() {
     })
   }
 
-  const getPlanColor = (plan: Plan) => {
+  const getPlanColor = (plan: string) => {
     switch (plan) {
       case 'Enterprise': return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400'
       case 'Pro': return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400'
-      default: return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-400'
+      case 'Free': return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-400'
+      default: return 'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400'
     }
   }
 
@@ -1465,11 +1466,11 @@ export default function SuperAdminPage() {
                         </span>
                       </div>
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Plans</SelectItem>
-                      <SelectItem value="Free">Free Tier</SelectItem>
-                      <SelectItem value="Pro">Pro Tier</SelectItem>
-                      <SelectItem value="Enterprise">Enterprise</SelectItem>
+                    <SelectContent className="dark:bg-slate-900 dark:border-slate-800 shadow-xl">
+                      <SelectItem value="all" className="font-bold">All Plans</SelectItem>
+                      {plans.map((p) => (
+                        <SelectItem key={p.id} value={p.name}>{p.name} Tier</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
 
@@ -2657,9 +2658,9 @@ export default function SuperAdminPage() {
                           <SelectValue placeholder="Select Plan" />
                         </SelectTrigger>
                         <SelectContent className="dark:bg-slate-900 dark:border-slate-800">
-                          <SelectItem value="Free">Free</SelectItem>
-                          <SelectItem value="Pro">Pro</SelectItem>
-                          <SelectItem value="Enterprise">Enterprise</SelectItem>
+                          {plans.map((p) => (
+                            <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
