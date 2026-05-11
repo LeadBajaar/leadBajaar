@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Users, Trash2, UserPlus, Upload, FileText, Loader2, Search, Check, ChevronRight, ArrowLeft, X } from 'lucide-react';
+import { Plus, Users, Trash2, UserPlus, Upload, FileText, Loader2, Search, Check, ChevronRight, ArrowLeft, X, AlertCircle, XCircle, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { WHATSAPP_BASE_URL } from '@/lib/api';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -55,13 +55,48 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
   // New Group State
   const [groupName, setGroupName] = useState('');
   const [groupDesc, setGroupDesc] = useState('');
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   
   // Import State
+  const [file, setFile] = useState<File | null>(null);
   const [importText, setImportText] = useState('');
-  const [csvData, setCsvData] = useState<any[]>([]);
+  const [csvData, setCsvData] = useState<string[][]>([]);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
-  const [mapping, setMapping] = useState({ phone: '', name: '' });
+  const [columnMapping, setColumnMapping] = useState<{csvHeader: string, contactField: string}[]>([]);
   const [importMode, setImportMode] = useState<'manual' | 'csv'>('manual');
+  const [isImporting, setIsImporting] = useState(false);
+  const [importStats, setImportStats] = useState<{
+    totalRows: number;
+    successfulRows: number;
+    skippedRows: number;
+    errors: any[];
+  } | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+
+  const parseCSVLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  };
 
   useEffect(() => {
     fetchGroups();
@@ -110,8 +145,9 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
   };
 
   const handleCreateGroup = async () => {
-    if (!groupName) return;
+    if (!groupName || isCreatingGroup) return;
     try {
+      setIsCreatingGroup(true);
       await axios.post(`${WHATSAPP_BASE_URL}/campaigns/groups`, {
         userId,
         name: groupName,
@@ -124,79 +160,140 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
       fetchGroups();
     } catch (err) {
       toast.error('Failed to create group');
+    } finally {
+      setIsCreatingGroup(false);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const selectedFile = e.target.files?.[0];
+    setImportError(null);
+    setImportStats(null);
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
-      const rows = text.split('\n').map(row => row.split(',').map(cell => cell.trim().replace(/^"|"$/g, '')));
-      if (rows.length > 0) {
-        const headers = rows[0];
-        setCsvHeaders(headers);
-        setCsvData(rows.slice(1).filter(r => r.length === headers.length));
-        
-        // Auto-guess mapping
-        const phoneIdx = headers.findIndex(h => h.toLowerCase().includes('phone') || h.toLowerCase().includes('mobile'));
-        const nameIdx = headers.findIndex(h => h.toLowerCase().includes('name'));
-        setMapping({
-          phone: phoneIdx !== -1 ? headers[phoneIdx] : '',
-          name: nameIdx !== -1 ? headers[nameIdx] : ''
-        });
-      }
-    };
-    reader.readAsText(file);
-  };
+    if (!selectedFile) return;
 
-  const handleImportContacts = async () => {
-    if (!selectedGroup) return;
-    
-    let contacts: any[] = [];
-
-    if (importMode === 'manual') {
-      const lines = importText.split('\n').filter(l => l.trim());
-      contacts = lines.map(line => {
-        const [phone, name] = line.split(',').map(s => s.trim());
-        return { phone, name: name || null };
-      }).filter(c => c.phone);
-    } else {
-      if (!mapping.phone) {
-        toast.error('Please map the Phone column');
-        return;
-      }
-      const phoneIdx = csvHeaders.indexOf(mapping.phone);
-      const nameIdx = mapping.name ? csvHeaders.indexOf(mapping.name) : -1;
-      
-      contacts = csvData.map(row => ({
-        phone: row[phoneIdx],
-        name: nameIdx !== -1 ? row[nameIdx] : null
-      })).filter(c => c.phone);
-    }
-
-    if (contacts.length === 0) {
-      toast.error('No valid contacts found');
+    if (!selectedFile.name.endsWith('.csv')) {
+      setImportError('Please select a CSV file');
       return;
     }
 
+    setFile(selectedFile);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const csv = event.target?.result as string;
+        const lines = csv.split('\n').filter(line => line.trim());
+
+        if (lines.length < 2) {
+          setImportError('CSV file is empty or has no data rows');
+          return;
+        }
+
+        const result = lines.map(line => parseCSVLine(line));
+        const headers = result[0];
+        setCsvHeaders(headers);
+        setCsvData(result.slice(1));
+        
+        // Initialize column mapping
+        const initialMapping = headers.map(header => {
+          let field = 'skip';
+          const lowerHeader = header.toLowerCase();
+          if (lowerHeader.includes('phone') || lowerHeader.includes('mobile') || lowerHeader.includes('contact')) {
+            field = 'phone';
+          } else if (lowerHeader.includes('name')) {
+            field = 'name';
+          }
+          return { csvHeader: header, contactField: field };
+        });
+        setColumnMapping(initialMapping);
+      } catch (err) {
+        setImportError('Failed to parse CSV file');
+      }
+    };
+    reader.readAsText(selectedFile);
+  };
+
+  const handleImportContacts = async () => {
+    if (!selectedGroup || isImporting) return;
+    
+    setIsImporting(true);
+    setImportError(null);
+    let contacts: any[] = [];
+
     try {
-      await axios.post(`${WHATSAPP_BASE_URL}/campaigns/contacts/import`, {
+      if (importMode === 'manual') {
+        const lines = importText.split('\n').filter(l => l.trim());
+        contacts = lines.map(line => {
+          const [phone, name] = line.split(',').map(s => s.trim());
+          return { phone, name: name || null };
+        }).filter(c => c.phone);
+      } else {
+        const phoneMapping = columnMapping.find(m => m.contactField === 'phone');
+        if (!phoneMapping) {
+          toast.error('Please map the Phone column');
+          setIsImporting(false);
+          return;
+        }
+
+        const phoneIdx = csvHeaders.indexOf(phoneMapping.csvHeader);
+        const nameMapping = columnMapping.find(m => m.contactField === 'name');
+        const nameIdx = nameMapping ? csvHeaders.indexOf(nameMapping.csvHeader) : -1;
+        
+        contacts = csvData.map(row => ({
+          phone: row[phoneIdx],
+          name: nameIdx !== -1 ? row[nameIdx] : null
+        })).filter(c => c.phone);
+      }
+
+      if (contacts.length === 0) {
+        toast.error('No valid contacts found');
+        setIsImporting(false);
+        return;
+      }
+
+      const response = await axios.post(`${WHATSAPP_BASE_URL}/campaigns/contacts/import`, {
         userId,
         groupId: selectedGroup.id,
         contacts
       });
-      toast.success(`Successfully imported ${contacts.length} contacts`);
-      setIsImportModalOpen(false);
-      setImportText('');
-      setCsvData([]);
-      setCsvHeaders([]);
+
+      setImportStats({
+        totalRows: contacts.length,
+        successfulRows: response.data?.successful || contacts.length,
+        skippedRows: response.data?.skipped || 0,
+        errors: response.data?.errors || []
+      });
+
+      toast.success(`Successfully imported contacts`);
       fetchGroups();
+      if (response.data?.errors?.length === 0) {
+        setTimeout(() => {
+          setIsImportModalOpen(false);
+          resetImport();
+        }, 2000);
+      }
     } catch (err) {
       toast.error('Failed to import contacts');
+      setImportError('An error occurred during import. Please try again.');
+    } finally {
+      setIsImporting(false);
     }
+  };
+
+  const resetImport = () => {
+    setImportText('');
+    setCsvData([]);
+    setCsvHeaders([]);
+    setColumnMapping([]);
+    setImportStats(null);
+    setImportError(null);
+    setFile(null);
+  };
+
+  const handleColumnMapChange = (csvHeader: string, contactField: string) => {
+    setColumnMapping(prev => prev.map(m => 
+      m.csvHeader === csvHeader ? { ...m, contactField } : m
+    ));
   };
 
   return (
@@ -225,7 +322,20 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
                 <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Description</Label>
                 <Input value={groupDesc} onChange={e => setGroupDesc(e.target.value)} placeholder="Optional description" className="rounded-xl h-11" />
               </div>
-              <Button onClick={handleCreateGroup} className="w-full bg-indigo-600 h-12 font-black rounded-xl shadow-lg shadow-indigo-500/20">Create Group</Button>
+              <Button 
+                onClick={handleCreateGroup} 
+                disabled={isCreatingGroup || !groupName}
+                className="w-full bg-indigo-600 h-12 font-black rounded-xl shadow-lg shadow-indigo-500/20"
+              >
+                {isCreatingGroup ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  'Create Group'
+                )}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -430,108 +540,226 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
       </Dialog>
 
       {/* Import Modal */}
-      <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
-        <DialogContent className="bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl">
-          <DialogHeader>
-            <DialogTitle className="font-black text-xl text-slate-900 dark:text-white">Import Contacts to {selectedGroup?.name}</DialogTitle>
+      <Dialog open={isImportModalOpen} onOpenChange={(open) => {
+        if (!open) resetImport();
+        setIsImportModalOpen(open);
+      }}>
+        <DialogContent className="bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl">
+          <DialogHeader className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 shrink-0">
+                <Upload className="h-6 w-6" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">Import Contacts</DialogTitle>
+                <DialogDescription className="text-sm text-slate-500 font-medium mt-0.5">Import contacts to {selectedGroup?.name}</DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
           
-          <Tabs defaultValue="manual" onValueChange={(v) => setImportMode(v as any)} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-slate-100 dark:bg-slate-900 rounded-xl p-1 mb-6">
-              <TabsTrigger value="manual" className="rounded-lg font-bold text-xs uppercase tracking-widest">Manual Paste</TabsTrigger>
-              <TabsTrigger value="csv" className="rounded-lg font-bold text-xs uppercase tracking-widest">CSV Upload</TabsTrigger>
-            </TabsList>
+          <div className="flex-1 overflow-y-auto p-6 bg-slate-50/30 dark:bg-slate-950/30 no-scrollbar">
+            <Tabs defaultValue="manual" onValueChange={(v) => setImportMode(v as any)} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-slate-100 dark:bg-slate-900 rounded-xl p-1 mb-6">
+                <TabsTrigger value="manual" className="rounded-lg font-bold text-xs uppercase tracking-widest">Manual Paste</TabsTrigger>
+                <TabsTrigger value="csv" className="rounded-lg font-bold text-xs uppercase tracking-widest">CSV Upload</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="manual" className="space-y-4">
-              <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800 rounded-xl">
-                <p className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-1">Format Guide</p>
-                <p className="text-xs text-amber-700 dark:text-amber-500 font-medium leading-relaxed">
-                  Enter contacts in <code className="font-bold">phone,name</code> format (one per line). <br/>
-                  Example: <code className="font-bold">919876543210,John Doe</code>
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Paste Contacts</Label>
-                <textarea 
-                  value={importText} 
-                  onChange={e => setImportText(e.target.value)}
-                  placeholder="919876543210,John Doe\n919012345678,Jane Smith"
-                  className="w-full h-40 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="csv" className="space-y-6">
-              {csvHeaders.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-900/20">
-                  <Upload className="h-10 w-10 text-slate-300 mb-4" />
-                  <p className="text-sm font-bold text-slate-500">Select a CSV file to continue</p>
-                  <Input 
-                    type="file" 
-                    accept=".csv" 
-                    className="hidden" 
-                    id="csv-upload" 
-                    onChange={handleFileChange}
-                  />
-                  <Button variant="outline" className="mt-4 rounded-xl font-bold" onClick={() => document.getElementById('csv-upload')?.click()}>
-                    Browse Files
-                  </Button>
+              <TabsContent value="manual" className="space-y-4">
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800 rounded-2xl">
+                  <p className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-1">Format Guide</p>
+                  <p className="text-xs text-amber-700 dark:text-amber-500 font-medium leading-relaxed">
+                    Enter contacts in <code className="font-bold">phone,name</code> format (one per line). <br/>
+                    Example: <code className="font-bold">919876543210,John Doe</code>
+                  </p>
                 </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Phone Number Column</Label>
-                      <Select onValueChange={(v) => setMapping(prev => ({ ...prev, phone: v }))} value={mapping.phone}>
-                        <SelectTrigger className="rounded-xl h-11">
-                          <SelectValue placeholder="Select column" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl">
-                          {csvHeaders.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Full Name Column</Label>
-                      <Select onValueChange={(v) => setMapping(prev => ({ ...prev, name: v }))} value={mapping.name}>
-                        <SelectTrigger className="rounded-xl h-11">
-                          <SelectValue placeholder="Select column" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl">
-                          <SelectItem value="">No Name (Phone only)</SelectItem>
-                          {csvHeaders.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Paste Contacts</Label>
+                  <textarea 
+                    value={importText} 
+                    onChange={e => setImportText(e.target.value)}
+                    placeholder="919876543210,John Doe\n919012345678,Jane Smith"
+                    className="w-full h-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 outline-none shadow-sm"
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="csv" className="space-y-6">
+                {importError && (
+                  <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800 flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold text-sm mb-1">Import Error</div>
+                      <p className="text-sm opacity-90 leading-relaxed font-medium">{importError}</p>
                     </div>
                   </div>
+                )}
 
-                  <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-4 border border-slate-100 dark:border-slate-800">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Preview (First 3 rows)</p>
-                    <div className="space-y-2">
-                      {csvData.slice(0, 3).map((row, i) => (
-                        <div key={i} className="flex items-center gap-3 text-xs font-bold text-slate-600 dark:text-slate-300">
-                          <div className="w-4 h-4 bg-emerald-500/10 text-emerald-500 flex items-center justify-center rounded text-[10px]">{i+1}</div>
-                          <span className="truncate">{row[csvHeaders.indexOf(mapping.phone)] || '---'}</span>
-                          <span className="text-slate-300 dark:text-slate-700">|</span>
-                          <span className="truncate text-slate-400">{mapping.name ? row[csvHeaders.indexOf(mapping.name)] : 'No Name'}</span>
+                {csvHeaders.length === 0 && !isImporting && !importStats ? (
+                  <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl bg-white dark:bg-slate-900/50 shadow-sm transition-all hover:border-indigo-300">
+                    <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-4">
+                      <Upload className="h-8 w-8 text-slate-300" />
+                    </div>
+                    <p className="text-sm font-bold text-slate-500">Select a CSV file to continue</p>
+                    <Input 
+                      type="file" 
+                      accept=".csv" 
+                      className="hidden" 
+                      id="csv-upload" 
+                      onChange={handleFileChange}
+                    />
+                    <Button 
+                      variant="outline" 
+                      className="mt-6 rounded-xl font-bold h-10 px-6 border-slate-200 hover:bg-slate-50" 
+                      onClick={() => document.getElementById('csv-upload')?.click()}
+                    >
+                      Browse Files
+                    </Button>
+                  </div>
+                ) : !isImporting && !importStats ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {columnMapping.map((mapping) => (
+                        <div
+                          key={mapping.csvHeader}
+                          className="flex flex-col space-y-2 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-all hover:shadow-sm"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 truncate pr-2">
+                              CSV Column
+                            </span>
+                            {mapping.contactField !== 'skip' && (
+                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            )}
+                          </div>
+                          <div className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate mb-1">
+                            {mapping.csvHeader}
+                          </div>
+                          <Select
+                            value={mapping.contactField}
+                            onValueChange={(value) => handleColumnMapChange(mapping.csvHeader, value)}
+                          >
+                            <SelectTrigger className="w-full h-9 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-[11px] font-semibold rounded-xl focus:ring-indigo-500/20">
+                              <SelectValue placeholder="Map to..." />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl shadow-xl border-slate-200 dark:border-slate-800">
+                              <SelectItem value="skip" className="text-xs font-medium text-slate-400 italic">Skip this column</SelectItem>
+                              <SelectItem value="phone" className="text-xs font-bold">Phone Number (Required)</SelectItem>
+                              <SelectItem value="name" className="text-xs font-bold">Full Name</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       ))}
                     </div>
-                  </div>
-                  
-                  <Button variant="ghost" className="text-xs font-bold text-rose-500" onClick={() => { setCsvHeaders([]); setCsvData([]); }}>
-                    Remove File
-                  </Button>
-                </div>
-              )}
-            </TabsContent>
 
-            <div className="flex gap-3 mt-8">
-              <Button onClick={handleImportContacts} className="flex-1 bg-indigo-600 h-12 font-black rounded-xl shadow-lg shadow-indigo-500/20">
-                <Upload className="mr-2 h-4 w-4" /> Start Import
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Data Preview</p>
+                        <Button variant="ghost" size="sm" className="h-7 text-[10px] font-bold text-rose-500 hover:bg-rose-50 rounded-lg" onClick={() => { resetImport(); }}>
+                          Change File
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        {csvData.slice(0, 3).map((row, i) => (
+                          <div key={i} className="flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-[11px] font-bold text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-800/50">
+                            <div className="w-5 h-5 bg-indigo-500/10 text-indigo-500 flex items-center justify-center rounded-lg text-[9px] shrink-0">{i+1}</div>
+                            {columnMapping.map(m => m.contactField !== 'skip' ? (
+                              <div key={m.csvHeader} className="flex flex-col min-w-0">
+                                <span className="text-[8px] text-slate-400 uppercase leading-none mb-0.5">{m.contactField}</span>
+                                <span className="truncate">{row[csvHeaders.indexOf(m.csvHeader)] || '---'}</span>
+                              </div>
+                            ) : null)}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Progress View */}
+                {isImporting && (
+                  <div className="py-12 flex flex-col items-center text-center animate-in zoom-in-95 duration-500">
+                    <div className="relative mb-8">
+                      <div className="h-24 w-24 rounded-full border-4 border-indigo-100 dark:border-slate-800 border-t-indigo-600 animate-spin" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Loader2 className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
+                      </div>
+                    </div>
+                    <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Importing Contacts</h3>
+                    <p className="text-sm text-slate-500 font-medium max-w-xs mx-auto leading-relaxed">
+                      We're currently importing and validating your contacts. This may take a few moments.
+                    </p>
+                  </div>
+                )}
+
+                {/* Stats View */}
+                {importStats && (
+                  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 text-center shadow-sm">
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total</div>
+                        <div className="text-2xl font-black text-slate-900 dark:text-white">{importStats.totalRows}</div>
+                      </div>
+                      <div className="bg-emerald-50/50 dark:bg-emerald-900/10 rounded-2xl p-5 border border-emerald-100 dark:border-emerald-900/30 text-center shadow-sm">
+                        <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Success</div>
+                        <div className="text-2xl font-black text-emerald-600">{importStats.successfulRows}</div>
+                      </div>
+                      <div className="bg-amber-50/50 dark:bg-amber-900/10 rounded-2xl p-5 border border-amber-100 dark:border-amber-900/30 text-center shadow-sm">
+                        <div className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">Skipped</div>
+                        <div className="text-2xl font-black text-amber-600">{importStats.skippedRows}</div>
+                      </div>
+                    </div>
+
+                    {importStats.errors.length > 0 && (
+                      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+                        <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
+                          <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                            <XCircle className="h-4 w-4 text-red-500" />
+                            Error Log ({importStats.errors.length})
+                          </h4>
+                        </div>
+                        <div className="max-h-[200px] overflow-y-auto p-2 space-y-1.5 no-scrollbar">
+                          {importStats.errors.map((error, index) => (
+                            <div key={index} className="text-[11px] flex items-center gap-4 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                              <span className="font-bold text-slate-400 shrink-0 w-12">Row {error.row || index + 1}</span>
+                              <div className="flex-1 truncate">
+                                <span className="font-bold text-red-500 mr-2">{error.reason || 'Failed to import'}</span>
+                                <span className="text-slate-400 font-medium">Value: {error.value || 'N/A'}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          <DialogFooter className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 gap-3 sm:gap-0 shrink-0">
+            <Button variant="ghost" onClick={() => setIsImportModalOpen(false)} disabled={isImporting} className="rounded-xl font-semibold text-slate-500">
+              {importStats ? 'Close' : 'Cancel'}
+            </Button>
+            {!importStats && (
+              <Button
+                onClick={handleImportContacts}
+                disabled={isImporting || (importMode === 'csv' && csvHeaders.length === 0)}
+                className="min-w-[140px] bg-indigo-600 hover:bg-indigo-700 h-10 rounded-xl shadow-lg shadow-indigo-200 dark:shadow-none font-bold text-sm transition-all active:scale-95"
+              >
+                {isImporting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Importing...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Start Import
+                  </>
+                )}
               </Button>
-            </div>
-          </Tabs>
+            )}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
