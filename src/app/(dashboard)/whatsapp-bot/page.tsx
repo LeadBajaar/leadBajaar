@@ -52,6 +52,9 @@ export default function WhatsAppBotPage() {
   } = useUser();
   const { 
     sessions, 
+    ghostSessions,
+    shredSession,
+    setIsConnectModalOpen,
     selectedUser, 
     setSelectedUser, 
     flows, 
@@ -212,7 +215,7 @@ export default function WhatsAppBotPage() {
                     ))}
                     
                     {/* Ghost Sessions */}
-                    {useWhatsApp().ghostSessions.map(id => (
+                    {ghostSessions.map(id => (
                       <div key={id} className="flex items-center gap-2 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 px-3 py-1 rounded-xl opacity-60">
                         <div className="h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
                         <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 italic uppercase tracking-tighter">
@@ -220,7 +223,7 @@ export default function WhatsAppBotPage() {
                         </span>
                         <Button 
                           variant="ghost" size="icon" className="h-5 w-5 text-rose-400 hover:bg-rose-50 rounded-md"
-                          onClick={() => useWhatsApp().shredSession(id)}
+                          onClick={() => shredSession(id)}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -232,7 +235,7 @@ export default function WhatsAppBotPage() {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => useWhatsApp().setIsConnectModalOpen(true)}
+                      onClick={() => setIsConnectModalOpen(true)}
                       className="h-9 px-4 rounded-xl border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all font-black text-[10px] uppercase tracking-widest"
                     >
                       <QrCode className="mr-2 h-3.5 w-3.5" /> Connect
