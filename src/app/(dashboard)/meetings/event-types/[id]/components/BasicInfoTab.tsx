@@ -72,6 +72,8 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
                     <SelectItem value="30">30 minutes</SelectItem>
                     <SelectItem value="45">45 minutes</SelectItem>
                     <SelectItem value="60">60 minutes</SelectItem>
+                    <SelectItem value="90">90 minutes</SelectItem>
+                    <SelectItem value="120">120 minutes</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors?.duration && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1 animate-in fade-in slide-in-from-top-1 duration-200">{errors.duration}</p>}
@@ -91,9 +93,14 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
                     <SelectItem value="30">30 minutes</SelectItem>
                     <SelectItem value="45">45 minutes</SelectItem>
                     <SelectItem value="60">60 minutes</SelectItem>
+                    <SelectItem value="90">90 minutes</SelectItem>
+                    <SelectItem value="120">120 minutes</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-[9px] text-slate-400 font-medium italic mt-1.5 leading-tight uppercase tracking-tighter">Gap between available booking slots on your calendar.</p>
+                <p className="text-[9px] text-slate-400 font-medium italic mt-1.5 leading-tight uppercase tracking-tighter">
+                  Start times grid (e.g., 30 mins means slots start at 11:00, 11:30, etc.). 
+                  Breaks are calculated dynamically after each booking.
+                </p>
               </div>
 
               <div className="space-y-1.5">

@@ -17,6 +17,7 @@ interface User {
   role: UserRole
   user_type: UserType
   company_id: number | null
+  notification_settings?: any
     company?: {
       id?: number;
       name?: string;

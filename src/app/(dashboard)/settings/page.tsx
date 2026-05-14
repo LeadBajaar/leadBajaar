@@ -54,6 +54,19 @@ export default function SettingsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
 
+  const [localNotificationSettings, setLocalNotificationSettings] = useState<any>({
+    email_notifications: {
+      new_lead: false,
+      meeting_booked: false,
+      daily_digest: false
+    },
+    push_notifications: {
+      new_lead: true,
+      meeting_booked: true,
+      security_alerts: true
+    }
+  })
+
   useEffect(() => {
     if (user) {
       setProfileSettings({
@@ -65,8 +78,36 @@ export default function SettingsPage() {
         image: user.avatar_url || null
       })
       if (user.avatar_url) setImagePreview(user.avatar_url)
+      
+      // Initialize notification settings
+      setLocalNotificationSettings(user.notification_settings || {})
     }
   }, [user])
+
+  const handleToggleSetting = async (category: string, setting: string, value: boolean) => {
+    if (!user) return
+    try {
+      // 1. Update UI Instantly
+      const updatedSettings = {
+        ...(localNotificationSettings || {}),
+        [category]: {
+          ...((localNotificationSettings?.[category]) || {}),
+          [setting]: value
+        }
+      }
+      setLocalNotificationSettings(updatedSettings)
+
+      // 2. Update Backend
+      await api.put(`/users/${user.id}`, { 
+        notification_settings: updatedSettings 
+      })
+      toast.success('Preference updated')
+    } catch (error) {
+      toast.error('Failed to save setting')
+      // Revert UI on error
+      setLocalNotificationSettings(user.notification_settings || {})
+    }
+  }
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -301,26 +342,76 @@ export default function SettingsPage() {
 
               <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 rounded-3xl overflow-hidden ring-1 ring-slate-100 dark:ring-slate-800/50">
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                  <div className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
-                    <div className="space-y-1 pr-4">
-                      <p className="font-bold text-slate-900 dark:text-white">New Lead Assignment</p>
-                      <p className="text-xs text-slate-500 leading-relaxed">Instantly notify when a lead is assigned to your account by the distributor.</p>
+                  {/* Lead Notifications */}
+                  <div className="p-6 space-y-4 hover:bg-slate-50/50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1 pr-4">
+                        <p className="font-bold text-slate-900 dark:text-white">Lead Notifications</p>
+                        <p className="text-xs text-slate-500 leading-relaxed">Receive alerts when a new lead arrives in your pipeline.</p>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <div className="flex flex-col items-center gap-1.5">
+                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Email</span>
+                           <Switch 
+                            checked={localNotificationSettings?.email_notifications?.new_lead === true}
+                            onCheckedChange={(checked) => handleToggleSetting('email_notifications', 'new_lead', checked)}
+                            className="data-[state=checked]:bg-indigo-600 scale-90" 
+                          />
+                        </div>
+                        <div className="flex flex-col items-center gap-1.5">
+                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Push</span>
+                           <Switch 
+                            checked={localNotificationSettings?.push_notifications?.new_lead !== false}
+                            onCheckedChange={(checked) => handleToggleSetting('push_notifications', 'new_lead', checked)}
+                            className="data-[state=checked]:bg-indigo-600 scale-90" 
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <Switch defaultChecked className="data-[state=checked]:bg-indigo-600" />
                   </div>
+
+                  {/* Meeting Notifications */}
+                  <div className="p-6 space-y-4 hover:bg-slate-50/50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1 pr-4">
+                        <p className="font-bold text-slate-900 dark:text-white">Meeting Notifications</p>
+                        <p className="text-xs text-slate-500 leading-relaxed">Alerts for new bookings and confirmed appointments.</p>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <div className="flex flex-col items-center gap-1.5">
+                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Email</span>
+                           <Switch 
+                            checked={localNotificationSettings?.email_notifications?.meeting_booked === true}
+                            onCheckedChange={(checked) => handleToggleSetting('email_notifications', 'meeting_booked', checked)}
+                            className="data-[state=checked]:bg-indigo-600 scale-90" 
+                          />
+                        </div>
+                        <div className="flex flex-col items-center gap-1.5">
+                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Push</span>
+                           <Switch 
+                            checked={localNotificationSettings?.push_notifications?.meeting_booked !== false}
+                            onCheckedChange={(checked) => handleToggleSetting('push_notifications', 'meeting_booked', checked)}
+                            className="data-[state=checked]:bg-indigo-600 scale-90" 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Daily Digest */}
                   <div className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
                     <div className="space-y-1 pr-4">
                       <p className="font-bold text-slate-900 dark:text-white">Daily Performance Digest</p>
-                      <p className="text-xs text-slate-500 leading-relaxed">Summary of your daily calls, conversion rates and top lead rankings at 9:00 AM.</p>
+                      <p className="text-xs text-slate-500 leading-relaxed">A summary of your daily conversion rates and top lead rankings at 9:00 AM.</p>
                     </div>
-                    <Switch className="data-[state=checked]:bg-indigo-600" />
-                  </div>
-                  <div className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
-                    <div className="space-y-1 pr-4">
-                      <p className="font-bold text-slate-900 dark:text-white">Account Security Alerts</p>
-                      <p className="text-xs text-slate-500 leading-relaxed">Notify when a new device logins or security settings are modified.</p>
+                    <div className="flex items-center gap-1.5">
+                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mr-2">Email Only</span>
+                       <Switch 
+                        checked={localNotificationSettings?.email_notifications?.daily_digest === true}
+                        onCheckedChange={(checked) => handleToggleSetting('email_notifications', 'daily_digest', checked)}
+                        className="data-[state=checked]:bg-indigo-600" 
+                      />
                     </div>
-                    <Switch defaultChecked className="data-[state=checked]:bg-indigo-600" />
                   </div>
                 </div>
               </Card>

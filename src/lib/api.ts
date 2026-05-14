@@ -1652,12 +1652,28 @@ export const adminApi = {
     }
   },
 
-  getEmailStats: async () => {
+  getEmailStats: async (search?: string) => {
     try {
-      const response = await api.get('/admin/email-stats');
+      const response = await api.get('/admin/email-stats', { params: { search } });
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch email stats');
+    }
+  },
+  toggleUserNotification: async (userId: number, type: string = 'new_lead') => {
+    try {
+      const response = await api.post(`/admin/users/${userId}/toggle-notification`, { type });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to toggle notification');
+    }
+  },
+  toggleCompanyEmail: async (id: number) => {
+    try {
+      const response = await api.post(`/admin/companies/${id}/toggle-email`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to toggle company email');
     }
   },
 

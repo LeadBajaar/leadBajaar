@@ -133,6 +133,8 @@ export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
                       <SelectItem value="10">10 minutes</SelectItem>
                       <SelectItem value="15">15 minutes</SelectItem>
                       <SelectItem value="30">30 minutes</SelectItem>
+                      <SelectItem value="45">45 minutes</SelectItem>
+                      <SelectItem value="60">60 minutes</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -152,8 +154,14 @@ export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
                       <SelectItem value="10">10 minutes</SelectItem>
                       <SelectItem value="15">15 minutes</SelectItem>
                       <SelectItem value="30">30 minutes</SelectItem>
+                      <SelectItem value="45">45 minutes</SelectItem>
+                      <SelectItem value="60">60 minutes</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-[9px] text-indigo-600 dark:text-indigo-400 font-bold italic mt-2 uppercase tracking-tight">
+                    Tip: Set a 30 min buffer here to ensure a gap after every meeting. 
+                    The next available slot will automatically jump forward.
+                  </p>
                 </div>
 
                 <div className="space-y-1.5">
