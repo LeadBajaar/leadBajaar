@@ -1,4 +1,5 @@
 import { ChatbotNode, ChatbotEdge } from '@/types/nodes'
+import { logger } from '@/utils/logger'
 
 export interface SaveFlowPayload {
   id?: string
@@ -65,7 +66,7 @@ class ChatbotService {
         edges: flow.edges || [],
       }))
     } catch (error) {
-      console.error('Error fetching flows:', error)
+      logger.error('Error fetching flows', error)
       throw error
     }
   }
@@ -87,7 +88,7 @@ class ChatbotService {
         edges: data.edges || [],
       }
     } catch (error) {
-      console.error('Error fetching flow:', error)
+      logger.error('Error fetching flow', error)
       throw error
     }
   }
@@ -122,7 +123,7 @@ class ChatbotService {
         edges: flowData.edges || [],
       }
     } catch (error) {
-      console.error('Error saving flow:', error)
+      logger.error('Error saving flow', error)
       throw error
     }
   }

@@ -9,14 +9,15 @@ import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Shield, Users, Mail, UserPlus, MoreVertical, Star, ShieldCheck, User, Trash2, Edit, CheckCircle2, XCircle, Info, Settings } from 'lucide-react'
+import { Shield, Users, Mail, UserPlus, MoreVertical, Star, ShieldCheck, User, Trash2, Edit, CheckCircle2, XCircle, Info, Settings, AlertCircle } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { useToast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import { teamApi } from '@/lib/api'
 import { useEffect } from 'react'
 import { RoleGuard } from '@/components/RoleGuard'
+import { handleError } from '@/utils/handleError'
 
 
 // Mock Data
@@ -48,8 +49,8 @@ interface Permission {
 }
 
 const permissions: Permission[] = [
-  { name: 'Dashboard Access', description: 'View general analytics and performance metrics', admin: true, manager: true, agent: true },
-  { name: 'Lead Management', description: 'Create, update, and delete leads', admin: true, manager: true, agent: true },
+  { name: 'Dashboard Access', description: 'View performance metrics (Agents see personal stats only)', admin: true, manager: true, agent: true },
+  { name: 'Lead Management', description: 'Access assigned leads and update stages', admin: true, manager: true, agent: true },
   { name: 'Bulk Operations', description: 'Delete, export or update multiple leads at once', admin: true, manager: true, agent: false },
   { name: 'Team Settings', description: 'Invite, remove and manage team member roles', admin: true, manager: false, agent: false },
   { name: 'Integration Setup', description: 'Connect Facebook, WhatsApp and other services', admin: true, manager: false, agent: false },
@@ -67,7 +68,9 @@ export default function TeamManagementPage() {
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<Role>('Agent')
-  const { toast } = useToast()
+  const [isInviting, setIsInviting] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchMembers = async () => {
     try {
@@ -75,11 +78,7 @@ export default function TeamManagementPage() {
       const data = await teamApi.getMembers()
       setMembers(data)
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      })
+      handleError(error, { title: 'Failed to fetch team members' })
     } finally {
       setIsLoading(false)
     }
@@ -92,59 +91,45 @@ export default function TeamManagementPage() {
   const handleInvite = async () => {
     if (!inviteEmail) return
     try {
+      setError(null)
+      setIsInviting(true)
       await teamApi.inviteMember({ email: inviteEmail, role: inviteRole })
       setIsInviteModalOpen(false)
       setInviteEmail('')
       setInviteRole('Agent')
-      toast({
-        title: "Invitation Sent",
-        description: `An invitation has been sent to ${inviteEmail}`,
-      })
+      toast.success(`An invitation has been sent to ${inviteEmail}`)
       fetchMembers()
     } catch (error: any) {
-      toast({
-        title: "Invite Failed",
-        description: error.message,
-        variant: "destructive"
-      })
+      handleError(error, { title: 'Invitation Failed' })
+    } finally {
+      setIsInviting(false)
     }
   }
 
   const handleUpdateRole = async () => {
     if (!editingMember) return
     try {
+      setError(null)
+      setIsUpdating(true)
       await teamApi.updateRole(editingMember.id, editingMember.role)
       setIsEditModalOpen(false)
       setEditingMember(null)
-      toast({
-        title: "Role Updated",
-        description: "Member role has been successfully changed.",
-      })
+      toast.success("Member role has been successfully changed.")
       fetchMembers()
     } catch (error: any) {
-      toast({
-        title: "Update Failed",
-        description: error.message,
-        variant: "destructive"
-      })
+      handleError(error, { title: 'Role Update Failed' })
+    } finally {
+      setIsUpdating(false)
     }
   }
 
   const handleDelete = async (id: string) => {
     try {
       await teamApi.removeMember(id)
-      toast({
-        title: "Member Removed",
-        description: "The team member has been successfully removed.",
-        variant: "destructive"
-      })
+      toast.success("The team member has been successfully removed.")
       fetchMembers()
     } catch (error: any) {
-      toast({
-        title: "Remove Failed",
-        description: error.message,
-        variant: "destructive"
-      })
+      handleError(error, { title: 'Removal Failed' })
     }
   }
 
@@ -180,7 +165,10 @@ export default function TeamManagementPage() {
               <p className="text-sm text-slate-500 font-medium italic">Members, roles, and access permissions.</p>
             </div>
             
-            <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
+            <Dialog open={isInviteModalOpen} onOpenChange={(v) => {
+              setIsInviteModalOpen(v)
+              if (!v) setError(null)
+            }}>
               <DialogTrigger asChild>
                 <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md shadow-indigo-500/20 rounded-xl px-5 h-10 text-sm transition-all hover:scale-[1.02]">
                   <UserPlus className="h-4 w-4 mr-2" />
@@ -194,6 +182,14 @@ export default function TeamManagementPage() {
                     Send an email invitation to add a new member.
                   </DialogDescription>
                 </DialogHeader>
+
+                {error && (
+                  <div className="mx-6 mt-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in duration-200">
+                    <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0" />
+                    <p className="text-xs font-bold text-red-600 dark:text-red-400">{error}</p>
+                  </div>
+                )}
+
                 <div className="grid gap-5 py-4">
                   <div className="space-y-2">
                     <Label htmlFor="email" className="font-bold text-slate-700 dark:text-slate-300">Email address</Label>
@@ -227,7 +223,7 @@ export default function TeamManagementPage() {
                             <Star className="h-4 w-4 text-amber-500 mr-3" />
                             <div className="text-left">
                               <p className="font-bold text-sm">Manager</p>
-                              <p className="text-[10px] text-slate-500 font-medium">Manage leads & reports</p>
+                              <p className="text-[10px] text-slate-500 font-medium">Manage leads, agents & reports</p>
                             </div>
                           </div>
                         </SelectItem>
@@ -236,7 +232,7 @@ export default function TeamManagementPage() {
                             <User className="h-4 w-4 text-blue-500 mr-3" />
                             <div className="text-left">
                               <p className="font-bold text-sm">Agent</p>
-                              <p className="text-[10px] text-slate-500 font-medium">Handle assigned leads</p>
+                              <p className="text-[10px] text-slate-500 font-medium">Access assigned leads/meetings only</p>
                             </div>
                           </div>
                         </SelectItem>
@@ -245,8 +241,15 @@ export default function TeamManagementPage() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="ghost" onClick={() => setIsInviteModalOpen(false)} className="rounded-xl h-11 font-bold">Cancel</Button>
-                  <Button onClick={handleInvite} className="rounded-xl h-11 font-black bg-slate-900 dark:bg-white dark:text-slate-900 px-8" disabled={!inviteEmail}>Send Invitation</Button>
+                  <Button variant="ghost" onClick={() => setIsInviteModalOpen(false)} className="rounded-xl h-11 font-bold" disabled={isInviting}>Cancel</Button>
+                  <Button onClick={handleInvite} className="rounded-xl h-11 font-black bg-slate-900 dark:bg-white dark:text-slate-900 px-8" disabled={!inviteEmail || isInviting}>
+                    {isInviting ? (
+                      <>
+                        <div className="h-4 w-4 border-2 border-slate-400 border-t-white rounded-full animate-spin mr-2" />
+                        Sending...
+                      </>
+                    ) : 'Send Invitation'}
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -285,6 +288,16 @@ export default function TeamManagementPage() {
                 <div>
                   <span className="text-xs font-bold text-slate-500 uppercase mr-1.5">Admins:</span>
                   <span className="text-base font-black text-slate-900 dark:text-white">{members.filter(m => m.role === 'Admin').length}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                  <User className="h-4 w-4" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-500 uppercase mr-1.5">Agents:</span>
+                  <span className="text-base font-black text-slate-900 dark:text-white">{members.filter(m => m.role === 'Agent').length}</span>
                 </div>
               </div>
 
@@ -477,15 +490,26 @@ export default function TeamManagementPage() {
         </Tabs>
 
         {/* Edit Role Dialog */}
-        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+        <Dialog open={isEditModalOpen} onOpenChange={(v) => {
+          setIsEditModalOpen(v)
+          if (!v) setError(null)
+        }}>
+          <DialogContent className="sm:max-w-[425px] rounded-2xl">
             <DialogHeader>
-              <DialogTitle className="text-xl">Update Member Role</DialogTitle>
-              <DialogDescription>
-                Change the access level for <strong>{editingMember?.name}</strong>.
+              <DialogTitle className="text-xl font-bold tracking-tight">Edit Member Role</DialogTitle>
+              <DialogDescription className="font-medium text-slate-500">
+                Change the access level for this team member.
               </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
+
+            {error && (
+              <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in duration-200">
+                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0" />
+                <p className="text-xs font-bold text-red-600 dark:text-red-400">{error}</p>
+              </div>
+            )}
+
+            <div className="grid gap-5 py-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-role" className="font-bold text-slate-700">Role & Permissions</Label>
                 <Select 
@@ -528,8 +552,15 @@ export default function TeamManagementPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="rounded-lg h-10 font-bold border-slate-200">Cancel</Button>
-              <Button onClick={handleUpdateRole} className="rounded-lg h-10 font-bold bg-indigo-600 hover:bg-indigo-700 shadow-sm">Save Changes</Button>
+              <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="rounded-lg h-10 font-bold border-slate-200" disabled={isUpdating}>Cancel</Button>
+              <Button onClick={handleUpdateRole} className="rounded-lg h-10 font-bold bg-indigo-600 hover:bg-indigo-700 shadow-sm" disabled={isUpdating}>
+                {isUpdating ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
+                    Updating...
+                  </>
+                ) : 'Save Changes'}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

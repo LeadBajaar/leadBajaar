@@ -27,13 +27,15 @@ import {
 import Link from 'next/link'
 import { formatInTimeZone } from 'date-fns-tz'
 import { format } from 'date-fns'
-import { getBookings, deleteBooking, rescheduleBooking, teamApi } from '@/lib/api'
+import { getBookings, deleteBooking, rescheduleBooking, updateBooking, teamApi } from '@/lib/api'
 import { toast } from 'sonner'
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
 import { cn } from '@/lib/utils'
 import { RoleGuard } from '@/components/RoleGuard'
+import { getAgentColor } from '@/utils/agentColors'
+import { useTheme } from 'next-themes'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,7 +50,7 @@ interface TeamMember {
 interface QuestionnaireItem { question: string; answer: string }
 interface Meeting {
   id: number; title: string; date: string; time: string; duration: string
-  lead: Lead; assignedTo: TeamMember
+  lead: Lead; assignedTo: TeamMember; agent?: { id: number; name: string }
   type: 'video' | 'phone' | 'in-person'
   status: 'confirmed' | 'pending' | 'completed' | 'cancelled' | 'rescheduled'
   meetingLink?: string; agenda?: string[]
@@ -61,12 +63,7 @@ interface Meeting {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const teamMembers: TeamMember[] = [
-  { id: 1, name: 'Alex Thompson', email: 'alex@leadbajaar.com', avatar: '', role: 'Sales Representative' },
-  { id: 2, name: 'Sarah Johnson', email: 'sarah@leadbajaar.com', avatar: '', role: 'Senior Sales Executive' },
-  { id: 3, name: 'Michael Brown', email: 'michael@leadbajaar.com', avatar: '', role: 'Account Manager' },
-  { id: 4, name: 'Emily Wilson', email: 'emily@leadbajaar.com', avatar: '', role: 'Sales Manager' },
-]
+// Mock team members removed - using real team data from API
 
 const meetingTypeConfig = {
   video: { icon: Video, label: 'Video Call', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
@@ -132,6 +129,8 @@ function MeetingDetailDialog({
   onReschedule?: (id: number, date: string, time: string) => void
   team: TeamMember[]
 }) {
+  const { theme, resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark' || theme === 'dark'
   const [isEditing, setIsEditing] = useState(false)
   const [isRescheduling, setIsRescheduling] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -139,7 +138,7 @@ function MeetingDetailDialog({
   
   const [notes, setNotes] = useState(meeting?.notes ?? '')
   const [outcome, setOutcome] = useState(meeting?.outcome ?? '')
-  const [assignedTo, setAssignedTo] = useState(meeting?.assignedTo ?? teamMembers[0])
+  const [assignedTo, setAssignedTo] = useState<TeamMember | null>(meeting?.assignedTo || null)
 
   const [newDate, setNewDate] = useState<Date | undefined>(undefined)
   const [newTime, setNewTime] = useState('')
@@ -176,7 +175,8 @@ function MeetingDetailDialog({
   const statusInfo = statusConfig[meeting.status] ?? statusConfig.confirmed
 
   const handleSave = () => {
-    onUpdate?.({ ...meeting, notes, outcome, assignedTo })
+    if (!meeting) return
+    onUpdate?.({ ...meeting, notes, outcome, assignedTo: assignedTo as TeamMember })
     setIsEditing(false)
   }
 
@@ -305,37 +305,67 @@ function MeetingDetailDialog({
               )}
             </div>
             {isEditing ? (
-              <Select value={assignedTo.email} onValueChange={(v) => {
-                const m = teamMembers.find(t => t.email === v)
+              <Select value={assignedTo?.email || ''} onValueChange={(v) => {
+                const m = team.find(t => t.email === v)
                 if (m) setAssignedTo(m)
               }}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className="h-10 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                  <SelectValue placeholder="Select Host" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800">
                   {team.map(m => (
-                    <SelectItem key={m.id} value={m.email}>
-                      <div className="flex items-center gap-2">
-                        <div className="h-5 w-5 rounded-full bg-indigo-600 text-white text-[10px] flex items-center justify-center font-bold">
+                    <SelectItem key={m.id} value={m.email} className="rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="h-6 w-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-sm"
+                          style={{ backgroundColor: getAgentColor(m.id).bg }}
+                        >
                           {initials(m.name)}
                         </div>
-                        <span className="text-sm">{m.name}</span>
-                        <span className="text-xs text-slate-400">· {m.role}</span>
+                        <div className="text-left">
+                          <p className="text-sm font-bold">{m.name}</p>
+                          <p className="text-[10px] text-slate-500 font-medium italic">{m.role}</p>
+                        </div>
                       </div>
                     </SelectItem>
                   ))}
-                  {team.length === 0 && (
-                    <SelectItem value={assignedTo.email} disabled>{assignedTo.name}</SelectItem>
-                  )}
                 </SelectContent>
               </Select>
             ) : (
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-                <div className="h-8 w-8 rounded-full bg-violet-600 flex items-center justify-center text-white text-xs font-bold">
-                  {initials(assignedTo.name)}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/50">
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-black shadow-md ring-2 ring-white dark:ring-slate-900"
+                    style={{ 
+                      backgroundColor: assignedTo && assignedTo.id !== 0 
+                        ? getAgentColor(assignedTo.id).bg 
+                        : '#94a3b8' 
+                    }}
+                  >
+                    {assignedTo ? initials(assignedTo.name) : '?'}
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-slate-900 dark:text-white">
+                      {assignedTo && assignedTo.id !== 0 ? assignedTo.name : 'Not Assigned'}
+                    </p>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider italic">
+                      {assignedTo && assignedTo.id !== 0 ? assignedTo.role : 'Waiting for host'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">{assignedTo.name}</p>
-                  <p className="text-xs text-slate-500">{assignedTo.role}</p>
-                </div>
+                {assignedTo && assignedTo.id !== 0 && (
+                   <Badge 
+                    variant="outline" 
+                    className="text-[10px] font-bold uppercase tracking-tighter"
+                    style={{
+                      backgroundColor: isDark ? getAgentColor(assignedTo.id).bgDark : getAgentColor(assignedTo.id).bg,
+                      color: isDark ? getAgentColor(assignedTo.id).textDark : getAgentColor(assignedTo.id).text,
+                      borderColor: isDark ? getAgentColor(assignedTo.id).borderDark : getAgentColor(assignedTo.id).border,
+                    }}
+                   >
+                    Active Host
+                   </Badge>
+                )}
               </div>
             )}
           </div>
@@ -551,6 +581,8 @@ function MeetingDetailDialog({
 // ─── Meeting Card (Upcoming) ───────────────────────────────────────────────────
 
 function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Meeting) => void }) {
+  const { theme, resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark' || theme === 'dark'
   const typeInfo = meetingTypeConfig[meeting.type] ?? meetingTypeConfig.video
   const TypeIcon = typeInfo.icon
   const statusInfo = statusConfig[meeting.status] ?? statusConfig.confirmed
@@ -577,6 +609,26 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
             <span className="flex items-center gap-1 text-xs text-slate-500">
               <Building2 className="h-3 w-3" />{meeting.lead.company}
             </span>
+          )}
+          {meeting.agent && (
+            <div 
+              className="flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border shadow-sm transition-all duration-300"
+              title={`Meeting Host: ${meeting.agent.name}`}
+              style={{
+                backgroundColor: isDark 
+                  ? getAgentColor(meeting.agent.id).bgDark 
+                  : getAgentColor(meeting.agent.id).bg,
+                color: isDark 
+                  ? getAgentColor(meeting.agent.id).textDark 
+                  : getAgentColor(meeting.agent.id).text,
+                borderColor: isDark 
+                  ? getAgentColor(meeting.agent.id).borderDark 
+                  : getAgentColor(meeting.agent.id).border,
+              }}
+            >
+              <Users className="h-2.5 w-2.5 opacity-70" />
+              <span>Host: {meeting.agent.name}</span>
+            </div>
           )}
         </div>
       </div>
@@ -664,6 +716,10 @@ const mapBooking = (booking: any, defaultStatus: string): Meeting => {
       role: 'Host', 
       avatar: '' 
     },
+    agent: booking.user ? {
+      id: booking.user.id,
+      name: booking.user.name
+    } : undefined,
     meetingLink: booking.meeting_link || '',
     source: booking.lead?.source || 'Website',
     questionnaire: Array.isArray(booking.answers) 
@@ -682,6 +738,9 @@ const mapBooking = (booking: any, defaultStatus: string): Meeting => {
 }
 
 export default function MeetingsPage() {
+  const { theme, resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark' || theme === 'dark'
+  const [activeTab, setActiveTab] = useState<'all' | 'upcoming' | 'history'>('upcoming')
   const [meetings, setMeetings] = useState<{ upcoming: Meeting[]; history: Meeting[] }>({ upcoming: [], history: [] })
   const [isLoading, setIsLoading] = useState(true)
   const [isFetchingMore, setIsFetchingMore] = useState({ upcoming: false, history: false })
@@ -805,12 +864,28 @@ export default function MeetingsPage() {
     fetchInitialData()
   }, [])
 
-  const handleMeetingUpdate = (updated: Meeting) => {
-    setMeetings(prev => ({
-      upcoming: prev.upcoming.map(m => m.id === updated.id ? updated : m),
-      history: prev.history.map(m => m.id === updated.id ? updated : m),
-    }))
-    setSelectedMeeting(updated)
+  const handleMeetingUpdate = async (updated: Meeting) => {
+    try {
+      // Extract the fields we want to update
+      const updateData = {
+        user_id: updated.assignedTo.id,
+        notes: updated.notes,
+        outcome: updated.outcome
+      };
+      
+      const response = await updateBooking(updated.id, updateData);
+      const freshlyMapped = mapBooking(response.data.booking, updated.status);
+
+      setMeetings(prev => ({
+        upcoming: prev.upcoming.map(m => m.id === freshlyMapped.id ? freshlyMapped : m),
+        history: prev.history.map(m => m.id === freshlyMapped.id ? freshlyMapped : m),
+      }))
+      setSelectedMeeting(freshlyMapped)
+      toast.success('Meeting updated successfully')
+    } catch (err) {
+      console.error('Failed to update meeting:', err);
+      toast.error('Failed to update meeting');
+    }
   }
 
   const handleMeetingDelete = async (id: number) => {

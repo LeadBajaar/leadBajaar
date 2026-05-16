@@ -39,6 +39,16 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
   onUpdate,
   onCancel
 }) => {
+  const [newNote, setNewNote] = React.useState('')
+
+  const handleUpdate = () => {
+    if (lead) {
+      // Pass the new note separately in the payload
+      onUpdate({ ...lead, new_note: newNote } as any)
+      setNewNote('')
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[500px] h-[90vh] p-0 flex flex-col">
@@ -224,16 +234,26 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
                 <MessageSquare className="h-4 w-4" />
                 Notes / History
               </h3>
-              <div className="grid gap-2">
-                <Textarea
-                  placeholder="Add notes about this lead..."
-                  className="min-h-[100px] bg-slate-50/50 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-sm rounded-xl focus:bg-white dark:focus:bg-slate-900 transition-all no-scrollbar"
-                  value={lead?.notes || ''}
-                  onChange={(e) => setLead(prev => prev ? { ...prev, notes: e.target.value } : null)}
-                />
-                <p className="text-[10px] text-slate-400 italic">
-                  Notes are stored with timestamps automatically when updated.
-                </p>
+              <div className="grid gap-4">
+                {lead?.notes && (
+                  <div className="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800 max-h-[150px] overflow-y-auto no-scrollbar">
+                    <p className="text-xs whitespace-pre-wrap opacity-70 font-medium leading-relaxed">
+                      {lead.notes}
+                    </p>
+                  </div>
+                )}
+                <div className="grid gap-2">
+                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Add New Note</Label>
+                  <Textarea
+                    placeholder="Type new note here..."
+                    className="min-h-[80px] bg-slate-50/50 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-sm rounded-xl focus:bg-white dark:focus:bg-slate-900 transition-all no-scrollbar"
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                  />
+                  <p className="text-[10px] text-slate-400 italic">
+                    New notes are automatically timestamped and appended to history.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -244,7 +264,7 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
           </Button>
           <Button
             size="sm"
-            onClick={() => onUpdate(lead)}
+            onClick={handleUpdate}
             disabled={isUpdating}
             className="bg-indigo-600 hover:bg-indigo-700 font-bold"
           >

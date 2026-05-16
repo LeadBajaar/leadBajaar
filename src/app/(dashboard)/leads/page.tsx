@@ -53,7 +53,8 @@ import {
   deleteStage,
   reorderStages,
   syncDefaultStages,
-  type Stage as ApiStage
+  type Stage as ApiStage,
+  teamApi
 } from '@/lib/api'
 import { LeadsMobileView } from './LeadsMobileView'
 import { useMediaQuery } from '@/hooks/use-media-query'
@@ -88,6 +89,7 @@ import { StageChangeDialog } from './StageChangeDialog'
 import { DealValueDialog } from './DealValueDialog'
 import { EditLeadDialog } from './EditLeadDialog'
 import { AddLeadDialog } from './AddLeadDialog'
+import { AssignAgentDialog } from './AssignAgentDialog'
 
 const ErrorAlert = ({ message }: { message: string }) => (
   <Alert variant="destructive" className="mb-4">
@@ -173,6 +175,7 @@ export default function LeadsPage() {
     // 'status',
     'city',
     'profession',
+    'notes',
     // 'deal_value',
     // 'paid_amount',
     'created_at',
@@ -307,6 +310,11 @@ export default function LeadsPage() {
   // Add state for export dialog
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+
+  // Team members state
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [showAssignAgent, setShowAssignAgent] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false);
 
   // Add new state variables
   const [showBroadcastDialog, setShowBroadcastDialog] = useState(false)
@@ -504,6 +512,15 @@ export default function LeadsPage() {
      }
    };
 
+  const fetchTeamMembers = async () => {
+    try {
+      const members = await teamApi.getMembers();
+      setTeamMembers(members);
+    } catch (error) {
+      console.error('Failed to fetch team members:', error);
+    }
+  };
+
   const fetchLeads = async () => {
     try {
       setIsLoading(true);
@@ -550,6 +567,7 @@ export default function LeadsPage() {
 
   useEffect(() => {
     fetchStagesData();
+    fetchTeamMembers();
     fetchLeads();
   }, [currentPage, itemsPerPage, debouncedSearch, filters.status, filters.stage, filters.source, filters.dateRange, filters.createdAt]);
 
@@ -575,7 +593,8 @@ export default function LeadsPage() {
         status: newLead.status,
         source: newLead.source,
         city: newLead.city || '',
-        profession: newLead.profession || ''
+        profession: newLead.profession || '',
+        notes: newLead.notes || ''
       });
 
       // Refresh leads list
@@ -663,6 +682,26 @@ export default function LeadsPage() {
   const handleWhatsAppClick = (lead: Lead) => {
     const phone = lead.phone.replace(/\D/g, '');
     window.open(`https://wa.me/${phone}`, '_blank');
+  };
+
+  const handleAssignAgentClick = (lead: Lead) => {
+    setEditingLead(lead);
+    setShowAssignAgent(true);
+  };
+
+  const handleAssignAgent = async (agentId: string) => {
+    if (!editingLead) return;
+    try {
+      setIsAssigning(true);
+      await updateLead(editingLead.id, { user_id: parseInt(agentId) });
+      toast.success("Lead assigned successfully");
+      setShowAssignAgent(false);
+      fetchLeads();
+    } catch (error: any) {
+      handleError(error, { title: 'Assignment Failed' });
+    } finally {
+      setIsAssigning(false);
+    }
   };
 
   const handleCallClick = (lead: Lead) => {
@@ -1084,6 +1123,8 @@ export default function LeadsPage() {
         source: updatedLead.source,
         city: updatedLead.city || '',
         profession: updatedLead.profession || '',
+        notes: updatedLead.notes || '',
+        new_note: (updatedLead as any).new_note || '',
       })
 
       // Update local state with response from server
@@ -1466,6 +1507,7 @@ export default function LeadsPage() {
             handleWhatsAppClick={handleWhatsAppClick}
             handleCallClick={handleCallClick}
             handleDealValueClick={handleDealValueClick}
+            handleAssignAgentClick={handleAssignAgentClick}
             fetchLeads={fetchLeads}
             setError={setError}
             stages={stages}
@@ -1632,6 +1674,16 @@ export default function LeadsPage() {
         onSave={validateAndSubmit}
         onCancel={() => setShowNewLead(false)}
         stages={stages}
+      />
+      
+      <AssignAgentDialog
+        isOpen={showAssignAgent}
+        onOpenChange={setShowAssignAgent}
+        leadName={editingLead?.name || ''}
+        teamMembers={teamMembers}
+        isAssigning={isAssigning}
+        onAssign={handleAssignAgent}
+        onCancel={() => setShowAssignAgent(false)}
       />
 
       <input

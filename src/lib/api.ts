@@ -74,8 +74,11 @@ api.interceptors.response.use(
   (error) => {
     const parsedError = parseError(error);
 
-    // Log the error centrally
-    logger.error("API Error", error);
+    // Only log to console/logger if it's a server error or unexpected crash
+    // 422 (Validation), 401 (Auth), and 402 (Payment) are handled by the UI
+    if (!parsedError.status || parsedError.status >= 500) {
+      logger.error("API Error", error);
+    }
 
     // Global session handling (401)
     if (parsedError.status === 401) {
@@ -132,8 +135,8 @@ export const login = async (email: string, password: string) => {
       }
     }
     // Only log unexpected errors
-    console.error('Unexpected error during login:', error);
-    throw new Error('An unexpected error occurred');
+    logger.error('Login Failed', error);
+    throw error;
   }
 };
 
@@ -290,8 +293,8 @@ export const getLeads = async (params: GetLeadsParams) => {
 
     // Return the response data as is
     return response.data;
-  } catch (error) {
-    console.error('Error fetching leads:', error);
+  } catch (error: any) {
+    logger.error('Error fetching leads', error);
     throw error;
   }
 };
@@ -1416,7 +1419,7 @@ export const exportLeads = async (ids?: number[]) => {
 
     return true;
   } catch (error) {
-    console.error('Export error:', error);
+    logger.error('Export error:', error);
     if (axios.isAxiosError(error)) {
       // Handle different error types
       if (error.response?.status === 404) {
@@ -1476,8 +1479,8 @@ export const getLeadsWithLatestMessages = async () => {
       }
     });
     return response.data;
-  } catch (error) {
-    console.error('Error fetching conversations:', error);
+  } catch (error: any) {
+    logger.error('Error fetching conversations:', error);
     throw error;
   }
 };
@@ -1493,8 +1496,8 @@ export const getConversationMessages = async (conversationId: string | number, l
       }
     });
     return response.data;
-  } catch (error) {
-    console.error('Error fetching messages:', error);
+  } catch (error: any) {
+    logger.error('Error fetching messages:', error);
     throw error;
   }
 };
@@ -1507,6 +1510,10 @@ export const deleteBooking = async (id: number) => {
   return api.delete(`/bookings/${id}`);
 };
 
+export const updateBooking = async (id: number, data: any) => {
+  return api.put(`/bookings/${id}`, data);
+};
+
 export const rescheduleBooking = async (id: number, data: { date: string, time: string, duration: number }) => {
   return api.patch(`/bookings/${id}/reschedule`, data);
 };
@@ -1514,39 +1521,23 @@ export const rescheduleBooking = async (id: number, data: { date: string, time: 
 // Team API Methods
 export const teamApi = {
   getMembers: async () => {
-    try {
-      const response = await api.get('/team');
-      return response.data.members;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch team members');
-    }
+    const response = await api.get('/team');
+    return response.data.members;
   },
 
   inviteMember: async (data: { email: string, role: string }) => {
-    try {
-      const response = await api.post('/team/invite', data);
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to send invitation');
-    }
+    const response = await api.post('/team/invite', data);
+    return response.data;
   },
 
   updateRole: async (id: string, role: string) => {
-    try {
-      const response = await api.patch(`/team/${id}/role`, { role });
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to update role');
-    }
+    const response = await api.patch(`/team/${id}/role`, { role });
+    return response.data;
   },
 
   removeMember: async (id: string) => {
-    try {
-      const response = await api.delete(`/team/${id}`);
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to remove member');
-    }
+    const response = await api.delete(`/team/${id}`);
+    return response.data;
   },
 
   setupAccount: async (data: any) => {
@@ -1731,7 +1722,7 @@ export const adminApi = {
       throw new Error(error.response?.data?.message || 'Failed to fetch plans');
     }
   },
-  
+
   createPlan: async (data: any) => {
     try {
       const response = await api.post('/admin/plans', data);

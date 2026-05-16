@@ -35,6 +35,7 @@ export interface NewLead {
   source?: string;
   city?: string;
   profession?: string;
+  notes?: string;
 }
 
 export type TemperatureType = 'Hot' | 'Warm' | 'Cold';
@@ -73,6 +74,7 @@ export const columns = [
   { id: 'paid_amount', label: 'Paid Amount', icon: Wallet },
   { id: 'lastContact', label: 'Last Contact', icon: CalendarIcon },
   { id: 'created_at', label: 'Created At', icon: CalendarIcon },
+  { id: 'notes', label: 'Notes', icon: MessageSquare },
   { id: 'actions', label: 'Actions' },
 ];
 

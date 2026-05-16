@@ -1,8 +1,10 @@
 import { logger } from "./logger";
+import { parseError } from "./errorParser";
+import { toast } from "sonner";
 
 interface HandleErrorOptions {
   title?: string;
-  showToast?: (message: string) => void;
+  silent?: boolean;
   showModal?: (options: { title: string; message: string }) => void;
 }
 
@@ -11,22 +13,28 @@ interface HandleErrorOptions {
  * It ensures errors are logged and appropriate UI feedback is shown.
  */
 export function handleError(error: any, options?: HandleErrorOptions) {
-  const errorMessage = error?.message || "An unexpected error occurred. Please try again.";
+  // Ensure we have a parsed AppError object
+  const parsed = parseError(error);
+  const errorMessage = parsed.message;
   const errorTitle = options?.title || "Error";
 
-  // Log the error centrally via our logger
-  logger.error(errorTitle, error);
+  // Log the error centrally via our logger (silently, as we handle UI here)
+  logger.error(errorTitle, error, { silent: true });
 
-  // Show toast if provided
-  if (options?.showToast) {
-    options.showToast(errorMessage);
+  if (options?.silent) {
+    return errorMessage;
   }
 
-  // Show modal if provided
+  // Show modal if provided (high priority)
   if (options?.showModal) {
     options.showModal({
       title: errorTitle,
       message: errorMessage
+    });
+  } else {
+    // Default: show a nice toast
+    toast.error(errorTitle, {
+      description: errorMessage,
     });
   }
 

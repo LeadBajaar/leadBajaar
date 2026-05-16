@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 import { Loader2, AlertCircle } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { NewLead, temperatureConfig, sourceConfig, TemperatureType } from './types'
@@ -229,6 +230,17 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="notes" className="text-xs font-bold uppercase tracking-wider text-slate-500">Notes</Label>
+              <Textarea
+                id="notes"
+                value={newLead.notes || ''}
+                onChange={(e) => setNewLead(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Initial notes..."
+                className="min-h-[100px] text-sm bg-slate-50 border-slate-200 focus:bg-white transition-all no-scrollbar"
+              />
             </div>
           </div>
         </div>

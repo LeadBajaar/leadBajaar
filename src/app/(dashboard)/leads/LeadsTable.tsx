@@ -26,8 +26,17 @@ import {
   Globe
 } from 'lucide-react'
 import { cn } from "@/lib/utils"
-import { Lead, columns, temperatureConfig, sourceConfig } from './types'
+import { Lead as BaseLead, columns, temperatureConfig, sourceConfig } from './types'
+
+interface Lead extends BaseLead {
+  agent?: {
+    id: number;
+    name: string;
+  };
+}
 import { format } from 'date-fns'
+import { getAgentColor } from '@/utils/agentColors'
+import { useTheme } from 'next-themes'
 
 interface LeadsTableProps {
   leads: Lead[];
@@ -42,6 +51,7 @@ interface LeadsTableProps {
   handleWhatsAppClick: (lead: Lead) => void;
   handleCallClick: (lead: Lead) => void;
   handleDealValueClick: (lead: Lead) => void;
+  handleAssignAgentClick: (lead: Lead) => void;
   fetchLeads: () => void;
   setError: (error: string | null) => void;
   stages: Record<string, any>;
@@ -90,10 +100,14 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
   handleWhatsAppClick,
   handleCallClick,
   handleDealValueClick,
+  handleAssignAgentClick,
   fetchLeads,
   setError,
   stages
 }) => {
+  const { theme, resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark' || theme === 'dark'
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500">
@@ -213,6 +227,37 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                               </Tooltip>
                               <Tooltip>
                                 <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => handleAssignAgentClick(lead)} 
+                                    className={cn(
+                                      "h-7 w-7 transition-all duration-300",
+                                      lead.agent 
+                                        ? "ring-1" 
+                                        : "text-slate-400 hover:text-purple-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    )}
+                                    style={lead.agent ? {
+                                      backgroundColor: isDark 
+                                        ? getAgentColor(lead.agent.id).bgDark 
+                                        : getAgentColor(lead.agent.id).bg,
+                                      color: isDark 
+                                        ? getAgentColor(lead.agent.id).textDark 
+                                        : getAgentColor(lead.agent.id).text,
+                                      borderColor: isDark 
+                                        ? getAgentColor(lead.agent.id).borderDark 
+                                        : getAgentColor(lead.agent.id).border,
+                                    } : {}}
+                                  >
+                                    <UserCheck className="h-3.5 w-3.5" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent className="text-[10px]">
+                                  {lead.agent ? `Assigned to: ${lead.agent.name}` : 'Assign Agent'}
+                                </TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
                                   <Button variant="ghost" size="icon" onClick={() => handleDelete(lead)} className="h-7 w-7 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800">
                                     <Trash className="h-3.5 w-3.5" />
                                   </Button>
@@ -262,6 +307,21 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                             <span className="text-[10px] opacity-40">₹</span>
                             <span>{lead.paid_amount || 0}</span>
                           </div>
+                        ) : column.id === 'notes' ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="truncate max-w-[200px] inline-block cursor-help italic opacity-70">
+                                  {value || '-'}
+                                </span>
+                              </TooltipTrigger>
+                              {value && (
+                                <TooltipContent className="max-w-[300px] p-3 text-xs leading-relaxed">
+                                  <p className="whitespace-pre-wrap font-normal">{value}</p>
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
                         ) : (
                           <span className="truncate max-w-[150px] inline-block">{value || '-'}</span>
                         )}

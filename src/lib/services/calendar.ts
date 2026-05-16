@@ -1,5 +1,6 @@
 import { google } from 'googleapis'
 import { OAuth2Client } from 'google-auth-library'
+import { logger } from '@/utils/logger'
 
 interface CalendarProvider {
   type: 'google' | 'outlook' | 'apple'
@@ -65,7 +66,7 @@ export class CalendarService {
           throw new Error('Unsupported calendar provider')
       }
     } catch (error) {
-      console.error('Error listing calendars:', error)
+      logger.error('Error listing calendars', error)
       throw error
     }
   }
@@ -104,7 +105,7 @@ export class CalendarService {
           throw new Error('Unsupported calendar provider')
       }
     } catch (error) {
-      console.error('Error checking busy times:', error)
+      logger.error('Error checking busy times', error)
       throw error
     }
   }
@@ -156,7 +157,7 @@ export class CalendarService {
           throw new Error('Unsupported calendar provider')
       }
     } catch (error) {
-      console.error('Error creating event:', error)
+      logger.error('Error creating event', error)
       throw error
     }
   }
@@ -201,7 +202,7 @@ export class CalendarService {
           throw new Error('Unsupported calendar provider')
       }
     } catch (error) {
-      console.error('Error updating event:', error)
+      logger.error('Error updating event', error)
       throw error
     }
   }
@@ -233,7 +234,7 @@ export class CalendarService {
           throw new Error('Unsupported calendar provider')
       }
     } catch (error) {
-      console.error('Error deleting event:', error)
+      logger.error('Error deleting event', error)
       throw error
     }
   }
@@ -252,7 +253,7 @@ export class CalendarService {
           throw new Error('Unsupported calendar provider');
       }
     } catch (error) {
-      console.error('Error connecting calendar:', error);
+      logger.error('Error connecting calendar', error);
       throw error;
     }
   }
@@ -264,7 +265,7 @@ export class CalendarService {
       });
       return response.ok;
     } catch (error) {
-      console.error('Error disconnecting calendar:', error);
+      logger.error('Error disconnecting calendar', error);
       throw error;
     }
   }

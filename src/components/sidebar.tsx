@@ -26,6 +26,7 @@ import {
   X,
   CornerUpLeft,
   DollarSign,
+  Users,
 } from 'lucide-react'
 import { logout } from '@/lib/api'
 import { clearSession, setSession } from '@/lib/auth'
@@ -74,6 +75,12 @@ const flyoutNav: NavSection[] = [
     items: [
       { name: 'Clients', desc: 'Manage your client portfolio', href: '/agency', icon: Briefcase, color: '#6366F1', roles: ['Super Admin', 'Admin'], types: ['agency', 'super_admin'], feature: 'agency_management' },
       { name: 'Analytics', desc: 'Deep-dive into performance', href: '/analytics', icon: TrendingUp, color: '#14B8A6', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], feature: 'analytics' },
+    ],
+  },
+  {
+    label: 'Organization',
+    items: [
+      { name: 'Team', desc: 'Manage members and roles', href: '/team', icon: Users, color: '#8B5CF6', roles: ['Super Admin', 'Admin'], feature: 'team_management' },
     ],
   },
   {

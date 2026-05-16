@@ -30,8 +30,19 @@ export function parseError(error: any): AppError {
     };
   }
 
+  // Handle Axios Network Errors
+  if (error?.message === 'Network Error') {
+    return { 
+      message: "Cannot connect to server. Please check your internet connection.",
+      raw: error 
+    };
+  }
+
   if (error?.message) {
-    return { message: error.message, raw: error };
+    return { 
+      message: error.message === 'API Error' ? 'Something went wrong' : error.message, 
+      raw: error 
+    };
   }
 
   return {

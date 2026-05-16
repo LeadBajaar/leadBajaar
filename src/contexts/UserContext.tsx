@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { getUser } from '@/lib/api'
+import { logger } from '@/utils/logger'
 
 export type UserRole = 'Super Admin' | 'Admin' | 'Manager' | 'Agent'
 export type UserType = 'agency' | 'individual' | 'super_admin'
@@ -55,7 +56,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         const data = await getUser()
         setUser(data)
       } catch (error) {
-        console.error('Failed to fetch user:', error)
+        logger.error('Failed to fetch user', error)
       } finally {
         setIsLoading(false)
       }
