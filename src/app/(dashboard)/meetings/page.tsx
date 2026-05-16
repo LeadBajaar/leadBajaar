@@ -45,7 +45,7 @@ interface Lead {
   requirements: string; avatar: string
 }
 interface TeamMember {
-  id: number; name: string; email: string; avatar: string; role: string
+  id: number; name: string; email: string; avatar: string; role: string; status: string
 }
 interface QuestionnaireItem { question: string; answer: string }
 interface Meeting {
@@ -207,7 +207,7 @@ function MeetingDetailDialog({
     }
   }
 
-  const initials = (name: string) => name.split(' ').map(n => n[0]).join('')
+  const initials = (name?: string | null) => (name || '').split(' ').filter(Boolean).map(n => n[0].toUpperCase()).join('')
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -313,7 +313,7 @@ function MeetingDetailDialog({
                   <SelectValue placeholder="Select Host" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800">
-                  {team.map(m => (
+                  {team.filter(m => m.status === 'Active').map(m => (
                     <SelectItem key={m.id} value={m.email} className="rounded-lg">
                       <div className="flex items-center gap-3">
                         <div 
@@ -586,7 +586,7 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
   const typeInfo = meetingTypeConfig[meeting.type] ?? meetingTypeConfig.video
   const TypeIcon = typeInfo.icon
   const statusInfo = statusConfig[meeting.status] ?? statusConfig.confirmed
-  const initials = (name: string) => name.split(' ').map(n => n[0]).join('')
+  const initials = (name?: string | null) => (name || '').split(' ').filter(Boolean).map(n => n[0].toUpperCase()).join('')
 
   return (
     <div
@@ -714,7 +714,8 @@ const mapBooking = (booking: any, defaultStatus: string): Meeting => {
       name: booking.user?.name || 'Host', 
       email: booking.user?.email || '', 
       role: 'Host', 
-      avatar: '' 
+      avatar: '',
+      status: booking.user?.status || 'Active'
     },
     agent: booking.user ? {
       id: booking.user.id,
@@ -928,7 +929,7 @@ export default function MeetingsPage() {
     setDialogOpen(true)
   }
 
-  const initials = (name: string) => name.split(' ').map(n => n[0]).join('')
+  const initials = (name?: string | null) => (name || '').split(' ').filter(Boolean).map(n => n[0].toUpperCase()).join('')
 
   // Stats
   const totalUpcoming = meetings.upcoming.length

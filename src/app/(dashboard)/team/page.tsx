@@ -133,6 +133,15 @@ export default function TeamManagementPage() {
     }
   }
 
+  const handleResendInvite = async (id: string) => {
+    try {
+      await teamApi.resendInvite(id)
+      toast.success("Invitation has been resent successfully.")
+    } catch (error: any) {
+      handleError(error, { title: 'Failed to resend invitation' })
+    }
+  }
+
   const filteredMembers = members.filter(m => 
     (m.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
     (m.email || '').toLowerCase().includes(searchQuery.toLowerCase())
@@ -391,6 +400,14 @@ export default function TeamManagementPage() {
                                 >
                                   <Edit className="mr-2 h-4 w-4 text-slate-400" /> Edit Role
                                 </DropdownMenuItem>
+                                {member.status === 'Invited' && (
+                                  <DropdownMenuItem 
+                                    className="cursor-pointer font-medium py-2 px-2.5 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-lg text-indigo-600 dark:text-indigo-400 mt-1"
+                                    onClick={() => handleResendInvite(member.id)}
+                                  >
+                                    <Mail className="mr-2 h-4 w-4" /> Resend Invite
+                                  </DropdownMenuItem>
+                                )}
                                 <DropdownMenuItem 
                                   className="cursor-pointer font-medium py-2 px-2.5 text-red-600 focus:bg-red-50 dark:focus:bg-red-950/30 focus:text-red-600 rounded-lg mt-1"
                                   onClick={() => handleDelete(member.id)}

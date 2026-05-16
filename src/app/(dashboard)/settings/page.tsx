@@ -267,7 +267,7 @@ export default function SettingsPage() {
                     <Avatar className="h-24 w-24 lg:h-28 lg:w-28 ring-4 ring-indigo-50 dark:ring-indigo-900/20 shadow-xl">
                       <AvatarImage src={imagePreview || undefined} />
                       <AvatarFallback className="text-2xl font-bold bg-slate-50 dark:bg-slate-800">
-                        {profileSettings.name.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                        {profileSettings.name.split(' ').filter(Boolean).map(n => n[0].toUpperCase()).join('') || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <button

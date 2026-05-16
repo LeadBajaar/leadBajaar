@@ -169,6 +169,7 @@ const AVAILABLE_PLATFORM_FEATURES = [
   // Clients & Growth
   { id: 'agency_management', label: 'Clients' },
   { id: 'analytics', label: 'Analytics' },
+  { id: 'team_management', label: 'Team Management' },
   
   // Automation
   { id: 'automations', label: 'Automations' },

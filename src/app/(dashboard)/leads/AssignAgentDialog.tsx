@@ -60,7 +60,7 @@ export function AssignAgentDialog({
                 <SelectValue placeholder="Choose an agent..." />
               </SelectTrigger>
               <SelectContent>
-                {teamMembers.map((member) => {
+                {teamMembers.filter(member => member.status === 'Active').map((member) => {
                   const colors = getAgentColor(member.id);
                   return (
                     <SelectItem key={member.id} value={member.id.toString()}>
