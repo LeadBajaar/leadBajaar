@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { useWhatsApp } from '@/contexts/WhatsAppContext';
 
 interface Campaign {
   id: number;
@@ -41,6 +42,9 @@ interface WhatsAppBotCampaignsProps {
 }
 
 export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
+  const { sessions } = useWhatsApp();
+  const isSessionActive = sessions.includes(userId);
+  
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,6 +54,8 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
   const [recipients, setRecipients] = useState<any[]>([]);
   const [recipientsLoading, setRecipientsLoading] = useState(false);
   const [recipientSearch, setRecipientSearch] = useState('');
+  const [resumeLimit, setResumeLimit] = useState('');
+  const [isProcessingAction, setIsProcessingAction] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 50;
 
@@ -111,8 +117,8 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
   };
 
   const handleLaunchCampaign = async () => {
-    if (!name || !message || !groupId) {
-      toast.error('Please fill all required fields');
+    if (!name || (!message && !mediaUrl) || !groupId) {
+      toast.error('Please fill name, group and either a message or media');
       return;
     }
     try {
@@ -156,6 +162,44 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
     }
   };
 
+  const handlePauseCampaign = async (campaignId: number, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    try {
+      setIsProcessingAction(true);
+      await axios.post(`${WHATSAPP_BASE_URL}/campaigns/campaigns/${campaignId}/stop`);
+      toast.success('Campaign paused');
+      fetchCampaigns();
+      if (selectedCampaign?.id === campaignId) {
+        setSelectedCampaign(prev => prev ? {...prev, status: 'paused'} : null);
+      }
+    } catch (err) {
+      toast.error('Failed to pause campaign');
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
+  const handleResumeCampaign = async (campaignId: number, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    try {
+      setIsProcessingAction(true);
+      const res = await axios.post(`${WHATSAPP_BASE_URL}/campaigns/campaigns/${campaignId}/resume`, {
+        limit: resumeLimit ? parseInt(resumeLimit) : undefined
+      });
+      toast.success(res.data.message || 'Campaign resumed');
+      fetchCampaigns();
+      if (selectedCampaign?.id === campaignId) {
+        setSelectedCampaign(prev => prev ? {...prev, status: 'running'} : null);
+        fetchRecipients(campaignId);
+      }
+      setResumeLimit('');
+    } catch (err) {
+      toast.error('Failed to resume campaign');
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'running': return <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-3 font-black">RUNNING</Badge>;
@@ -174,7 +218,11 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
         </div>
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl shadow-lg shadow-indigo-500/20">
+            <Button 
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!isSessionActive}
+              title={!isSessionActive ? "Reconnect WhatsApp to launch campaigns" : ""}
+            >
               <Plus className="mr-2 h-4 w-4" /> New Campaign
             </Button>
           </DialogTrigger>
@@ -289,7 +337,7 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
             <div className="flex gap-3 mt-4">
               <Button 
                 onClick={handleLaunchCampaign} 
-                disabled={isLaunching || !name || !message || !groupId} 
+                disabled={isLaunching || !name || (!message && !mediaUrl) || !groupId} 
                 className="flex-1 bg-indigo-600 h-12 font-black rounded-xl shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLaunching ? (
@@ -302,6 +350,15 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
           </DialogContent>
         </Dialog>
       </div>
+
+      {!isSessionActive && (
+        <div className="bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-800 rounded-xl p-4 flex items-center gap-3 shadow-sm">
+          <AlertCircle className="h-5 w-5 text-rose-500 shrink-0" />
+          <p className="text-sm font-bold text-rose-600 dark:text-rose-400">
+            This WhatsApp session is disconnected. You must reconnect it from the top-right button to launch or resume campaigns.
+          </p>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
@@ -348,6 +405,27 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
                       >
                         <Search className="mr-2 h-3 w-3" /> View Report
                       </Button>
+                      
+                      {campaign.status === 'running' && (
+                        <Button 
+                          size="sm" variant="outline" className="rounded-lg h-9 text-rose-500 border-rose-200 hover:bg-rose-50"
+                          onClick={(e) => handlePauseCampaign(campaign.id, e)}
+                          disabled={isProcessingAction}
+                        >
+                          <Pause className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                      
+                      {campaign.status === 'paused' && (
+                        <Button 
+                          size="sm" variant="outline" className="rounded-lg h-9 text-emerald-500 border-emerald-200 hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={(e) => handleResumeCampaign(campaign.id, e)}
+                          disabled={isProcessingAction || !isSessionActive}
+                          title={!isSessionActive ? "Reconnect WhatsApp to resume" : "Resume Campaign"}
+                        >
+                          <Play className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                   
@@ -422,7 +500,40 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
                <Badge variant="outline" className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-black text-[10px] py-1 px-3">
                   {recipients.length} TOTAL RECIPIENTS
                 </Badge>
-                {selectedCampaign && getStatusBadge(selectedCampaign.status)}
+                <div className="flex flex-1 items-center gap-3">
+                  {selectedCampaign && getStatusBadge(selectedCampaign.status)}
+                  
+                  {selectedCampaign?.status === 'running' && (
+                    <Button 
+                      size="sm" className="h-8 px-3 rounded-lg text-xs font-black bg-rose-500 hover:bg-rose-600 text-white shadow-sm"
+                      onClick={() => handlePauseCampaign(selectedCampaign.id)}
+                      disabled={isProcessingAction}
+                    >
+                      <Pause className="mr-1.5 h-3 w-3" /> Pause
+                    </Button>
+                  )}
+                  
+                  {selectedCampaign?.status === 'paused' && (
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        placeholder="Limit (e.g. 50)"
+                        type="number"
+                        min="1"
+                        value={resumeLimit}
+                        onChange={(e) => setResumeLimit(e.target.value)}
+                        className="w-32 h-8 text-xs font-bold rounded-lg border-emerald-200 dark:border-emerald-800/50 bg-emerald-50/50 dark:bg-emerald-900/10 focus-visible:ring-emerald-500"
+                      />
+                      <Button 
+                        size="sm" className="h-8 px-3 rounded-lg text-xs font-black bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => handleResumeCampaign(selectedCampaign.id)}
+                        disabled={isProcessingAction || !isSessionActive}
+                        title={!isSessionActive ? "Reconnect WhatsApp to resume" : ""}
+                      >
+                        <Play className="mr-1.5 h-3 w-3" /> Resume
+                      </Button>
+                    </div>
+                  )}
+                </div>
             </div>
             
             <div className="mt-6 flex flex-col sm:flex-row gap-3">
@@ -469,8 +580,8 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col min-h-0 bg-slate-50/30 dark:bg-slate-950/20">
-            <ScrollArea className="flex-1 p-6">
+          <div className="flex-1 flex flex-col min-h-0 bg-slate-50/30 dark:bg-slate-950/20 overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
               <div className="space-y-2">
                 {recipientsLoading ? (
                   <div className="flex flex-col items-center justify-center py-32 space-y-4">
@@ -524,7 +635,7 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
                   </div>
                 )}
               </div>
-            </ScrollArea>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

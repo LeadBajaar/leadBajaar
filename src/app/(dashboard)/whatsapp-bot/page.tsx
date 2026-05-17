@@ -6,6 +6,7 @@ import { Plus, MessageSquare, Bot, ArrowRight, Activity, Trash2, Edit3, Settings
 import { WhatsAppBotChat } from '@/components/whatsapp-bot/WhatsAppBotChat';
 import { WhatsAppBotGroups } from '@/components/whatsapp-bot/WhatsAppBotGroups';
 import { WhatsAppBotCampaigns } from '@/components/whatsapp-bot/WhatsAppBotCampaigns';
+import { WhatsAppBotProfile } from '@/components/whatsapp-bot/WhatsAppBotProfile';
 import { WhatsAppConnectModal } from '@/components/whatsapp-bot/WhatsAppConnectModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,8 +54,10 @@ export default function WhatsAppBotPage() {
   const { 
     sessions, 
     ghostSessions,
+    historicalSessions,
     shredSession,
     setIsConnectModalOpen,
+    setPrefilledUserId,
     selectedUser, 
     setSelectedUser, 
     flows, 
@@ -179,10 +182,10 @@ export default function WhatsAppBotPage() {
                     Broadcast
                   </TabsTrigger>
                   <TabsTrigger 
-                    value="logs" 
+                    value="profile" 
                     className="h-full rounded-none border-b-2 border-transparent bg-transparent px-1 pb-4 pt-4 font-black text-[11px] uppercase tracking-widest text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:text-slate-900 dark:data-[state=active]:text-white data-[state=active]:shadow-none transition-all hover:text-slate-700 dark:hover:text-slate-300"
                   >
-                    Logs
+                    Profile
                   </TabsTrigger>
                 </TabsList>
 
@@ -190,14 +193,23 @@ export default function WhatsAppBotPage() {
                   {/* Active Sessions */}
                   <div className="hidden lg:flex items-center gap-2">
                     {sessions.map(id => (
-                      <div key={id} className="flex items-center gap-2 bg-slate-50 dark:bg-white/5 border border-emerald-500/20 px-3 py-1 rounded-xl shadow-sm">
+                      <div 
+                        key={id} 
+                        onClick={() => setSelectedUser(id)}
+                        className={cn(
+                          "flex items-center gap-2 bg-slate-50 dark:bg-white/5 border px-3 py-1 rounded-xl shadow-sm cursor-pointer transition-all hover:bg-slate-100 dark:hover:bg-white/10",
+                          selectedUser === id ? "border-indigo-500 ring-1 ring-indigo-500" : "border-emerald-500/20"
+                        )}
+                      >
                         <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                         <span className="text-[10px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-tighter">
                           {id.includes('_') ? id.split('_')[1] : id}
                         </span>
                         <Button 
-                          variant="ghost" size="icon" className="h-5 w-5 text-slate-400 hover:text-rose-500 rounded-md"
-                          onClick={async () => {
+                          variant="ghost" size="icon" className="h-5 w-5 text-slate-400 hover:text-rose-500 rounded-md ml-1"
+                          title="Disconnect Session"
+                          onClick={async (e) => {
+                            e.stopPropagation();
                             if(confirm('Disconnect this node?')) {
                               try {
                                 await axios.post(`${WHATSAPP_BASE_URL}/messages/logout`, { userId: id });
@@ -216,16 +228,71 @@ export default function WhatsAppBotPage() {
                     
                     {/* Ghost Sessions */}
                     {ghostSessions.map(id => (
-                      <div key={id} className="flex items-center gap-2 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 px-3 py-1 rounded-xl opacity-60">
+                      <div 
+                        key={id} 
+                        onClick={() => setSelectedUser(id)}
+                        className={cn(
+                          "flex items-center gap-2 bg-slate-50/50 dark:bg-slate-900/30 border px-3 py-1 rounded-xl opacity-60 cursor-pointer transition-all hover:opacity-100",
+                          selectedUser === id ? "border-indigo-500 ring-1 ring-indigo-500" : "border-slate-200 dark:border-slate-800"
+                        )}
+                      >
                         <div className="h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
                         <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 italic uppercase tracking-tighter">
                           {id.includes('_') ? id.split('_')[1] : id}
                         </span>
                         <Button 
+                          variant="ghost" size="icon" className="h-5 w-5 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md ml-1"
+                          title="Reconnect Session"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              await axios.post(`${WHATSAPP_BASE_URL}/messages/connect`, { userId: id });
+                              toast.success('Reconnection initiated...');
+                              setTimeout(fetchSessions, 3000);
+                            } catch (err) {
+                              toast.error('Failed to reconnect');
+                            }
+                          }}
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                        </Button>
+                        <Button 
                           variant="ghost" size="icon" className="h-5 w-5 text-rose-400 hover:bg-rose-50 rounded-md"
-                          onClick={() => shredSession(id)}
+                          title="Delete Session"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            shredSession(id);
+                          }}
                         >
                           <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                    
+                    {/* Historical (Disconnected) Sessions */}
+                    {historicalSessions?.map(id => (
+                      <div 
+                        key={id} 
+                        onClick={() => setSelectedUser(id)}
+                        className={cn(
+                          "flex items-center gap-2 bg-slate-50/30 dark:bg-slate-900/10 border px-3 py-1 rounded-xl opacity-50 border-dashed cursor-pointer transition-all hover:opacity-100",
+                          selectedUser === id ? "border-indigo-500 ring-1 ring-indigo-500" : "border-slate-200 dark:border-slate-800"
+                        )}
+                      >
+                        <div className="h-1.5 w-1.5 rounded-full bg-slate-300 shrink-0" />
+                        <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 italic uppercase tracking-tighter line-through">
+                          {id.includes('_') ? id.split('_')[1] : id}
+                        </span>
+                        <Button 
+                          variant="ghost" size="icon" className="h-5 w-5 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md ml-1"
+                          title="Connect Session"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPrefilledUserId(id.includes('_') ? id.split('_')[1] : id);
+                            setIsConnectModalOpen(true);
+                          }}
+                        >
+                          <QrCode className="h-3 w-3" />
                         </Button>
                       </div>
                     ))}
@@ -328,11 +395,8 @@ export default function WhatsAppBotPage() {
                   <TabsContent value="campaigns" className="mt-0 focus-visible:outline-none">
                     {selectedUser && <WhatsAppBotCampaigns userId={selectedUser} />}
                   </TabsContent>
-                  <TabsContent value="logs" className="focus-visible:outline-none">
-                    <div className="flex flex-col items-center justify-center py-24 bg-slate-50/30 dark:bg-slate-950/10 rounded-2xl border border-slate-100 dark:border-slate-800">
-                      <Activity className="h-12 w-12 text-slate-200 dark:text-slate-800 mb-4 animate-pulse" />
-                      <p className="font-black text-xs text-slate-400 dark:text-slate-600 uppercase tracking-[0.3em]">Neural Analytics Coming Soon</p>
-                    </div>
+                  <TabsContent value="profile" className="mt-0 focus-visible:outline-none">
+                    {selectedUser && <WhatsAppBotProfile userId={selectedUser} />}
                   </TabsContent>
                 </div>
               </ScrollArea>

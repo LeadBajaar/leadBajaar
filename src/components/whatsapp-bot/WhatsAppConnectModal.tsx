@@ -19,24 +19,32 @@ import { useWhatsApp } from '@/contexts/WhatsAppContext';
 
 export function WhatsAppConnectModal() {
   const { user } = useUser();
-  const { isConnectModalOpen, setIsConnectModalOpen, fetchSessions } = useWhatsApp();
+  const { isConnectModalOpen, setIsConnectModalOpen, fetchSessions, prefilledUserId, setPrefilledUserId } = useWhatsApp();
   const [newUserId, setNewUserId] = useState('');
   const [isConnecting, setIsConnecting] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'qr' | 'success'>('idle');
 
-  const handleConnectRequest = async () => {
-    if (!newUserId) {
-      toast.error('Please enter a User ID');
-      return;
+  React.useEffect(() => {
+    if (isConnectModalOpen) {
+      setNewUserId(prefilledUserId || '');
+      if (prefilledUserId) {
+        initiateConnection(prefilledUserId);
+      }
+    } else {
+      setConnectionStatus('idle');
+      setQrCode(null);
+      setIsConnecting(false);
     }
+  }, [isConnectModalOpen, prefilledUserId]);
 
+  const initiateConnection = async (idToUse: string) => {
     try {
       setIsConnecting(true);
       setConnectionStatus('idle');
       setQrCode(null);
 
-      const scopedId = `${user!.id}_${newUserId}`;
+      const scopedId = `${user!.id}_${idToUse}`;
       await axios.post(`${WHATSAPP_BASE_URL}/messages/connect`, { userId: scopedId });
 
       setConnectionStatus('qr');
@@ -44,7 +52,16 @@ export function WhatsAppConnectModal() {
     } catch (err) {
       toast.error('Failed to initiate connection');
       setIsConnecting(false);
+      setConnectionStatus('idle');
     }
+  };
+
+  const handleConnectRequest = async () => {
+    if (!newUserId) {
+      toast.error('Please enter a User ID');
+      return;
+    }
+    await initiateConnection(newUserId);
   };
 
   const startPolling = (userId: string) => {
@@ -76,6 +93,7 @@ export function WhatsAppConnectModal() {
             setConnectionStatus('idle');
             setQrCode(null);
             setNewUserId('');
+            setPrefilledUserId('');
           }, 2000);
         }
       } catch (err) {
@@ -119,8 +137,15 @@ export function WhatsAppConnectModal() {
             <div className="flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-900 rounded-2xl mx-auto min-h-[280px] min-w-[280px] border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               {qrCode ? (
-                <div className="p-4 bg-white rounded-xl shadow-xl ring-1 ring-slate-200">
-                  <img src={qrCode} alt="WhatsApp QR Code" className="w-full h-full" />
+                <div className="flex flex-col items-center">
+                  <div className="p-4 bg-white rounded-xl shadow-xl ring-1 ring-slate-200">
+                    <img src={qrCode} alt="WhatsApp QR Code" className="w-full h-full" />
+                  </div>
+                  <div className="mt-4 bg-indigo-50 dark:bg-indigo-900/30 px-4 py-1.5 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm">
+                    <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest flex items-center gap-2">
+                      <Bot className="h-3 w-3" /> ID: {newUserId}
+                    </span>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center">

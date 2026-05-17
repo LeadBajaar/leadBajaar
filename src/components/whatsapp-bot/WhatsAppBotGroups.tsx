@@ -485,8 +485,8 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col min-h-0 bg-slate-50/30 dark:bg-slate-950/20">
-            <ScrollArea className="flex-1 p-6">
+          <div className="flex-1 flex flex-col min-h-0 bg-slate-50/30 dark:bg-slate-950/20 overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
               <div className="space-y-2">
                 {paginatedContacts.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-24 text-center">
@@ -534,7 +534,7 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
                   </div>
                 )}
               </div>
-            </ScrollArea>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

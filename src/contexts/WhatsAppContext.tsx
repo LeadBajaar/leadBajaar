@@ -18,15 +18,25 @@ interface Flow {
   priority: number;
 }
 
+interface SessionDetail {
+  whatsappId: string;
+  name: string;
+  phone: string;
+}
+
 interface WhatsAppContextType {
   sessions: string[];
   ghostSessions: string[];
+  historicalSessions: string[];
+  sessionDetails: Record<string, SessionDetail>;
   selectedUser: string | null;
   setSelectedUser: (id: string | null) => void;
   flows: Flow[];
   loading: boolean;
   isConnectModalOpen: boolean;
   setIsConnectModalOpen: (open: boolean) => void;
+  prefilledUserId: string;
+  setPrefilledUserId: (id: string) => void;
   fetchSessions: () => Promise<void>;
   fetchFlows: (userId: string) => Promise<void>;
   shredSession: (userId: string) => Promise<void>;
@@ -40,10 +50,13 @@ export function WhatsAppProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
   const [sessions, setSessions] = useState<string[]>([]);
   const [ghostSessions, setGhostSessions] = useState<string[]>([]);
+  const [historicalSessions, setHistoricalSessions] = useState<string[]>([]);
+  const [sessionDetails, setSessionDetails] = useState<Record<string, SessionDetail>>({});
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [flows, setFlows] = useState<Flow[]>([]);
   const [loading, setLoading] = useState(true);
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const [prefilledUserId, setPrefilledUserId] = useState('');
 
   const fetchSessions = useCallback(async () => {
     if (!user) return;
@@ -54,9 +67,13 @@ export function WhatsAppProvider({ children }: { children: React.ReactNode }) {
       });
       const activeSessions = res.data.activeSessions || [];
       const ghosts = res.data.ghostSessions || [];
+      const historicals = res.data.historicalSessions || [];
+      const details = res.data.sessionDetails || {};
       
       setSessions(activeSessions);
       setGhostSessions(ghosts);
+      setHistoricalSessions(historicals);
+      setSessionDetails(details);
 
       if (activeSessions.length > 0 && !selectedUser) {
         setSelectedUser(activeSessions[0]);
@@ -133,12 +150,16 @@ export function WhatsAppProvider({ children }: { children: React.ReactNode }) {
     <WhatsAppContext.Provider value={{
       sessions,
       ghostSessions,
+      historicalSessions,
+      sessionDetails,
       selectedUser,
       setSelectedUser,
       flows,
       loading,
       isConnectModalOpen,
       setIsConnectModalOpen,
+      prefilledUserId,
+      setPrefilledUserId,
       fetchSessions,
       fetchFlows,
       shredSession,
