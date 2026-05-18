@@ -11,9 +11,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Pencil, Plus, Trash2, MessageSquare, RefreshCcw, ChevronLeft, ChevronRight, AlertCircle, X, Loader2, CheckCircle2 } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
-import { integrationApi } from '@/lib/api'
+import { integrationApi, companyApi } from '@/lib/api'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { TokenUpdateModal } from "@/components/ui/reconnection-modal"
 import { RoleGuard } from '@/components/RoleGuard'
@@ -120,6 +121,17 @@ export default function WhatsAppManagementPage() {
     rejectionReason?: string;
     suggestedAction?: string;
   }>({})
+  const [welcomeSettings, setWelcomeSettings] = useState({
+    whatsapp_welcome_enabled: false,
+    whatsapp_welcome_message: '',
+    whatsapp_mode: 'cloud',
+    whatsapp_welcome_template_id: '',
+    whatsapp_meeting_enabled: false,
+    whatsapp_meeting_message: '',
+    whatsapp_meeting_mode: 'cloud',
+    whatsapp_meeting_template_id: ''
+  })
+  const [isSavingSettings, setIsSavingSettings] = useState(false)
 
   // Reset template form to initial state
   const resetTemplateForm = () => {
@@ -141,6 +153,7 @@ export default function WhatsAppManagementPage() {
 
   useEffect(() => {
     fetchAccounts()
+    fetchWelcomeSettings()
   }, [])
 
   // Manage object URLs for file previews
@@ -218,6 +231,43 @@ export default function WhatsAppManagementPage() {
       })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const fetchWelcomeSettings = async () => {
+    try {
+      const settings = await companyApi.getSettings()
+      setWelcomeSettings({
+        whatsapp_welcome_enabled: settings.whatsapp_welcome_enabled || false,
+        whatsapp_welcome_message: settings.whatsapp_welcome_message || '',
+        whatsapp_mode: settings.whatsapp_mode || 'cloud',
+        whatsapp_welcome_template_id: settings.whatsapp_welcome_template_id || '',
+        whatsapp_meeting_enabled: settings.whatsapp_meeting_enabled || false,
+        whatsapp_meeting_message: settings.whatsapp_meeting_message || '',
+        whatsapp_meeting_mode: settings.whatsapp_meeting_mode || 'cloud',
+        whatsapp_meeting_template_id: settings.whatsapp_meeting_template_id || ''
+      })
+    } catch (error) {
+      console.error('Failed to fetch welcome settings', error)
+    }
+  }
+
+  const saveWelcomeSettings = async () => {
+    try {
+      setIsSavingSettings(true)
+      await companyApi.updateSettings(welcomeSettings)
+      toast({
+        title: "Success",
+        description: "Automation settings saved successfully",
+      })
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save settings",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSavingSettings(false)
     }
   }
 
@@ -678,9 +728,9 @@ export default function WhatsAppManagementPage() {
       </div>
 
       <Tabs defaultValue="accounts">
-        <TabsList>
-          <TabsTrigger value="accounts">Connected Accounts</TabsTrigger>
-          <TabsTrigger value="templates">Message Templates</TabsTrigger>
+        <TabsList className="bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-2xl w-full sm:w-auto h-auto grid grid-cols-2">
+          <TabsTrigger value="accounts" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm py-3 text-sm font-bold transition-all">Accounts & Status</TabsTrigger>
+          <TabsTrigger value="templates" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm py-3 text-sm font-bold transition-all">Message Templates</TabsTrigger>
         </TabsList>
 
         <TabsContent value="accounts">

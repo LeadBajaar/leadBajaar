@@ -37,6 +37,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import GlobalAutomationsSettings from "@/components/automations/GlobalAutomationsSettings"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -168,157 +170,180 @@ export default function AutomationsPage() {
   };
 
   return (
-    <div className="p-4 sm:p-8 max-w-[1400px] mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none">
-              <Zap className="h-6 w-6" />
-            </div>
-            Email & WhatsApp Automations
-          </h1>
-          <p className="text-slate-500 mt-2 text-lg">Build multi-step omnichannel drip sequences to nurture leads.</p>
-        </div>
-        <Button 
-          onClick={handleCreateNew}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 dark:shadow-none px-6 rounded-2xl h-12 font-bold"
-        >
-          <Plus className="mr-2 h-5 w-5" /> Create Sequence
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border-none shadow-sm dark:bg-slate-900 overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center">
-                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-500">Active Sequences</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                  {sequences.filter(s => s.is_active).length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm dark:bg-slate-900 overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center">
-                <Play className="h-6 w-6 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-500">Total Enrollments</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                  {sequences.reduce((acc, s) => acc + (s.enrollments_count || 0), 0)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm dark:bg-slate-900 overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-indigo-100 dark:bg-indigo-500/10 flex items-center justify-center">
-                <Sparkles className="h-6 w-6 text-indigo-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-500">Clicks/Conversions</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">Active CAPI Loop</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20">
-        {isLoading ? (
-          Array(4).fill(0).map((_, i) => (
-            <Card key={i} className="animate-pulse h-48 bg-slate-100 dark:bg-slate-800 border-none" />
-          ))
-        ) : sequences.length === 0 ? (
-          <div className="col-span-full py-20 text-center">
-            <div className="h-20 w-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Zap className="h-10 w-10 text-slate-400" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white">No sequences yet</h3>
-            <p className="text-slate-500 max-w-xs mx-auto mt-2">Create your first automated drip campaign to follow up with leads automatically.</p>
-            <Button onClick={handleCreateNew} variant="outline" className="mt-8 rounded-xl px-8 h-12">Create your first automation</Button>
+    <div className="flex flex-col h-full bg-slate-50/50 dark:bg-slate-950/20 overflow-hidden">
+      {/* Authentic LeadBajaar Header */}
+      <div className="shrink-0">
+        <CardHeader className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 space-y-0 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+          <div>
+            <CardTitle className="text-lg font-bold text-slate-900 dark:text-white">Automations</CardTitle>
+            <p className="text-xs text-slate-500 mt-0.5">Manage automated workflows, drip sequences, and instant triggers</p>
           </div>
-        ) : (
-          sequences.map(sequence => (
-            <Card 
-              key={sequence.id} 
-              className="border-none shadow-sm dark:bg-slate-900 overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 group hover:ring-indigo-500 transition-all duration-300"
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+            <Button 
+              onClick={handleCreateNew}
+              className="h-9 bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5 shadow-sm text-sm font-semibold"
             >
-              <CardHeader className="p-6 pb-3">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                       <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">
-                        {sequence.name}
-                      </h3>
-                      <Badge className={sequence.is_active ? "bg-emerald-500/10 text-emerald-600 border-emerald-100 dark:border-emerald-500/20" : "bg-slate-100 text-slate-500 border-slate-200"}>
-                        {sequence.is_active ? 'Active' : 'Paused'}
-                      </Badge>
+              <Plus className="h-4 w-4" />
+              Create Sequence
+            </Button>
+          </div>
+        </CardHeader>
+      </div>
+
+      <div className="flex-1 overflow-auto">
+        <Tabs defaultValue="sequences" className="w-full flex flex-col min-h-full">
+          <div className="px-6 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <TabsList className="bg-transparent border-0 w-full justify-start rounded-none p-0 h-11 space-x-6">
+              <TabsTrigger 
+                value="sequences" 
+                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none border-b-2 border-transparent px-1 pb-3 pt-2 font-semibold text-sm text-slate-500 data-[state=active]:text-indigo-600 transition-none"
+              >
+                Drip Sequences
+              </TabsTrigger>
+              <TabsTrigger 
+                value="global" 
+                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none border-b-2 border-transparent px-1 pb-3 pt-2 font-semibold text-sm text-slate-500 data-[state=active]:text-indigo-600 transition-none"
+              >
+                Global Triggers
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="sequences" className="flex-1 p-6 m-0 outline-none space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="border border-slate-100 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 rounded-xl overflow-hidden">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
+                      <CheckCircle2 className="h-5 w-5 text-indigo-600" />
                     </div>
-                    <p className="text-sm text-slate-500 line-clamp-1">{sequence.description || 'No description provided.'}</p>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Sequences</p>
+                      <p className="text-xl font-bold text-slate-900 dark:text-white">
+                        {sequences.filter(s => s.is_active).length}
+                      </p>
+                    </div>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="rounded-xl border-slate-200 dark:border-slate-800">
-                      <DropdownMenuItem className="p-3 cursor-pointer" onClick={() => {
-                        setCurrentSequence(sequence);
-                        setNewSteps(sequence.steps || []);
-                        setIsDialogOpen(true);
-                      }}>
-                        <Settings2 className="mr-2 h-4 w-4" /> Edit Sequence
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="p-3 cursor-pointer" onClick={() => toggleStatus(sequence.id)}>
-                        {sequence.is_active ? <Pause className="mr-2 h-4 w-4 text-amber-500" /> : <Play className="mr-2 h-4 w-4 text-emerald-500" />}
-                        {sequence.is_active ? 'Pause Sequence' : 'Resume Sequence'}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6 pt-3 space-y-4">
-                <div className="grid grid-cols-2 gap-4 py-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl px-6">
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enrollments</p>
-                    <p className="text-lg font-bold text-slate-900 dark:text-white">{sequence.enrollments_count || 0}</p>
+                </CardContent>
+              </Card>
+              <Card className="border border-slate-100 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 rounded-xl overflow-hidden">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
+                      <Play className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Enrollments</p>
+                      <p className="text-xl font-bold text-slate-900 dark:text-white">
+                        {sequences.reduce((acc, s) => acc + (s.enrollments_count || 0), 0)}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Steps</p>
-                    <p className="text-lg font-bold text-slate-900 dark:text-white">{sequence.steps?.length || 0} stages</p>
-                  </div>
-                </div>
+                </CardContent>
+              </Card>
+            </div>
 
-                <div className="flex items-center gap-2 pt-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  <Filter className="h-3 w-3" /> Trigger: <span className="text-indigo-500">{sequence.trigger_type.replace('_', ' ')}</span>
-                  {sequence.trigger_value && <span className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 ml-1 text-slate-700 dark:text-white">{sequence.trigger_value}</span>}
+            <div className="space-y-4">
+              {isLoading ? (
+                Array(3).fill(0).map((_, i) => (
+                  <Card key={i} className="animate-pulse h-24 bg-slate-100 dark:bg-slate-800 border-none rounded-xl" />
+                ))
+              ) : sequences.length === 0 ? (
+                <div className="py-20 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl bg-white/50 dark:bg-slate-900/50">
+                  <Zap className="h-8 w-8 text-slate-400 mx-auto mb-3" />
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">No sequences found</h3>
+                  <p className="text-xs text-slate-500 mt-1 mb-4">Create a sequence to automate your lead follow-ups.</p>
+                  <Button onClick={handleCreateNew} size="sm" variant="outline" className="h-8">Create Sequence</Button>
                 </div>
+              ) : (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                  {sequences.map(sequence => (
+                    <Card 
+                      key={sequence.id} 
+                      className="border border-slate-100 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 rounded-xl overflow-hidden group hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors"
+                    >
+                      <CardContent className="p-0">
+                        <div className="flex items-start justify-between p-5">
+                          <div className="space-y-1.5 flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">
+                                {sequence.name}
+                              </h3>
+                              <Badge variant="outline" className={sequence.is_active ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-500 border-slate-200"}>
+                                {sequence.is_active ? 'Active' : 'Paused'}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-slate-500 line-clamp-1 pr-4">{sequence.description || 'No description provided.'}</p>
+                          </div>
+                          
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48 rounded-xl">
+                              <DropdownMenuItem className="text-xs cursor-pointer" onClick={() => {
+                                setCurrentSequence(sequence);
+                                setNewSteps(sequence.steps || []);
+                                setIsDialogOpen(true);
+                              }}>
+                                <Settings2 className="mr-2 h-3.5 w-3.5" /> Edit Sequence
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-xs cursor-pointer" onClick={() => toggleStatus(sequence.id)}>
+                                {sequence.is_active ? <Pause className="mr-2 h-3.5 w-3.5 text-amber-500" /> : <Play className="mr-2 h-3.5 w-3.5 text-emerald-500" />}
+                                {sequence.is_active ? 'Pause Sequence' : 'Resume Sequence'}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        
+                        <div className="bg-slate-50 dark:bg-slate-800/50 px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                          <div className="flex items-center gap-6">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Trigger</span>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <Filter className="h-3.5 w-3.5 text-indigo-500" />
+                                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                  {sequence.trigger_type.replace('_', ' ')}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Enrollments</span>
+                              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-0.5">{sequence.enrollments_count || 0}</span>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Actions</span>
+                              <div className="flex -space-x-1.5 mt-0.5">
+                                {sequence.steps?.slice(0, 4).map((step, idx) => (
+                                  <div key={idx} className="h-5 w-5 rounded-full border border-white dark:border-slate-900 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 shadow-sm">
+                                    {step.action_type === 'send_email' ? <Mail className="h-2.5 w-2.5 text-blue-500" /> : step.action_type === 'send_whatsapp' ? <MessageSquare className="h-2.5 w-2.5 text-emerald-500" /> : <Settings2 className="h-2.5 w-2.5 text-slate-500" />}
+                                  </div>
+                                ))}
+                                {(sequence.steps?.length || 0) > 4 && (
+                                  <div className="h-5 w-5 rounded-full border border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[9px] font-bold text-slate-500">
+                                    +{(sequence.steps?.length || 0) - 4}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
 
-                <div className="flex -space-x-2 pt-2">
-                   {sequence.steps?.map((step, idx) => (
-                      <div key={idx} className="h-10 w-10 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 ring-1 ring-slate-100 flex-shrink-0">
-                        {step.action_type === 'send_email' ? <Mail className="h-4 w-4" /> : step.action_type === 'send_whatsapp' ? <MessageSquare className="h-4 w-4" /> : <Settings2 className="h-4 w-4" />}
-                      </div>
-                   ))}
-                   <div className="h-10 px-3 rounded-full border-2 border-white dark:border-slate-900 bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-[10px] font-bold text-indigo-600 ring-1 ring-indigo-100 ml-2">
-                     + {sequence.steps?.length || 0} ACTIONS
-                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
+          <TabsContent value="global" className="flex-1 p-6 m-0 outline-none h-full bg-white dark:bg-slate-900/50 rounded-tl-xl border-t border-l border-slate-100 dark:border-slate-800">
+            <div className="max-w-4xl">
+              <GlobalAutomationsSettings />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

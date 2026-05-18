@@ -1386,6 +1386,29 @@ export const integrationApi = {
   },
 };
 
+// Company Settings API
+export const companyApi = {
+  getSettings: async () => {
+    try {
+      const response = await api.get('/company/settings');
+      return response.data.settings;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to fetch company settings';
+      throw new Error(message);
+    }
+  },
+
+  updateSettings: async (settings: Record<string, any>) => {
+    try {
+      const response = await api.patch('/company/settings', settings);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to update company settings';
+      throw new Error(message);
+    }
+  }
+};
+
 
 // Add export functions
 export const exportLeads = async (ids?: number[]) => {
@@ -1527,6 +1550,11 @@ export const teamApi = {
 
   inviteMember: async (data: { email: string, role: string }) => {
     const response = await api.post('/team/invite', data);
+    return response.data;
+  },
+
+  resendInvite: async (id: string) => {
+    const response = await api.post(`/team/${id}/resend-invite`);
     return response.data;
   },
 
