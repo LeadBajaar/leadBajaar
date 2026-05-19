@@ -34,7 +34,11 @@ export function WhatsAppBotProfile({ userId }: WhatsAppBotProfileProps) {
   const handleDisconnect = async () => {
     if(confirm('Disconnect this WhatsApp account? It will require scanning QR code to reconnect.')) {
       try {
-        await axios.post(`${WHATSAPP_BASE_URL}/messages/logout`, { userId });
+        await axios.post(`${WHATSAPP_BASE_URL}/messages/logout`, { userId }, {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_WHATSAPP_SECRET}`
+          }
+        });
         toast.success('Disconnected');
         fetchSessions();
       } catch (err) {

@@ -1489,6 +1489,7 @@ export default function LeadsPage() {
               handleWhatsAppClick={handleWhatsAppClick}
               handleCallClick={handleCallClick}
               handleDealValueClick={handleDealValueClick}
+              handleAssignAgentClick={handleAssignAgentClick}
               handleCardClick={(id) => router.push(`/leads/${id}`)}
               stages={stages}
             />

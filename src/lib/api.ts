@@ -199,6 +199,7 @@ export interface CreateLeadDto {
   source?: string;
   city?: string;
   profession?: string;
+  notes?: string;
 }
 
 export interface ImportLeadDto {
@@ -239,6 +240,12 @@ export interface Lead {
   last_contact: string;
   created_at: string;
   updated_at: string;
+  user_id?: number | null;
+  agent?: {
+    id: number;
+    name: string;
+  } | null;
+  new_note?: string;
 }
 
 export interface LeadsResponse {

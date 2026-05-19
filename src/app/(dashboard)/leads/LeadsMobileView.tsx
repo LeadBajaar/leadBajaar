@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { Lead, temperatureConfig } from './types'
+import { getAgentColor } from '@/utils/agentColors'
+import { useTheme } from 'next-themes'
 import { format } from 'date-fns'
 
 interface LeadsMobileViewProps {
@@ -34,6 +36,7 @@ interface LeadsMobileViewProps {
   handleWhatsAppClick: (lead: Lead) => void;
   handleCallClick: (lead: Lead) => void;
   handleDealValueClick: (lead: Lead) => void;
+  handleAssignAgentClick: (lead: Lead) => void;
   handleCardClick: (id: number) => void;
   stages: Record<string, any>;
 }
@@ -71,9 +74,13 @@ export const LeadsMobileView: React.FC<LeadsMobileViewProps> = ({
   handleDelete,
   handleWhatsAppClick,
   handleCallClick,
+  handleDealValueClick,
+  handleAssignAgentClick,
   handleCardClick,
   stages
 }) => {
+  const { theme, resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark' || theme === 'dark'
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-6 text-center text-slate-500">
@@ -123,9 +130,12 @@ export const LeadsMobileView: React.FC<LeadsMobileViewProps> = ({
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40 rounded-lg p-1 text-xs">
+                    <DropdownMenuContent align="end" className="w-45 rounded-lg p-1 text-xs">
+                      <DropdownMenuItem onClick={() => handleAssignAgentClick(lead)} className="gap-2">
+                        <User className="h-3.5 w-3.5 text-purple-500" /> Assign Rep
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleEdit(lead)} className="gap-2">
-                        <Edit2 className="h-3.5 w-3.5" /> Edit
+                        <Edit2 className="h-3.5 w-3.5 text-slate-500" /> Edit
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleDelete(lead)} className="gap-2 text-red-500">
                         <Trash2 className="h-3.5 w-3.5" /> Delete
@@ -162,6 +172,35 @@ export const LeadsMobileView: React.FC<LeadsMobileViewProps> = ({
                 </div>
 
                 <div className="flex gap-1.5 relative z-10" onClick={(e) => e.stopPropagation()}>
+                  <Button
+                    onClick={() => handleAssignAgentClick(lead)}
+                    size="sm"
+                    variant="outline"
+                    className={cn(
+                      "h-7 w-7 p-0 rounded-lg transition-all duration-300",
+                      lead.agent 
+                        ? "ring-1 border-transparent font-bold text-[10px]" 
+                        : "border-slate-100 dark:border-slate-800 text-slate-400 hover:text-purple-500"
+                    )}
+                    style={lead.agent ? {
+                      backgroundColor: isDark 
+                        ? getAgentColor(lead.agent.id).bgDark 
+                        : getAgentColor(lead.agent.id).bg,
+                      color: isDark 
+                        ? getAgentColor(lead.agent.id).textDark 
+                        : getAgentColor(lead.agent.id).text,
+                      borderColor: isDark 
+                        ? getAgentColor(lead.agent.id).borderDark 
+                        : getAgentColor(lead.agent.id).border,
+                    } : {}}
+                    title={lead.agent ? `Assigned to: ${lead.agent.name}` : 'Assign Rep'}
+                  >
+                    {lead.agent ? (
+                      lead.agent.name.split(' ').filter(Boolean).map(n => n[0].toUpperCase()).join('')
+                    ) : (
+                      <User className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
                   <Button
                     onClick={() => handleWhatsAppClick(lead)}
                     size="sm"

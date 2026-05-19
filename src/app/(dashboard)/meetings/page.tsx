@@ -211,21 +211,21 @@ function MeetingDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-0 overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+      <DialogContent className="max-w-2xl p-0 overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 [&>button]:text-white/90 [&>button]:hover:text-white [&>button]:bg-black/25 [&>button]:hover:bg-black/40 [&>button]:rounded-full [&>button]:p-1.5 [&>button]:transition-all [&>button]:duration-200 [&>button]:right-5 [&>button]:top-5 [&>button]:focus:ring-white/20 [&>button]:focus:ring-offset-0">
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-violet-600 p-6 text-white">
-          <div className="flex items-start justify-between">
-            <div>
-              <DialogTitle className="text-lg font-bold text-white">{meeting.title}</DialogTitle>
-              <div className="flex items-center gap-3 mt-2">
-                <span className={cn('flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium bg-white/20 text-white')}>
+        <div className="bg-gradient-to-r from-indigo-600 to-violet-600 p-5 sm:p-6 text-white">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <DialogTitle className="text-lg font-bold text-white break-words">{meeting.title}</DialogTitle>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <span className={cn('flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium bg-white/20 text-white shrink-0')}>
                   <TypeIcon className="h-3.5 w-3.5" />
                   {typeInfo.label}
                 </span>
                 <span className="text-xs text-white/70">{meeting.date} · {meeting.time}</span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <Badge className={cn('text-xs font-semibold border', statusInfo.className)}>
                 {statusInfo.label}
               </Badge>
@@ -234,7 +234,7 @@ function MeetingDetailDialog({
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-5 max-h-[50vh] overflow-y-auto border-b border-slate-100 dark:border-slate-800">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 max-h-[60vh] sm:max-h-[50vh] overflow-y-auto border-b border-slate-100 dark:border-slate-800">
 
           {/* Lead Info */}
           <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50">
@@ -244,16 +244,35 @@ function MeetingDetailDialog({
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-slate-900 dark:text-white">{meeting.lead.name}</p>
               <p className="text-xs text-slate-500 mt-0.5">{meeting.lead.profession} {meeting.lead.company ? `· ${meeting.lead.company}` : ''}</p>
-              <div className="flex flex-wrap gap-3 mt-2">
+              <div className="flex flex-wrap items-center gap-y-2 gap-x-3 mt-2">
                 {meeting.lead.email && (
                   <a href={`mailto:${meeting.lead.email}`} className="flex items-center gap-1 text-xs text-indigo-600 hover:underline">
                     <Mail className="h-3 w-3" />{meeting.lead.email}
                   </a>
                 )}
                 {meeting.lead.phone && (
-                  <span className="flex items-center gap-1 text-xs text-slate-500">
-                    <Phone className="h-3 w-3" />{meeting.lead.phone}
-                  </span>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <Phone className="h-3 w-3" />
+                    <span>{meeting.lead.phone}</span>
+                    <a
+                      href={`tel:${meeting.lead.phone}`}
+                      className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 transition-colors shadow-sm ml-1"
+                      title={`Call ${meeting.lead.name}`}
+                    >
+                      <Phone className="h-2.5 w-2.5" />
+                    </a>
+                    <a
+                      href={`https://wa.me/${meeting.lead.phone.replace(/\D/g, '').length === 10 ? '91' + meeting.lead.phone.replace(/\D/g, '') : meeting.lead.phone.replace(/\D/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 transition-colors shadow-sm"
+                      title={`WhatsApp ${meeting.lead.name}`}
+                    >
+                      <svg className="h-2.5 w-2.5 fill-current" viewBox="0 0 24 24">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.455 5.703 1.458h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                      </svg>
+                    </a>
+                  </div>
                 )}
                 {meeting.lead.state && (
                   <span className="flex items-center gap-1 text-xs text-slate-500">
@@ -265,21 +284,21 @@ function MeetingDetailDialog({
           </div>
 
           {/* Meeting details row */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-center">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-center">
               <CalendarDays className="h-4 w-4 text-indigo-500 mx-auto mb-1" />
-              <p className="text-xs text-slate-500">Date</p>
-              <p className="text-xs font-semibold text-slate-800 dark:text-white mt-0.5">{meeting.date}</p>
+              <p className="text-[10px] sm:text-xs text-slate-500">Date</p>
+              <p className="text-[10px] sm:text-xs font-semibold text-slate-800 dark:text-white mt-0.5 truncate">{meeting.date}</p>
             </div>
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-center">
+            <div className="p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-center">
               <Clock className="h-4 w-4 text-indigo-500 mx-auto mb-1" />
-              <p className="text-xs text-slate-500">Time</p>
-              <p className="text-xs font-semibold text-slate-800 dark:text-white mt-0.5">{meeting.time}</p>
+              <p className="text-[10px] sm:text-xs text-slate-500">Time</p>
+              <p className="text-[10px] sm:text-xs font-semibold text-slate-800 dark:text-white mt-0.5 truncate">{meeting.time}</p>
             </div>
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-center">
+            <div className="p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-center">
               <CircleDot className="h-4 w-4 text-indigo-500 mx-auto mb-1" />
-              <p className="text-xs text-slate-500">Duration</p>
-              <p className="text-xs font-semibold text-slate-800 dark:text-white mt-0.5">{meeting.duration}</p>
+              <p className="text-[10px] sm:text-xs text-slate-500">Duration</p>
+              <p className="text-[10px] sm:text-xs font-semibold text-slate-800 dark:text-white mt-0.5 truncate">{meeting.duration}</p>
             </div>
           </div>
 
@@ -446,7 +465,7 @@ function MeetingDetailDialog({
                 </Badge>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-2">
                   <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide px-0.5">Pick Date</label>
                   <Popover modal={true} open={popoverOpen} onOpenChange={setPopoverOpen}>
@@ -591,61 +610,95 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
   return (
     <div
       onClick={() => onSelect(meeting)}
-      className="group flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md transition-all duration-200 cursor-pointer"
+      className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md transition-all duration-200 cursor-pointer"
     >
-      {/* Avatar */}
-      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
-        {initials(meeting.lead.name)}
-      </div>
+      {/* Left: Avatar & Info */}
+      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+        {/* Avatar */}
+        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+          {initials(meeting.lead.name)}
+        </div>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">{meeting.title}</p>
-        <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-          <span className="flex items-center gap-1 text-xs text-slate-500">
-            <Clock className="h-3 w-3" />{meeting.time} · {meeting.duration}
-          </span>
-          {meeting.lead.company && (
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">{meeting.title}</p>
+          <div className="flex items-center gap-3 mt-0.5 flex-wrap">
             <span className="flex items-center gap-1 text-xs text-slate-500">
-              <Building2 className="h-3 w-3" />{meeting.lead.company}
+              <Clock className="h-3 w-3" />{meeting.time} · {meeting.duration}
             </span>
-          )}
-          {meeting.agent && (
-            <div 
-              className="flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border shadow-sm transition-all duration-300"
-              title={`Meeting Host: ${meeting.agent.name}`}
-              style={{
-                backgroundColor: isDark 
-                  ? getAgentColor(meeting.agent.id).bgDark 
-                  : getAgentColor(meeting.agent.id).bg,
-                color: isDark 
-                  ? getAgentColor(meeting.agent.id).textDark 
-                  : getAgentColor(meeting.agent.id).text,
-                borderColor: isDark 
-                  ? getAgentColor(meeting.agent.id).borderDark 
-                  : getAgentColor(meeting.agent.id).border,
-              }}
-            >
-              <Users className="h-2.5 w-2.5 opacity-70" />
-              <span>Host: {meeting.agent.name}</span>
-            </div>
-          )}
+            {meeting.lead.company && (
+              <span className="flex items-center gap-1 text-xs text-slate-500">
+                <Building2 className="h-3 w-3" />{meeting.lead.company}
+              </span>
+            )}
+            {meeting.agent && (
+              <div 
+                className="flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border shadow-sm transition-all duration-300"
+                title={`Meeting Host: ${meeting.agent.name}`}
+                style={{
+                  backgroundColor: isDark 
+                    ? getAgentColor(meeting.agent.id).bgDark 
+                    : getAgentColor(meeting.agent.id).bg,
+                  color: isDark 
+                    ? getAgentColor(meeting.agent.id).textDark 
+                    : getAgentColor(meeting.agent.id).text,
+                  borderColor: isDark 
+                    ? getAgentColor(meeting.agent.id).borderDark 
+                    : getAgentColor(meeting.agent.id).border,
+                }}
+              >
+                <Users className="h-2.5 w-2.5 opacity-70" />
+                <span>Host: {meeting.agent.name}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Type badge */}
-      <div className={cn('hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium', typeInfo.bg, typeInfo.color)}>
-        <TypeIcon className="h-3.5 w-3.5" />
-        {typeInfo.label}
+      {/* Right: Badges & Call / WhatsApp Quick Actions */}
+      <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-3 sm:pt-0 border-t border-slate-100 dark:border-slate-800/40 sm:border-t-0 mt-1 sm:mt-0">
+        <div className="flex items-center gap-2">
+          {/* Type badge */}
+          <div className={cn('flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm', typeInfo.bg, typeInfo.color, 'border-current/10')}>
+            <TypeIcon className="h-3 w-3" />
+            <span className="text-[10px]">{typeInfo.label}</span>
+          </div>
+
+          {/* Status */}
+          <Badge variant="outline" className={cn('text-xs font-semibold border shrink-0', statusInfo.className)}>
+            {statusInfo.label}
+          </Badge>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Call & WhatsApp Quick Actions */}
+          {meeting.lead.phone && (
+            <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+              <a
+                href={`tel:${meeting.lead.phone}`}
+                className="flex items-center justify-center h-8 w-8 rounded-full border border-indigo-100 dark:border-indigo-800 bg-indigo-50/50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/50 dark:text-indigo-400 transition-all duration-200 shadow-sm"
+                title={`Call ${meeting.lead.name}`}
+              >
+                <Phone className="h-3.5 w-3.5" />
+              </a>
+              <a
+                href={`https://wa.me/${meeting.lead.phone.replace(/\D/g, '').length === 10 ? '91' + meeting.lead.phone.replace(/\D/g, '') : meeting.lead.phone.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center h-8 w-8 rounded-full border border-emerald-100 dark:border-emerald-800 bg-emerald-50/50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 dark:text-emerald-400 transition-all duration-200 shadow-sm"
+                title={`WhatsApp ${meeting.lead.name}`}
+              >
+                <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.455 5.703 1.458h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                </svg>
+              </a>
+            </div>
+          )}
+
+          {/* Chevron */}
+          <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0" />
+        </div>
       </div>
-
-      {/* Status */}
-      <Badge variant="outline" className={cn('text-xs font-semibold border shrink-0', statusInfo.className)}>
-        {statusInfo.label}
-      </Badge>
-
-      {/* Chevron */}
-      <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0" />
     </div>
   )
 }
@@ -1112,7 +1165,31 @@ export default function MeetingsPage() {
                                   {initials(m.lead.name)}
                                 </div>
                                 <div>
-                                  <p className="text-xs font-semibold text-slate-800 dark:text-white whitespace-nowrap">{m.lead.name}</p>
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-xs font-semibold text-slate-800 dark:text-white whitespace-nowrap">{m.lead.name}</p>
+                                    {m.lead.phone && (
+                                      <div className="flex items-center gap-1 inline-flex shrink-0">
+                                        <a
+                                          href={`tel:${m.lead.phone}`}
+                                          className="flex items-center justify-center p-1 rounded-full text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
+                                          title={`Call ${m.lead.name}`}
+                                        >
+                                          <Phone className="h-3 w-3" />
+                                        </a>
+                                        <a
+                                          href={`https://wa.me/${m.lead.phone.replace(/\D/g, '').length === 10 ? '91' + m.lead.phone.replace(/\D/g, '') : m.lead.phone.replace(/\D/g, '')}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center justify-center p-1 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors"
+                                          title={`WhatsApp ${m.lead.name}`}
+                                        >
+                                          <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
+                                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.455 5.703 1.458h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                                          </svg>
+                                        </a>
+                                      </div>
+                                    )}
+                                  </div>
                                   {m.lead.company && <p className="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">{m.lead.company}</p>}
                                 </div>
                               </div>

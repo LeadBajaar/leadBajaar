@@ -212,7 +212,11 @@ export default function WhatsAppBotPage() {
                             e.stopPropagation();
                             if(confirm('Disconnect this node?')) {
                               try {
-                                await axios.post(`${WHATSAPP_BASE_URL}/messages/logout`, { userId: id });
+                                await axios.post(`${WHATSAPP_BASE_URL}/messages/logout`, { userId: id }, {
+                                  headers: {
+                                    Authorization: `Bearer ${process.env.NEXT_PUBLIC_WHATSAPP_SECRET}`
+                                  }
+                                });
                                 toast.success('Disconnected');
                                 fetchSessions();
                               } catch (err) {

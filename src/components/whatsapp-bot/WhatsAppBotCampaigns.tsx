@@ -29,6 +29,8 @@ interface Campaign {
   min_delay: number;
   max_delay: number;
   created_at: string;
+  media_url?: string;
+  media_type?: string;
 }
 
 interface Group {
@@ -56,6 +58,15 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
   const [recipientSearch, setRecipientSearch] = useState('');
   const [resumeLimit, setResumeLimit] = useState('');
   const [isProcessingAction, setIsProcessingAction] = useState(false);
+
+  // Resume Preview State
+  const [isResumePreviewOpen, setIsResumePreviewOpen] = useState(false);
+  const [resumeCampaignTarget, setResumeCampaignTarget] = useState<Campaign | null>(null);
+  const [previewMessage, setPreviewMessage] = useState('');
+  const [previewMediaUrl, setPreviewMediaUrl] = useState('');
+  const [previewMediaType, setPreviewMediaType] = useState('image');
+  const [previewMediaUploading, setPreviewMediaUploading] = useState(false);
+  const [previewMediaMissing, setPreviewMediaMissing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 50;
 
@@ -200,6 +211,84 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
     }
   };
 
+  // Check if preview media file is active or missing on the server
+  useEffect(() => {
+    if (resumeCampaignTarget && previewMediaUrl) {
+      setPreviewMediaMissing(false);
+      
+      const checkUrl = previewMediaUrl;
+
+      // Do a quick HEAD check to see if the file is reachable (returns 200)
+      axios.head(checkUrl)
+        .then((res) => {
+          if (res.status === 404) {
+            setPreviewMediaMissing(true);
+          }
+        })
+        .catch((err) => {
+          // If HEAD request fails with 404 (Axios throws error for non-2xx status)
+          if (err.response && err.response.status === 404) {
+            setPreviewMediaMissing(true);
+          }
+        });
+    } else {
+      setPreviewMediaMissing(false);
+    }
+  }, [resumeCampaignTarget, previewMediaUrl]);
+
+  const openResumePreview = (campaign: Campaign, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setResumeCampaignTarget(campaign);
+    setPreviewMessage(campaign.message);
+    setPreviewMediaUrl(campaign.media_url || '');
+    setPreviewMediaType(campaign.media_type || 'image');
+    setPreviewMediaMissing(false);
+    setIsResumePreviewOpen(true);
+  };
+
+  const handleConfirmResume = async () => {
+    if (!resumeCampaignTarget) return;
+    try {
+      setIsProcessingAction(true);
+      
+      // 1. Update the campaign message & media in backend
+      await axios.put(`${WHATSAPP_BASE_URL}/campaigns/campaigns/${resumeCampaignTarget.id}`, {
+        message: previewMessage,
+        mediaUrl: previewMediaUrl,
+        mediaType: previewMediaType
+      });
+      
+      // 2. Call the resume endpoint
+      const res = await axios.post(`${WHATSAPP_BASE_URL}/campaigns/campaigns/${resumeCampaignTarget.id}/resume`, {
+        limit: resumeLimit ? parseInt(resumeLimit) : undefined
+      });
+      
+      toast.success(res.data.message || 'Campaign updated & resumed');
+      setIsResumePreviewOpen(false);
+      setResumeCampaignTarget(null);
+      setResumeLimit('');
+      
+      // 3. Refresh campaigns list
+      fetchCampaigns();
+      
+      // 4. If selectedCampaign is active, update its details as well
+      if (selectedCampaign?.id === resumeCampaignTarget.id) {
+        setSelectedCampaign(prev => prev ? {
+          ...prev, 
+          status: 'running',
+          message: previewMessage,
+          media_url: previewMediaUrl,
+          media_type: previewMediaType
+        } : null);
+        fetchRecipients(resumeCampaignTarget.id);
+      }
+    } catch (err) {
+      toast.error('Failed to update and resume campaign');
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'running': return <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-3 font-black">RUNNING</Badge>;
@@ -308,13 +397,36 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
                     )}
                   </div>
                 </div>
-                <div className="p-3 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800 rounded-xl">
+                <div className="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2">
                   <div className="flex items-center gap-2 mb-1">
-                    <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                    <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">AI Safe Mode Enabled</p>
+                    <Rocket className="h-3.5 w-3.5 text-indigo-500 animate-pulse" />
+                    <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Anti-Ban Safety Advisor</p>
                   </div>
-                  <p className="text-[9px] text-emerald-700 dark:text-emerald-500 font-medium">
-                    Pacing is automatically adjusted to protect your account. For 500+ contacts, extra cooling buffers are applied invisibly.
+                  
+                  {message && /https?:\/\//i.test(message) && mediaUrl ? (
+                    <div className="flex items-start gap-1.5 p-2 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-lg">
+                      <AlertCircle className="h-3.5 w-3.5 text-rose-500 shrink-0 mt-0.5" />
+                      <p className="text-[9px] text-rose-700 dark:text-rose-400 font-bold leading-normal">
+                        ⚠️ DANGER: Media + Link combination detected. Outbox safety workers will automatically block cold campaigns using this combination to protect your sender number. Please remove either the link or the media attachment.
+                      </p>
+                    </div>
+                  ) : message && !(/\{([^\}]+?)\}/.test(message) || /\[([^\]]+?)\]/.test(message)) ? (
+                    <div className="flex items-start gap-1.5 p-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30 rounded-lg">
+                      <AlertCircle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+                      <p className="text-[9px] text-amber-700 dark:text-amber-400 font-medium leading-normal">
+                        💡 RECOMMENDATION: Write message variations using Spintax format, e.g. <code className="bg-amber-100 dark:bg-amber-900/40 px-1 rounded">{"{Hi|Hello|Hey}"}</code>. This prevents Meta's fingerprinting algorithms from blocking your identical outbound layouts.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-1.5 p-2 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/30 rounded-lg">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                      <p className="text-[9px] text-emerald-700 dark:text-emerald-400 font-medium leading-normal">
+                        🛡️ AI PROTECTIONS ACTIVE: Safe human typing delays, random delay jitter, sleep cycles, and daily contact limits are active.
+                      </p>
+                    </div>
+                  )}
+                  <p className="text-[8px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider text-right">
+                    Pacing Engine v2.0 Live
                   </p>
                 </div>
               </div>
@@ -419,7 +531,7 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
                       {campaign.status === 'paused' && (
                         <Button 
                           size="sm" variant="outline" className="rounded-lg h-9 text-emerald-500 border-emerald-200 hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                          onClick={(e) => handleResumeCampaign(campaign.id, e)}
+                          onClick={(e) => openResumePreview(campaign, e)}
                           disabled={isProcessingAction || !isSessionActive}
                           title={!isSessionActive ? "Reconnect WhatsApp to resume" : "Resume Campaign"}
                         >
@@ -525,7 +637,7 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
                       />
                       <Button 
                         size="sm" className="h-8 px-3 rounded-lg text-xs font-black bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                        onClick={() => handleResumeCampaign(selectedCampaign.id)}
+                        onClick={() => openResumePreview(selectedCampaign)}
                         disabled={isProcessingAction || !isSessionActive}
                         title={!isSessionActive ? "Reconnect WhatsApp to resume" : ""}
                       >
@@ -637,6 +749,241 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
               </div>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Resume Campaign Preview & Re-upload Dialog */}
+      <Dialog open={isResumePreviewOpen} onOpenChange={setIsResumePreviewOpen}>
+        <DialogContent className="bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="font-black text-xl flex items-center gap-2">
+              <Play className="h-5 w-5 text-indigo-500 fill-indigo-500" />
+              Resume Campaign Preview
+            </DialogTitle>
+          </DialogHeader>
+
+          {resumeCampaignTarget && (
+            <div className="space-y-6 py-4">
+              {/* Campaign Info */}
+              <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Campaign Name</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-white">{resumeCampaignTarget.name}</p>
+              </div>
+
+              {/* Message Content Preview/Edit */}
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Edit / Review Message</Label>
+                <textarea 
+                  value={previewMessage}
+                  onChange={(e) => setPreviewMessage(e.target.value)}
+                  className="w-full h-32 p-3 text-sm font-medium bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Type message content here..."
+                />
+              </div>
+
+              {/* Media Attachment Review / Re-upload */}
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Campaign Media Attachment</Label>
+                
+                {previewMediaUrl ? (
+                  <div className="space-y-4">
+                    {/* Media File Card */}
+                    <div className={cn(
+                      "flex items-center justify-between p-3 rounded-xl border transition-all",
+                      previewMediaMissing 
+                        ? "bg-rose-50 border-rose-200 text-rose-700 dark:bg-rose-950/20 dark:border-rose-900/40" 
+                        : "bg-slate-50 border-indigo-100 text-slate-700 dark:bg-slate-900 dark:border-indigo-900/30"
+                    )}>
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <FileText className={cn("h-4 w-4 shrink-0", previewMediaMissing ? "text-rose-500" : "text-indigo-500")} />
+                        <span className="text-xs font-bold truncate">
+                          {previewMediaMissing 
+                            ? "⚠️ Attached Media File is missing from the server!" 
+                            : `Attachment Loaded (${previewMediaType})`}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => { setPreviewMediaUrl(''); setPreviewMediaType('image'); }} 
+                          className="h-7 w-7 text-rose-500 hover:bg-rose-50 rounded-lg"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Preview Area (If not missing and is image) */}
+                    {!previewMediaMissing && previewMediaType === 'image' && (
+                      <div className="flex justify-center p-2 border border-slate-100 dark:border-slate-800 rounded-2xl bg-slate-50/50">
+                        <img 
+                          src={previewMediaUrl} 
+                          alt="Campaign Preview" 
+                          className="max-h-32 object-contain rounded-lg"
+                        />
+                      </div>
+                    )}
+
+                    {/* Re-upload Option Button if Missing */}
+                    {previewMediaMissing && (
+                      <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-rose-300 dark:border-rose-800 rounded-2xl bg-rose-50/20 dark:bg-rose-900/5">
+                        <Upload className="h-6 w-6 text-rose-400 mb-2" />
+                        <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-3">Re-upload media to replace the missing file</p>
+                        <Input 
+                          type="file" 
+                          className="hidden" 
+                          id="preview-media-upload" 
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            if (file.size > 10 * 1024 * 1024) {
+                              toast.error('File size exceeds 10MB limit');
+                              return;
+                            }
+                            try {
+                              setPreviewMediaUploading(true);
+                              const formData = new FormData();
+                              formData.append('file', file);
+                              const res = await axios.post(`${WHATSAPP_BASE_URL}/campaigns/upload`, formData);
+                              
+                              const rootUrl = WHATSAPP_BASE_URL.replace(/\/api$/, '');
+                              setPreviewMediaUrl(`${rootUrl}${res.data.url}`);
+                              setPreviewMediaType(res.data.type === 'application' ? 'document' : res.data.type);
+                              setPreviewMediaMissing(false);
+                              toast.success('Media re-uploaded successfully');
+                            } catch (err) {
+                              toast.error('Media upload failed');
+                            } finally {
+                              setPreviewMediaUploading(false);
+                            }
+                          }}
+                        />
+                        <Button 
+                          size="sm" 
+                          className="rounded-xl font-bold bg-rose-500 hover:bg-rose-600 text-white h-8 text-[10px]" 
+                          disabled={previewMediaUploading}
+                          onClick={() => document.getElementById('preview-media-upload')?.click()}
+                        >
+                          {previewMediaUploading ? (
+                            <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Uploading...</>
+                          ) : "Choose & Re-upload Media"}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : previewMediaUploading ? (
+                  <div className="flex flex-col items-center justify-center py-6 border-2 border-dashed border-indigo-200 dark:border-indigo-800 rounded-2xl bg-indigo-50/20 dark:bg-indigo-900/10">
+                    <Loader2 className="h-6 w-6 text-indigo-500 animate-spin mb-2" />
+                    <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest animate-pulse">Uploading...</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-900/20">
+                    <Upload className="h-6 w-6 text-slate-300 mb-2" />
+                    <p className="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-tighter">Max 10MB (Img/Vid/PDF)</p>
+                    <Input 
+                      type="file" 
+                      className="hidden" 
+                      id="preview-media-upload-new" 
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 10 * 1024 * 1024) {
+                          toast.error('File size exceeds 10MB limit');
+                          return;
+                        }
+                        try {
+                          setPreviewMediaUploading(true);
+                          const formData = new FormData();
+                          formData.append('file', file);
+                          const res = await axios.post(`${WHATSAPP_BASE_URL}/campaigns/upload`, formData);
+                          
+                          const rootUrl = WHATSAPP_BASE_URL.replace(/\/api$/, '');
+                          setPreviewMediaUrl(`${rootUrl}${res.data.url}`);
+                          setPreviewMediaType(res.data.type === 'application' ? 'document' : res.data.type);
+                          setPreviewMediaMissing(false);
+                          toast.success('Media attached successfully');
+                        } catch (err) {
+                          toast.error('Media upload failed');
+                        } finally {
+                          setPreviewMediaUploading(false);
+                        }
+                      }}
+                    />
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="rounded-xl font-bold h-8 text-[10px]" 
+                      onClick={() => document.getElementById('preview-media-upload-new')?.click()}
+                    >
+                      Attach Media File
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Dynamic Warning for running campaign when media is missing */}
+              {previewMediaMissing && (
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 rounded-2xl flex items-start gap-2.5">
+                  <AlertCircle className="h-4.5 w-4.5 text-rose-500 shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-rose-700 dark:text-rose-400 font-bold leading-relaxed">
+                    CRITICAL: The attached media is missing. Sending will fail. You must re-upload a media file or remove the attachment before you can resume.
+                  </p>
+                </div>
+              )}
+              {/* Deliverability & Anti-Ban Safety Assistant Card */}
+              <div className="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-2">
+                <div className="flex items-center gap-2">
+                  <Rocket className="h-3.5 w-3.5 text-indigo-500 animate-pulse" />
+                  <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Anti-Ban Safety Advisor</p>
+                </div>
+                
+                {previewMessage && /https?:\/\//i.test(previewMessage) && previewMediaUrl ? (
+                  <div className="flex items-start gap-1.5 p-2 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-lg">
+                    <AlertCircle className="h-3.5 w-3.5 text-rose-500 shrink-0 mt-0.5" />
+                    <p className="text-[9px] text-rose-700 dark:text-rose-400 font-bold leading-normal">
+                      ⚠️ DANGER: Media + Link combination detected. Outbox safety workers will automatically block cold campaigns using this combination to protect your sender number. Please remove either the link or the media attachment.
+                    </p>
+                  </div>
+                ) : previewMessage && !(/\{([^\}]+?)\}/.test(previewMessage) || /\[([^\]]+?)\]/.test(previewMessage)) ? (
+                  <div className="flex items-start gap-1.5 p-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30 rounded-lg">
+                    <AlertCircle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-[9px] text-amber-700 dark:text-amber-400 font-medium leading-normal">
+                      💡 RECOMMENDATION: Write message variations using Spintax format, e.g. <code className="bg-amber-100 dark:bg-amber-900/40 px-1 rounded">{"{Hi|Hello|Hey}"}</code>. This prevents Meta's fingerprinting algorithms from blocking your identical outbound layouts.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-1.5 p-2 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/30 rounded-lg">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                    <p className="text-[9px] text-emerald-700 dark:text-emerald-400 font-medium leading-normal">
+                      🛡️ AI PROTECTIONS ACTIVE: Safe human typing delays, random delay jitter, sleep cycles, and daily contact limits are active.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsResumePreviewOpen(false)}
+                  className="rounded-xl h-11 font-bold text-xs uppercase tracking-wider"
+                  disabled={isProcessingAction}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleConfirmResume}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-11 font-black text-xs uppercase tracking-widest px-6 shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+                  disabled={isProcessingAction || previewMediaUploading || previewMediaMissing}
+                >
+                  {isProcessingAction ? (
+                    <><Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> Resuming...</>
+                  ) : "Confirm & Resume"}
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -511,13 +511,6 @@ export default function BookingPage() {
         }, 2500); 
       }
       
-      // Reset form
-      setAnswers({});
-      setSelectedDate(undefined);
-      setSelectedTime(null);
-      setStep(1);
-      setCurrentQuestionIndex(0);
-      
     } catch (error) {
       console.error('Error creating booking:', error);
       setErrorDialog({
@@ -652,7 +645,79 @@ export default function BookingPage() {
 
             {/* Right Section - Calendar & Questions */}
             <div className="p-6">
-              {step === 1 ? (
+              {showSuccess && bookingDetails ? (
+                <div className="flex flex-col items-center justify-center py-6 text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                  <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/30 flex items-center justify-center shadow-md ring-4 ring-emerald-50 dark:ring-emerald-950/20">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Booking Confirmed!</h3>
+                    <p className="text-sm text-muted-foreground mt-2 max-w-sm">
+                      Thank you! Your meeting has been scheduled and confirmed.
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 w-full max-w-md shadow-sm">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 text-left">
+                      Meeting Details
+                    </h4>
+                    <div className="space-y-3 text-sm text-left">
+                      <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800/50">
+                        <span className="text-slate-500 font-medium">Date</span>
+                        <span className="font-semibold text-slate-800 dark:text-white">
+                          {bookingDetails?.start_time ? 
+                            formatInTimeZone(new Date(bookingDetails.start_time), 'UTC', 'EEEE, MMMM d, yyyy') : 
+                            selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : ''}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800/50">
+                        <span className="text-slate-500 font-medium">Time</span>
+                        <span className="font-semibold text-slate-800 dark:text-white">
+                          {bookingDetails?.start_time ? 
+                            formatInTimeZone(new Date(bookingDetails.start_time), 'UTC', 'h:mm a') : 
+                            selectedTime ? format(new Date(selectedTime), 'h:mm a') : ''}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-slate-500 font-medium">Duration</span>
+                        <span className="font-semibold text-slate-800 dark:text-white">{eventType?.duration} minutes</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 rounded-xl max-w-md w-full text-xs font-medium flex items-center justify-center gap-2 border border-emerald-100 dark:border-emerald-900/30">
+                    <span>📅</span>
+                    <span>A calendar invite has been sent to your email</span>
+                  </div>
+
+                  {eventType?.redirect_url && (
+                    <p className="text-xs text-muted-foreground animate-pulse mt-2">
+                      Redirecting you in a few seconds...
+                    </p>
+                  )}
+
+                  <Button
+                    onClick={() => {
+                      setShowSuccess(false);
+                      setBookingDetails(null);
+                      // Handle Redirection if configured
+                      if (eventType?.redirect_url) {
+                        window.location.href = eventType.redirect_url;
+                      } else {
+                        // Reset everything back to step 1
+                        setAnswers({});
+                        setSelectedDate(undefined);
+                        setSelectedTime(null);
+                        setStep(1);
+                        setCurrentQuestionIndex(0);
+                      }
+                    }}
+                    className="w-full max-w-xs font-bold uppercase tracking-widest text-[11px] h-10 shadow-sm mt-4"
+                  >
+                    Done
+                  </Button>
+                </div>
+              ) : step === 1 ? (
                 <>
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-semibold">
@@ -863,67 +928,7 @@ export default function BookingPage() {
         action={errorDialog.message.includes('slot') ? "Please select a different time or date, as this one was just taken." : "Please check your information and try again."}
       />
 
-      <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex flex-col items-center">
-              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-6 h-6 text-green-600" />
-              </div>
-              Booking Confirmed!
-            </DialogTitle>
-            <DialogDescription className="text-center">
-              Your meeting has been scheduled successfully.
-            </DialogDescription>
-          </DialogHeader>
 
-          <div className="bg-muted p-4 rounded-lg w-full mb-6">
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Date</span>
-                <span className="font-medium">
-                  {bookingDetails?.start_time ? 
-                    formatInTimeZone(new Date(bookingDetails.start_time), 'UTC', 'EEEE, MMMM d, yyyy') : 
-                    ''}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Time</span>
-                <span className="font-medium">
-                  {bookingDetails?.start_time ? 
-                    formatInTimeZone(new Date(bookingDetails.start_time), 'UTC', 'h:mm a') : 
-                    ''}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Duration</span>
-                <span className="font-medium">{eventType?.duration} minutes</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="px-6 pb-6">
-            <p className="text-[11px] text-center text-muted-foreground bg-green-50 dark:bg-green-900/10 py-2 px-4 rounded-full font-bold uppercase tracking-widest animate-pulse">
-              📅 A calendar invite has been sent to your email
-            </p>
-          </div>
-
-          <DialogFooter className="flex justify-center p-6 pt-0">
-            <Button
-              className="w-full sm:w-auto px-10 font-bold uppercase tracking-widest text-[11px]"
-              onClick={() => {
-                setShowSuccess(false)
-                // Only redirect if a custom redirect_url is explicitly set
-                if (eventType?.redirect_url) {
-                  window.location.href = eventType.redirect_url;
-                }
-              }}
-            >
-              Done
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 } 

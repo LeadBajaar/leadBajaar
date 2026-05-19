@@ -23,6 +23,12 @@ export interface Lead {
   last_contact: string;
   created_at: string;
   updated_at: string;
+  user_id?: number | null;
+  agent?: {
+    id: number;
+    name: string;
+  } | null;
+  new_note?: string;
 }
 
 export interface NewLead {

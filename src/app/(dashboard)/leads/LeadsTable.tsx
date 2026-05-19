@@ -26,14 +26,7 @@ import {
   Globe
 } from 'lucide-react'
 import { cn } from "@/lib/utils"
-import { Lead as BaseLead, columns, temperatureConfig, sourceConfig } from './types'
-
-interface Lead extends BaseLead {
-  agent?: {
-    id: number;
-    name: string;
-  };
-}
+import { Lead, columns, temperatureConfig, sourceConfig } from './types'
 import { format } from 'date-fns'
 import { getAgentColor } from '@/utils/agentColors'
 import { useTheme } from 'next-themes'

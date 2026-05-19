@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { getLead, Lead } from '@/lib/api'
+import { getLead, Lead, updateLead, teamApi } from '@/lib/api'
 import { 
   ChevronLeft, 
   Phone, 
@@ -28,12 +28,19 @@ import { format } from 'date-fns'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import { RoleGuard } from '@/components/RoleGuard'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { getAgentColor } from '@/utils/agentColors'
+import { useTheme } from 'next-themes'
 
 export default function LeadDetailsPage() {
   const { id } = useParams()
   const router = useRouter()
   const [lead, setLead] = useState<Lead | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
+  const [isAssigning, setIsAssigning] = useState(false)
+  const { theme, resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark' || theme === 'dark'
 
   useEffect(() => {
     const fetchLead = async () => {
@@ -50,6 +57,35 @@ export default function LeadDetailsPage() {
 
     if (id) fetchLead()
   }, [id])
+
+  useEffect(() => {
+    const fetchTeam = async () => {
+      try {
+        const members = await teamApi.getMembers()
+        setTeamMembers(members)
+      } catch (e) {
+        console.error('Failed to fetch team members:', e)
+      }
+    }
+    fetchTeam()
+  }, [])
+
+  const handleAssignAgent = async (agentId: string) => {
+    if (!lead) return
+    try {
+      setIsAssigning(true)
+      const updateData = agentId === 'unassigned' ? { user_id: null } : { user_id: parseInt(agentId) }
+      await updateLead(lead.id, updateData)
+      toast.success("Lead assigned successfully")
+      const data = await getLead(lead.id)
+      setLead(data)
+    } catch (error) {
+      console.error('Failed to assign lead:', error)
+      toast.error("Failed to assign representative")
+    } finally {
+      setIsAssigning(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -136,7 +172,7 @@ export default function LeadDetailsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-4 rounded-3xl bg-white dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800 shadow-sm">
               <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-1.5 flex items-center gap-1.5">
                 <Wallet className="h-3 w-3" /> Deal Value
@@ -153,6 +189,40 @@ export default function LeadDetailsPage() {
               <div className="flex items-center gap-1 text-xl font-black text-emerald-600 dark:text-emerald-400">
                 <IndianRupee className="h-4 w-4 opacity-60" />
                 {lead.paid_amount || 0}
+              </div>
+            </div>
+            <div className="p-4 rounded-3xl bg-white dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-1.5 flex items-center gap-1.5">
+                <User className="h-3 w-3 text-purple-500" /> Representative
+              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <Select 
+                  value={lead.user_id?.toString() || lead.agent?.id?.toString() || 'unassigned'} 
+                  onValueChange={handleAssignAgent}
+                  disabled={isAssigning}
+                >
+                  <SelectTrigger className="h-8 text-xs border-none bg-slate-50 dark:bg-slate-900 rounded-xl px-2.5 font-bold focus:ring-0 w-full justify-between">
+                    <SelectValue placeholder="Assign Representative" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-slate-100 dark:border-slate-850">
+                    <SelectItem value="unassigned" className="text-slate-400 font-bold text-xs rounded-lg">
+                      Unassigned
+                    </SelectItem>
+                    {teamMembers.map((member) => (
+                      <SelectItem key={member.id} value={member.id.toString()} className="rounded-lg text-xs">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="h-5 w-5 rounded-full flex items-center justify-center text-white text-[9px] font-black"
+                            style={{ backgroundColor: getAgentColor(member.id).bg }}
+                          >
+                            {member.name.split(' ').filter(Boolean).map((n: string) => n[0].toUpperCase()).join('')}
+                          </div>
+                          <span className="font-bold">{member.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
