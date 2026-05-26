@@ -18,12 +18,14 @@ import {
   Zap,
   Loader2,
   Eye,
-  EyeOff
+  EyeOff,
+  Phone
 } from 'lucide-react'
 
 type RegisterFormData = {
   name: string
   email: string
+  phone: string
   password: string
   password_confirmation: string
 }
@@ -38,7 +40,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true)
     try {
-      await registerUser(data.name, data.email, data.password, data.password_confirmation)
+      await registerUser(data.name, data.email, data.password, data.password_confirmation, data.phone)
       toast.success("Account created successfully!")
       router.push('/dashboard')
     } catch (error) {
@@ -113,6 +115,23 @@ export default function RegisterPage() {
                   />
                 </div>
                 {errors.email && <p className="text-[10px] text-red-500 font-medium ml-1">{errors.email.message}</p>}
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="phone" className="text-xs font-semibold text-slate-700 dark:text-slate-300 ml-0.5">Phone Number</Label>
+                <div className="relative group transition-all">
+                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+1 234 567 8900"
+                    className="h-11 pl-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                    {...register('phone', {
+                      required: 'Phone number is required'
+                    })}
+                  />
+                </div>
+                {errors.phone && <p className="text-[10px] text-red-500 font-medium ml-1">{errors.phone.message}</p>}
               </div>
 
               <div className="space-y-1.5">

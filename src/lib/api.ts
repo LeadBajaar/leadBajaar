@@ -140,10 +140,45 @@ export const login = async (email: string, password: string) => {
   }
 };
 
-export const register = async (name: string, email: string, password: string, password_confirmation: string) => {
-  const response = await api.post('/register', { name, email, password, password_confirmation });
-  setSession('your_auth_token');
-  return response.data;
+export const register = async (name: string, email: string, password: string, password_confirmation: string, phone: string) => {
+  try {
+    const response = await api.post('/register', {
+      name,
+      email,
+      password,
+      password_confirmation,
+      phone
+    });
+    setSession('your_auth_token');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const forgotPassword = async (email: string) => {
+  try {
+    const response = await api.post('/forgot-password', { email });
+    return response.data;
+  } catch (error: any) {
+    const message = error.response?.data?.message || error.message || 'Failed to send reset link';
+    throw new Error(message);
+  }
+};
+
+export const resetPassword = async (token: string, email: string, password: string, password_confirmation: string) => {
+  try {
+    const response = await api.post('/reset-password', {
+      token,
+      email,
+      password,
+      password_confirmation
+    });
+    return response.data;
+  } catch (error: any) {
+    const message = error.response?.data?.message || error.message || 'Failed to reset password';
+    throw new Error(message);
+  }
 };
 
 export const logout = async () => {

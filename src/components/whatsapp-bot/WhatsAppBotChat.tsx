@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Send, User, Search, Loader2, Phone, Calendar, Check, CheckCheck, MessageSquare, RefreshCw, Trash2, ArrowLeft, Image, Video, FileText, Music, Paperclip, Smile, Download } from 'lucide-react';
+import { Send, User, Search, Loader2, Phone, Calendar, Check, CheckCheck, MessageSquare, RefreshCw, Trash2, ArrowLeft, Image, Video, FileText, Music, Paperclip, Smile, Download, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -395,6 +395,16 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
                 <Button 
                   variant="outline" 
                   size="sm" 
+                  className="h-9 px-3 rounded-xl border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 font-bold text-xs"
+                  onClick={(e) => {
+                    if (selectedContact) handleDeleteChat(e, selectedContact);
+                  }}
+                >
+                  <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Delete
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
                   className="h-9 px-3 rounded-xl border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 font-bold text-xs"
                   onClick={async () => {
                     if (confirm('Force reset this conversation state to START?')) {
@@ -410,7 +420,7 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
                     }
                   }}
                 >
-                  <RefreshCw className="mr-2 h-3.5 w-3.5" /> Reset Bot
+                  <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Reset
                 </Button>
               </div>
             </div>
@@ -452,8 +462,14 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
                             {format(new Date(msg.created_at), 'HH:mm')}
                           </span>
                           {isOutgoing && (
-                            msg.status === 'read' ? (
+                            msg.status === 'failed' ? (
+                              <AlertCircle className="h-3 w-3 text-rose-500" />
+                            ) : msg.status === 'pending' ? (
+                              <Loader2 className="h-3 w-3 text-slate-400 animate-spin" />
+                            ) : msg.status === 'read' ? (
                               <CheckCheck className="h-3 w-3 text-indigo-500" />
+                            ) : msg.status === 'delivered' ? (
+                              <CheckCheck className="h-3 w-3 text-slate-400" />
                             ) : (
                               <Check className="h-3 w-3 text-slate-400" />
                             )

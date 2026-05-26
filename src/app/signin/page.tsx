@@ -63,13 +63,23 @@ export default function LoginPage() {
       toast.success("Welcome back!")
       // We don't set setIsLoading(false) here so the loader stays while redirecting
       router.push('/dashboard')
-    } catch (error) {
-      setIsLoading(false) // Set false only on error
+    } catch (error: any) {
+      setIsLoading(false)
       setValue('password', '')
-      if (error instanceof Error) {
-        setError('root', { type: 'manual', message: error.message })
+      
+      if (error?.errors) {
+        Object.keys(error.errors).forEach((key) => {
+          // React Hook Form expects just the message string
+          const fieldMessage = Array.isArray(error.errors[key]) ? error.errors[key][0] : error.errors[key]
+          setError(key as any, { type: 'server', message: fieldMessage })
+        })
       } else {
-        setError('root', { type: 'manual', message: 'An unexpected error occurred' })
+        // Clean up the message if it starts with a field name (e.g. "email: The provided credentials are incorrect.")
+        let message = error?.message || (typeof error === 'string' ? error : 'An unexpected error occurred')
+        if (message.includes(':')) {
+          message = message.split(':').slice(1).join(':').trim()
+        }
+        setError('root', { type: 'manual', message })
       }
     }
   }
@@ -121,7 +131,7 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between px-0.5">
                   <Label htmlFor="password" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Password</Label>
-                  <Link href="#" className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 hover:underline">Forgot password?</Link>
+                  <Link href="/forgot-password" className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 hover:underline">Forgot password?</Link>
                 </div>
                 <div className="relative group transition-all">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
