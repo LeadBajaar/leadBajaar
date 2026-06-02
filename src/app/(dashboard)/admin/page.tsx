@@ -119,6 +119,7 @@ interface ServiceStatus {
 interface Company {
   id: string | number
   name: string
+  owner_id?: number | null
   owner: string | any
   email: string
   plan: Plan
@@ -174,6 +175,7 @@ const AVAILABLE_PLATFORM_FEATURES = [
   // Automation
   { id: 'automations', label: 'Automations' },
   { id: 'whatsapp_bot', label: 'WhatsApp Bot' },
+  { id: 'whatsapp_cloud_api', label: 'WhatsApp Cloud API' },
   
   // Platform Control
   { id: 'system_admin', label: 'Admin' },
@@ -1728,7 +1730,13 @@ export default function SuperAdminPage() {
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     className="cursor-pointer font-bold py-2.5 px-3 text-indigo-600 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-xl"
-                                    onClick={() => handleImpersonate(Number(company.id))}
+                                    onClick={() => {
+                                      if (company.owner_id) {
+                                        handleImpersonate(Number(company.owner_id))
+                                      } else {
+                                        toast.error("Impersonation Failed", { description: "No owner associated with this company." })
+                                      }
+                                    }}
                                   >
                                     <ExternalLink className="mr-3 h-4 w-4" /> Enter Account
                                   </DropdownMenuItem>

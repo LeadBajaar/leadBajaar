@@ -1384,7 +1384,7 @@ export default function IntegrationsPage() {
                         // Use hasFeature if the integration defines required features
                         let featureMatch = true;
                         if (integration.id === 'whatsapp') {
-                          featureMatch = hasFeature('whatsapp_bot');
+                          featureMatch = hasFeature('whatsapp_cloud_api');
                         } else if (integration.plans) {
                           // Fallback for other items still using 'plans'
                           featureMatch = hasPlan(integration.plans) || hasType(['agency', 'super_admin']);
