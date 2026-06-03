@@ -1713,9 +1713,9 @@ export const adminApi = {
     }
   },
 
-  getEmailStats: async (search?: string) => {
+  getEmailStats: async (search?: string, page = 1, limit = 10, filterStatus = 'all') => {
     try {
-      const response = await api.get('/admin/email-stats', { params: { search } });
+      const response = await api.get('/admin/email-stats', { params: { search, page, limit, filterStatus } });
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch email stats');

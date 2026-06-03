@@ -26,6 +26,8 @@ import { format } from 'date-fns'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Progress } from "@/components/ui/progress"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 
 export default function AdminEmailPage() {
   const [stats, setStats] = useState<any>(null)
@@ -36,11 +38,14 @@ export default function AdminEmailPage() {
 
   const [isTogglingCompany, setIsTogglingCompany] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
+  const [filterStatus, setFilterStatus] = useState('all')
 
-  const fetchStats = async (search?: string) => {
+  const fetchStats = async (searchStr = searchTerm, pageNum = page, limitNum = limit, statusFilter = filterStatus) => {
     try {
       setIsRefreshing(true)
-      const data = await adminApi.getEmailStats(search)
+      const data = await adminApi.getEmailStats(searchStr, pageNum, limitNum, statusFilter)
       setStats(data)
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch email statistics')
@@ -55,7 +60,7 @@ export default function AdminEmailPage() {
       setIsTogglingCompany(id)
       const res = await adminApi.toggleCompanyEmail(id)
       toast.success(res.message)
-      fetchStats(searchTerm)
+      fetchStats(searchTerm, page, limit, filterStatus)
     } catch (error: any) {
       toast.error(error.message)
     } finally {
@@ -64,17 +69,23 @@ export default function AdminEmailPage() {
   }
 
   useEffect(() => {
-    fetchStats()
+    fetchStats(searchTerm, page, limit, filterStatus)
   }, [])
 
   // Handle Search Debounce
   useEffect(() => {
     if (isLoading) return
     const timer = setTimeout(() => {
-      fetchStats(searchTerm)
+      setPage(1)
+      fetchStats(searchTerm, 1, limit, filterStatus)
     }, 500)
     return () => clearTimeout(timer)
   }, [searchTerm])
+
+  useEffect(() => {
+    if (isLoading) return
+    fetchStats(searchTerm, page, limit, filterStatus)
+  }, [page, limit, filterStatus])
 
   if (isLoading) {
     return (
@@ -99,7 +110,7 @@ export default function AdminEmailPage() {
       setIsToggling(userId)
       const res = await adminApi.toggleUserNotification(userId, type)
       toast.success(res.message)
-      fetchStats(searchTerm)
+      fetchStats(searchTerm, page, limit, filterStatus)
     } catch (error: any) {
       toast.error(error.message)
     } finally {
@@ -116,7 +127,7 @@ export default function AdminEmailPage() {
         </div>
         <Button 
           variant="outline" 
-          onClick={() => fetchStats()} 
+          onClick={() => fetchStats(searchTerm, page, limit, filterStatus)} 
           disabled={isRefreshing}
           className="gap-2 bg-background border-border text-muted-foreground hover:text-foreground"
         >
@@ -198,7 +209,7 @@ export default function AdminEmailPage() {
                   <CardTitle className="text-foreground text-lg">Platform Companies</CardTitle>
                   <CardDescription className="text-muted-foreground">Monitor email volume and manage global suspension toggles.</CardDescription>
                </div>
-               <div className="flex items-center gap-3 w-full md:w-auto">
+               <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                  <div className="relative flex-1 md:w-64">
                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                    <Input
@@ -207,6 +218,18 @@ export default function AdminEmailPage() {
                      value={searchTerm}
                      onChange={(e) => setSearchTerm(e.target.value)}
                    />
+                 </div>
+                 <div className="w-32">
+                   <Select value={filterStatus} onValueChange={(val) => { setFilterStatus(val); setPage(1); }}>
+                     <SelectTrigger className="h-10 text-xs">
+                       <SelectValue placeholder="Status" />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="all">All Status</SelectItem>
+                       <SelectItem value="enabled">Enabled</SelectItem>
+                       <SelectItem value="disabled">Disabled</SelectItem>
+                     </SelectContent>
+                   </Select>
                  </div>
                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-bold hidden sm:flex">MONTHLY CAP</Badge>
                </div>
@@ -225,7 +248,7 @@ export default function AdminEmailPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {stats?.top_companies?.map((company: any) => (
+                    {stats?.companies?.data?.map((company: any) => (
                       <Fragment key={company.id}>
                         <TableRow 
                           className={cn(
@@ -374,6 +397,31 @@ export default function AdminEmailPage() {
                 </TableBody>
               </Table>
             </div>
+            {stats?.companies && stats.companies.last_page > 1 && (
+              <div className="p-4 border-t border-border bg-muted/10">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    <PaginationItem>
+                      <span className="text-sm font-medium text-muted-foreground px-4">
+                        Page {stats.companies.current_page} of {stats.companies.last_page}
+                      </span>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setPage(p => Math.min(stats.companies.last_page, p + 1))}
+                        className={page === stats.companies.last_page ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </CardContent>
         </Card>
 

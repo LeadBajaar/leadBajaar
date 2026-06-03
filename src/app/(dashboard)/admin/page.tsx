@@ -471,9 +471,7 @@ export default function SuperAdminPage() {
     )
   }, [selectionCompanies, workspaceSearch])
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+  // Initial fetch is handled by the debounced useEffect below
 
   const handleSendBroadcast = async () => {
     if (!broadcastData.title || !broadcastData.message) {
@@ -712,101 +710,81 @@ export default function SuperAdminPage() {
 
     try {
       setIsLoading(true)
-      const [companiesRes, statsData, usersRes, billingRes, deletionsRes, plansRes, tagsRes, broadcastRes, selectCompaniesRes, testerRequestsRes] = await Promise.all([
-        adminApi.getCompanies(companiesPage, 10, searchQuery, filterPlan, filterStatus, filterTag, filterExpiration, filterStarted, customExpStart, customExpEnd, customStartStart, customStartEnd),
-        adminApi.getStats(),
-        adminApi.getUsers(usersPage, 10, searchQuery, filterTag, filterRole, filterUserStatus, filterUserType),
-        adminApi.getBilling(billingPage, 10, searchQuery),
-        integrationApi.getDeletionRequests(),
-        adminApi.getPlans(),
-        adminApi.getTags(),
-        adminApi.getBroadcastHistory(),
-        adminApi.getCompanies(1, 100), // Unfiltered for selection
-        adminApi.getTesterRequests(testerRequestsPage, 10, searchQuery)
-      ])
+      
+      // Always fetch global stats
+      const statsData = await adminApi.getStats()
+      setStats(statsData)
 
-      if (tagsRes) {
-        setGlobalTags(tagsRes)
+      // Fetch specific data based on the active tab to prevent CloudLinux LVE / connection exhaustion
+      if (activeTab === 'companies') {
+        const companiesRes = await adminApi.getCompanies(companiesPage, 10, searchQuery, filterPlan, filterStatus, filterTag, filterExpiration, filterStarted, customExpStart, customExpEnd, customStartStart, customStartEnd)
+        setCompanies(companiesRes.data || companiesRes)
+        if (companiesRes.data) {
+          setCompaniesMeta({
+            current_page: companiesRes.current_page,
+            last_page: companiesRes.last_page,
+            total: companiesRes.total,
+            from: companiesRes.from,
+            to: companiesRes.to
+          })
+        }
+        // Also fetch tags for company editing
+        const tagsRes = await adminApi.getTags()
+        if (tagsRes) setGlobalTags(tagsRes)
+      } 
+      else if (activeTab === 'users') {
+        const usersRes = await adminApi.getUsers(usersPage, 10, searchQuery, filterTag, filterRole, filterUserStatus, filterUserType)
+        setUsers(usersRes.data || usersRes)
+        if (usersRes.data) {
+          setUsersMeta({ current_page: usersRes.current_page, last_page: usersRes.last_page, total: usersRes.total })
+        }
+        // Also fetch tags for user editing
+        const tagsRes = await adminApi.getTags()
+        if (tagsRes) setGlobalTags(tagsRes)
       }
-
-      if (broadcastRes) {
+      else if (activeTab === 'billing') {
+        const billingRes = await adminApi.getBilling(billingPage, 10, searchQuery)
+        setBillingData(billingRes.data || [])
+        if (billingRes.data) {
+          setBillingMeta({ current_page: billingRes.current_page, last_page: billingRes.last_page, total: billingRes.total })
+        }
+      }
+      else if (activeTab === 'announcements') {
+        const broadcastRes = await adminApi.getBroadcastHistory()
         setBroadcastHistory(Array.isArray(broadcastRes) ? broadcastRes : broadcastRes.data || [])
-        if (broadcastRes.current_page) {
-           setBroadcastMeta({
-             current_page: broadcastRes.current_page,
-             last_page: broadcastRes.last_page,
-             total: broadcastRes.total
-           })
+        if (broadcastRes && broadcastRes.current_page) {
+           setBroadcastMeta({ current_page: broadcastRes.current_page, last_page: broadcastRes.last_page, total: broadcastRes.total })
+        }
+        // Needed for broadcast targeting
+        const selectCompaniesRes = await adminApi.getCompanies(1, 100)
+        setSelectionCompanies(selectCompaniesRes.data || selectCompaniesRes)
+      }
+      else if (activeTab === 'testers') {
+        const testerRequestsRes = await adminApi.getTesterRequests(testerRequestsPage, 10, searchQuery)
+        setTesterRequests(testerRequestsRes.data || [])
+        if (testerRequestsRes) {
+          setTesterRequestsMeta({
+            current_page: testerRequestsRes.current_page, last_page: testerRequestsRes.last_page,
+            total: testerRequestsRes.total, from: testerRequestsRes.from, to: testerRequestsRes.to
+          })
+        }
+      }
+      else if (activeTab === 'plans') {
+        const plansRes = await adminApi.getPlans()
+        const plansList = plansRes.plans || (Array.isArray(plansRes) ? plansRes : [])
+        if (plansList && plansList.length > 0) {
+          setPlans(plansList.map(transformPlan))
+        }
+      }
+      else if (activeTab === 'meta-deletions') {
+        const deletionsRes = await integrationApi.getDeletionRequests()
+        if (deletionsRes.status === 'success') {
+          setDeletionRequests(deletionsRes.requests || [])
         }
       }
 
-      if (selectCompaniesRes && selectCompaniesRes.data) {
-        setSelectionCompanies(selectCompaniesRes.data)
-      } else if (selectCompaniesRes) {
-        setSelectionCompanies(selectCompaniesRes)
-      }
-
-      if (deletionsRes.status === 'success') {
-        setDeletionRequests(deletionsRes.requests || [])
-      }
-
-      // Handle dynamic plan structure
-      const plansList = plansRes.plans || (Array.isArray(plansRes) ? plansRes : []);
-      if (plansList && plansList.length > 0) {
-        const transformedPlans = plansList.map(transformPlan);
-        setPlans(transformedPlans);
-      }
-
-      // Handle paginated responses
-      if (companiesRes.data) {
-        setCompanies(companiesRes.data)
-        setCompaniesMeta({
-          current_page: companiesRes.current_page,
-          last_page: companiesRes.last_page,
-          total: companiesRes.total,
-          from: companiesRes.from,
-          to: companiesRes.to
-        })
-      } else {
-        setCompanies(companiesRes)
-      }
-
-      if (usersRes.data) {
-        setUsers(usersRes.data)
-        setUsersMeta({
-          current_page: usersRes.current_page,
-          last_page: usersRes.last_page,
-          total: usersRes.total
-        })
-      } else {
-        setUsers(usersRes)
-      }
-
-      if (billingRes.data) {
-        setBillingData(billingRes.data)
-        setBillingMeta({
-          current_page: billingRes.current_page,
-          last_page: billingRes.last_page,
-          total: billingRes.total
-        })
-      }
-
-      setStats(statsData)
-
-      if (testerRequestsRes) {
-        setTesterRequests(testerRequestsRes.data || [])
-        setTesterRequestsMeta({
-          current_page: testerRequestsRes.current_page,
-          last_page: testerRequestsRes.last_page,
-          total: testerRequestsRes.total,
-          from: testerRequestsRes.from,
-          to: testerRequestsRes.to
-        })
-      }
     } catch (error: any) {
-      toast.error("Platform Error", {
-        description: error.message,
-      })
+      toast.error("Platform Error", { description: error.message })
     } finally {
       setIsLoading(false)
     }
@@ -823,7 +801,7 @@ export default function SuperAdminPage() {
       fetchData()
     }, 500) // Debounce search
     return () => clearTimeout(timer)
-  }, [demoMode, companiesPage, usersPage, billingPage, testerRequestsPage, searchQuery, filterPlan, filterStatus, filterTag, filterRole, filterUserType, filterUserStatus, filterExpiration, filterStarted, customExpStart, customExpEnd, customStartStart, customStartEnd])
+  }, [demoMode, activeTab, companiesPage, usersPage, billingPage, testerRequestsPage, searchQuery, filterPlan, filterStatus, filterTag, filterRole, filterUserType, filterUserStatus, filterExpiration, filterStarted, customExpStart, customExpEnd, customStartStart, customStartEnd])
 
   const filteredCompanies = companies.filter((c: Company) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
