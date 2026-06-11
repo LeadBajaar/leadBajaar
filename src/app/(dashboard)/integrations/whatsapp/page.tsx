@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Pencil, Plus, Trash2, MessageSquare, RefreshCcw, ChevronLeft, ChevronRight, AlertCircle, X, Loader2, CheckCircle2 } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
 import { integrationApi, companyApi } from '@/lib/api'
+import { useRouter } from 'next/navigation'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
@@ -71,6 +72,7 @@ interface NewTemplate {
 
 export default function WhatsAppManagementPage() {
   const { toast } = useToast()
+  const router = useRouter()
   const [accounts, setAccounts] = useState<WhatsAppAccount[]>([])
   const [templates, setTemplates] = useState<MessageTemplate[]>([])
   const [selectedAccount, setSelectedAccount] = useState<WhatsAppAccount | null>(null)
@@ -132,6 +134,14 @@ export default function WhatsAppManagementPage() {
     whatsapp_meeting_template_id: ''
   })
   const [isSavingSettings, setIsSavingSettings] = useState(false)
+  const [showSetupModal, setShowSetupModal] = useState(false)
+  const [setupConfig, setSetupConfig] = useState({
+    phoneNumberId: "",
+    wabaId: "",
+    accessToken: "",
+    enableTemplates: true,
+  })
+  const [isConfiguring, setIsConfiguring] = useState(false)
 
   // Reset template form to initial state
   const resetTemplateForm = () => {
@@ -204,6 +214,12 @@ export default function WhatsAppManagementPage() {
         setTemplates(response.accounts[0].templates || [])
         setSelectedAccount(response.accounts[0])
         
+        // If there's an account but no phone_number, it means it's a shell integration.
+        const unconfigured = response.accounts.find((a: any) => !a.phone_number);
+        if (unconfigured) {
+          // We no longer show the modal automatically. The inline view will handle it.
+        }
+
         // Check if any account needs token update
         for (const account of response.accounts) {
           try {
@@ -233,6 +249,41 @@ export default function WhatsAppManagementPage() {
       setIsLoading(false)
     }
   }
+
+  const handleSaveSetup = async () => {
+    if (!setupConfig.phoneNumberId || !setupConfig.wabaId || !setupConfig.accessToken) {
+      toast({
+        title: "Validation Error",
+        description: "All fields (Phone Number ID, WhatsApp Business Account ID, and System User Access Token) are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsConfiguring(true);
+      const unconfigured = accounts.find((a: any) => !a.phone_number);
+      if (!unconfigured) return;
+      await integrationApi.updateIntegration(unconfigured.id.toString(), {
+        type: "whatsapp",
+        config: {
+          phoneNumberId: setupConfig.phoneNumberId,
+          wabaId: setupConfig.wabaId,
+          accessToken: setupConfig.accessToken,
+          enableTemplates: setupConfig.enableTemplates
+        },
+        isActive: true,
+        environment: "production"
+      });
+      toast({ title: "Setup completed successfully!" });
+      setShowSetupModal(false);
+      fetchAccounts();
+    } catch (err: any) {
+      toast({ title: "Setup failed", description: err.message, variant: "destructive" });
+    } finally {
+      setIsConfiguring(false);
+    }
+  };
 
   const fetchWelcomeSettings = async () => {
     try {
@@ -717,20 +768,70 @@ export default function WhatsAppManagementPage() {
     <RoleGuard allowedRoles={['Super Admin', 'Admin']}>
       <div className="p-6 space-y-6 h-full overflow-y-auto">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">WhatsApp Management</h1>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-2xl font-bold">WhatsApp Management</h1>
+        </div>
         <Button onClick={() => {
           resetTemplateForm();
           setShowNewTemplate(true);
-        }}>
+        }} disabled={accounts.length === 0 || accounts.some(a => !a.phone_number)}>
           <Plus className="h-4 w-4 mr-2" />
           New Template
         </Button>
       </div>
 
+      {(accounts.length === 0 || accounts.some(a => !a.phone_number)) ? (
+        <Card className="max-w-2xl mx-auto mt-8">
+          <CardHeader>
+            <CardTitle>Complete WhatsApp Setup</CardTitle>
+            <CardDescription>
+              Enter your Meta API credentials to connect WhatsApp.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Phone Number ID</Label>
+                <Input
+                  placeholder="123456789012345"
+                  value={setupConfig.phoneNumberId}
+                  onChange={(e) => setSetupConfig({ ...setupConfig, phoneNumberId: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>WhatsApp Business Account ID</Label>
+                <Input
+                  placeholder="123456789012345"
+                  value={setupConfig.wabaId}
+                  onChange={(e) => setSetupConfig({ ...setupConfig, wabaId: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>System User Access Token</Label>
+                <Input
+                  type="password"
+                  placeholder="EAA..."
+                  value={setupConfig.accessToken}
+                  onChange={(e) => setSetupConfig({ ...setupConfig, accessToken: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+               <Button onClick={handleSaveSetup} disabled={isConfiguring || !setupConfig.phoneNumberId || !setupConfig.wabaId || !setupConfig.accessToken}>
+                 {isConfiguring ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                 Save Configuration
+               </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
       <Tabs defaultValue="accounts">
-        <TabsList className="bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-2xl w-full sm:w-auto h-auto grid grid-cols-2">
-          <TabsTrigger value="accounts" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm py-3 text-sm font-bold transition-all">Accounts & Status</TabsTrigger>
-          <TabsTrigger value="templates" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm py-3 text-sm font-bold transition-all">Message Templates</TabsTrigger>
+        <TabsList className="mb-4">
+          <TabsTrigger value="accounts">Accounts & Status</TabsTrigger>
+          <TabsTrigger value="templates">Message Templates</TabsTrigger>
         </TabsList>
 
         <TabsContent value="accounts">
@@ -911,6 +1012,7 @@ export default function WhatsAppManagementPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      )}
 
              {/* Enhanced Template Creation Modal with Preview */}
       <Dialog open={showNewTemplate} onOpenChange={setShowNewTemplate}>

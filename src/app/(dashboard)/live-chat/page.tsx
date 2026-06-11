@@ -87,7 +87,7 @@ export default function LiveChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoadingChats, setIsLoadingChats] = useState(true)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
-  const [showUserDetails, setShowUserDetails] = useState(false)
+  const [showUserDetails, setShowUserDetails] = useState(true)
   const unreadMessages = chats.reduce((acc, chat) => acc + (chat.user.unread_count || 0), 0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -306,40 +306,39 @@ export default function LiveChatPage() {
 
   return (
     <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
-      <div className="flex flex-col lg:flex-row h-full p-2 sm:p-4 lg:p-6 gap-2 sm:gap-4 lg:gap-6 overflow-hidden bg-slate-50/50 dark:bg-slate-950/20">
+      <div className="h-full overflow-hidden flex flex-col">
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-[var(--crm-surface-1)]">
 
         {/* ── Sidebar: Conversations ─────────────────────────────────────── */}
         <div className={cn(
-          "w-full lg:w-[340px] flex flex-col gap-4 shrink-0 overflow-hidden transition-all duration-300",
+            "w-full lg:w-[320px] flex flex-col shrink-0 overflow-hidden transition-all duration-300 border-r border-[var(--crm-border)] bg-[var(--crm-bg)]",
           activeChat ? "hidden lg:flex" : "flex"
         )}>
-          <div className="flex items-center justify-between shrink-0">
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              Conversations
-              <Badge className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800 pointer-events-none">
-                {unreadMessages || chats.length}
-              </Badge>
-            </h1>
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
+          <div className="p-4 border-b border-[var(--crm-border)] shrink-0 flex flex-col gap-4 bg-[var(--crm-bg)] z-10">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold text-[var(--crm-text-primary)] flex items-center gap-2">
+                Conversations
+                <Badge className="bg-[var(--crm-surface-2)] text-[var(--crm-text-primary)] border-[var(--crm-border)] pointer-events-none">
+                  {unreadMessages || chats.length}
+                </Badge>
+              </h1>
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-[var(--r-md)] hover:bg-[var(--crm-surface-2)]">
+                <MoreVertical className="h-4 w-4 text-[var(--crm-text-secondary)]" />
+              </Button>
+            </div>
+            <div className="relative group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-tertiary)] group-focus-within:text-[var(--crm-text-primary)] transition-colors" />
+              <Input
+                placeholder="Find customer..."
+                className="pl-9 h-9 bg-[var(--crm-surface-2)] border-[var(--crm-border)] hover:border-[var(--crm-border-hover)] focus:bg-[var(--crm-surface-1)] focus:border-[var(--crm-blue)] transition-all rounded-[var(--r-md)]"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
 
-          <Card className="flex-1 flex flex-col min-h-0 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800/50">
-            <div className="p-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="relative group">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                <Input
-                  placeholder="Find customer..."
-                  className="pl-9 h-10 bg-slate-50 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800 transition-all rounded-xl"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <ScrollArea className="flex-1 [&>div>div]:!block">
-              <div className="flex flex-col p-2 space-y-1 overflow-hidden">
+          <ScrollArea className="flex-1 [&>div>div]:!block bg-[var(--crm-bg)]">
+              <div className="flex flex-col overflow-hidden">
                 {isLoadingChats ? (
                   Array.from({ length: 6 }).map((_, i) => (
                     <div key={i} className="flex items-center gap-3 p-3 animate-pulse">
@@ -366,16 +365,16 @@ export default function LiveChatPage() {
                         fetchChatMessages(chat.id)
                       }}
                       className={cn(
-                        "flex items-center gap-3 p-3 rounded-2xl transition-all duration-200 group relative min-w-0 overflow-hidden",
+                        "flex items-center gap-3 p-4 border-b border-[var(--crm-border)] transition-all duration-200 group relative min-w-0 overflow-hidden",
                         activeChat?.id === chat.id
-                          ? "bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-200 dark:ring-indigo-500/30"
-                          : "hover:bg-slate-50 dark:hover:bg-slate-800/50 active:scale-[0.98]"
+                          ? "bg-[var(--crm-surface-2)]"
+                          : "hover:bg-[var(--crm-surface-2)] active:scale-[0.98]"
                       )}
                     >
                       <div className="relative shrink-0">
-                        <Avatar className="h-11 w-11 border-2 border-white dark:border-slate-900 shadow-sm">
+                        <Avatar className="h-10 w-10 border border-[var(--crm-border)]">
                           <AvatarImage src={chat.user.avatar} />
-                          <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 font-bold text-xs uppercase">
+                          <AvatarFallback className="bg-[var(--crm-surface-2)] font-bold text-xs uppercase text-[var(--crm-text-secondary)]">
                             {chat.user.name.substring(0, 2)}
                           </AvatarFallback>
                         </Avatar>
@@ -431,20 +430,19 @@ export default function LiveChatPage() {
                 )}
               </div>
             </ScrollArea>
-          </Card>
-        </div>
+          </div>
 
         {/* ── Main Chat Area ───────────────────────────────────────────── */}
         <div className={cn(
-          "flex-1 flex flex-col gap-4 overflow-hidden transition-all duration-300",
+          "flex-1 flex flex-col min-w-0 bg-[var(--crm-bg)] overflow-hidden transition-all duration-300",
           !activeChat ? "hidden lg:flex" : "flex"
         )}>
           {activeChat ? (
             <>
               {/* Header */}
-              <Card className="shrink-0 border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900/80 backdrop-blur-md rounded-2xl overflow-hidden ring-1 ring-slate-100 dark:ring-slate-800/50">
-                <div className="px-4 py-3 sm:px-5 sm:py-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3 sm:gap-4">
+              <div className="shrink-0 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
+                <div className="px-4 py-3 sm:px-4 sm:py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3 sm:gap-3">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -461,13 +459,13 @@ export default function LiveChatPage() {
                       <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 shadow-sm" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h2 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 truncate">
+                      <h2 className="font-bold text-[var(--crm-text-primary)] flex items-center gap-2 truncate">
                         <span className="truncate">{activeChat.user.name}</span>
                         {activeChat.priority === 'high' && <Badge className="bg-red-50 text-red-600 border-red-100 text-[10px] font-bold px-1.5 py-0 shrink-0">URGENT</Badge>}
                       </h2>
-                      <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5 mt-0.5 truncate">
+                      <p className="text-xs text-[var(--crm-text-secondary)] font-medium flex items-center gap-1.5 mt-0.5 truncate">
                         <span className="flex items-center gap-1"><Zap className="h-3 w-3 text-amber-500 fill-amber-500" /> <span className="hidden sm:inline">{activeChat.user.company}</span></span>
-                        <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">·</span>
+                        <span className="text-[var(--crm-text-tertiary)] hidden sm:inline">·</span>
                         <span>Active now</span>
                       </p>
                     </div>
@@ -475,32 +473,32 @@ export default function LiveChatPage() {
 
                   <div className="flex items-center gap-1 sm:gap-2">
                     <div className="hidden sm:flex items-center gap-2">
-                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800">
-                        <Phone className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-[var(--r-md)] border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)]">
+                        <Phone className="h-4 w-4 text-[var(--crm-text-secondary)]" />
                       </Button>
-                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800">
-                        <Video className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-[var(--r-md)] border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)]">
+                        <Video className="h-4 w-4 text-[var(--crm-text-secondary)]" />
                       </Button>
-                      <Separator orientation="vertical" className="h-6 mx-1 bg-slate-200 dark:bg-slate-800" />
+                      <Separator orientation="vertical" className="h-6 mx-1 bg-[var(--crm-border)]" />
                     </div>
                     <Button
                       variant="outline"
                       size="icon"
                       onClick={() => setShowUserDetails(!showUserDetails)}
                       className={cn(
-                        "h-9 w-9 rounded-xl transition-all",
-                        showUserDetails ? "bg-indigo-50 text-indigo-600 border-indigo-200" : "border-slate-200 dark:border-slate-800"
+                        "h-9 w-9 rounded-[var(--r-md)] transition-all",
+                        showUserDetails ? "bg-[var(--crm-blue-soft)] border-[var(--crm-blue-border)] text-[var(--crm-blue)]" : "border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)]"
                       )}
                     >
-                      <Info className="h-4 w-4" />
+                      <Info className="h-4 w-4 text-[var(--crm-text-secondary)]" />
                     </Button>
                   </div>
                 </div>
-              </Card>
+              </div>
 
-              {/* Messages Area */}
-              <div className="flex-1 flex gap-4 min-h-0">
-                <Card className="flex-1 flex flex-col min-h-0 border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900/50 backdrop-blur-sm rounded-2xl overflow-hidden ring-1 ring-slate-100 dark:ring-slate-800/50">
+              {/* Messages & Sidebar Wrapper */}
+              <div className="flex-1 flex flex-row min-h-0 overflow-hidden">
+                <div className="flex-1 flex flex-col min-w-0">
                   <ScrollArea className="flex-1 px-5 py-6">
                     {isLoadingMessages ? (
                       <div className="flex flex-col items-center justify-center h-full gap-4 text-slate-400">
@@ -521,9 +519,9 @@ export default function LiveChatPage() {
                           <div key={date} className="space-y-6">
                             <div className="relative flex justify-center">
                               <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                                <div className="w-full border-t border-slate-100 dark:border-slate-800" />
+                                <div className="w-full border-t border-[var(--crm-border)]" />
                               </div>
-                              <span className="relative px-3 py-1 bg-white dark:bg-slate-900 text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none rounded-full border border-slate-100 dark:border-slate-800 shadow-sm">
+                              <span className="relative px-3 py-1 bg-[var(--crm-surface-1)] text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest leading-none rounded-[var(--r-full)] border border-[var(--crm-border)]">
                                 {date}
                               </span>
                             </div>
@@ -534,10 +532,10 @@ export default function LiveChatPage() {
                                 <div key={msg.id} className={cn("flex w-full group animate-in fade-in slide-in-from-bottom-2 duration-300", isAgent ? "justify-end" : "justify-start")}>
                                   <div className={cn("max-w-[75%] flex flex-col", isAgent ? "items-end" : "items-start")}>
                                     <div className={cn(
-                                      "px-4 py-2.5 rounded-2xl shadow-sm relative group/msg",
+                                      "px-4 py-2.5 rounded-[var(--r-lg)] relative group/msg",
                                       isAgent
-                                        ? "bg-indigo-600 text-white rounded-tr-none"
-                                        : "bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 rounded-tl-none"
+                                        ? "bg-[var(--crm-blue-soft)] text-[var(--crm-text-primary)] border border-[var(--crm-blue-border)] rounded-tr-none shadow-sm"
+                                        : "bg-[var(--crm-surface-1)] text-[var(--crm-text-primary)] rounded-tl-none border border-[var(--crm-border)] shadow-sm"
                                     )}>
                                       <div className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere [word-break:break-word] min-w-[50px]">
                                         {(() => {
@@ -614,14 +612,17 @@ export default function LiveChatPage() {
 
                                         if (buttons.length > 0) {
                                           return (
-                                            <div className="mt-3 flex flex-wrap gap-2 border-t border-white/10 pt-3">
+                                            <div className={cn(
+                                              "mt-3 flex flex-wrap gap-2 pt-3",
+                                              isAgent ? "border-t border-[var(--crm-blue-border)]" : "border-t border-[var(--crm-border)]"
+                                            )}>
                                               {buttons.map((label, i) => (
-                                                <div
+                                                <button
                                                   key={i}
-                                                  className="px-3 py-1.5 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 text-[11px] font-bold uppercase tracking-wider"
+                                                  className="px-3 py-1.5 rounded-[var(--r-lg)] bg-[var(--crm-blue)] text-white hover:opacity-90 active:scale-95 transition-all text-[11px] font-bold uppercase tracking-wider shadow-sm"
                                                 >
                                                   {typeof label === 'string' ? label : 'Action'}
-                                                </div>
+                                                </button>
                                               ))}
                                             </div>
                                           );
@@ -632,12 +633,15 @@ export default function LiveChatPage() {
                                           const url = meta.interactive.action?.parameters?.url;
                                           const text = meta.interactive.action?.parameters?.display_text;
                                           return (
-                                            <div className="mt-3 border-t border-white/10 pt-3">
+                                            <div className={cn(
+                                              "mt-3 pt-3",
+                                              isAgent ? "border-t border-[var(--crm-blue-border)]" : "border-t border-[var(--crm-border)]"
+                                            )}>
                                               <a
                                                 href={typeof url === 'string' ? url : '#'}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white text-indigo-600 font-bold text-xs shadow-md hover:bg-slate-50 transition-colors"
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-[var(--r-lg)] bg-[var(--crm-blue)] text-white hover:opacity-90 active:scale-95 transition-all font-bold text-xs shadow-sm"
                                               >
                                                 <ExternalLink className="h-3.5 w-3.5" />
                                                 {typeof text === 'string' ? text : 'Visit Link'}
@@ -653,7 +657,7 @@ export default function LiveChatPage() {
 
                                       <div className={cn(
                                         "mt-1.5 flex items-center justify-end gap-1.5",
-                                        isAgent ? "text-white/80" : "text-slate-400"
+                                        isAgent ? "text-[var(--crm-blue)]" : "text-[var(--crm-text-tertiary)]"
                                       )}>
                                         <span className="text-[10px] font-bold uppercase tracking-tight">{msg.time}</span>
                                         {isAgent && (
@@ -665,7 +669,7 @@ export default function LiveChatPage() {
                                               <AlertCircle className="h-3.5 w-3.5 text-red-200" />
                                             )}
                                             {(msg.status === 'sent' || msg.status === 'delivered' || msg.status === 'read' || !msg.status) && (
-                                              <CheckCheck className={cn("h-4 w-4", msg.status === 'read' ? "text-blue-200" : "text-white/80")} />
+                                              <CheckCheck className={cn("h-4 w-4", msg.status === 'read' ? "text-blue-600" : "text-[var(--crm-blue)]/60")} />
                                             )}
                                           </div>
                                         )}
@@ -683,8 +687,8 @@ export default function LiveChatPage() {
                   </ScrollArea>
 
                   {/* Input Area */}
-                  <div className="p-4 bg-white/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800">
-                    <div className="relative flex items-end gap-2 p-2 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-transparent focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all">
+                  <div className="p-3 bg-[var(--crm-surface-1)] border-t border-[var(--crm-border)]">
+                    <div className="relative flex items-end gap-2 p-2 bg-[var(--crm-surface-2)] rounded-[var(--r-md)] border border-transparent focus-within:border-[var(--crm-border-hover)] transition-all">
                       <div className="flex shrink-0 pb-1.5 pl-1.5 gap-1">
                         <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-slate-400 hover:text-indigo-500 hover:bg-white dark:hover:bg-slate-900 transition-all">
                           <Paperclip className="h-4 w-4" />
@@ -714,7 +718,7 @@ export default function LiveChatPage() {
                         <Button
                           onClick={handleSend}
                           disabled={!message.trim() || isSending}
-                          className="h-9 w-9 p-0 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-500/30 transition-all active:scale-95 disabled:opacity-50 disabled:shadow-none"
+                          className="h-9 w-9 p-0 bg-[var(--crm-blue)] hover:opacity-90 text-white rounded-[var(--r-md)] transition-all active:scale-95 disabled:opacity-50"
                         >
                           {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                         </Button>
@@ -725,77 +729,74 @@ export default function LiveChatPage() {
                         <button
                           key={tag}
                           onClick={() => handleSend()} // Mock suggest
-                          className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider h-6 px-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-indigo-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition-colors whitespace-nowrap"
+                          className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider h-6 px-2.5 rounded-[var(--r-md)] border border-[var(--crm-border)] hover:border-[var(--crm-border-hover)] hover:bg-[var(--crm-surface-2)] transition-colors whitespace-nowrap"
                         >
                           {tag}
                         </button>
                       ))}
                     </div>
                   </div>
-                </Card>
+                </div>
 
                 {/* User Detailed Sidebar */}
                 {showUserDetails && (
-                  <Card className="w-[280px] shrink-0 border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 rounded-2xl p-6 flex flex-col gap-6 animate-in slide-in-from-right-4 duration-300">
+                  <div className="w-[280px] shrink-0 border-l border-[var(--crm-border)] bg-[var(--crm-surface-2)] p-4 flex flex-col gap-4 overflow-y-auto animate-in slide-in-from-right-4 duration-300">
                     <div className="text-center">
-                      <Avatar className="h-20 w-20 mx-auto shadow-xl ring-4 ring-slate-50 dark:ring-slate-800">
-                        <AvatarImage src={activeChat.user.avatar} />
-                        <AvatarFallback className="text-xl font-bold">{activeChat.user.name.substring(0, 2)}</AvatarFallback>
-                      </Avatar>
-                      <h3 className="font-bold text-lg text-slate-900 dark:text-white mt-4">{activeChat.user.name}</h3>
-                      <p className="text-xs text-slate-500 font-medium">{activeChat.user.company}</p>
+                      <h3 className="font-bold text-[15px] text-[var(--crm-text-primary)] mt-2">{activeChat.user.name}</h3>
+                      <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium">{activeChat.user.company}</p>
                     </div>
 
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <Label className="text-[10px] uppercase tracking-widest text-slate-400">Email Address</Label>
-                        <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{activeChat.user.email}</p>
+                    <div className="space-y-3">
+                      <div className="space-y-0.5">
+                        <Label className="text-[10px] uppercase tracking-widest text-[var(--crm-text-tertiary)]">Email Address</Label>
+                        <p className="text-[13px] font-medium text-[var(--crm-text-primary)] truncate">{activeChat.user.email || 'N/A'}</p>
+                      </div>
+                      <div className="space-y-0.5">
+                        <Label className="text-[10px] uppercase tracking-widest text-[var(--crm-text-tertiary)]">Location</Label>
+                        <p className="text-[13px] font-medium text-[var(--crm-text-primary)]">{activeChat.user.location || 'Unknown'}</p>
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[10px] uppercase tracking-widest text-slate-400">Location</Label>
-                        <p className="text-sm font-medium text-slate-900 dark:text-white">{activeChat.user.location}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[10px] uppercase tracking-widest text-slate-400">Current State</Label>
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 flex items-center gap-1 text-[10px]"><ShieldCheck className="h-3 w-3" /> VERIFIED</Badge>
-                          <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 text-[10px]">PREMIUM</Badge>
+                        <Label className="text-[10px] uppercase tracking-widest text-[var(--crm-text-tertiary)]">Status</Label>
+                        <div className="flex flex-wrap gap-1.5">
+                          <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 flex items-center gap-1 text-[9px] px-1.5 py-0"><ShieldCheck className="h-2.5 w-2.5" /> VERIFIED</Badge>
+                          <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 text-[9px] px-1.5 py-0">PREMIUM</Badge>
                         </div>
                       </div>
                     </div>
 
-                    <Separator className="bg-slate-100 dark:bg-slate-800" />
+                    <Separator className="bg-[var(--crm-border)]" />
 
-                    <div className="space-y-3">
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Common Tags</h4>
+                    <div className="space-y-2">
+                      <h4 className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Common Tags</h4>
                       <div className="flex flex-wrap gap-1.5">
                         {['New Lead', 'Enterprise', 'Support', 'Urgent'].map(t => (
-                          <span key={t} className="text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-1 rounded-md">{t}</span>
+                          <span key={t} className="text-[9px] font-semibold bg-[var(--crm-surface-1)] border border-[var(--crm-border)] text-[var(--crm-text-secondary)] px-2 py-0.5 rounded-[var(--r-md)]">{t}</span>
                         ))}
                       </div>
                     </div>
 
-                    <div className="mt-auto pt-4 flex flex-col gap-2">
-                      <Button variant="outline" className="w-full h-10 rounded-xl text-xs font-bold border-slate-200 dark:border-slate-800">Block Customer</Button>
-                      <Button className="w-full h-10 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 shadow-md">Mark as Resolved</Button>
+                    <div className="mt-auto pt-2 flex flex-col gap-2">
+                      <Button variant="outline" className="w-full h-8 rounded-[var(--r-md)] text-xs font-semibold border-[var(--crm-border)] hover:bg-[var(--crm-surface-1)]">Block Customer</Button>
+                      <Button className="w-full h-8 rounded-[var(--r-md)] text-xs font-semibold bg-[var(--crm-blue)] hover:opacity-90 text-white">Mark as Resolved</Button>
                     </div>
-                  </Card>
+                  </div>
                 )}
               </div>
             </>
           ) : (
-            <div className="h-full flex items-center justify-center text-center p-12">
+            <div className="h-full flex items-center justify-center text-center p-12 bg-[var(--crm-surface-1)]">
               <div className="max-w-md space-y-6">
-                <div className="h-24 w-24 mx-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center animate-bounce">
-                  <MessageSquare className="h-10 w-10 text-indigo-500" />
+                <div className="h-20 w-20 mx-auto rounded-[var(--r-lg)] bg-[var(--crm-surface-2)] border border-[var(--crm-border-hover)] flex items-center justify-center">
+                  <MessageSquare className="h-8 w-8 text-[var(--crm-text-tertiary)]" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Select a conversation</h2>
-                  <p className="text-slate-500 mt-2">Welcome back! Choose a customer from the left sidebar to start messaging and providing world-class support.</p>
+                  <h2 className="text-xl font-bold text-[var(--crm-text-primary)]">Select a conversation</h2>
+                  <p className="text-sm text-[var(--crm-text-secondary)] mt-2">Choose a customer from the left sidebar to start messaging and providing world-class support.</p>
                 </div>
               </div>
             </div>
           )}
+        </div>
         </div>
       </div>
     </RoleGuard>

@@ -135,13 +135,29 @@ export function FacebookConversionApiManager() {
     }
   }
 
-  const handleUpdateConfiguration = async (config: ConversionApiConfig) => {
+  const handleUpdateConfiguration = async (config: ConversionApiConfig & { access_token?: string }) => {
     try {
-      await integrationApi.updateConversionApiConfiguration({
-        integration_id: config.integration_id,
-        pixel_id: config.pixel_id,
-        test_event_code: testEventCode
-      })
+      if (!config.is_configured) {
+        // Complete the initial configuration via the main integration update endpoint
+        await integrationApi.updateIntegration(config.integration_id.toString(), {
+          type: 'facebook_conversion_api',
+          config: {
+            pixelId: config.pixel_id,
+            accessToken: config.access_token,
+            pageName: config.page_name,
+            testEventCode: testEventCode
+          },
+          isActive: true,
+          environment: 'production'
+        });
+      } else {
+        // Update existing configuration
+        await integrationApi.updateConversionApiConfiguration({
+          integration_id: config.integration_id,
+          pixel_id: config.pixel_id,
+          test_event_code: testEventCode
+        })
+      }
 
       toast({
         title: "Configuration Updated",
@@ -400,13 +416,37 @@ export function FacebookConversionApiManager() {
           <div className="space-y-4">
             <div className="grid gap-2">
               <Label>Page Name</Label>
-              <Input value={selectedConfig?.page_name || ''} disabled />
+              <Input 
+                value={selectedConfig?.page_name || ''} 
+                onChange={(e) => setSelectedConfig(prev => prev ? { ...prev, page_name: e.target.value } : null)}
+                disabled={!!selectedConfig?.is_configured}
+                placeholder="e.g. My Facebook Page"
+              />
             </div>
             
             <div className="grid gap-2">
               <Label>Pixel ID</Label>
-              <Input value={selectedConfig?.pixel_id || ''} disabled />
+              <Input 
+                value={selectedConfig?.pixel_id || ''} 
+                onChange={(e) => setSelectedConfig(prev => prev ? { ...prev, pixel_id: e.target.value } : null)}
+                disabled={!!selectedConfig?.is_configured}
+                placeholder="123456789012345"
+              />
             </div>
+            
+            {!selectedConfig?.is_configured && (
+              <div className="grid gap-2">
+                <Label>Access Token</Label>
+                <Input 
+                  type="password"
+                  placeholder="EAA..."
+                  onChange={(e) => {
+                    // Temporarily store access token in selectedConfig for submission
+                    setSelectedConfig(prev => prev ? { ...prev, access_token: e.target.value } as any : null)
+                  }}
+                />
+              </div>
+            )}
             
             <div className="grid gap-2">
               <Label>Test Event Code (Optional)</Label>
@@ -424,7 +464,7 @@ export function FacebookConversionApiManager() {
             </Button>
             <Button onClick={() => selectedConfig && handleUpdateConfiguration(selectedConfig)}>
               <Settings className="h-4 w-4 mr-2" />
-              Update Configuration
+              {selectedConfig?.is_configured ? 'Update Configuration' : 'Save Configuration'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -165,21 +165,16 @@ export default function TeamManagementPage() {
 
   return (
     <RoleGuard allowedRoles={['Super Admin', 'Admin']}>
-      <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950/20">
-        <div className="px-4 lg:px-6 py-6 space-y-4 w-full">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div>
-              <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Team Management</h1>
-              <p className="text-sm text-slate-500 font-medium italic">Members, roles, and access permissions.</p>
-            </div>
-            
+      <div className="flex flex-col space-y-4 w-full">
+        <div className="w-full">
+          {/* Header Actions */}
+          <div className="flex justify-end items-center gap-3">
             <Dialog open={isInviteModalOpen} onOpenChange={(v) => {
               setIsInviteModalOpen(v)
               if (!v) setError(null)
             }}>
               <DialogTrigger asChild>
-                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md shadow-indigo-500/20 rounded-xl px-5 h-10 text-sm transition-all hover:scale-[1.02]">
+                <Button className="btn-primary font-bold shadow-md shadow-indigo-500/20 rounded-xl px-5 h-10 text-sm transition-all hover:scale-[1.02]">
                   <UserPlus className="h-4 w-4 mr-2" />
                   Invite Member
                 </Button>
@@ -187,7 +182,7 @@ export default function TeamManagementPage() {
               <DialogContent className="sm:max-w-[425px] rounded-2xl">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-bold">Invite Team Member</DialogTitle>
-                  <DialogDescription className="font-medium text-slate-500">
+                  <DialogDescription className="font-medium text-[var(--crm-text-secondary)]">
                     Send an email invitation to add a new member.
                   </DialogDescription>
                 </DialogHeader>
@@ -201,29 +196,29 @@ export default function TeamManagementPage() {
 
                 <div className="grid gap-5 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="font-bold text-slate-700 dark:text-slate-300">Email address</Label>
+                    <Label htmlFor="email" className="font-bold text-[var(--crm-text-primary)]">Email address</Label>
                     <Input 
                       id="email" 
                       placeholder="colleague@company.com" 
                       type="email"
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
-                      className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                      className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)]"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="role" className="font-bold text-slate-700 dark:text-slate-300">Assign Role</Label>
+                    <Label htmlFor="role" className="font-bold text-[var(--crm-text-primary)]">Assign Role</Label>
                     <Select value={inviteRole} onValueChange={(v: Role) => setInviteRole(v)}>
-                      <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                      <SelectTrigger className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)]">
                         <SelectValue placeholder="Select a role" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800 p-1">
+                      <SelectContent className="rounded-xl border-[var(--crm-border)] p-1">
                         <SelectItem value="Admin" className="rounded-lg">
                           <div className="flex items-center py-0.5">
                             <ShieldCheck className="h-4 w-4 text-purple-500 mr-3" />
                             <div className="text-left">
                               <p className="font-bold text-sm">Admin</p>
-                              <p className="text-[10px] text-slate-500 font-medium">Full workspace control</p>
+                              <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium">Full workspace control</p>
                             </div>
                           </div>
                         </SelectItem>
@@ -232,7 +227,7 @@ export default function TeamManagementPage() {
                             <Star className="h-4 w-4 text-amber-500 mr-3" />
                             <div className="text-left">
                               <p className="font-bold text-sm">Manager</p>
-                              <p className="text-[10px] text-slate-500 font-medium">Manage leads, agents & reports</p>
+                              <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium">Manage leads, agents & reports</p>
                             </div>
                           </div>
                         </SelectItem>
@@ -241,7 +236,7 @@ export default function TeamManagementPage() {
                             <User className="h-4 w-4 text-blue-500 mr-3" />
                             <div className="text-left">
                               <p className="font-bold text-sm">Agent</p>
-                              <p className="text-[10px] text-slate-500 font-medium">Access assigned leads/meetings only</p>
+                              <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium">Access assigned leads/meetings only</p>
                             </div>
                           </div>
                         </SelectItem>
@@ -251,7 +246,7 @@ export default function TeamManagementPage() {
                 </div>
                 <DialogFooter>
                   <Button variant="ghost" onClick={() => setIsInviteModalOpen(false)} className="rounded-xl h-11 font-bold" disabled={isInviting}>Cancel</Button>
-                  <Button onClick={handleInvite} className="rounded-xl h-11 font-black bg-slate-900 dark:bg-white dark:text-slate-900 px-8" disabled={!inviteEmail || isInviting}>
+                  <Button onClick={handleInvite} className="rounded-xl h-11 font-black bg-slate-900 dark:bg-white dark:text-[var(--crm-text-primary)] px-8" disabled={!inviteEmail || isInviting}>
                     {isInviting ? (
                       <>
                         <div className="h-4 w-4 border-2 border-slate-400 border-t-white rounded-full animate-spin mr-2" />
@@ -266,12 +261,12 @@ export default function TeamManagementPage() {
 
 
         <Tabs defaultValue="directory" className="space-y-4">
-          <TabsList className="bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl h-11 border border-slate-200 dark:border-slate-800 w-fit">
-            <TabsTrigger value="directory" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
+          <TabsList className="bg-[var(--crm-surface-3)] p-1 rounded-xl h-11 border border-[var(--crm-border)] w-fit">
+            <TabsTrigger value="directory" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all">
               <Users className="h-4 w-4 mr-2" />
               Directory
             </TabsTrigger>
-            <TabsTrigger value="roles" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all">
+            <TabsTrigger value="roles" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all">
               <Shield className="h-4 w-4 mr-2" />
               Roles
             </TabsTrigger>
@@ -285,8 +280,8 @@ export default function TeamManagementPage() {
                   <Users className="h-4 w-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-500 uppercase mr-1.5">Total:</span>
-                  <span className="text-base font-black text-slate-900 dark:text-white">{members.length}</span>
+                  <span className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase mr-1.5">Total:</span>
+                  <span className="text-base font-black text-[var(--crm-text-primary)]">{members.length}</span>
                 </div>
               </div>
 
@@ -295,8 +290,8 @@ export default function TeamManagementPage() {
                   <ShieldCheck className="h-4 w-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-500 uppercase mr-1.5">Admins:</span>
-                  <span className="text-base font-black text-slate-900 dark:text-white">{members.filter(m => m.role === 'Admin').length}</span>
+                  <span className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase mr-1.5">Admins:</span>
+                  <span className="text-base font-black text-[var(--crm-text-primary)]">{members.filter(m => m.role === 'Admin').length}</span>
                 </div>
               </div>
 
@@ -305,8 +300,8 @@ export default function TeamManagementPage() {
                   <User className="h-4 w-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-500 uppercase mr-1.5">Agents:</span>
-                  <span className="text-base font-black text-slate-900 dark:text-white">{members.filter(m => m.role === 'Agent').length}</span>
+                  <span className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase mr-1.5">Agents:</span>
+                  <span className="text-base font-black text-[var(--crm-text-primary)]">{members.filter(m => m.role === 'Agent').length}</span>
                 </div>
               </div>
 
@@ -315,50 +310,50 @@ export default function TeamManagementPage() {
                   <Mail className="h-4 w-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-500 uppercase mr-1.5">Pending:</span>
-                  <span className="text-base font-black text-slate-900 dark:text-white">{members.filter(m => m.status === 'Invited').length}</span>
+                  <span className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase mr-1.5">Pending:</span>
+                  <span className="text-base font-black text-[var(--crm-text-primary)]">{members.filter(m => m.status === 'Invited').length}</span>
                 </div>
               </div>
             </div>
 
             {/* Members Table */}
-            <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-xl ring-1 ring-slate-100 dark:ring-slate-800 overflow-hidden">
-              <CardHeader className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 py-4 px-6">
+            <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden">
+              <CardHeader className="border-b border-[var(--crm-border)] bg-[var(--crm-surface-2)] py-4 px-6">
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Directory</CardTitle>
+                  <CardTitle className="text-base font-bold text-[var(--crm-text-primary)]">Directory</CardTitle>
                   <div className="relative w-full sm:w-72">
                     <Input 
                       placeholder="Search members..." 
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="h-9 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg text-sm shadow-sm pl-4"
+                      className="h-9 bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-lg text-sm shadow-sm pl-4"
                     />
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
-                  <TableHeader className="bg-slate-50/80 dark:bg-slate-900">
-                    <TableRow className="border-slate-100 dark:border-slate-800 hover:bg-transparent">
-                      <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-xs py-4 pl-6">User</TableHead>
-                      <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-xs py-4">Role</TableHead>
-                      <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-xs py-4">Status</TableHead>
-                      <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-xs py-4">Last Active</TableHead>
-                      <TableHead className="text-right font-bold text-slate-500 uppercase tracking-wider text-xs py-4 pr-6">Actions</TableHead>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4 pl-6">User</TableHead>
+                      <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4">Role</TableHead>
+                      <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4">Status</TableHead>
+                      <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4">Last Active</TableHead>
+                      <TableHead className="text-right font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4 pr-6">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredMembers.length > 0 ? (
                       filteredMembers.map((member) => (
-                        <TableRow key={member.id} className="border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                        <TableRow key={member.id}>
                           <TableCell className="py-4 pl-6">
                             <div className="flex items-center gap-3">
                               <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-100 to-blue-50 dark:from-indigo-900/40 dark:to-blue-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm ring-1 ring-white dark:ring-slate-900 shadow-sm shrink-0">
                                 {member.name ? member.name.charAt(0) : member.email.charAt(0).toUpperCase()}
                               </div>
                               <div className="min-w-0">
-                                <p className="font-bold text-slate-900 dark:text-white text-sm truncate">{member.name || 'Invited User'}</p>
-                                <p className="text-xs text-slate-500 truncate">{member.email}</p>
+                                <p className="font-bold text-[var(--crm-text-primary)] text-sm truncate">{member.name || 'Invited User'}</p>
+                                <p className="text-xs text-[var(--crm-text-secondary)] truncate">{member.email}</p>
                               </div>
                             </div>
                           </TableCell>
@@ -374,25 +369,25 @@ export default function TeamManagementPage() {
                                 member.status === 'Active' ? 'bg-emerald-500' : 
                                 member.status === 'Invited' ? 'bg-amber-400' : 'bg-red-500'
                               }`} />
-                              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{member.status}</span>
+                              <span className="text-sm font-semibold text-[var(--crm-text-primary)]">{member.status}</span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-sm text-slate-500 font-medium">
+                          <TableCell className="text-sm text-[var(--crm-text-secondary)] font-medium">
                             {member.lastActive}
                           </TableCell>
                           <TableCell className="text-right pr-6">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500">
+                                <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-[var(--crm-surface-hover)] rounded-lg text-[var(--crm-text-secondary)]">
                                   <span className="sr-only">Open menu</span>
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48 rounded-xl border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-slate-950 p-1">
-                                <DropdownMenuLabel className="font-bold text-xs uppercase tracking-wider text-slate-500 px-2 py-1.5">Manage Member</DropdownMenuLabel>
+                              <DropdownMenuContent align="end" className="w-48 rounded-xl border-[var(--crm-border)] shadow-xl bg-[var(--crm-surface-1)] p-1">
+                                <DropdownMenuLabel className="font-bold text-xs uppercase tracking-wider text-[var(--crm-text-secondary)] px-2 py-1.5">Manage Member</DropdownMenuLabel>
                                 <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
                                 <DropdownMenuItem 
-                                  className="cursor-pointer font-medium py-2 px-2.5 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-lg text-slate-700 dark:text-slate-300"
+                                  className="cursor-pointer font-medium py-2 px-2.5 focus:bg-[var(--crm-surface-hover)] rounded-lg text-[var(--crm-text-primary)]"
                                   onClick={() => {
                                     setEditingMember({...member})
                                     setIsEditModalOpen(true)
@@ -402,7 +397,7 @@ export default function TeamManagementPage() {
                                 </DropdownMenuItem>
                                 {member.status === 'Invited' && (
                                   <DropdownMenuItem 
-                                    className="cursor-pointer font-medium py-2 px-2.5 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-lg text-indigo-600 dark:text-indigo-400 mt-1"
+                                    className="cursor-pointer font-medium py-2 px-2.5 focus:bg-[var(--crm-surface-hover)] rounded-lg text-indigo-600 dark:text-indigo-400 mt-1"
                                     onClick={() => handleResendInvite(member.id)}
                                   >
                                     <Mail className="mr-2 h-4 w-4" /> Resend Invite
@@ -421,7 +416,7 @@ export default function TeamManagementPage() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={5} className="h-32 text-center text-slate-500 font-medium">
+                        <TableCell colSpan={5} className="h-32 text-center text-[var(--crm-text-secondary)] font-medium">
                           No team members found matching your search.
                         </TableCell>
                       </TableRow>
@@ -433,16 +428,16 @@ export default function TeamManagementPage() {
           </TabsContent>
 
           <TabsContent value="roles" className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-xl ring-1 ring-slate-100 dark:ring-slate-800 overflow-hidden">
-              <CardHeader className="border-b border-slate-100 dark:border-slate-800 py-4 px-6">
-                <CardTitle className="text-base font-bold">Permissions Matrix</CardTitle>
-                <CardDescription className="text-xs">Access level breakdown for each role.</CardDescription>
+            <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden">
+              <CardHeader className="border-b border-[var(--crm-border)] py-4 px-6 bg-[var(--crm-surface-2)]">
+                <CardTitle className="text-base font-bold text-[var(--crm-text-primary)]">Permissions Matrix</CardTitle>
+                <CardDescription className="text-xs text-[var(--crm-text-secondary)]">Access level breakdown for each role.</CardDescription>
               </CardHeader>
               <CardContent className="p-0 overflow-x-auto">
                 <Table className="min-w-[600px]">
-                  <TableHeader className="bg-slate-50/80 dark:bg-slate-900">
-                    <TableRow className="hover:bg-transparent border-slate-100 dark:border-slate-800">
-                      <TableHead className="font-bold text-slate-700 py-4 pl-6">Feature / Access</TableHead>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="font-bold text-[var(--crm-text-primary)] py-4 pl-6">Feature / Access</TableHead>
                       <TableHead className="text-center font-bold text-purple-600">Admin</TableHead>
                       <TableHead className="text-center font-bold text-amber-500">Manager</TableHead>
                       <TableHead className="text-center font-bold text-blue-500">Agent</TableHead>
@@ -450,29 +445,29 @@ export default function TeamManagementPage() {
                   </TableHeader>
                   <TableBody>
                     {permissions.map((perm, idx) => (
-                      <TableRow key={idx} className="border-slate-100 dark:border-slate-800 hover:bg-slate-50/50">
+                      <TableRow key={idx}>
                         <TableCell className="py-4 pl-6">
-                          <p className="font-bold text-sm text-slate-900 dark:text-white">{perm.name}</p>
-                          <p className="text-xs text-slate-500 leading-tight">{perm.description}</p>
+                          <p className="font-bold text-sm text-[var(--crm-text-primary)]">{perm.name}</p>
+                          <p className="text-xs text-[var(--crm-text-secondary)] leading-tight">{perm.description}</p>
                         </TableCell>
                         <TableCell className="text-center">
-                          {perm.admin ? <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" /> : <XCircle className="h-4 w-4 text-slate-200 dark:text-slate-800 mx-auto" />}
+                          {perm.admin ? <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" /> : <XCircle className="h-4 w-4 text-[var(--crm-border)] mx-auto" />}
                         </TableCell>
                         <TableCell className="text-center">
-                          {perm.manager ? <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" /> : <XCircle className="h-4 w-4 text-slate-200 dark:text-slate-800 mx-auto" />}
+                          {perm.manager ? <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" /> : <XCircle className="h-4 w-4 text-[var(--crm-border)] mx-auto" />}
                         </TableCell>
                         <TableCell className="text-center">
-                          {perm.agent ? <CheckCircle2 className="h-5 w-5 text-emerald-500 mx-auto" /> : <XCircle className="h-5 w-5 text-slate-200 dark:text-slate-800 mx-auto" />}
+                          {perm.agent ? <CheckCircle2 className="h-5 w-5 text-emerald-500 mx-auto" /> : <XCircle className="h-5 w-5 text-[var(--crm-border)] mx-auto" />}
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </CardContent>
-              <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 p-6">
+              <CardFooter className="bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)] p-6">
                 <div className="flex items-start gap-3">
                   <Info className="h-5 w-5 text-indigo-500 shrink-0 mt-0.5" />
-                  <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                  <p className="text-xs text-[var(--crm-text-secondary)] leading-relaxed font-medium">
                     Permissions are global and affect all members with the assigned role. Currently, custom role creation is limited to enterprise plans. 
                     Contact support to learn more about granular access control.
                   </p>
@@ -486,7 +481,7 @@ export default function TeamManagementPage() {
                 { role: 'Manager', color: 'amber', shadow: 'amber', desc: 'Can manage leads and oversee agent performance.', icon: Star },
                 { role: 'Agent', color: 'blue', shadow: 'blue', desc: 'Dedicated to lead processing and chat interactions.', icon: User }
               ].map((role) => (
-                <Card key={role.role} className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-xl ring-1 ring-slate-100 dark:ring-slate-800 p-4 flex flex-col items-center text-center group hover:ring-indigo-500/50 transition-all duration-300">
+                <Card key={role.role} className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] p-4 flex flex-col items-center text-center group hover:ring-indigo-500/50 transition-all duration-300">
                   <div className={cn(
                     "h-10 w-10 rounded-xl flex items-center justify-center mb-3 transition-all duration-300",
                     role.role === 'Admin' ? "bg-purple-50 text-purple-600 dark:bg-purple-900/20" : 
@@ -495,9 +490,9 @@ export default function TeamManagementPage() {
                   )}>
                     <role.icon className="h-5 w-5" />
                   </div>
-                  <h4 className="font-bold text-slate-900 dark:text-white mb-1 text-sm">{role.role} Role</h4>
-                  <p className="text-[10px] text-slate-500 mb-4 flex-1 px-1">{role.desc}</p>
-                  <Button variant="outline" className="w-full rounded-lg font-bold text-[9px] uppercase tracking-wider h-8 border-slate-200 dark:border-slate-800 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 transition-colors">
+                  <h4 className="font-bold text-[var(--crm-text-primary)] mb-1 text-sm">{role.role} Role</h4>
+                  <p className="text-[10px] text-[var(--crm-text-secondary)] mb-4 flex-1 px-1">{role.desc}</p>
+                  <Button variant="outline" className="w-full rounded-lg font-bold text-[9px] uppercase tracking-wider h-8 border-[var(--crm-border)] group-hover:bg-slate-50 dark:group-hover:bg-slate-800 transition-colors">
                     View Members
                   </Button>
                 </Card>
@@ -514,7 +509,7 @@ export default function TeamManagementPage() {
           <DialogContent className="sm:max-w-[425px] rounded-2xl">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold tracking-tight">Edit Member Role</DialogTitle>
-              <DialogDescription className="font-medium text-slate-500">
+              <DialogDescription className="font-medium text-[var(--crm-text-secondary)]">
                 Change the access level for this team member.
               </DialogDescription>
             </DialogHeader>
@@ -528,12 +523,12 @@ export default function TeamManagementPage() {
 
             <div className="grid gap-5 py-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-role" className="font-bold text-slate-700">Role & Permissions</Label>
+                <Label htmlFor="edit-role" className="font-bold text-[var(--crm-text-primary)]">Role & Permissions</Label>
                 <Select 
                   value={editingMember?.role} 
                   onValueChange={(v: Role) => setEditingMember(prev => prev ? {...prev, role: v} : null)}
                 >
-                  <SelectTrigger className="h-11 rounded-lg bg-slate-50 border-slate-200">
+                  <SelectTrigger className="h-11 rounded-lg bg-slate-50 border-[var(--crm-border)]">
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -542,7 +537,7 @@ export default function TeamManagementPage() {
                         <ShieldCheck className="h-4 w-4 text-purple-500 mr-2" />
                         <div>
                           <p className="font-bold">Admin</p>
-                          <p className="text-[10px] text-slate-500">Full access to all settings and billing</p>
+                          <p className="text-[10px] text-[var(--crm-text-secondary)]">Full access to all settings and billing</p>
                         </div>
                       </div>
                     </SelectItem>
@@ -551,7 +546,7 @@ export default function TeamManagementPage() {
                         <Star className="h-4 w-4 text-amber-500 mr-2" />
                         <div>
                           <p className="font-bold">Manager</p>
-                          <p className="text-[10px] text-slate-500">Can manage leads, agents, and reports</p>
+                          <p className="text-[10px] text-[var(--crm-text-secondary)]">Can manage leads, agents, and reports</p>
                         </div>
                       </div>
                     </SelectItem>
@@ -560,7 +555,7 @@ export default function TeamManagementPage() {
                         <User className="h-4 w-4 text-blue-500 mr-2" />
                         <div>
                           <p className="font-bold">Agent</p>
-                          <p className="text-[10px] text-slate-500">Can only handle assigned leads and calls</p>
+                          <p className="text-[10px] text-[var(--crm-text-secondary)]">Can only handle assigned leads and calls</p>
                         </div>
                       </div>
                     </SelectItem>
@@ -569,8 +564,8 @@ export default function TeamManagementPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="rounded-lg h-10 font-bold border-slate-200" disabled={isUpdating}>Cancel</Button>
-              <Button onClick={handleUpdateRole} className="rounded-lg h-10 font-bold bg-indigo-600 hover:bg-indigo-700 shadow-sm" disabled={isUpdating}>
+              <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="rounded-lg h-10 font-bold border-[var(--crm-border)] bg-[var(--crm-surface-2)] hover:bg-[var(--crm-surface-3)] text-[var(--crm-text-primary)]" disabled={isUpdating}>Cancel</Button>
+              <Button onClick={handleUpdateRole} className="rounded-lg h-10 font-bold btn-primary" disabled={isUpdating}>
                 {isUpdating ? (
                   <>
                     <div className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
@@ -581,9 +576,8 @@ export default function TeamManagementPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
-    </div>
-  </RoleGuard>
+    </RoleGuard>
   )
 }
-

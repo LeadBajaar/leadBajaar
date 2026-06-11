@@ -37,6 +37,8 @@ interface LeadsFiltersProps {
   handleImportClick?: () => void;
   openFacebookRetrieval?: () => void;
   stages: Record<string, any>;
+  viewMode: 'table' | 'kanban';
+  setViewMode: (mode: 'table' | 'kanban') => void;
 }
 
 export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
@@ -51,39 +53,37 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
   setShowExportDialog,
   handleImportClick,
   openFacebookRetrieval,
-  stages
+  stages,
+  viewMode,
+  setViewMode
 }) => {
   return (
-    <div className="shrink-0 flex flex-col border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <div className="shrink-0 flex flex-col border-b" style={{ borderColor: 'var(--crm-border)' }}>
       {/* Row 1: Search and Main Actions */}
-      <div className="px-4 py-2.5">
-        <div className="flex items-center justify-between gap-4">
+      <div className="px-3 py-1.5">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 flex-1 max-w-md">
             <div className="relative flex-1">
               {isSearching ? (
-                <Loader2 className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 animate-spin" />
+                <i className="ti ti-loader absolute left-2.5 top-1/2 -translate-y-1/2 text-[14px] text-[var(--crm-text-tertiary)] animate-spin" />
               ) : (
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <i className="ti ti-search absolute left-2.5 top-1/2 -translate-y-1/2 text-[14px] text-[var(--crm-text-tertiary)]" />
               )}
-              <Input
+              <input
                 placeholder="Search leads..."
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                className={cn(
-                  "pl-9 h-9 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800 transition-colors text-xs",
-                  isSearching && "border-indigo-300"
-                )}
+                className="crm-input !pl-8 h-7 text-[12px]"
               />
             </div>
 
             {/* Mobile-only Add Lead button */}
-            <Button
+            <button
               onClick={() => setShowNewLead?.(true)}
-              size="icon"
-              className="h-9 w-9 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm sm:hidden shrink-0"
+              className="btn btn-primary sm:hidden shrink-0 w-9 h-9 p-0 justify-center"
             >
-              <Plus className="h-4 w-4" />
-            </Button>
+              <i className="ti ti-plus" />
+            </button>
           </div>
 
           {/* Desktop Actions */}
@@ -97,60 +97,71 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
             )}
 
             {setShowStageManager && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setShowStageManager(true)}
-                      className="h-9 w-9 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
-                    >
-                      <Settings2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Manage Lead Stages</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <button
+                onClick={() => setShowStageManager(true)}
+                className="btn btn-secondary h-8 px-3 text-[12px]"
+              >
+                <i className="ti ti-settings" />
+                <span className="hidden lg:inline">Manage Stages</span>
+              </button>
             )}
 
-            <Button
-              onClick={() => setShowNewLead?.(true)}
-              className="h-9 bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5 shadow-sm text-xs font-bold"
-            >
-              <Plus className="h-4 w-4" />
-              Add Lead
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 px-3 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs"
+            <button
               onClick={() => setShowExportDialog?.(true)}
+              className="btn btn-secondary h-8 px-3 text-[12px]"
             >
-              <FileDown className="h-4 w-4 lg:mr-1.5" />
+              <i className="ti ti-download" />
               <span className="hidden lg:inline">Export</span>
-            </Button>
+            </button>
 
-            <Button
+            <button
               onClick={() => handleImportClick?.()}
-              variant="outline"
-              className="h-9 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs"
+              className="btn btn-secondary h-8 px-3 text-[12px]"
             >
-              <FileUp className="h-4 w-4 lg:mr-1.5" />
+              <i className="ti ti-upload" />
               <span className="hidden lg:inline">Import</span>
-            </Button>
+            </button>
 
-            <Button
-              variant="outline"
+            <button
               onClick={() => openFacebookRetrieval?.()}
-              className="h-9 px-3 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs"
+              className="btn btn-secondary h-8 px-3 text-[12px]"
             >
-              <Facebook className="h-4 w-4 lg:mr-1.5" />
+              <i className="ti ti-brand-facebook" />
               <span className="hidden lg:inline">Sync Leads</span>
-            </Button>
+            </button>
+
+            <button
+              onClick={() => setShowNewLead?.(true)}
+              className="btn btn-primary h-8 px-3 text-[12px]"
+            >
+              <i className="ti ti-plus" />
+              Add Lead
+            </button>
+
+            <div className="w-[1px] h-4 bg-[var(--crm-border)] mx-1" />
+
+            <div className="flex bg-[var(--crm-surface-2)] p-0.5 rounded-[var(--r-md)] border border-[var(--crm-border)]">
+              <button
+                onClick={() => setViewMode('table')}
+                className={cn(
+                  "px-2 py-1 rounded-[var(--r-sm)] text-[11px] font-semibold transition-all",
+                  viewMode === 'table' ? "bg-[var(--crm-surface-1)] shadow-sm text-[var(--crm-text-primary)]" : "text-[var(--crm-text-tertiary)] hover:text-[var(--crm-text-secondary)]"
+                )}
+              >
+                <i className="ti ti-list mr-1" />
+                Table
+              </button>
+              <button
+                onClick={() => setViewMode('kanban')}
+                className={cn(
+                  "px-2 py-1 rounded-[var(--r-sm)] text-[11px] font-semibold transition-all",
+                  viewMode === 'kanban' ? "bg-[var(--crm-surface-1)] shadow-sm text-[var(--crm-text-primary)]" : "text-[var(--crm-text-tertiary)] hover:text-[var(--crm-text-secondary)]"
+                )}
+              >
+                <i className="ti ti-layout-kanban mr-1" />
+                Board
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -159,10 +170,10 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
       <div className="hidden sm:block overflow-x-auto px-4 pt-1 pb-2.5 no-scrollbar">
         <div className="flex items-center gap-2 min-w-max">
           {/* Status Group */}
-          <div className="flex items-center gap-1.5 p-1 rounded-lg bg-slate-100/50 dark:bg-slate-800/30">
+          <div className="flex items-center gap-1.5 p-1 rounded-[var(--r-md)] bg-[var(--crm-surface-2)]">
             <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
-              <SelectTrigger className="h-7 w-[90px] border-none bg-transparent text-[10px] sm:text-[11px] font-medium focus:ring-0">
-                <Thermometer className="mr-1 h-3 w-3 text-slate-500 shrink-0" />
+              <SelectTrigger className="h-7 w-[90px] border-none bg-transparent text-[11px] font-medium focus:ring-0 shadow-none text-[var(--crm-text-primary)]">
+                <i className="ti ti-temperature text-[13px] mr-1 text-[var(--crm-text-secondary)] shrink-0" />
                 <SelectValue placeholder="Temp" />
               </SelectTrigger>
               <SelectContent>
@@ -173,11 +184,11 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
               </SelectContent>
             </Select>
 
-            <Separator orientation="vertical" className="h-4 bg-slate-200 dark:bg-slate-700" />
+            <div className="w-[1px] h-4 bg-[var(--crm-border)]" />
 
             <Select value={filters.stage} onValueChange={(value) => handleFilterChange('stage', value)}>
-              <SelectTrigger className="h-7 w-[100px] border-none bg-transparent text-[10px] sm:text-[11px] font-medium focus:ring-0">
-                <Tag className="mr-1 h-3 w-3 text-slate-500 shrink-0" />
+              <SelectTrigger className="h-7 w-[100px] border-none bg-transparent text-[11px] font-medium focus:ring-0 shadow-none text-[var(--crm-text-primary)]">
+                <i className="ti ti-tag text-[13px] mr-1 text-[var(--crm-text-secondary)] shrink-0" />
                 <SelectValue placeholder="Stage" />
               </SelectTrigger>
               <SelectContent>
@@ -189,10 +200,10 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
             </Select>
           </div>
 
-          <div className="flex items-center gap-1.5 p-1 rounded-lg bg-slate-100/50 dark:bg-slate-800/30">
+          <div className="flex items-center gap-1.5 p-1 rounded-[var(--r-md)] bg-[var(--crm-surface-2)]">
             <Select value={filters.source} onValueChange={(value) => handleFilterChange('source', value)}>
-              <SelectTrigger className="h-7 w-[100px] border-none bg-transparent text-[10px] sm:text-[11px] font-medium focus:ring-0">
-                <Globe className="mr-1 h-3 w-3 text-slate-500 shrink-0" />
+              <SelectTrigger className="h-7 w-[100px] border-none bg-transparent text-[11px] font-medium focus:ring-0 shadow-none text-[var(--crm-text-primary)]">
+                <i className="ti ti-world text-[13px] mr-1 text-[var(--crm-text-secondary)] shrink-0" />
                 <SelectValue placeholder="Source" />
               </SelectTrigger>
               <SelectContent>
@@ -205,30 +216,29 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
           </div>
 
           {/* Date Group */}
-          <div className="flex items-center gap-1.5 p-1 rounded-lg bg-slate-100/50 dark:bg-slate-800/30">
+          <div className="flex items-center gap-1.5 p-1 rounded-[var(--r-md)] bg-[var(--crm-surface-2)]">
             <DateRangePicker
               value={filters.dateRange}
               onChange={(range) => handleFilterChange('dateRange', range)}
               placeholder="Last Contact"
-              className="h-7 w-[160px] border-none bg-transparent text-[10px] sm:text-[11px] font-medium"
+              className="h-7 w-[160px] border-none bg-transparent text-[11px] font-medium shadow-none text-[var(--crm-text-primary)]"
             />
-            <Separator orientation="vertical" className="h-4 bg-slate-200 dark:bg-slate-700" />
+            <div className="w-[1px] h-4 bg-[var(--crm-border)]" />
             <DateRangePicker
               value={filters.createdAt}
               onChange={(range) => handleFilterChange('createdAt', range)}
               placeholder="Created Date"
-              className="h-7 w-[160px] border-none bg-transparent text-[10px] sm:text-[11px] font-medium"
+              className="h-7 w-[160px] border-none bg-transparent text-[11px] font-medium shadow-none text-[var(--crm-text-primary)]"
             />
           </div>
 
-          <Button
-            variant="ghost"
+          <button
             onClick={clearFilters}
-            className="h-8 px-3 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all rounded-lg text-xs font-semibold"
+            className="filter-pill"
           >
-            <RefreshCcw className="mr-1.5 h-3 w-3" />
+            <i className="ti ti-refresh" />
             Clear
-          </Button>
+          </button>
         </div>
       </div>
     </div>

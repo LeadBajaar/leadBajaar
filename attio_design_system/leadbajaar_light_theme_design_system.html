@@ -1,0 +1,608 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+--bg:#f5f4f2;--s1:#ffffff;--s2:#f0efed;--s3:#e8e7e4;--s4:#dddcda;
+--b:rgba(0,0,0,0.07);--bh:rgba(0,0,0,0.12);--bp:rgba(0,0,0,0.18);
+--t1:#1a1a18;--t2:#5a5a56;--t3:#9a9a96;
+--ac:#6b5ce7;--acs:rgba(107,92,231,0.10);--acb:rgba(107,92,231,0.20);
+--gr:#16a34a;--grs:rgba(22,163,74,0.10);--grb:rgba(22,163,74,0.20);
+--am:#d97706;--ams:rgba(217,119,6,0.10);--amb:rgba(217,119,6,0.20);
+--rd:#dc2626;--rds:rgba(220,38,38,0.10);--rdb:rgba(220,38,38,0.20);
+--bl:#2563eb;--bls:rgba(37,99,235,0.10);--blb:rgba(37,99,235,0.20);
+--rsm:5px;--rmd:7px;--rlg:10px;--rxl:14px;--rpill:99px;
+}
+.ds{background:var(--bg);color:var(--t1);font-family:-apple-system,'SF Pro Text',sans-serif;font-size:13px;line-height:1.5;padding-bottom:48px;}
+.sec{padding:28px 24px 0;}
+.sec-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:14px;padding-bottom:8px;border-bottom:.5px solid var(--b);}
+.divider{height:.5px;background:var(--b);margin:24px 0 0;}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+.card{background:var(--s1);border:.5px solid var(--b);border-radius:var(--rxl);padding:16px;}
+.clabel{font-size:10px;font-weight:600;letter-spacing:.10em;text-transform:uppercase;color:var(--t3);margin-bottom:12px;}
+.tok{display:flex;align-items:center;padding:6px 0;border-bottom:.5px solid var(--b);gap:10px;}
+.tok:last-child{border-bottom:none;}
+.tok-k{font-size:11px;color:var(--t2);font-family:monospace;flex:1;}
+.tok-v{font-size:11px;color:var(--t3);}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:var(--rpill);font-size:11px;font-weight:500;}
+.badge-dot{width:6px;height:6px;border-radius:50%;}
+.btn{display:inline-flex;align-items:center;gap:6px;border-radius:var(--rmd);font-size:13px;font-weight:500;padding:7px 13px;border:none;cursor:pointer;white-space:nowrap;}
+.btn-primary{background:var(--ac);color:#fff;}
+.btn-secondary{background:var(--s1);color:var(--t1);border:.5px solid var(--bh);}
+.btn-ghost{background:transparent;color:var(--t2);border:.5px solid var(--b);}
+.btn-danger{background:var(--rds);color:var(--rd);border:.5px solid var(--rdb);}
+.btn-xs{padding:4px 9px;font-size:11px;border-radius:var(--rsm);}
+.btn-icon{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--rsm);background:var(--s1);border:.5px solid var(--b);color:var(--t2);cursor:pointer;font-size:14px;}
+.attio-input{background:var(--s1);border:.5px solid var(--bh);border-radius:var(--rmd);padding:7px 10px;font-size:13px;color:var(--t1);outline:none;width:100%;transition:border-color .12s;}
+.attio-input:focus{border-color:rgba(107,92,231,.5);}
+.attio-input::placeholder{color:var(--t3);}
+</style>
+
+<div class="ds">
+
+<div style="padding:24px 24px 0;display:flex;align-items:center;gap:10px;">
+  <div style="width:30px;height:30px;border-radius:8px;background:var(--ac);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;">LB</div>
+  <div>
+    <div style="font-size:15px;font-weight:500;color:var(--t1);">LeadBajaar — Light Theme Design System</div>
+    <div style="font-size:11px;color:var(--t3);">Full token set · all components · light mode only</div>
+  </div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:6px;background:var(--s1);border:.5px solid var(--b);border-radius:var(--rpill);padding:4px 12px;">
+    <i class="ti ti-sun" style="font-size:14px;color:var(--am);" aria-hidden="true"></i>
+    <span style="font-size:11px;font-weight:500;color:var(--t2);">Light Mode</span>
+  </div>
+</div>
+
+<div class="divider" style="margin:18px 0 0;"></div>
+
+<!-- COLOR TOKENS -->
+<div class="sec">
+  <div class="sec-label">01 — Color Tokens</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-bottom:16px;">
+    <div style="border-radius:var(--rmd);overflow:hidden;border:.5px solid var(--b);">
+      <div style="height:40px;background:#f5f4f2;border-bottom:.5px solid var(--b);"></div>
+      <div style="background:var(--s1);padding:7px 9px;"><div style="font-size:11px;font-weight:500;color:var(--t1);">bg-base</div><div style="font-size:10px;color:var(--t3);font-family:monospace;">#f5f4f2</div></div>
+    </div>
+    <div style="border-radius:var(--rmd);overflow:hidden;border:.5px solid var(--b);">
+      <div style="height:40px;background:#ffffff;border-bottom:.5px solid var(--b);"></div>
+      <div style="background:var(--s1);padding:7px 9px;"><div style="font-size:11px;font-weight:500;color:var(--t1);">surface-1</div><div style="font-size:10px;color:var(--t3);font-family:monospace;">#ffffff</div></div>
+    </div>
+    <div style="border-radius:var(--rmd);overflow:hidden;border:.5px solid var(--b);">
+      <div style="height:40px;background:#f0efed;border-bottom:.5px solid var(--b);"></div>
+      <div style="background:var(--s1);padding:7px 9px;"><div style="font-size:11px;font-weight:500;color:var(--t1);">surface-2</div><div style="font-size:10px;color:var(--t3);font-family:monospace;">#f0efed</div></div>
+    </div>
+    <div style="border-radius:var(--rmd);overflow:hidden;border:.5px solid var(--b);">
+      <div style="height:40px;background:#e8e7e4;border-bottom:.5px solid var(--b);"></div>
+      <div style="background:var(--s1);padding:7px 9px;"><div style="font-size:11px;font-weight:500;color:var(--t1);">surface-3</div><div style="font-size:10px;color:var(--t3);font-family:monospace;">#e8e7e4</div></div>
+    </div>
+    <div style="border-radius:var(--rmd);overflow:hidden;border:.5px solid var(--b);">
+      <div style="height:40px;background:#dddcda;border-bottom:.5px solid var(--b);"></div>
+      <div style="background:var(--s1);padding:7px 9px;"><div style="font-size:11px;font-weight:500;color:var(--t1);">surface-4</div><div style="font-size:10px;color:var(--t3);font-family:monospace;">#dddcda</div></div>
+    </div>
+    <div style="border-radius:var(--rmd);overflow:hidden;border:.5px solid var(--b);">
+      <div style="height:40px;background:#6b5ce7;border-bottom:.5px solid var(--b);"></div>
+      <div style="background:var(--s1);padding:7px 9px;"><div style="font-size:11px;font-weight:500;color:var(--t1);">accent</div><div style="font-size:10px;color:var(--t3);font-family:monospace;">#6b5ce7</div></div>
+    </div>
+    <div style="border-radius:var(--rmd);overflow:hidden;border:.5px solid var(--b);">
+      <div style="height:40px;background:#1a1a18;border-bottom:.5px solid var(--b);"></div>
+      <div style="background:var(--s1);padding:7px 9px;"><div style="font-size:11px;font-weight:500;color:var(--t1);">text-primary</div><div style="font-size:10px;color:var(--t3);font-family:monospace;">#1a1a18</div></div>
+    </div>
+    <div style="border-radius:var(--rmd);overflow:hidden;border:.5px solid var(--b);">
+      <div style="height:40px;background:#5a5a56;border-bottom:.5px solid var(--b);"></div>
+      <div style="background:var(--s1);padding:7px 9px;"><div style="font-size:11px;font-weight:500;color:var(--t1);">text-secondary</div><div style="font-size:10px;color:var(--t3);font-family:monospace;">#5a5a56</div></div>
+    </div>
+    <div style="border-radius:var(--rmd);overflow:hidden;border:.5px solid var(--b);">
+      <div style="height:40px;background:#9a9a96;border-bottom:.5px solid var(--b);"></div>
+      <div style="background:var(--s1);padding:7px 9px;"><div style="font-size:11px;font-weight:500;color:var(--t1);">text-tertiary</div><div style="font-size:10px;color:var(--t3);font-family:monospace;">#9a9a96</div></div>
+    </div>
+    <div style="border-radius:var(--rmd);overflow:hidden;border:.5px solid var(--b);">
+      <div style="height:40px;background:#16a34a;border-bottom:.5px solid var(--b);"></div>
+      <div style="background:var(--s1);padding:7px 9px;"><div style="font-size:11px;font-weight:500;color:var(--t1);">semantic-green</div><div style="font-size:10px;color:var(--t3);font-family:monospace;">#16a34a</div></div>
+    </div>
+    <div style="border-radius:var(--rmd);overflow:hidden;border:.5px solid var(--b);">
+      <div style="height:40px;background:#d97706;border-bottom:.5px solid var(--b);"></div>
+      <div style="background:var(--s1);padding:7px 9px;"><div style="font-size:11px;font-weight:500;color:var(--t1);">semantic-amber</div><div style="font-size:10px;color:var(--t3);font-family:monospace;">#d97706</div></div>
+    </div>
+    <div style="border-radius:var(--rmd);overflow:hidden;border:.5px solid var(--b);">
+      <div style="height:40px;background:#dc2626;border-bottom:.5px solid var(--b);"></div>
+      <div style="background:var(--s1);padding:7px 9px;"><div style="font-size:11px;font-weight:500;color:var(--t1);">semantic-red</div><div style="font-size:10px;color:var(--t3);font-family:monospace;">#dc2626</div></div>
+    </div>
+  </div>
+
+  <div style="background:var(--s1);border:.5px solid var(--b);border-radius:var(--rlg);padding:14px;">
+    <div class="clabel">Border tokens</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="flex:1;height:1px;background:rgba(0,0,0,0.07);"></div>
+        <div style="font-size:11px;color:var(--t3);font-family:monospace;white-space:nowrap;">border · rgba(0,0,0,0.07)</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="flex:1;height:1px;background:rgba(0,0,0,0.12);"></div>
+        <div style="font-size:11px;color:var(--t3);font-family:monospace;white-space:nowrap;">border-hover · rgba(0,0,0,0.12)</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="flex:1;height:1px;background:rgba(0,0,0,0.18);"></div>
+        <div style="font-size:11px;color:var(--t3);font-family:monospace;white-space:nowrap;">border-press · rgba(0,0,0,0.18)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BUTTONS -->
+<div class="sec">
+  <div class="sec-label">02 — Buttons</div>
+  <div class="two">
+    <div class="card">
+      <div class="clabel">Variants</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div><button class="btn btn-primary"><i class="ti ti-plus" aria-hidden="true"></i> Add Lead</button></div>
+        <div><button class="btn btn-secondary"><i class="ti ti-adjustments-horizontal" aria-hidden="true"></i> Columns</button></div>
+        <div><button class="btn btn-ghost"><i class="ti ti-download" aria-hidden="true"></i> Export</button></div>
+        <div><button class="btn btn-danger"><i class="ti ti-trash" aria-hidden="true"></i> Delete</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clabel">Sizes + icon buttons</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="btn btn-secondary" style="padding:10px 16px;font-size:14px;">Large</button>
+          <button class="btn btn-secondary">Default</button>
+          <button class="btn btn-secondary btn-xs">Small</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button class="btn-icon"><i class="ti ti-edit" aria-label="Edit"></i></button>
+          <button class="btn-icon"><i class="ti ti-message" aria-label="Note"></i></button>
+          <button class="btn-icon"><i class="ti ti-phone" aria-label="Call"></i></button>
+          <button class="btn-icon" style="color:var(--rd);border-color:var(--rdb);"><i class="ti ti-trash" aria-label="Delete"></i></button>
+          <button class="btn-icon" style="background:var(--ac);border-color:var(--ac);color:#fff;"><i class="ti ti-user-check" aria-label="Assign"></i></button>
+        </div>
+        <div style="font-size:10px;color:var(--t3);">Key diff: primary = filled accent · secondary = white + border · ghost = no bg</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BADGES -->
+<div class="sec">
+  <div class="sec-label">03 — Stage Badges + Status</div>
+  <div class="two">
+    <div class="card">
+      <div class="clabel">Stage pills</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:var(--gr);"></div><span style="font-size:12px;color:var(--t2);">Appointment Booked</span></div>
+          <span style="background:var(--grs);border:.5px solid var(--grb);color:var(--gr);font-size:10px;font-weight:500;padding:2px 9px;border-radius:var(--rpill);">Appt. Booked</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:#7c6ee0;"></div><span style="font-size:12px;color:var(--t2);">Qualified</span></div>
+          <span style="background:var(--acs);border:.5px solid var(--acb);color:#6b5ce7;font-size:10px;font-weight:500;padding:2px 9px;border-radius:var(--rpill);">Qualified</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:var(--am);"></div><span style="font-size:12px;color:var(--t2);">In Progress</span></div>
+          <span style="background:var(--ams);border:.5px solid var(--amb);color:var(--am);font-size:10px;font-weight:500;padding:2px 9px;border-radius:var(--rpill);">In Progress</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:var(--bl);"></div><span style="font-size:12px;color:var(--t2);">Contacted</span></div>
+          <span style="background:var(--bls);border:.5px solid var(--blb);color:var(--bl);font-size:10px;font-weight:500;padding:2px 9px;border-radius:var(--rpill);">Contacted</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:var(--rd);"></div><span style="font-size:12px;color:var(--t2);">Lost</span></div>
+          <span style="background:var(--rds);border:.5px solid var(--rdb);color:var(--rd);font-size:10px;font-weight:500;padding:2px 9px;border-radius:var(--rpill);">Lost</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:var(--t3);"></div><span style="font-size:12px;color:var(--t2);">New Lead</span></div>
+          <span style="background:var(--s2);border:.5px solid var(--b);color:var(--t2);font-size:10px;font-weight:500;padding:2px 9px;border-radius:var(--rpill);">New Lead</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clabel">Key difference from dark theme</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+        <div class="tok"><div class="tok-k">badge bg</div><div class="tok-v">color at 10% alpha (not 12%)</div></div>
+        <div class="tok"><div class="tok-k">badge border</div><div class="tok-v">color at 20% alpha — ADDED in light</div></div>
+        <div class="tok"><div class="tok-k">badge text</div><div class="tok-v">full semantic color (darker, saturated)</div></div>
+        <div class="tok"><div class="tok-k">neutral badge</div><div class="tok-v">surface-2 bg / surface border</div></div>
+      </div>
+      <div class="clabel">Generic status</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        <span style="background:var(--grs);border:.5px solid var(--grb);color:var(--gr);font-size:11px;font-weight:500;padding:3px 9px;border-radius:var(--rpill);display:inline-flex;align-items:center;gap:4px;"><div style="width:6px;height:6px;border-radius:50%;background:var(--gr);"></div>Active</span>
+        <span style="background:var(--ams);border:.5px solid var(--amb);color:var(--am);font-size:11px;font-weight:500;padding:3px 9px;border-radius:var(--rpill);display:inline-flex;align-items:center;gap:4px;"><div style="width:6px;height:6px;border-radius:50%;background:var(--am);"></div>Pending</span>
+        <span style="background:var(--rds);border:.5px solid var(--rdb);color:var(--rd);font-size:11px;font-weight:500;padding:3px 9px;border-radius:var(--rpill);display:inline-flex;align-items:center;gap:4px;"><div style="width:6px;height:6px;border-radius:50%;background:var(--rd);"></div>Overdue</span>
+        <span style="background:var(--acs);border:.5px solid var(--acb);color:#6b5ce7;font-size:11px;font-weight:500;padding:3px 9px;border-radius:var(--rpill);display:inline-flex;align-items:center;gap:4px;"><div style="width:6px;height:6px;border-radius:50%;background:#6b5ce7;"></div>Premium</span>
+        <span style="background:var(--s2);border:.5px solid var(--b);color:var(--t2);font-size:11px;font-weight:500;padding:3px 9px;border-radius:var(--rpill);">No status</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INPUTS -->
+<div class="sec">
+  <div class="sec-label">04 — Form Inputs + Filter Pills</div>
+  <div class="two">
+    <div class="card">
+      <div class="clabel">Inputs</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <div style="font-size:11px;font-weight:500;color:var(--t2);margin-bottom:4px;">Search</div>
+          <div style="position:relative;">
+            <i class="ti ti-search" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--t3);" aria-hidden="true"></i>
+            <input class="attio-input" placeholder="Search leads..." style="padding-left:30px;" />
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:500;color:var(--t2);margin-bottom:4px;">Phone</div>
+          <input class="attio-input" placeholder="+91 98765 43210" style="font-family:monospace;" />
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:500;color:var(--t2);margin-bottom:4px;">Stage</div>
+          <select style="background:var(--s1);border:.5px solid var(--bh);border-radius:var(--rmd);padding:7px 10px;font-size:13px;color:var(--t1);width:100%;outline:none;"><option>All Stages</option><option>Appointment Booked</option><option>Qualified</option></select>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:500;color:var(--t2);margin-bottom:4px;">Note</div>
+          <textarea class="attio-input" rows="2" placeholder="Add a note..." style="resize:vertical;font-family:inherit;line-height:1.5;"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clabel">Filter pills</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+        <div style="display:inline-flex;align-items:center;gap:5px;background:var(--s1);border:.5px solid var(--bh);border-radius:var(--rpill);padding:4px 10px;font-size:12px;color:var(--t2);cursor:pointer;"><i class="ti ti-world" style="font-size:12px;" aria-hidden="true"></i> All Territory</div>
+        <div style="display:inline-flex;align-items:center;gap:5px;background:var(--acs);border:.5px solid var(--acb);border-radius:var(--rpill);padding:4px 10px;font-size:12px;color:#6b5ce7;cursor:pointer;font-weight:500;"><i class="ti ti-flag" style="font-size:12px;" aria-hidden="true"></i> All Stage</div>
+        <div style="display:inline-flex;align-items:center;gap:5px;background:var(--s1);border:.5px solid var(--bh);border-radius:var(--rpill);padding:4px 10px;font-size:12px;color:var(--t2);cursor:pointer;"><i class="ti ti-share" style="font-size:12px;" aria-hidden="true"></i> All Source</div>
+        <div style="display:inline-flex;align-items:center;gap:5px;background:var(--s1);border:.5px solid var(--bh);border-radius:var(--rpill);padding:4px 10px;font-size:12px;color:var(--t2);cursor:pointer;"><i class="ti ti-calendar" style="font-size:12px;" aria-hidden="true"></i> Last Contact</div>
+        <div style="display:inline-flex;align-items:center;gap:5px;background:var(--rds);border:.5px solid var(--rdb);border-radius:var(--rpill);padding:4px 10px;font-size:12px;color:var(--rd);cursor:pointer;"><i class="ti ti-x" style="font-size:12px;" aria-hidden="true"></i> Clear</div>
+      </div>
+      <div class="clabel" style="margin-top:8px;">Input state tokens</div>
+      <div class="tok"><div class="tok-k">default border</div><div class="tok-v">rgba(0,0,0,0.12)</div></div>
+      <div class="tok"><div class="tok-k">focus border</div><div class="tok-v">rgba(107,92,231,0.5)</div></div>
+      <div class="tok"><div class="tok-k">bg</div><div class="tok-v">surface-1 (#ffffff)</div></div>
+      <div class="tok"><div class="tok-k">placeholder</div><div class="tok-v">text-tertiary (#9a9a96)</div></div>
+      <div class="tok"><div class="tok-k">error border</div><div class="tok-v">rgba(220,38,38,0.5)</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TABLE -->
+<div class="sec">
+  <div class="sec-label">05 — Table / List View</div>
+  <div style="border:.5px solid var(--b);border-radius:var(--rlg);overflow:hidden;background:var(--s1);">
+    <div style="display:grid;grid-template-columns:20px 180px 130px 110px 110px 1fr;gap:0;padding:8px 12px;background:var(--s2);border-bottom:.5px solid var(--b);">
+      <div></div>
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);display:flex;align-items:center;gap:3px;"><i class="ti ti-user" style="font-size:11px;" aria-hidden="true"></i> Name</div>
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);display:flex;align-items:center;gap:3px;"><i class="ti ti-phone" style="font-size:11px;" aria-hidden="true"></i> Phone</div>
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);">Stage</div>
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);">Created</div>
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);">Actions</div>
+    </div>
+    <div style="display:grid;grid-template-columns:20px 180px 130px 110px 110px 1fr;padding:9px 12px;border-bottom:.5px solid var(--b);align-items:center;">
+      <div><div style="width:14px;height:14px;border-radius:3px;border:.5px solid var(--bh);"></div></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:24px;height:24px;border-radius:50%;background:rgba(107,92,231,0.12);border:.5px solid rgba(107,92,231,0.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#6b5ce7;flex-shrink:0;">RK</div>
+        <div><div style="font-size:13px;font-weight:500;color:var(--t1);">Rajesh Kumar</div><div style="font-size:11px;color:var(--t3);font-family:monospace;">911234567900</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--t2);font-family:monospace;">911234567900</div>
+      <div><span style="background:var(--grs);border:.5px solid var(--grb);color:var(--gr);font-size:10px;font-weight:500;padding:2px 8px;border-radius:var(--rpill);">Appt. Booked</span></div>
+      <div style="font-size:11px;color:var(--t3);">14 May, 26</div>
+      <div style="display:flex;gap:5px;">
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;"><i class="ti ti-edit" aria-label="edit"></i></button>
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;"><i class="ti ti-message" aria-label="note"></i></button>
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;color:var(--rd);border-color:var(--rdb);"><i class="ti ti-trash" aria-label="delete"></i></button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:20px 180px 130px 110px 110px 1fr;padding:9px 12px;border-bottom:.5px solid var(--b);align-items:center;background:var(--s2);">
+      <div><div style="width:14px;height:14px;border-radius:3px;background:var(--acs);border:.5px solid rgba(107,92,231,0.3);"></div></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:24px;height:24px;border-radius:50%;background:rgba(22,163,74,0.12);border:.5px solid rgba(22,163,74,0.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--gr);flex-shrink:0;">PS</div>
+        <div><div style="font-size:13px;font-weight:500;color:var(--t1);">Priya Sharma</div><div style="font-size:11px;color:var(--t3);font-family:monospace;">918319404802</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--t2);font-family:monospace;">918319404802</div>
+      <div><span style="background:var(--acs);border:.5px solid var(--acb);color:#6b5ce7;font-size:10px;font-weight:500;padding:2px 8px;border-radius:var(--rpill);">Qualified</span></div>
+      <div style="font-size:11px;color:var(--t3);">01 May, 26</div>
+      <div style="display:flex;gap:5px;">
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;"><i class="ti ti-edit" aria-label="edit"></i></button>
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;"><i class="ti ti-message" aria-label="note"></i></button>
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;color:var(--rd);border-color:var(--rdb);"><i class="ti ti-trash" aria-label="delete"></i></button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:20px 180px 130px 110px 110px 1fr;padding:9px 12px;align-items:center;">
+      <div><div style="width:14px;height:14px;border-radius:3px;border:.5px solid var(--bh);"></div></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:24px;height:24px;border-radius:50%;background:rgba(217,119,6,0.12);border:.5px solid rgba(217,119,6,0.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--am);flex-shrink:0;">AM</div>
+        <div><div style="font-size:13px;font-weight:500;color:var(--t1);">Amit Mehta</div><div style="font-size:11px;color:var(--t3);font-family:monospace;">911234567790</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--t2);font-family:monospace;">911234567790</div>
+      <div><span style="background:var(--ams);border:.5px solid var(--amb);color:var(--am);font-size:10px;font-weight:500;padding:2px 8px;border-radius:var(--rpill);">In Progress</span></div>
+      <div style="font-size:11px;color:var(--t3);">27 Apr, 26</div>
+      <div style="display:flex;gap:5px;">
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;"><i class="ti ti-edit" aria-label="edit"></i></button>
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;"><i class="ti ti-message" aria-label="note"></i></button>
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;color:var(--rd);border-color:var(--rdb);"><i class="ti ti-trash" aria-label="delete"></i></button>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--s1);border:.5px solid var(--b);border-top:none;border-radius:0 0 var(--rlg) var(--rlg);">
+    <div style="font-size:11px;color:var(--t3);">1–3 of 5 leads</div>
+    <div style="display:flex;gap:4px;">
+      <button class="btn-icon" style="width:22px;height:22px;font-size:11px;"><i class="ti ti-chevron-left" aria-label="prev"></i></button>
+      <span style="font-size:11px;color:var(--t2);padding:0 6px;line-height:22px;">Page 1 of 1</span>
+      <button class="btn-icon" style="width:22px;height:22px;font-size:11px;"><i class="ti ti-chevron-right" aria-label="next"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sec">
+  <div class="sec-label">06 — Sidebar Nav</div>
+  <div class="two">
+    <div style="background:var(--s1);border:.5px solid var(--b);border-radius:var(--rlg);overflow:hidden;width:200px;">
+      <div style="padding:12px 12px 10px;border-bottom:.5px solid var(--b);display:flex;align-items:center;gap:8px;">
+        <div style="width:24px;height:24px;border-radius:6px;background:var(--ac);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;">LB</div>
+        <div style="font-size:13px;font-weight:500;color:var(--t1);">LeadBajaar</div>
+        <i class="ti ti-chevron-down" style="font-size:12px;color:var(--t3);margin-left:auto;" aria-hidden="true"></i>
+      </div>
+      <div style="padding:8px;">
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--rsm);font-size:12px;color:var(--t1);background:var(--s2);font-weight:500;cursor:pointer;">
+          <i class="ti ti-layout-dashboard" style="font-size:15px;color:var(--ac);" aria-hidden="true"></i> Dashboard
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--rsm);font-size:12px;color:var(--t2);cursor:pointer;">
+          <i class="ti ti-users" style="font-size:15px;" aria-hidden="true"></i> Leads
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--rsm);font-size:12px;color:var(--t2);cursor:pointer;">
+          <i class="ti ti-message-circle" style="font-size:15px;" aria-hidden="true"></i> Live Chat
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--rsm);font-size:12px;color:var(--t2);cursor:pointer;">
+          <i class="ti ti-robot" style="font-size:15px;" aria-hidden="true"></i> Chatbot
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--rsm);font-size:12px;color:var(--t2);cursor:pointer;">
+          <i class="ti ti-calendar" style="font-size:15px;" aria-hidden="true"></i> Meetings
+        </div>
+        <div style="height:.5px;background:var(--b);margin:6px 0;"></div>
+        <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);padding:2px 8px 4px;">Integrations</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--rsm);font-size:12px;color:var(--t2);cursor:pointer;">
+          <i class="ti ti-puzzle" style="font-size:15px;" aria-hidden="true"></i> Integrations
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--rsm);font-size:12px;color:var(--t2);cursor:pointer;">
+          <i class="ti ti-brand-whatsapp" style="font-size:15px;" aria-hidden="true"></i> WhatsApp Bot
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="tok"><div class="tok-k">sidebar bg</div><div class="tok-v">surface-1 (#ffffff)</div></div>
+      <div class="tok"><div class="tok-k">sidebar border</div><div class="tok-v">0.5px rgba(0,0,0,0.07)</div></div>
+      <div class="tok"><div class="tok-k">active item bg</div><div class="tok-v">surface-2 (#f0efed)</div></div>
+      <div class="tok"><div class="tok-k">active icon color</div><div class="tok-v">accent (#6b5ce7)</div></div>
+      <div class="tok"><div class="tok-k">inactive icon</div><div class="tok-v">text-secondary (#5a5a56)</div></div>
+      <div class="tok"><div class="tok-k">hover</div><div class="tok-v">surface-2 bg</div></div>
+      <div class="tok"><div class="tok-k">workspace row</div><div class="tok-v">logo + name + chevron</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- METRIC CARDS -->
+<div class="sec">
+  <div class="sec-label">07 — Metric Cards</div>
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;">
+    <div style="background:var(--s1);border:.5px solid var(--b);border-radius:var(--rlg);padding:12px 14px;">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:6px;">Total Leads</div>
+      <div style="font-size:20px;font-weight:500;color:var(--t1);">1,284</div>
+      <div style="font-size:10px;color:var(--gr);margin-top:3px;">↑ 12% this week</div>
+    </div>
+    <div style="background:var(--s1);border:.5px solid var(--b);border-radius:var(--rlg);padding:12px 14px;">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:6px;">Appointments</div>
+      <div style="font-size:20px;font-weight:500;color:var(--t1);">342</div>
+      <div style="font-size:10px;color:var(--gr);margin-top:3px;">↑ 8% vs last</div>
+    </div>
+    <div style="background:var(--s1);border:.5px solid var(--b);border-radius:var(--rlg);padding:12px 14px;">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:6px;">Conversion</div>
+      <div style="font-size:20px;font-weight:500;color:var(--t1);">26.6%</div>
+      <div style="font-size:10px;color:var(--rd);margin-top:3px;">↓ 2% this month</div>
+    </div>
+    <div style="background:var(--s1);border:.5px solid var(--b);border-radius:var(--rlg);padding:12px 14px;">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:6px;">Lost Leads</div>
+      <div style="font-size:20px;font-weight:500;color:var(--t1);">89</div>
+      <div style="font-size:10px;color:var(--rd);margin-top:3px;">↑ 3 this week</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LIGHT -->
+<div class="sec">
+  <div class="sec-label">08 — Modal · Dropdown · Toast</div>
+  <div class="three">
+    <div style="min-height:260px;background:rgba(0,0,0,0.25);border-radius:var(--rlg);display:flex;align-items:center;justify-content:center;padding:12px;">
+      <div style="background:var(--s1);border:.5px solid var(--bh);border-radius:var(--rxl);width:100%;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:.5px solid var(--b);">
+          <div style="font-size:14px;font-weight:500;color:var(--t1);">Add New Lead</div>
+          <button class="btn-icon" style="width:22px;height:22px;font-size:12px;"><i class="ti ti-x" aria-label="close"></i></button>
+        </div>
+        <div style="padding:14px;display:flex;flex-direction:column;gap:10px;">
+          <div><div style="font-size:11px;font-weight:500;color:var(--t2);margin-bottom:3px;">Name</div><input class="attio-input" placeholder="Rajesh Kumar" style="font-size:12px;padding:6px 9px;" /></div>
+          <div><div style="font-size:11px;font-weight:500;color:var(--t2);margin-bottom:3px;">Phone</div><input class="attio-input" placeholder="+91 98765..." style="font-size:12px;padding:6px 9px;font-family:monospace;" /></div>
+        </div>
+        <div style="display:flex;gap:8px;padding:10px 14px;border-top:.5px solid var(--b);">
+          <button class="btn btn-ghost btn-xs" style="flex:1;justify-content:center;">Cancel</button>
+          <button class="btn btn-primary btn-xs" style="flex:1;justify-content:center;">Save</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-bottom:8px;">Dropdown</div>
+      <div style="background:var(--s1);border:.5px solid var(--bh);border-radius:var(--rlg);overflow:hidden;padding:4px;">
+        <div style="display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:var(--rsm);font-size:12px;color:var(--t1);background:var(--s2);"><i class="ti ti-edit" style="font-size:14px;color:var(--t2);" aria-hidden="true"></i>Edit lead</div>
+        <div style="display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:var(--rsm);font-size:12px;color:var(--t1);"><i class="ti ti-flag" style="font-size:14px;color:var(--t2);" aria-hidden="true"></i>Change stage</div>
+        <div style="display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:var(--rsm);font-size:12px;color:var(--t1);"><i class="ti ti-copy" style="font-size:14px;color:var(--t2);" aria-hidden="true"></i>Duplicate</div>
+        <div style="height:.5px;background:var(--b);margin:4px 0;"></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:var(--rsm);font-size:12px;color:var(--rd);"><i class="ti ti-trash" style="font-size:14px;" aria-hidden="true"></i>Delete lead</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-bottom:8px;">Toasts</div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;align-items:center;gap:9px;background:var(--s1);border:.5px solid rgba(22,163,74,0.2);border-radius:var(--rlg);border-left:2.5px solid var(--gr);padding:10px 12px;border-radius:0;">
+          <i class="ti ti-circle-check" style="font-size:15px;color:var(--gr);flex-shrink:0;" aria-hidden="true"></i>
+          <div><div style="font-size:12px;font-weight:500;color:var(--t1);">Lead created</div><div style="font-size:10px;color:var(--t2);">Added successfully.</div></div>
+          <button class="btn-icon" style="width:20px;height:20px;font-size:11px;margin-left:auto;"><i class="ti ti-x" aria-label="dismiss"></i></button>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;background:var(--s1);border:.5px solid rgba(220,38,38,0.2);border-left:2.5px solid var(--rd);padding:10px 12px;border-radius:0;">
+          <i class="ti ti-alert-circle" style="font-size:15px;color:var(--rd);flex-shrink:0;" aria-hidden="true"></i>
+          <div><div style="font-size:12px;font-weight:500;color:var(--t1);">Sync failed</div><div style="font-size:10px;color:var(--t2);">Could not connect.</div></div>
+          <button class="btn-icon" style="width:20px;height:20px;font-size:11px;margin-left:auto;"><i class="ti ti-x" aria-label="dismiss"></i></button>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;background:var(--s1);border:.5px solid rgba(217,119,6,0.2);border-left:2.5px solid var(--am);padding:10px 12px;border-radius:0;">
+          <i class="ti ti-alert-triangle" style="font-size:15px;color:var(--am);flex-shrink:0;" aria-hidden="true"></i>
+          <div><div style="font-size:12px;font-weight:500;color:var(--t1);">Duplicate found</div><div style="font-size:10px;color:var(--t2);">Number already exists.</div></div>
+          <button class="btn-icon" style="width:20px;height:20px;font-size:11px;margin-left:auto;"><i class="ti ti-x" aria-label="dismiss"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="sec">
+  <div class="sec-label">09 — Toggle · Checkbox · Radio · Skeleton</div>
+  <div class="two">
+    <div class="card">
+      <div class="clabel">Toggles</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-size:13px;color:var(--t1);">WhatsApp Bot</div><div style="font-size:11px;color:var(--t3);">Auto-reply enabled</div></div>
+          <div style="width:40px;height:22px;background:var(--ac);border-radius:var(--rpill);position:relative;flex-shrink:0;"><div style="width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;right:2px;top:2px;"></div></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-size:13px;color:var(--t1);">Meta Sync</div><div style="font-size:11px;color:var(--t3);">Auto-sync paused</div></div>
+          <div style="width:40px;height:22px;background:var(--s3);border:.5px solid var(--bh);border-radius:var(--rpill);position:relative;flex-shrink:0;"><div style="width:18px;height:18px;background:var(--t3);border-radius:50%;position:absolute;left:2px;top:2px;"></div></div>
+        </div>
+      </div>
+      <div class="clabel">Checkboxes</div>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:9px;cursor:pointer;">
+          <div style="width:16px;height:16px;border-radius:4px;background:var(--ac);border:.5px solid var(--ac);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-check" style="font-size:11px;color:#fff;" aria-hidden="true"></i></div>
+          <div style="font-size:13px;color:var(--t1);">Checked</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;cursor:pointer;">
+          <div style="width:16px;height:16px;border-radius:4px;background:transparent;border:.5px solid var(--bh);flex-shrink:0;"></div>
+          <div style="font-size:13px;color:var(--t2);">Unchecked</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;cursor:pointer;">
+          <div style="width:16px;height:16px;border-radius:4px;background:var(--acs);border:.5px solid var(--acb);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><div style="width:8px;height:2px;background:var(--ac);border-radius:1px;"></div></div>
+          <div style="font-size:13px;color:var(--t2);">Indeterminate</div>
+        </div>
+      </div>
+      <div class="clabel">Radio</div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;align-items:center;gap:9px;cursor:pointer;">
+          <div style="width:16px;height:16px;border-radius:50%;background:var(--ac);border:.5px solid var(--ac);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><div style="width:6px;height:6px;border-radius:50%;background:#fff;"></div></div>
+          <div style="font-size:13px;color:var(--t1);">List View</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;cursor:pointer;">
+          <div style="width:16px;height:16px;border-radius:50%;background:transparent;border:.5px solid var(--bh);flex-shrink:0;"></div>
+          <div style="font-size:13px;color:var(--t2);">Board View</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;cursor:pointer;opacity:.4;">
+          <div style="width:16px;height:16px;border-radius:50%;background:transparent;border:.5px solid var(--b);flex-shrink:0;"></div>
+          <div style="font-size:13px;color:var(--t3);">Disabled</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clabel">Skeleton loader (light)</div>
+      <div id="lskel" style="border:.5px solid var(--b);border-radius:var(--rmd);overflow:hidden;">
+        <div style="display:grid;grid-template-columns:20px 1fr 90px 80px;gap:12px;padding:8px 12px;background:var(--s2);border-bottom:.5px solid var(--b);">
+          <div style="height:10px;background:var(--s3);border-radius:3px;animation:lpulse 1.5s ease-in-out infinite;"></div>
+          <div style="height:10px;background:var(--s3);border-radius:3px;animation:lpulse 1.5s ease-in-out infinite;width:55%;"></div>
+          <div style="height:10px;background:var(--s3);border-radius:3px;animation:lpulse 1.5s ease-in-out infinite;"></div>
+          <div style="height:10px;background:var(--s3);border-radius:3px;animation:lpulse 1.5s ease-in-out infinite;"></div>
+        </div>
+        <div id="lskel-rows"></div>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="clabel">Skeleton tokens (light)</div>
+        <div class="tok"><div class="tok-k">skeleton bg</div><div class="tok-v">surface-3 (#e8e7e4)</div></div>
+        <div class="tok"><div class="tok-k">animation</div><div class="tok-v">opacity 1 → 0.4 → 1 · 1.5s</div></div>
+        <div class="tok"><div class="tok-k">border-radius</div><div class="tok-v">3px all bars</div></div>
+        <div class="tok"><div class="tok-k">row stagger</div><div class="tok-v">0.15s per row</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DARK vs LIGHT DIFF TABLE -->
+<div class="sec" style="padding-bottom:0;">
+  <div class="sec-label">10 — Dark vs Light Token Diff</div>
+  <div style="background:var(--s1);border:.5px solid var(--b);border-radius:var(--rlg);overflow:hidden;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--s2);border-bottom:.5px solid var(--b);">
+      <div style="padding:8px 12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);">Token</div>
+      <div style="padding:8px 12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);border-left:.5px solid var(--b);">Dark theme</div>
+      <div style="padding:8px 12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);border-left:.5px solid var(--b);">Light theme</div>
+    </div>
+    <div id="difftable"></div>
+  </div>
+</div>
+
+<div style="height:36px;"></div>
+</div>
+
+<style>
+@keyframes lpulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+</style>
+
+<script>
+const rows=[
+  ['bg-base','#0f0f0f','#f5f4f2'],
+  ['surface-1','#161616','#ffffff'],
+  ['surface-2','#1c1c1c','#f0efed'],
+  ['surface-3','#242424','#e8e7e4'],
+  ['text-primary','#e8e8e6','#1a1a18'],
+  ['text-secondary','#8a8a85','#5a5a56'],
+  ['text-tertiary','#5a5a56','#9a9a96'],
+  ['border','rgba(255,255,255,0.08)','rgba(0,0,0,0.07)'],
+  ['border-hover','rgba(255,255,255,0.14)','rgba(0,0,0,0.12)'],
+  ['accent','#6b5ce7 (unchanged)','#6b5ce7 (unchanged)'],
+  ['green','#3ecf8e','#16a34a'],
+  ['amber','#f59e0b','#d97706'],
+  ['red','#ef4444','#dc2626'],
+  ['blue','#3b82f6','#2563eb'],
+  ['btn-primary bg','#e8e8e6 (white text)','#6b5ce7 (white text)'],
+  ['badge border','none (alpha bg only)','0.5px semantic at 20% alpha'],
+  ['skeleton bg','#242424 (surface-3)','#e8e7e4 (surface-3)'],
+  ['sidebar bg','#161616','#ffffff'],
+  ['active nav bg','#242424','#f0efed'],
+  ['modal bg','#1c1c1c','#ffffff'],
+  ['dropdown bg','#1c1c1c','#ffffff'],
+  ['toast bg','#1c1c1c','#ffffff'],
+];
+
+const tbl=document.getElementById('difftable');
+if(tbl){
+  rows.forEach((r,i)=>{
+    const d=document.createElement('div');
+    d.style.cssText=`display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:${i===rows.length-1?'none':'0.5px solid rgba(0,0,0,0.07)'};`;
+    d.innerHTML=`
+      <div style="padding:7px 12px;font-size:11px;font-family:monospace;color:#5a5a56;">${r[0]}</div>
+      <div style="padding:7px 12px;font-size:11px;color:#5a5a56;border-left:.5px solid rgba(0,0,0,0.07);">${r[1]}</div>
+      <div style="padding:7px 12px;font-size:11px;color:#1a1a18;border-left:.5px solid rgba(0,0,0,0.07);font-weight:500;">${r[2]}</div>`;
+    tbl.appendChild(d);
+  });
+}
+
+const lskel=document.getElementById('lskel-rows');
+if(lskel){
+  [[55,40],[70,50],[45,35],[60,45]].forEach(([w1,w2],i)=>{
+    const r=document.createElement('div');
+    const d=`${i*0.15}s`;
+    r.style.cssText=`display:grid;grid-template-columns:20px 1fr 90px 80px;gap:12px;padding:9px 12px;border-bottom:${i===3?'none':'0.5px solid rgba(0,0,0,0.07)'};align-items:center;`;
+    r.innerHTML=`
+      <div style="width:14px;height:14px;background:#e8e7e4;border-radius:3px;animation:lpulse 1.5s ${d} ease-in-out infinite;"></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:24px;height:24px;border-radius:50%;background:#e8e7e4;flex-shrink:0;animation:lpulse 1.5s ${d} ease-in-out infinite;"></div>
+        <div style="flex:1;">
+          <div style="height:10px;background:#e8e7e4;border-radius:3px;width:${w1}%;margin-bottom:5px;animation:lpulse 1.5s ${d} ease-in-out infinite;"></div>
+          <div style="height:9px;background:#e8e7e4;border-radius:3px;width:${w2}%;animation:lpulse 1.5s ${d} ease-in-out infinite;"></div>
+        </div>
+      </div>
+      <div style="height:18px;background:#e8e7e4;border-radius:99px;width:75px;animation:lpulse 1.5s ${d} ease-in-out infinite;"></div>
+      <div style="height:10px;background:#e8e7e4;border-radius:3px;width:55px;animation:lpulse 1.5s ${d} ease-in-out infinite;"></div>`;
+    lskel.appendChild(r);
+  });
+}
+</script>

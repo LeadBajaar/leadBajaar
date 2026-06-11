@@ -4,8 +4,8 @@ import { parseError } from '@/utils/errorParser';
 import { logger } from '@/utils/logger';
 
 // const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
-export const API_BASE_URL = 'https://api.leadbajaar.com/api'
-// export const API_BASE_URL = 'http://localhost:8000/api'
+// export const API_BASE_URL = 'https://api.leadbajaar.com/api'
+export const API_BASE_URL = 'http://localhost:8000/api'
 // export const WHATSAPP_BASE_URL = 'http://localhost:3000/api'
 export const WHATSAPP_BASE_URL = 'https://wp.leadbajaar.com/api'
 
@@ -77,7 +77,7 @@ api.interceptors.response.use(
     // Only log to console/logger if it's a server error or unexpected crash
     // 422 (Validation), 401 (Auth), and 402 (Payment) are handled by the UI
     if (!parsedError.status || parsedError.status >= 500) {
-      logger.error("API Error", error);
+      logger.error("API Error", error, { hideConsole: true });
     }
 
     // Global session handling (401)
@@ -1305,6 +1305,25 @@ export const integrationApi = {
     }
   },
 
+  // Fix 14: Track form endpoints
+  trackMetaForm: async (pageId: string, formId: string, formName?: string, pageName?: string) => {
+    try {
+      const response = await api.post(`/meta/pages/${pageId}/forms/track`, { form_id: formId, form_name: formName, page_name: pageName });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(formatMetaErrorMessage(error, 'Failed to track form'));
+    }
+  },
+
+  getMetaTrackedForms: async (pageId: string) => {
+    try {
+      const response = await api.get(`/meta/pages/${pageId}/forms/tracked`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(formatMetaErrorMessage(error, 'Failed to load tracked forms'));
+    }
+  },
+
   getMetaDeliveryEstimate: async (adAccountId: string, targetingSpec: any) => {
     try {
       const response = await api.get(`/meta/ads/adaccounts/${adAccountId}/delivery-estimate`, {
@@ -2055,4 +2074,37 @@ export const financeApi = {
     api.get(`/super-admin/finance/reports/payroll/${year}`).then(r => r.data),
   getGstReport: (month: number, year: number) =>
     api.get(`/super-admin/finance/reports/gst/${month}/${year}`).then(r => r.data),
+};
+
+// Google Integration API
+export const googleIntegrationApi = {
+  getStatus: async () => {
+    try {
+      const response = await api.get('/google/status');
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to fetch Google status';
+      throw new Error(message);
+    }
+  },
+
+  disconnect: async () => {
+    try {
+      const response = await api.delete('/google/disconnect');
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to disconnect Google account';
+      throw new Error(message);
+    }
+  },
+
+  getConnectUrl: async (scope?: string) => {
+    try {
+      const response = await api.get('/google/connect', { params: { scope } });
+      return response.data.url;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to get connection URL';
+      throw new Error(message);
+    }
+  }
 };

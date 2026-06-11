@@ -187,13 +187,13 @@ export default function SettingsPage() {
 
   return (
     <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
-      <div className="flex flex-col lg:flex-row h-full p-4 md:p-6 lg:p-8 gap-6 lg:gap-8 overflow-hidden bg-slate-50/50 dark:bg-slate-950/20">
+      <div className="flex flex-col lg:flex-row h-full p-4 md:p-6 lg:p-8 gap-6 lg:gap-8 overflow-hidden bg-[var(--crm-bg)]">
 
       {/* ── Sidebar Navigation ── */}
       <div className="w-full lg:w-72 flex flex-col gap-4 lg:gap-6 shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Settings</h1>
-          <p className="text-sm text-slate-500 mt-1">Configure your account preferences</p>
+          <h1 className="text-2xl font-bold text-[var(--crm-text-primary)]">Settings</h1>
+          <p className="text-sm text-[var(--crm-text-secondary)] mt-1">Configure your account preferences</p>
         </div>
 
         <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-x-visible no-scrollbar pb-2 lg:pb-0">
@@ -204,26 +204,26 @@ export default function SettingsPage() {
               className={cn(
                 "group flex items-center lg:items-start gap-3 lg:gap-4 p-3 lg:p-4 rounded-xl lg:rounded-2xl transition-all duration-200 text-left relative shrink-0 lg:shrink",
                 activeTab === section.id
-                  ? "bg-white dark:bg-slate-900 shadow-sm ring-1 ring-slate-200 dark:ring-slate-800"
-                  : "hover:bg-slate-200/50 dark:hover:bg-slate-800/50"
+                  ? "bg-[var(--crm-surface-1)] shadow-sm ring-1 ring-[var(--crm-border-hover)]"
+                  : "hover:bg-[var(--crm-surface-2)]"
               )}
             >
               <div className={cn(
                 "h-10 w-10 shrink-0 rounded-xl flex items-center justify-center transition-colors",
                 activeTab === section.id
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/30"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-500 group-hover:bg-slate-200"
+                  ? "bg-[var(--crm-blue)] text-white shadow-lg shadow-[var(--crm-blue)]/30"
+                  : "bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] group-hover:bg-slate-200"
               )}>
                 <section.icon className="h-5 w-5" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className={cn(
                   "font-bold text-sm",
-                  activeTab === section.id ? "text-indigo-600 dark:text-indigo-400" : "text-slate-700 dark:text-slate-300"
+                  activeTab === section.id ? "text-[var(--crm-blue)]" : "text-[var(--crm-text-primary)]"
                 )}>
                   {section.title}
                 </p>
-                <p className="hidden lg:block text-[11px] text-slate-500 leading-tight mt-0.5">{section.description}</p>
+                <p className="hidden lg:block text-[11px] text-[var(--crm-text-secondary)] leading-tight mt-0.5">{section.description}</p>
               </div>
               {activeTab === section.id && (
                 <div className="hidden lg:block absolute right-4 top-1/2 -translate-y-1/2">
@@ -244,15 +244,15 @@ export default function SettingsPage() {
               {/* Header Info */}
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">Profile Details</h2>
-                  <p className="text-sm text-slate-500">Update your photo and personal information here.</p>
+                  <h2 className="text-xl font-bold text-[var(--crm-text-primary)]">Profile Details</h2>
+                  <p className="text-sm text-[var(--crm-text-secondary)]">Update your photo and personal information here.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" className="h-10 rounded-xl border-slate-200 dark:border-slate-800 px-6 font-bold" onClick={() => window.location.reload()}>Cancel</Button>
+                  <Button variant="outline" className="h-10 rounded-xl border-[var(--crm-border)] px-6 font-bold" onClick={() => window.location.reload()}>Cancel</Button>
                   <Button 
                     onClick={handleSaveProfile} 
                     disabled={isSaving}
-                    className="h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 px-8 font-bold shadow-lg shadow-indigo-500/20 gap-2"
+                    className="h-10 rounded-xl bg-[var(--crm-blue)] hover:opacity-90 px-8 font-bold shadow-lg shadow-[var(--crm-blue)]/20 gap-2"
                   >
                     {isSaving && <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />}
                     {isSaving ? 'Saving...' : 'Save'}
@@ -261,10 +261,10 @@ export default function SettingsPage() {
               </div>
 
               {/* Profile Photo */}
-              <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 p-4 lg:p-6 rounded-2xl lg:rounded-3xl ring-1 ring-slate-100 dark:ring-slate-800/50">
+              <Card className="border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] p-4 lg:p-6 rounded-2xl lg:rounded-3xl ring-1 ring-[var(--crm-border)]">
                 <div className="flex flex-col sm:flex-row items-center gap-6 lg:gap-8 text-center sm:text-left">
                   <div className="relative group shrink-0">
-                    <Avatar className="h-24 w-24 lg:h-28 lg:w-28 ring-4 ring-indigo-50 dark:ring-indigo-900/20 shadow-xl">
+                    <Avatar className="h-24 w-24 lg:h-28 lg:w-28 ring-4 ring-[var(--crm-surface-2)] shadow-xl">
                       <AvatarImage src={imagePreview || undefined} />
                       <AvatarFallback className="text-2xl font-bold bg-slate-50 dark:bg-slate-800">
                         {profileSettings.name.split(' ').filter(Boolean).map(n => n[0].toUpperCase()).join('') || 'U'}
@@ -281,8 +281,8 @@ export default function SettingsPage() {
                     <input ref={fileInputRef} type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                   </div>
                   <div className="space-y-2 flex-1">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-lg">Change Avatar</h3>
-                    <p className="text-xs text-slate-400 max-w-xs leading-relaxed mx-auto sm:mx-0">
+                    <h3 className="font-bold text-[var(--crm-text-primary)] text-lg">Change Avatar</h3>
+                    <p className="text-xs text-[var(--crm-text-tertiary)] max-w-xs leading-relaxed mx-auto sm:mx-0">
                       Recommended: 400x400px. JPG, PNG or WebP. Max size: 2MB. Your avatar will be visible to team members.
                     </p>
                     <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
@@ -294,39 +294,39 @@ export default function SettingsPage() {
               </Card>
 
               {/* Form Fields */}
-              <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 p-6 lg:p-8 rounded-2xl lg:rounded-3xl ring-1 ring-slate-100 dark:ring-slate-800/50">
+              <Card className="border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] p-6 lg:p-8 rounded-2xl lg:rounded-3xl ring-1 ring-[var(--crm-border)]">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Full Name</Label>
+                    <Label className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Full Name</Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                      <Input value={profileSettings.name} onChange={e => setProfileSettings(p => ({ ...p, name: e.target.value }))} className="pl-10 h-10 bg-slate-50 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800 rounded-xl font-medium" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-tertiary)]" />
+                      <Input value={profileSettings.name} onChange={e => setProfileSettings(p => ({ ...p, name: e.target.value }))} className="pl-10 h-10 bg-[var(--crm-surface-1)] border-[var(--crm-border)] focus:ring-[var(--crm-blue)] focus:border-[var(--crm-blue)] bg-[var(--crm-surface-1)] rounded-xl font-medium" />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Email Address</Label>
+                    <Label className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Email Address</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                      <Input value={profileSettings.email} disabled className="pl-10 h-10 bg-slate-100/50 dark:bg-slate-800/20 border-transparent rounded-xl text-slate-400 cursor-not-allowed" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-tertiary)]" />
+                      <Input value={profileSettings.email} disabled className="pl-10 h-10 bg-[var(--crm-surface-2)] border-[var(--crm-border)] rounded-xl text-[var(--crm-text-tertiary)] cursor-not-allowed" />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Company</Label>
+                    <Label className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Company</Label>
                     <div className="relative">
-                      <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                      <Input value={profileSettings.company} onChange={e => setProfileSettings(p => ({ ...p, company: e.target.value }))} className="pl-10 h-10 bg-slate-50 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800 rounded-xl font-medium" />
+                      <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-tertiary)]" />
+                      <Input value={profileSettings.company} onChange={e => setProfileSettings(p => ({ ...p, company: e.target.value }))} className="pl-10 h-10 bg-[var(--crm-surface-1)] border-[var(--crm-border)] focus:ring-[var(--crm-blue)] focus:border-[var(--crm-blue)] bg-[var(--crm-surface-1)] rounded-xl font-medium" />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Phone</Label>
+                    <Label className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Phone</Label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                      <Input value={profileSettings.phone} onChange={e => setProfileSettings(p => ({ ...p, phone: e.target.value }))} className="pl-10 h-10 bg-slate-50 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800 rounded-xl font-medium" />
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-tertiary)]" />
+                      <Input value={profileSettings.phone} onChange={e => setProfileSettings(p => ({ ...p, phone: e.target.value }))} className="pl-10 h-10 bg-[var(--crm-surface-1)] border-[var(--crm-border)] focus:ring-[var(--crm-blue)] focus:border-[var(--crm-blue)] bg-[var(--crm-surface-1)] rounded-xl font-medium" />
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Bio / Signature</Label>
-                    <Textarea value={profileSettings.bio} onChange={e => setProfileSettings(p => ({ ...p, bio: e.target.value }))} className="h-32 bg-slate-50 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800 rounded-2xl p-4 font-medium resize-none" placeholder="Write a few lines about yourself..." />
+                    <Label className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Bio / Signature</Label>
+                    <Textarea value={profileSettings.bio} onChange={e => setProfileSettings(p => ({ ...p, bio: e.target.value }))} className="h-32 bg-[var(--crm-surface-1)] border-[var(--crm-border)] focus:ring-[var(--crm-blue)] focus:border-[var(--crm-blue)] bg-[var(--crm-surface-1)] rounded-2xl p-4 font-medium resize-none" placeholder="Write a few lines about yourself..." />
                   </div>
                 </div>
               </Card>
@@ -336,34 +336,34 @@ export default function SettingsPage() {
           {activeTab === 'notifications' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Push & Email Notifications</h2>
-                <p className="text-sm text-slate-500">Control how you stay updated with platform events.</p>
+                <h2 className="text-xl font-bold text-[var(--crm-text-primary)]">Push & Email Notifications</h2>
+                <p className="text-sm text-[var(--crm-text-secondary)]">Control how you stay updated with platform events.</p>
               </div>
 
-              <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 rounded-3xl overflow-hidden ring-1 ring-slate-100 dark:ring-slate-800/50">
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <Card className="border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] rounded-3xl overflow-hidden ring-1 ring-[var(--crm-border)]">
+                <div className="divide-y divide-[var(--crm-border)]">
                   {/* Lead Notifications */}
-                  <div className="p-6 space-y-4 hover:bg-slate-50/50 transition-colors">
+                  <div className="p-6 space-y-4 hover:bg-[var(--crm-surface-2)] transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="space-y-1 pr-4">
-                        <p className="font-bold text-slate-900 dark:text-white">Lead Notifications</p>
-                        <p className="text-xs text-slate-500 leading-relaxed">Receive alerts when a new lead arrives in your pipeline.</p>
+                        <p className="font-bold text-[var(--crm-text-primary)]">Lead Notifications</p>
+                        <p className="text-xs text-[var(--crm-text-secondary)] leading-relaxed">Receive alerts when a new lead arrives in your pipeline.</p>
                       </div>
                       <div className="flex items-center gap-6">
                         <div className="flex flex-col items-center gap-1.5">
-                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Email</span>
+                           <span className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase tracking-tighter">Email</span>
                            <Switch 
                             checked={localNotificationSettings?.email_notifications?.new_lead === true}
                             onCheckedChange={(checked) => handleToggleSetting('email_notifications', 'new_lead', checked)}
-                            className="data-[state=checked]:bg-indigo-600 scale-90" 
+                            className="data-[state=checked]:bg-[var(--crm-blue)] scale-90" 
                           />
                         </div>
                         <div className="flex flex-col items-center gap-1.5">
-                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Push</span>
+                           <span className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase tracking-tighter">Push</span>
                            <Switch 
                             checked={localNotificationSettings?.push_notifications?.new_lead !== false}
                             onCheckedChange={(checked) => handleToggleSetting('push_notifications', 'new_lead', checked)}
-                            className="data-[state=checked]:bg-indigo-600 scale-90" 
+                            className="data-[state=checked]:bg-[var(--crm-blue)] scale-90" 
                           />
                         </div>
                       </div>
@@ -371,27 +371,27 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Meeting Notifications */}
-                  <div className="p-6 space-y-4 hover:bg-slate-50/50 transition-colors">
+                  <div className="p-6 space-y-4 hover:bg-[var(--crm-surface-2)] transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="space-y-1 pr-4">
-                        <p className="font-bold text-slate-900 dark:text-white">Meeting Notifications</p>
-                        <p className="text-xs text-slate-500 leading-relaxed">Alerts for new bookings and confirmed appointments.</p>
+                        <p className="font-bold text-[var(--crm-text-primary)]">Meeting Notifications</p>
+                        <p className="text-xs text-[var(--crm-text-secondary)] leading-relaxed">Alerts for new bookings and confirmed appointments.</p>
                       </div>
                       <div className="flex items-center gap-6">
                         <div className="flex flex-col items-center gap-1.5">
-                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Email</span>
+                           <span className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase tracking-tighter">Email</span>
                            <Switch 
                             checked={localNotificationSettings?.email_notifications?.meeting_booked === true}
                             onCheckedChange={(checked) => handleToggleSetting('email_notifications', 'meeting_booked', checked)}
-                            className="data-[state=checked]:bg-indigo-600 scale-90" 
+                            className="data-[state=checked]:bg-[var(--crm-blue)] scale-90" 
                           />
                         </div>
                         <div className="flex flex-col items-center gap-1.5">
-                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Push</span>
+                           <span className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase tracking-tighter">Push</span>
                            <Switch 
                             checked={localNotificationSettings?.push_notifications?.meeting_booked !== false}
                             onCheckedChange={(checked) => handleToggleSetting('push_notifications', 'meeting_booked', checked)}
-                            className="data-[state=checked]:bg-indigo-600 scale-90" 
+                            className="data-[state=checked]:bg-[var(--crm-blue)] scale-90" 
                           />
                         </div>
                       </div>
@@ -399,17 +399,17 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Daily Digest */}
-                  <div className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
+                  <div className="p-6 flex items-center justify-between hover:bg-[var(--crm-surface-2)] transition-colors">
                     <div className="space-y-1 pr-4">
-                      <p className="font-bold text-slate-900 dark:text-white">Daily Performance Digest</p>
-                      <p className="text-xs text-slate-500 leading-relaxed">A summary of your daily conversion rates and top lead rankings at 9:00 AM.</p>
+                      <p className="font-bold text-[var(--crm-text-primary)]">Daily Performance Digest</p>
+                      <p className="text-xs text-[var(--crm-text-secondary)] leading-relaxed">A summary of your daily conversion rates and top lead rankings at 9:00 AM.</p>
                     </div>
                     <div className="flex items-center gap-1.5">
-                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mr-2">Email Only</span>
+                       <span className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase tracking-tighter mr-2">Email Only</span>
                        <Switch 
                         checked={localNotificationSettings?.email_notifications?.daily_digest === true}
                         onCheckedChange={(checked) => handleToggleSetting('email_notifications', 'daily_digest', checked)}
-                        className="data-[state=checked]:bg-indigo-600" 
+                        className="data-[state=checked]:bg-[var(--crm-blue)]" 
                       />
                     </div>
                   </div>
@@ -421,36 +421,36 @@ export default function SettingsPage() {
           {activeTab === 'security' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Security & Privacy</h2>
-                <p className="text-sm text-slate-500">Manage your password and platform access control.</p>
+                <h2 className="text-xl font-bold text-[var(--crm-text-primary)]">Security & Privacy</h2>
+                <p className="text-sm text-[var(--crm-text-secondary)]">Manage your password and platform access control.</p>
               </div>
 
-              <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 p-8 rounded-3xl ring-1 ring-slate-100 dark:ring-slate-800/50">
+              <Card className="border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] p-8 rounded-3xl ring-1 ring-[var(--crm-border)]">
                 <div className="space-y-6">
-                  <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-[var(--crm-surface-1)] border border-[var(--crm-border)]">
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 flex items-center justify-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
-                        <Lock className="h-5 w-5 text-indigo-500" />
+                      <div className="h-10 w-10 flex items-center justify-center bg-[var(--crm-surface-1)] border border-slate-200 dark:border-slate-700 rounded-xl">
+                        <Lock className="h-5 w-5 text-[var(--crm-blue)]" />
                       </div>
                       <div>
-                        <p className="font-bold text-slate-900 dark:text-white">Password Authentication</p>
-                        <p className="text-[11px] text-slate-500 uppercase font-bold tracking-wider pt-0.5">Last updated 3 months ago</p>
+                        <p className="font-bold text-[var(--crm-text-primary)]">Password Authentication</p>
+                        <p className="text-[11px] text-[var(--crm-text-secondary)] uppercase font-bold tracking-wider pt-0.5">Last updated 3 months ago</p>
                       </div>
                     </div>
-                    <Button variant="outline" className="h-9 px-6 rounded-xl font-bold border-slate-200 dark:border-slate-800">Change</Button>
+                    <Button variant="outline" className="h-9 px-6 rounded-xl font-bold border-[var(--crm-border)]">Change</Button>
                   </div>
 
-                  <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-[var(--crm-surface-1)] border border-[var(--crm-border)]">
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 flex items-center justify-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+                      <div className="h-10 w-10 flex items-center justify-center bg-[var(--crm-surface-1)] border border-slate-200 dark:border-slate-700 rounded-xl">
                         <Shield className="h-5 w-5 text-emerald-500" />
                       </div>
                       <div>
-                        <p className="font-bold text-slate-900 dark:text-white">Two-Factor Authentication</p>
-                        <p className="text-[11px] text-slate-500">Currently disabled. We recommend enabling for extra security.</p>
+                        <p className="font-bold text-[var(--crm-text-primary)]">Two-Factor Authentication</p>
+                        <p className="text-[11px] text-[var(--crm-text-secondary)]">Currently disabled. We recommend enabling for extra security.</p>
                       </div>
                     </div>
-                    <Button className="h-9 px-6 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 shadow-sm">Enable Now</Button>
+                    <Button className="h-9 px-6 rounded-xl font-bold bg-[var(--crm-blue)] hover:opacity-90 shadow-sm">Enable Now</Button>
                   </div>
                 </div>
               </Card>
@@ -460,31 +460,31 @@ export default function SettingsPage() {
           {activeTab === 'billing' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Billing & Usage</h2>
-                <p className="text-sm text-slate-500">View your current plan, limits, and platform usage.</p>
+                <h2 className="text-xl font-bold text-[var(--crm-text-primary)]">Billing & Usage</h2>
+                <p className="text-sm text-[var(--crm-text-secondary)]">View your current plan, limits, and platform usage.</p>
               </div>
 
-              <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 p-8 rounded-3xl ring-1 ring-slate-100 dark:ring-slate-800/50">
+              <Card className="border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] p-8 rounded-3xl ring-1 ring-[var(--crm-border)]">
                 <div className="space-y-6">
                   {/* Current Plan */}
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-[var(--crm-border)]">
                     <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Current Plan</p>
-                      <h3 className="text-2xl font-bold text-slate-900 dark:text-white capitalize flex items-center gap-2">
+                      <p className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider mb-1">Current Plan</p>
+                      <h3 className="text-2xl font-bold text-[var(--crm-text-primary)] capitalize flex items-center gap-2">
                         {user?.company?.plan || 'Free'} Plan
                         <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20">Active</Badge>
                       </h3>
                     </div>
-                    <Button className="rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700">Upgrade Plan</Button>
+                    <Button className="rounded-xl font-bold bg-[var(--crm-blue)] hover:opacity-90">Upgrade Plan</Button>
                   </div>
 
                   {/* Email Usage limit */}
                   <div className="pt-2">
                     <div className="flex justify-between items-center mb-2">
-                      <p className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-indigo-500" /> Monthly Email Usage
+                      <p className="font-bold text-[var(--crm-text-primary)] flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-[var(--crm-blue)]" /> Monthly Email Usage
                       </p>
-                      <p className="text-sm font-medium text-slate-500">
+                      <p className="text-sm font-medium text-[var(--crm-text-secondary)]">
                         {user?.company?.monthly_email_count || 0} sent
                         {user?.company?.plan === 'pro' && ' / 5,000'}
                         {user?.company?.plan === 'enterprise' && ' / 50,000'}
@@ -493,9 +493,9 @@ export default function SettingsPage() {
                       </p>
                     </div>
                     {/* Fake progress bar calculation */}
-                    <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-3 w-full bg-[var(--crm-surface-2)] rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full"
+                        className="h-full bg-gradient-to-r from-[var(--crm-blue)] to-[var(--crm-blue-border)] rounded-full"
                         style={{ 
                           width: (user?.company?.plan === 'agency' || user?.company?.type === 'agency') 
                             ? '5%' 
@@ -506,7 +506,7 @@ export default function SettingsPage() {
                         }}
                       />
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-2">Emails are sent via AWS SES and include full tracking. Count resets on the 1st of every month.</p>
+                    <p className="text-[11px] text-[var(--crm-text-secondary)] mt-2">Emails are sent via AWS SES and include full tracking. Count resets on the 1st of every month.</p>
                   </div>
                 </div>
               </Card>

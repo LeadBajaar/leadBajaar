@@ -2,8 +2,6 @@
 import { useState } from 'react'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
-import { cn } from '@/lib/utils'
-
 import { UserProvider } from '@/contexts/UserContext'
 import { SubscriptionGuard } from '@/components/SubscriptionGuard'
 import { WhatsAppProvider } from '@/contexts/WhatsAppContext'
@@ -14,25 +12,26 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   return (
     <UserProvider>
       <WhatsAppProvider>
         <SubscriptionGuard>
-          <div className="flex h-screen overflow-hidden bg-slate-100 dark:bg-slate-950">
+          <div className="flex h-screen overflow-hidden bg-[var(--crm-bg)] text-[var(--crm-text-primary)]">
             {/* Mobile Overlay */}
             {mobileOpen && (
               <div
-                className="fixed inset-0 z-[90] bg-slate-950/50 backdrop-blur-sm lg:hidden transition-all duration-300"
+                className="fixed inset-0 z-[90] bg-[#00000080] lg:hidden transition-opacity"
                 onClick={() => setMobileOpen(false)}
               />
             )}
 
-            <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+            <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
-            <div className="flex-1 flex flex-col min-w-0 lg:pl-[100px] transition-all duration-300 p-4 gap-4">
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
               <Header mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-              <main className="flex-1 overflow-y-auto relative rounded-xl">
+              <main className="flex-1 overflow-y-auto relative p-4 lg:p-6 no-scrollbar">
                 {children}
               </main>
             </div>

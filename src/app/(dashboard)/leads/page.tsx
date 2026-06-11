@@ -79,6 +79,7 @@ import {
 import { LeadsHeader } from './LeadsHeader'
 import { LeadsFilters } from './LeadsFilters'
 import { LeadsTable, LeadsTableSkeleton } from './LeadsTable'
+import { KanbanBoard } from './KanbanBoard'
 import { ImportLeadsDialog } from './ImportLeadsDialog'
 import { FacebookRetrievalDialog } from './FacebookRetrievalDialog'
 import { DeleteConfirmationDialog } from './DeleteConfirmationDialog'
@@ -181,6 +182,8 @@ export default function LeadsPage() {
     'created_at',
     'actions'
   ])
+
+  const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table')
 
   // Add states for import functionality
   const [file, setFile] = useState<File | null>(null)
@@ -1419,7 +1422,7 @@ export default function LeadsPage() {
 
   return (
     <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
-      <div className="flex flex-col h-full bg-white dark:bg-slate-950 overflow-hidden">
+      <div className="flex flex-col h-full bg-[var(--crm-bg)] overflow-hidden">
       <div className="shrink-0">
         <LeadsFilters
           filters={filters}
@@ -1434,44 +1437,40 @@ export default function LeadsPage() {
           handleImportClick={handleImportClick}
           openFacebookRetrieval={openFacebookRetrieval}
           stages={stages}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
         />
       </div>
 
       <div className="flex-1 flex flex-col min-h-0 p-0 sm:p-2.5 pb-0 sm:pb-0 overflow-hidden">
         {leads.length > 0 && selectedLeads.length > 0 && (
-          <div className="mx-2 mb-2 flex items-center justify-between p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-md animate-in fade-in slide-in-from-top-1 duration-300">
+          <div className="mx-2 mb-2 flex items-center justify-between p-2.5 rounded-[var(--r-xl)] border bg-[var(--crm-surface-1)] animate-in fade-in slide-in-from-top-1 duration-300" style={{ borderColor: 'var(--crm-border)' }}>
             <div className="flex items-center gap-2.5 px-1">
-              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-white text-[10px] font-black">
+              <div className="flex h-5 w-5 items-center justify-center rounded-[var(--r-pill)] bg-[var(--crm-accent)] text-white text-[10px] font-black">
                 {selectedLeads.length}
               </div>
-              <span className="text-[13px] font-semibold text-slate-600 dark:text-slate-300">Selected</span>
+              <span className="text-[13px] font-semibold text-[var(--crm-text-primary)]">Selected</span>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-3 text-xs font-bold text-emerald-600 hover:bg-white dark:hover:bg-slate-800"
+              <button
+                className="btn btn-ghost text-emerald-600 border-none"
                 onClick={() => setShowBroadcastDialog(true)}
               >
-                <MessageSquare className="mr-2 h-3.5 w-3.5" />
+                <i className="ti ti-message-circle mr-1" />
                 Broadcast
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-3 text-xs font-bold text-indigo-600 hover:bg-white dark:hover:bg-slate-800"
+              </button>
+              <button
+                className="btn btn-ghost text-[var(--crm-text-primary)] border-none"
                 onClick={() => setShowStageChange(true)}
               >
                 Change Stage
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-3 text-xs font-bold text-red-500 hover:bg-white dark:hover:bg-slate-800"
+              </button>
+              <button
+                className="btn btn-ghost text-red-500 border-none"
                 onClick={handleBulkDelete}
               >
                 Delete
-              </Button>
+              </button>
             </div>
           </div>
         )}
@@ -1494,6 +1493,21 @@ export default function LeadsPage() {
               stages={stages}
             />
           </div>
+        ) : viewMode === 'kanban' ? (
+          <KanbanBoard
+            leads={leads}
+            stages={stages}
+            isLoading={isLoading}
+            error={error}
+            handleStageChange={handleStageChange}
+            handleEdit={handleEditLead}
+            handleWhatsAppClick={handleWhatsAppClick}
+            handleCallClick={handleCallClick}
+            handleDealValueClick={handleDealValueClick}
+            handleAssignAgentClick={handleAssignAgentClick}
+            handleDelete={handleDeleteLead}
+            handleCardClick={(id) => router.push(`/leads/${id}`)}
+          />
         ) : (
           <LeadsTable
             leads={leads}

@@ -1,5 +1,6 @@
 export interface EventType {
   id: string | number
+  slug?: string
   title: string
   description: string
   duration: number

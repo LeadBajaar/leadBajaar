@@ -610,7 +610,7 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
   return (
     <div
       onClick={() => onSelect(meeting)}
-      className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md transition-all duration-200 cursor-pointer"
+      className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 rounded-xl border border-[var(--crm-border)] bg-[var(--crm-surface-1)] hover:border-[var(--crm-primary)] hover:shadow-sm transition-all duration-200 cursor-pointer"
     >
       {/* Left: Avatar & Info */}
       <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
@@ -621,13 +621,13 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">{meeting.title}</p>
+          <p className="font-semibold text-sm text-[var(--crm-text-primary)] truncate">{meeting.title}</p>
           <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-            <span className="flex items-center gap-1 text-xs text-slate-500">
+            <span className="flex items-center gap-1 text-xs text-[var(--crm-text-secondary)]">
               <Clock className="h-3 w-3" />{meeting.time} · {meeting.duration}
             </span>
             {meeting.lead.company && (
-              <span className="flex items-center gap-1 text-xs text-slate-500">
+              <span className="flex items-center gap-1 text-xs text-[var(--crm-text-secondary)]">
                 <Building2 className="h-3 w-3" />{meeting.lead.company}
               </span>
             )}
@@ -656,7 +656,7 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
       </div>
 
       {/* Right: Badges & Call / WhatsApp Quick Actions */}
-      <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-3 sm:pt-0 border-t border-slate-100 dark:border-slate-800/40 sm:border-t-0 mt-1 sm:mt-0">
+      <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-3 sm:pt-0 border-t border-[var(--crm-border)] sm:border-t-0 mt-1 sm:mt-0">
         <div className="flex items-center gap-2">
           {/* Type badge */}
           <div className={cn('flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm', typeInfo.bg, typeInfo.color, 'border-current/10')}>
@@ -676,7 +676,7 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
             <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
               <a
                 href={`tel:${meeting.lead.phone}`}
-                className="flex items-center justify-center h-8 w-8 rounded-full border border-indigo-100 dark:border-indigo-800 bg-indigo-50/50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/50 dark:text-indigo-400 transition-all duration-200 shadow-sm"
+                className="flex items-center justify-center h-8 w-8 rounded-full border border-indigo-100 dark:border-indigo-800/50 bg-indigo-50/50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-400 transition-all duration-200 shadow-sm"
                 title={`Call ${meeting.lead.name}`}
               >
                 <Phone className="h-3.5 w-3.5" />
@@ -685,7 +685,7 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
                 href={`https://wa.me/${meeting.lead.phone.replace(/\D/g, '').length === 10 ? '91' + meeting.lead.phone.replace(/\D/g, '') : meeting.lead.phone.replace(/\D/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center h-8 w-8 rounded-full border border-emerald-100 dark:border-emerald-800 bg-emerald-50/50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 dark:text-emerald-400 transition-all duration-200 shadow-sm"
+                className="flex items-center justify-center h-8 w-8 rounded-full border border-emerald-100 dark:border-emerald-800/50 bg-emerald-50/50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-400 transition-all duration-200 shadow-sm"
                 title={`WhatsApp ${meeting.lead.name}`}
               >
                 <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
@@ -696,7 +696,7 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
           )}
 
           {/* Chevron */}
-          <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0" />
+          <ChevronRight className="h-4 w-4 text-[var(--crm-text-tertiary)] group-hover:text-[var(--crm-primary)] transition-colors shrink-0" />
         </div>
       </div>
     </div>
@@ -992,71 +992,67 @@ export default function MeetingsPage() {
 
   return (
     <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
-      <div className="flex flex-col bg-slate-50/30 dark:bg-slate-950/30">
-      <div className="flex items-center justify-between gap-4 shrink-0 px-6 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-        {/* ── Header ── */}
-        <div>
-          <h1 className="text-base font-bold text-slate-900 dark:text-white">Meetings</h1>
-          <p className="text-xs text-slate-500">Manage your scheduled meetings</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link href="/meetings/event-types">
-            <Button variant="outline" size="sm" className="h-8 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 gap-1.5">
-              <Settings2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Event Types</span>
+      <div className="flex flex-col h-full bg-[var(--crm-bg)] overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)] shrink-0">
+          <div>
+            <h1 className="text-xl font-semibold text-[var(--crm-text-primary)]">Meetings</h1>
+            <p className="text-sm text-[var(--crm-text-secondary)] mt-1">Manage your scheduled meetings</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/meetings/event-types">
+              <Button variant="outline" size="sm" className="bg-[var(--crm-surface-2)] border-[var(--crm-border)] text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-3)]">
+                <Settings2 className="h-4 w-4 mr-2" />
+                Event Types
+              </Button>
+            </Link>
+            <Button size="sm" className="bg-[var(--crm-primary)] hover:opacity-90 text-white">
+              <FileText className="h-4 w-4 mr-2" />
+              Questions
             </Button>
-          </Link>
-          <Button size="sm" className="h-8 bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5 shadow-sm">
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Questions</span>
-          </Button>
+          </div>
         </div>
-      </div>
 
-      {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-4 gap-3 shrink-0 px-6 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-        {[
-          { label: 'Upcoming', value: totalUpcoming, icon: CalendarDays, gradient: 'from-indigo-500 to-indigo-700' },
-          { label: 'Confirmed', value: totalConfirmed, icon: CalendarCheck, gradient: 'from-emerald-500 to-emerald-700' },
-          { label: 'Completed', value: totalCompleted, icon: CheckCircle2, gradient: 'from-violet-500 to-violet-700' },
-          { label: 'Total', value: totalUpcoming + totalHistory, icon: Users, gradient: 'from-amber-500 to-amber-700' },
-        ].map(({ label, value, icon: Icon, gradient }) => (
-          <div key={label} className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl px-4 py-3">
-            <div className={cn('h-8 w-8 rounded-lg flex items-center justify-center bg-gradient-to-br shrink-0', gradient)}>
-              <Icon className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <p className="text-[11px] text-slate-500 uppercase tracking-wider font-medium">{label}</p>
-              <div className="text-lg font-bold text-slate-900 dark:text-white">
-                {isLoading ? <Skeleton className="h-5 w-8" /> : value}
+        {/* ── KPI Cards ── */}
+        <div className="grid grid-cols-4 gap-4 shrink-0 px-6 py-4 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
+          {[
+            { label: 'Upcoming', value: totalUpcoming, icon: CalendarDays },
+            { label: 'Confirmed', value: totalConfirmed, icon: CalendarCheck },
+            { label: 'Completed', value: totalCompleted, icon: CheckCircle2 },
+            { label: 'Total', value: totalUpcoming + totalHistory, icon: Users },
+          ].map(({ label, value, icon: Icon }) => (
+            <div key={label} className="flex items-center gap-4 bg-[var(--crm-surface-2)] rounded-lg p-4 border border-[var(--crm-border)] shadow-sm">
+              <div className="h-10 w-10 rounded-md flex items-center justify-center bg-[var(--crm-surface-3)] shrink-0 border border-[var(--crm-border)]">
+                <Icon className="h-5 w-5 text-[var(--crm-text-secondary)]" />
+              </div>
+              <div>
+                <p className="text-xs text-[var(--crm-text-secondary)] font-medium mb-1">{label}</p>
+                <div className="text-xl font-semibold text-[var(--crm-text-primary)]">
+                  {isLoading ? <Skeleton className="h-6 w-10" /> : value}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      <div className="bg-white dark:bg-slate-900 flex-1 flex flex-col min-h-0 border-t border-slate-100 dark:border-slate-800">
+      <div className="flex-1 flex flex-col min-h-0 bg-[var(--crm-bg)]">
         <Tabs defaultValue="upcoming" className="flex-1 flex flex-col min-h-0">
-          <CardHeader className="pb-0 px-6 border-b border-slate-100 dark:border-slate-800">
-            <div className="flex items-center justify-between">
-              <TabsList className="bg-slate-100 dark:bg-slate-800 rounded-lg p-1 h-auto">
-                <TabsTrigger value="upcoming"
-                  className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-md px-4 py-1.5 text-sm font-medium">
-                  Upcoming
-                  {totalUpcoming > 0 && (
-                    <span className="ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-indigo-600 text-white text-[10px] font-bold px-1">
-                      {totalUpcoming}
-                    </span>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="history"
-                  className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-md px-4 py-1.5 text-sm font-medium">
-                  History
-                </TabsTrigger>
-              </TabsList>
-
+          <div className="flex items-center justify-between px-6 border-b border-[var(--crm-border)] shrink-0 bg-[var(--crm-surface-1)]">
+            <TabsList className="h-12 bg-transparent p-0">
+              <TabsTrigger value="upcoming" className="h-full">
+                Upcoming
+                {totalUpcoming > 0 && (
+                  <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-[10px] bg-[var(--crm-surface-3)] text-[var(--crm-text-primary)] border border-[var(--crm-border)]">
+                    {totalUpcoming}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="history" className="h-full">
+                History
+              </TabsTrigger>
+            </TabsList>
+            <div className="py-2">
               <Select defaultValue="all">
-                <SelectTrigger className="h-8 w-[140px] border-slate-200 dark:border-slate-700 text-sm bg-slate-50 dark:bg-slate-800/50">
+                <SelectTrigger className="h-8 w-[140px] border-[var(--crm-border)] bg-[var(--crm-surface-2)]">
                   <SelectValue placeholder="Filter type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1067,7 +1063,7 @@ export default function MeetingsPage() {
                 </SelectContent>
               </Select>
             </div>
-          </CardHeader>
+          </div>
 
           {/* ── Upcoming Tab ── */}
           <TabsContent value="upcoming" className="flex-1 data-[state=active]:flex flex-col min-h-0 m-0 mt-0 overflow-hidden outline-none">
@@ -1135,14 +1131,14 @@ export default function MeetingsPage() {
                 <p className="text-sm text-slate-500 mt-2 max-w-xs mx-auto">Past meetings will appear here</p>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-slate-900">
+              <div className="flex-1 flex flex-col min-h-0 bg-[var(--crm-bg)]">
                 <div className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
                   <Table className="relative border-separate border-spacing-0 min-w-max">
                     <TableHeader className="sticky top-0 z-20">
-                      <TableRow className="bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/60 shadow-sm">
+                      <TableRow className="bg-[var(--crm-surface-2)] shadow-sm">
                         {['Meeting', 'Attendee', 'Date & Time', 'Type', 'Status', 'Outcome', 'Actions'].map(h => (
                           <TableHead key={h}
-                            className="h-12 whitespace-nowrap text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-50/95 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm first:pl-6">
+                            className="h-12 whitespace-nowrap text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)] bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)] backdrop-blur-sm first:pl-6">
                             {h}
                           </TableHead>
                         ))}
@@ -1155,8 +1151,8 @@ export default function MeetingsPage() {
                         const statusInfo = statusConfig[m.status] ?? statusConfig.completed
                         return (
                           <TableRow key={m.id}
-                            className="border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
-                            <TableCell className="whitespace-nowrap font-semibold text-sm text-slate-900 dark:text-white pl-6">
+                            className="border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)] transition-colors">
+                            <TableCell className="whitespace-nowrap font-semibold text-sm text-[var(--crm-text-primary)] pl-6">
                               {m.title}
                             </TableCell>
                             <TableCell className="whitespace-nowrap">
@@ -1166,12 +1162,12 @@ export default function MeetingsPage() {
                                 </div>
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <p className="text-xs font-semibold text-slate-800 dark:text-white whitespace-nowrap">{m.lead.name}</p>
+                                    <p className="text-xs font-semibold text-[var(--crm-text-primary)] whitespace-nowrap">{m.lead.name}</p>
                                     {m.lead.phone && (
                                       <div className="flex items-center gap-1 inline-flex shrink-0">
                                         <a
                                           href={`tel:${m.lead.phone}`}
-                                          className="flex items-center justify-center p-1 rounded-full text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
+                                          className="flex items-center justify-center p-1 rounded-full text-[var(--crm-text-tertiary)] hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
                                           title={`Call ${m.lead.name}`}
                                         >
                                           <Phone className="h-3 w-3" />
@@ -1180,7 +1176,7 @@ export default function MeetingsPage() {
                                           href={`https://wa.me/${m.lead.phone.replace(/\D/g, '').length === 10 ? '91' + m.lead.phone.replace(/\D/g, '') : m.lead.phone.replace(/\D/g, '')}`}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="flex items-center justify-center p-1 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors"
+                                          className="flex items-center justify-center p-1 rounded-full text-[var(--crm-text-tertiary)] hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors"
                                           title={`WhatsApp ${m.lead.name}`}
                                         >
                                           <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
@@ -1190,13 +1186,13 @@ export default function MeetingsPage() {
                                       </div>
                                     )}
                                   </div>
-                                  {m.lead.company && <p className="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">{m.lead.company}</p>}
+                                  {m.lead.company && <p className="text-[10px] text-[var(--crm-text-secondary)] mt-0.5 whitespace-nowrap">{m.lead.company}</p>}
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell className="whitespace-nowrap text-xs text-slate-500">
-                              <div className="font-medium text-slate-700 dark:text-slate-300">{m.date}</div>
-                              <div className="text-slate-400 mt-0.5">{m.time}</div>
+                            <TableCell className="whitespace-nowrap text-xs text-[var(--crm-text-secondary)]">
+                              <div className="font-medium text-[var(--crm-text-primary)]">{m.date}</div>
+                              <div className="mt-0.5">{m.time}</div>
                             </TableCell>
                             <TableCell className="whitespace-nowrap">
                               <div className={cn('flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider w-fit border shadow-sm', typeInfo.bg, typeInfo.color, 'border-current/10')}>
@@ -1208,8 +1204,8 @@ export default function MeetingsPage() {
                                 {statusInfo.label}
                               </Badge>
                             </TableCell>
-                            <TableCell className="whitespace-nowrap text-xs text-slate-500 max-w-[200px] truncate">
-                              {m.outcome || <span className="text-slate-300 italic">— No outcome recorded —</span>}
+                            <TableCell className="whitespace-nowrap text-xs text-[var(--crm-text-secondary)] max-w-[200px] truncate">
+                              {m.outcome || <span className="text-[var(--crm-text-tertiary)] italic">— No outcome recorded —</span>}
                             </TableCell>
                             <TableCell className="whitespace-nowrap">
                               <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/40 rounded-full transition-all"

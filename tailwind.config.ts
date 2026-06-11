@@ -56,6 +56,38 @@ export default {
 					"4": "hsl(var(--chart-4))",
 					"5": "hsl(var(--chart-5))",
 				},
+				// ── Crm colors ────────────────────────────────
+				crm: {
+					bg: '#0f0f0f',
+					's1': '#161616',
+					's2': '#1c1c1c',
+					's3': '#242424',
+					's4': '#2e2e2e',
+					accent: '#6b5ce7',
+					green: '#3ecf8e',
+					amber: '#f59e0b',
+					red: '#ef4444',
+					blue: '#3b82f6',
+					't1': '#e8e8e6',
+					't2': '#8a8a85',
+					't3': '#5a5a56',
+				}
+			},
+
+			// ── Border width ──────────────────────────────────
+			borderWidth: {
+				'thin': '0.5px',
+			},
+
+			// ── Font sizes ────────────────────────────────────
+			fontSize: {
+				'label': ['10px', { fontWeight: '600', letterSpacing: '0.10em', textTransform: 'uppercase' }],
+				'body-sm': ['11px', '1.5'],
+				'body-md': ['12px', '1.5'],
+				'body-lg': ['13px', '1.5'],
+				'heading-sm': ['14px', { fontWeight: '500' }],
+				'heading-lg': ['16px', { fontWeight: '500' }],
+				'display': ['22px', { fontWeight: '500', letterSpacing: '-0.02em' }],
 			},
 
 			// ── Border radius ─────────────────────────────────
@@ -65,6 +97,11 @@ export default {
 				sm: "calc(var(--radius) - 4px)",
 				xl: "calc(var(--radius) + 4px)",
 				"2xl": "calc(var(--radius) + 8px)",
+				'crm-xs': '3px',
+				'crm-sm': '5px',
+				'crm-md': '7px',
+				'crm-lg': '10px',
+				'crm-xl': '14px',
 			},
 
 			// ── Typography ────────────────────────────────────

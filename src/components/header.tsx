@@ -51,10 +51,9 @@ export function Header({ setMobileOpen, mobileOpen }: HeaderProps) {
 
   return (
     <header className="
-      z-40 w-full
-      flex h-16 items-center gap-4 px-4
-      bg-white/90 dark:bg-slate-950/95 backdrop-blur-md
-      border border-slate-200/80 dark:border-slate-800/60 rounded-xl shadow-lg dark:shadow-2xl
+      z-40 w-full shrink-0
+      flex h-[60px] items-center gap-4 px-6
+      bg-transparent border-b border-[var(--crm-border)]
     ">
       {/* Mobile menu toggle */}
       <Button

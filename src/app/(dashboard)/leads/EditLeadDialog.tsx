@@ -51,8 +51,8 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[500px] h-[90vh] p-0 flex flex-col">
-        <DialogHeader className="px-6 py-4 border-b">
+      <DialogContent className="max-w-[500px] h-[90vh] p-0 flex flex-col bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-[var(--r-xl)] shadow-lg">
+        <DialogHeader className="px-6 py-4 border-b border-[var(--crm-border)]">
           <DialogTitle>Edit Lead</DialogTitle>
           <DialogDescription>
             Update lead information and stage.
@@ -61,65 +61,65 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
         <div className="flex-1 overflow-y-auto px-6 py-4 no-scrollbar">
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Name</Label>
+              <Label className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Name</Label>
               <Input
                 value={lead?.name || ''}
                 onChange={(e) => setLead(prev => prev ? { ...prev, name: e.target.value } : null)}
-                className="h-10 text-sm bg-slate-50 border-slate-200"
+                className="h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-primary)]"
               />
             </div>
             <div className="grid gap-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Email</Label>
+              <Label className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Email</Label>
               <Input
                 value={lead?.email || ''}
                 onChange={(e) => setLead(prev => prev ? { ...prev, email: e.target.value } : null)}
-                className="h-10 text-sm bg-slate-50 border-slate-200"
+                className="h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-primary)]"
               />
             </div>
             <div className="grid gap-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Phone</Label>
+              <Label className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Phone</Label>
               <Input
                 value={lead?.phone || ''}
                 onChange={(e) => setLead(prev => prev ? { ...prev, phone: e.target.value } : null)}
-                className="h-10 text-sm bg-slate-50 border-slate-200"
+                className="h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-primary)]"
               />
             </div>
             <div className="grid gap-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Company</Label>
+              <Label className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Company</Label>
               <Input
                 value={lead?.company || ''}
                 onChange={(e) => setLead(prev => prev ? { ...prev, company: e.target.value } : null)}
-                className="h-10 text-sm bg-slate-50 border-slate-200"
+                className="h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-primary)]"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Profession</Label>
+                <Label className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Profession</Label>
                 <Input
                   value={lead?.profession || ''}
                   onChange={(e) => setLead(prev => prev ? { ...prev, profession: e.target.value } : null)}
-                  className="h-10 text-sm bg-slate-50 border-slate-200"
+                  className="h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-primary)]"
                   placeholder="Profession"
                 />
               </div>
               <div className="grid gap-2">
-                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">City</Label>
+                <Label className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">City</Label>
                 <Input
                   value={lead?.city || ''}
                   onChange={(e) => setLead(prev => prev ? { ...prev, city: e.target.value } : null)}
-                  className="h-10 text-sm bg-slate-50 border-slate-200"
+                  className="h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-primary)]"
                   placeholder="City"
                 />
               </div>
             </div>
             <div className="grid gap-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Stage</Label>
+              <Label className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Stage</Label>
               <Select
                 value={lead?.stage || ''}
                 onValueChange={(value) => setLead(prev => prev ? { ...prev, stage: value } : null)}
               >
-                <SelectTrigger className="h-10 text-sm bg-slate-50 border-slate-200">
+                <SelectTrigger className="h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-primary)]">
                   <SelectValue placeholder="Select stage" />
                 </SelectTrigger>
                 <SelectContent>
@@ -135,7 +135,7 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Temperature</Label>
+              <Label className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Temperature</Label>
               <Select
                 value={lead?.status || ''}
                 onValueChange={(value) => {
@@ -144,7 +144,7 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
                   }
                 }}
               >
-                <SelectTrigger className="h-10 text-sm bg-slate-50 border-slate-200">
+                <SelectTrigger className="h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-primary)]">
                   <SelectValue placeholder="Select temperature" />
                 </SelectTrigger>
                 <SelectContent>
@@ -160,12 +160,12 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Source</Label>
+              <Label className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Source</Label>
               <Select
                 value={lead?.source || ''}
                 onValueChange={(value) => setLead(prev => prev ? { ...prev, source: value } : null)}
               >
-                <SelectTrigger className="h-10 text-sm bg-slate-50 border-slate-200">
+                <SelectTrigger className="h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-primary)]">
                   <SelectValue placeholder="Select source" />
                 </SelectTrigger>
                 <SelectContent>
@@ -182,19 +182,19 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
             </div>
 
             {/* Financial Details */}
-            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-              <h3 className="text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
+            <div className="mt-4 pt-4 border-t border-[var(--crm-border)]">
+              <h3 className="text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2 text-[var(--crm-blue)]">
                 <Wallet className="h-4 w-4" />
                 Financial Details
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label className="text-[10px] font-bold text-slate-400">Total Deal Value</Label>
+                  <Label className="text-[10px] font-bold text-[var(--crm-text-tertiary)]">Total Deal Value</Label>
                   <div className="relative">
-                    <IndianRupee className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                    <IndianRupee className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--crm-text-tertiary)]" />
                     <Input
                       type="number"
-                      className="pl-8 h-9 text-sm bg-slate-50 border-slate-200"
+                      className="pl-8 h-9 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-primary)]"
                       placeholder="0.00"
                       value={lead?.deal_value || ''}
                       onChange={(e) => setLead(prev => prev ? { ...prev, deal_value: parseFloat(e.target.value) || 0 } : null)}
@@ -202,12 +202,12 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
                   </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label className="text-[10px] font-bold text-slate-400">Paid Amount</Label>
+                  <Label className="text-[10px] font-bold text-[var(--crm-text-tertiary)]">Paid Amount</Label>
                   <div className="relative">
-                    <IndianRupee className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                    <IndianRupee className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--crm-text-tertiary)]" />
                     <Input
                       type="number"
-                      className="pl-8 h-9 text-sm bg-slate-50 border-slate-200"
+                      className="pl-8 h-9 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-primary)]"
                       placeholder="0.00"
                       value={lead?.paid_amount || ''}
                       onChange={(e) => setLead(prev => prev ? { ...prev, paid_amount: parseFloat(e.target.value) || 0 } : null)}
@@ -216,8 +216,8 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
                 </div>
               </div>
               {lead && lead.deal_value !== undefined && lead.paid_amount !== undefined && (
-                <div className="mt-3 p-3 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-900/30 text-xs flex justify-between items-center animate-in slide-in-from-right-2 duration-300">
-                  <span className="text-indigo-700 dark:text-indigo-400 font-bold uppercase tracking-wider">Balance Due</span>
+                <div className="mt-3 p-3 bg-[var(--crm-blue-soft)] rounded-xl border border-[var(--crm-blue-border)] text-xs flex justify-between items-center animate-in slide-in-from-right-2 duration-300">
+                  <span className="text-[var(--crm-blue)] font-bold uppercase tracking-wider">Balance Due</span>
                   <span className={cn(
                     "font-black text-base",
                     (lead.deal_value - lead.paid_amount) > 0 ? "text-red-500" : "text-emerald-500"
@@ -229,28 +229,28 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
             </div>
 
             {/* Notes Section */}
-            <div className="mt-2 pt-4 border-t border-slate-100 dark:border-slate-800">
-              <h3 className="text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2 text-amber-600 dark:text-amber-400">
+            <div className="mt-2 pt-4 border-t border-[var(--crm-border)]">
+              <h3 className="text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2 text-amber-600">
                 <MessageSquare className="h-4 w-4" />
                 Notes / History
               </h3>
               <div className="grid gap-4">
                 {lead?.notes && (
-                  <div className="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800 max-h-[150px] overflow-y-auto no-scrollbar">
+                  <div className="bg-[var(--crm-surface-2)] p-3 rounded-[var(--r-lg)] border border-[var(--crm-border)] max-h-[150px] overflow-y-auto no-scrollbar">
                     <p className="text-xs whitespace-pre-wrap opacity-70 font-medium leading-relaxed">
                       {lead.notes}
                     </p>
                   </div>
                 )}
                 <div className="grid gap-2">
-                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Add New Note</Label>
+                  <Label className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase tracking-wider">Add New Note</Label>
                   <Textarea
                     placeholder="Type new note here..."
-                    className="min-h-[80px] bg-slate-50/50 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-sm rounded-xl focus:bg-white dark:focus:bg-slate-900 transition-all no-scrollbar"
+                    className="min-h-[80px] bg-[var(--crm-surface-2)] border-[var(--crm-border)] text-sm rounded-xl focus:bg-white dark:focus:bg-slate-900 transition-all no-scrollbar"
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
                   />
-                  <p className="text-[10px] text-slate-400 italic">
+                  <p className="text-[10px] text-[var(--crm-text-tertiary)] italic">
                     New notes are automatically timestamped and appended to history.
                   </p>
                 </div>
@@ -258,7 +258,7 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
             </div>
           </div>
         </div>
-        <DialogFooter className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/10">
+        <DialogFooter className="px-6 py-4 border-t border-[var(--crm-border)] bg-[var(--crm-surface-2)]/30">
           <Button variant="outline" size="sm" onClick={onCancel} disabled={isUpdating}>
             Cancel
           </Button>
@@ -266,7 +266,7 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
             size="sm"
             onClick={handleUpdate}
             disabled={isUpdating}
-            className="bg-indigo-600 hover:bg-indigo-700 font-bold"
+            className="bg-[var(--crm-blue)] hover:opacity-90 font-bold"
           >
             {isUpdating ? (
                <>

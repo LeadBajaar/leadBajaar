@@ -123,14 +123,13 @@ export function CustomCalendar({
         <div
           key={day}
           className={cn(
-            "h-9 w-9 flex items-center justify-center text-sm font-medium cursor-pointer transition-all duration-200",
-            "hover:bg-primary/10 hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-            "mx-auto rounded-full",
-            isSelected && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
-            isTodayDate && !isSelected && "bg-accent text-accent-foreground",
-            isAvailable && !isDisabled && !isSelected && !isTodayDate && "bg-primary/10 hover:bg-primary/15 text-foreground",
-            isDisabled && "text-muted-foreground opacity-50 cursor-not-allowed hover:bg-transparent",
-            !isAvailable && !isDisabled && !isSelected && !isTodayDate && "text-muted-foreground opacity-30 cursor-not-allowed hover:bg-transparent"
+            "h-[34px] w-[34px] flex items-center justify-center text-[13px] rounded-lg transition-all duration-200",
+            "mx-auto",
+            isSelected && "bg-[var(--lb-navy)] text-white font-medium shadow-sm",
+            isTodayDate && !isSelected && "border-[0.5px] border-[var(--lb-navy)] text-[var(--lb-navy)] font-medium",
+            isAvailable && !isDisabled && !isSelected && !isTodayDate && "text-[var(--lb-t1)] font-medium hover:bg-[var(--lb-s3)] cursor-pointer",
+            isDisabled && "text-[var(--lb-t3)] cursor-default",
+            !isAvailable && !isDisabled && !isSelected && !isTodayDate && "text-[var(--lb-t3)] cursor-default"
           )}
           onClick={() => handleDateClick(date)}
           role="button"
@@ -151,62 +150,60 @@ export function CustomCalendar({
   }
 
   return (
-    <div className={cn("p-4 bg-background border rounded-lg", className)}>
+    <div className={cn("p-0", className)}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
           onClick={goToPreviousMonth}
-          className="h-8 w-8 p-0"
+          className="w-7 h-7 rounded-md border-[0.5px] border-[var(--lb-border)] bg-white flex items-center justify-center cursor-pointer text-[var(--lb-t2)] hover:bg-[var(--lb-s3)] transition-colors"
+          aria-label="Previous month"
         >
           <ChevronLeft className="h-4 w-4" />
-        </Button>
+        </button>
         
-        <h2 className="text-lg font-semibold">
+        <h2 className="text-[14px] font-medium text-[var(--lb-t1)]">
           {months[currentMonth.getMonth()]} {currentMonth.getFullYear()}
         </h2>
         
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
           onClick={goToNextMonth}
-          className="h-8 w-8 p-0"
+          className="w-7 h-7 rounded-md border-[0.5px] border-[var(--lb-border)] bg-white flex items-center justify-center cursor-pointer text-[var(--lb-t2)] hover:bg-[var(--lb-s3)] transition-colors"
+          aria-label="Next month"
         >
           <ChevronRight className="h-4 w-4" />
-        </Button>
+        </button>
       </div>
 
       {/* Week days */}
-      <div className="grid grid-cols-7 gap-1 mb-2">
+      <div className="grid grid-cols-7 gap-[2px] mb-1">
         {weekDays.map(day => (
           <div
             key={day}
-            className="h-9 flex items-center justify-center text-xs font-medium text-muted-foreground"
+            className="text-[10px] font-semibold uppercase tracking-[0.06em] text-[var(--lb-t3)] text-center py-1.5"
           >
-            {day}
+            {day.substring(0, 3)}
           </div>
         ))}
       </div>
 
       {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-[2px]">
         {generateCalendarDays()}
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t text-xs text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-primary/10" />
-          <span>Available</span>
+      <div className="flex gap-4 pt-3 mt-2 border-t-[0.5px] border-[var(--lb-border)] text-[11px] text-[var(--lb-t2)]">
+        <div className="flex items-center gap-1.5">
+          <div className="h-2 w-2 rounded-full bg-[var(--lb-t1)]" />
+          Available
         </div>
-        <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-primary" />
-          <span>Selected</span>
+        <div className="flex items-center gap-1.5">
+          <div className="h-2 w-2 rounded-full bg-[var(--lb-navy)]" />
+          Selected
         </div>
-        <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-accent" />
-          <span>Today</span>
+        <div className="flex items-center gap-1.5">
+          <div className="h-2 w-2 rounded-full border-[0.5px] border-[var(--lb-navy)] bg-transparent" />
+          Today
         </div>
       </div>
     </div>

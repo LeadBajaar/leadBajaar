@@ -1,0 +1,985 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, 'SF Pro Text', sans-serif; }
+
+:root {
+  --attio-bg: #0f0f0f;
+  --attio-surface: #161616;
+  --attio-surface-2: #1c1c1c;
+  --attio-surface-3: #242424;
+  --attio-border: rgba(255,255,255,0.08);
+  --attio-border-hover: rgba(255,255,255,0.14);
+  --attio-text-primary: #e8e8e6;
+  --attio-text-secondary: #8a8a85;
+  --attio-text-tertiary: #5a5a56;
+  --attio-accent: #6b5ce7;
+  --attio-accent-soft: rgba(107,92,231,0.15);
+  --attio-green: #3ecf8e;
+  --attio-green-soft: rgba(62,207,142,0.12);
+  --attio-amber: #f59e0b;
+  --attio-amber-soft: rgba(245,158,11,0.12);
+  --attio-red: #ef4444;
+  --attio-red-soft: rgba(239,68,68,0.12);
+  --attio-blue: #3b82f6;
+  --attio-blue-soft: rgba(59,130,246,0.12);
+  --r-sm: 5px;
+  --r-md: 7px;
+  --r-lg: 10px;
+  --r-xl: 14px;
+}
+
+.ds-wrap {
+  background: var(--attio-bg);
+  color: var(--attio-text-primary);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 0 0 40px;
+  min-height: 100vh;
+}
+
+.section {
+  padding: 32px 28px 0;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--attio-text-tertiary);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 0.5px solid var(--attio-border);
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--attio-text-primary);
+  padding: 28px 28px 4px;
+}
+.page-sub {
+  font-size: 12px;
+  color: var(--attio-text-tertiary);
+  padding: 0 28px 0;
+}
+
+/* COLOR TOKENS */
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+.color-chip {
+  border-radius: var(--r-md);
+  overflow: hidden;
+  border: 0.5px solid var(--attio-border);
+}
+.color-swatch {
+  height: 44px;
+}
+.color-meta {
+  background: var(--attio-surface-2);
+  padding: 8px 10px;
+}
+.color-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--attio-text-primary);
+}
+.color-hex {
+  font-size: 10px;
+  color: var(--attio-text-tertiary);
+  font-family: 'SF Mono', monospace;
+}
+
+/* TYPOGRAPHY */
+.type-row {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--attio-border);
+}
+.type-label { font-size: 10px; color: var(--attio-text-tertiary); min-width: 80px; font-family: 'SF Mono', monospace; }
+.type-sample { color: var(--attio-text-primary); }
+.type-spec { font-size: 10px; color: var(--attio-text-tertiary); margin-left: auto; font-family: 'SF Mono', monospace; }
+
+/* SPACING */
+.space-grid { display: flex; flex-direction: column; gap: 8px; }
+.space-row { display: flex; align-items: center; gap: 12px; }
+.space-bar-wrap { flex: 1; }
+.space-bar { height: 6px; border-radius: 3px; background: var(--attio-accent); }
+.space-label { font-size: 10px; color: var(--attio-text-tertiary); min-width: 36px; font-family: 'SF Mono', monospace; }
+.space-val { font-size: 10px; color: var(--attio-text-secondary); min-width: 50px; text-align: right; font-family: 'SF Mono', monospace; }
+
+/* RADIUS */
+.radius-grid { display: flex; gap: 12px; flex-wrap: wrap; }
+.radius-chip {
+  width: 56px; height: 56px;
+  background: var(--attio-surface-3);
+  border: 0.5px solid var(--attio-border);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px;
+}
+.radius-name { font-size: 9px; color: var(--attio-text-tertiary); }
+.radius-val { font-size: 9px; color: var(--attio-text-secondary); font-family: 'SF Mono', monospace; }
+
+/* COMPONENTS */
+.comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.comp-card {
+  background: var(--attio-surface);
+  border: 0.5px solid var(--attio-border);
+  border-radius: var(--r-lg);
+  padding: 16px;
+}
+.comp-card-label { font-size: 10px; color: var(--attio-text-tertiary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; font-weight: 600; }
+
+/* BUTTONS */
+.btn-stack { display: flex; flex-direction: column; gap: 8px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: var(--r-md);
+  font-size: 13px; font-weight: 500;
+  padding: 7px 13px;
+  border: none; cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, opacity 0.12s;
+}
+.btn-primary { background: var(--attio-text-primary); color: #0f0f0f; }
+.btn-secondary { background: var(--attio-surface-3); color: var(--attio-text-primary); border: 0.5px solid var(--attio-border-hover); }
+.btn-ghost { background: transparent; color: var(--attio-text-secondary); border: 0.5px solid var(--attio-border); }
+.btn-danger { background: var(--attio-red-soft); color: var(--attio-red); border: 0.5px solid rgba(239,68,68,0.25); }
+.btn-xs { padding: 4px 9px; font-size: 11px; border-radius: var(--r-sm); }
+.btn-icon {
+  width: 28px; height: 28px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--r-sm);
+  background: var(--attio-surface-3); border: 0.5px solid var(--attio-border);
+  color: var(--attio-text-secondary); cursor: pointer;
+  font-size: 14px;
+}
+
+/* BADGES */
+.badge-stack { display: flex; flex-wrap: wrap; gap: 6px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 99px;
+  font-size: 11px; font-weight: 500;
+}
+.badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+}
+.badge-green { background: var(--attio-green-soft); color: var(--attio-green); }
+.badge-green .badge-dot { background: var(--attio-green); }
+.badge-amber { background: var(--attio-amber-soft); color: var(--attio-amber); }
+.badge-amber .badge-dot { background: var(--attio-amber); }
+.badge-red { background: var(--attio-red-soft); color: var(--attio-red); }
+.badge-red .badge-dot { background: var(--attio-red); }
+.badge-purple { background: var(--attio-accent-soft); color: #a89cf7; }
+.badge-purple .badge-dot { background: #a89cf7; }
+.badge-blue { background: var(--attio-blue-soft); color: var(--attio-blue); }
+.badge-neutral { background: var(--attio-surface-3); color: var(--attio-text-secondary); border: 0.5px solid var(--attio-border); }
+
+/* INPUTS */
+.input-stack { display: flex; flex-direction: column; gap: 8px; }
+.field-wrap { display: flex; flex-direction: column; gap: 4px; }
+.field-label { font-size: 11px; color: var(--attio-text-secondary); font-weight: 500; }
+.attio-input {
+  background: var(--attio-surface-2);
+  border: 0.5px solid var(--attio-border);
+  border-radius: var(--r-md);
+  padding: 7px 10px;
+  font-size: 13px; color: var(--attio-text-primary);
+  outline: none; width: 100%;
+  transition: border-color 0.12s;
+}
+.attio-input:focus { border-color: rgba(107,92,231,0.5); }
+.attio-input::placeholder { color: var(--attio-text-tertiary); }
+.input-with-icon { position: relative; }
+.input-with-icon .attio-input { padding-left: 30px; }
+.input-icon { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--attio-text-tertiary); font-size: 14px; }
+
+/* SELECT */
+.attio-select {
+  background: var(--attio-surface-2);
+  border: 0.5px solid var(--attio-border);
+  border-radius: var(--r-md);
+  padding: 7px 10px;
+  font-size: 13px; color: var(--attio-text-primary);
+  width: 100%; outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235a5a56' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+/* TABLE ROW ANATOMY */
+.table-demo {
+  border: 0.5px solid var(--attio-border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.table-header {
+  display: grid;
+  grid-template-columns: 20px 180px 130px 100px 110px 1fr;
+  gap: 0;
+  padding: 8px 12px;
+  background: var(--attio-surface-2);
+  border-bottom: 0.5px solid var(--attio-border);
+}
+.th {
+  font-size: 10px; font-weight: 600;
+  color: var(--attio-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: flex; align-items: center; gap: 3px;
+}
+.table-row {
+  display: grid;
+  grid-template-columns: 20px 180px 130px 100px 110px 1fr;
+  gap: 0;
+  padding: 9px 12px;
+  border-bottom: 0.5px solid var(--attio-border);
+  align-items: center;
+  transition: background 0.1s;
+}
+.table-row:last-child { border-bottom: none; }
+.table-row:hover { background: var(--attio-surface-2); }
+.td { font-size: 12px; color: var(--attio-text-primary); }
+.td-muted { font-size: 11px; color: var(--attio-text-secondary); }
+.avatar-sm {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 600;
+}
+.cell-name { display: flex; align-items: center; gap: 8px; }
+.cell-name-text { font-size: 13px; font-weight: 500; color: var(--attio-text-primary); }
+.cell-sub { font-size: 11px; color: var(--attio-text-secondary); }
+.checkbox-fake {
+  width: 14px; height: 14px;
+  border: 0.5px solid var(--attio-border-hover);
+  border-radius: 3px;
+}
+
+/* SIDEBAR ANATOMY */
+.sidebar-demo {
+  background: var(--attio-surface);
+  border: 0.5px solid var(--attio-border);
+  border-radius: var(--r-lg);
+  width: 180px;
+  overflow: hidden;
+}
+.sidebar-top {
+  padding: 12px 12px 8px;
+  border-bottom: 0.5px solid var(--attio-border);
+  display: flex; align-items: center; gap: 8px;
+}
+.ws-logo { width: 24px; height: 24px; border-radius: var(--r-sm); background: var(--attio-accent); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; }
+.ws-name { font-size: 13px; font-weight: 500; color: var(--attio-text-primary); }
+.sidebar-section { padding: 8px 8px 4px; }
+.sidebar-section-label { font-size: 9px; color: var(--attio-text-tertiary); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 6px 4px; font-weight: 600; }
+.nav-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px; border-radius: var(--r-sm);
+  font-size: 12px; color: var(--attio-text-secondary);
+  cursor: pointer; transition: background 0.1s;
+}
+.nav-item:hover, .nav-item.active {
+  background: var(--attio-surface-3);
+  color: var(--attio-text-primary);
+}
+.nav-item i { font-size: 14px; }
+
+/* FILTER BAR */
+.filter-bar {
+  display: flex; align-items: center; gap: 6px;
+  flex-wrap: wrap;
+}
+.filter-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--attio-surface-2);
+  border: 0.5px solid var(--attio-border-hover);
+  border-radius: 99px;
+  padding: 4px 10px;
+  font-size: 12px; color: var(--attio-text-secondary);
+  cursor: pointer;
+}
+.filter-pill.active {
+  background: var(--attio-accent-soft);
+  border-color: rgba(107,92,231,0.3);
+  color: #a89cf7;
+}
+.filter-pill i { font-size: 12px; }
+
+/* SHADOW / ELEVATION */
+.elev-grid { display: flex; gap: 10px; }
+.elev-chip {
+  background: var(--attio-surface-2);
+  border-radius: var(--r-md);
+  padding: 12px 16px;
+  font-size: 11px; color: var(--attio-text-secondary);
+  flex: 1; text-align: center;
+}
+
+/* ICON SIZES */
+.icon-grid { display: flex; align-items: flex-end; gap: 12px; }
+.icon-chip { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.icon-chip i { color: var(--attio-text-secondary); }
+.icon-sz { font-size: 10px; color: var(--attio-text-tertiary); font-family: 'SF Mono', monospace; }
+
+/* DIVIDER */
+.divider { height: 0.5px; background: var(--attio-border); margin: 24px 0 0; }
+
+/* LEAD CARD */
+.lead-card {
+  background: var(--attio-surface);
+  border: 0.5px solid var(--attio-border);
+  border-radius: var(--r-xl);
+  padding: 16px;
+}
+.lead-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.lead-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--attio-surface-3); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; border: 0.5px solid var(--attio-border); }
+.lead-name { font-size: 14px; font-weight: 500; color: var(--attio-text-primary); }
+.lead-phone { font-size: 11px; color: var(--attio-text-tertiary); font-family: 'SF Mono', monospace; margin-top: 1px; }
+.lead-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.lead-field-label { font-size: 10px; color: var(--attio-text-tertiary); margin-bottom: 2px; }
+.lead-field-val { font-size: 12px; color: var(--attio-text-secondary); }
+.lead-actions { display: flex; gap: 6px; }
+.lead-action-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
+  background: var(--attio-surface-3); border: 0.5px solid var(--attio-border);
+  border-radius: var(--r-md); padding: 7px; font-size: 12px;
+  color: var(--attio-text-secondary); cursor: pointer;
+}
+
+/* TOOLBAR / HEADER */
+.toolbar-demo {
+  background: var(--attio-surface);
+  border: 0.5px solid var(--attio-border);
+  border-radius: var(--r-lg);
+  padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.toolbar-title { font-size: 14px; font-weight: 500; color: var(--attio-text-primary); flex: 1; }
+.toolbar-actions { display: flex; align-items: center; gap: 6px; }
+
+/* METRICS ROW */
+.metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.metric-card {
+  background: var(--attio-surface);
+  border: 0.5px solid var(--attio-border);
+  border-radius: var(--r-lg);
+  padding: 12px 14px;
+}
+.metric-label { font-size: 10px; color: var(--attio-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 6px; }
+.metric-val { font-size: 20px; font-weight: 500; color: var(--attio-text-primary); }
+.metric-change { font-size: 10px; margin-top: 3px; }
+.metric-change.up { color: var(--attio-green); }
+.metric-change.down { color: var(--attio-red); }
+
+/* STAGE COLORS */
+.stages-grid { display: flex; flex-direction: column; gap: 6px; }
+.stage-row { display: flex; align-items: center; gap: 10px; }
+.stage-color { width: 10px; height: 10px; border-radius: 50%; }
+.stage-name { font-size: 12px; color: var(--attio-text-secondary); flex: 1; }
+.stage-hex { font-size: 10px; color: var(--attio-text-tertiary); font-family: 'SF Mono', monospace; }
+.stage-badge-sample {
+  font-size: 10px; font-weight: 500;
+  padding: 2px 8px; border-radius: 99px;
+}
+
+/* EMPTY STATE */
+.empty-state { text-align: center; padding: 24px 16px; }
+.empty-icon { font-size: 28px; color: var(--attio-text-tertiary); margin-bottom: 8px; }
+.empty-title { font-size: 13px; font-weight: 500; color: var(--attio-text-secondary); margin-bottom: 4px; }
+.empty-desc { font-size: 11px; color: var(--attio-text-tertiary); line-height: 1.5; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+.token-row {
+  display: flex; align-items: center;
+  padding: 7px 0;
+  border-bottom: 0.5px solid var(--attio-border);
+  gap: 12px;
+}
+.token-row:last-child { border-bottom: none; }
+.token-name { font-size: 11px; color: var(--attio-text-secondary); font-family: 'SF Mono', monospace; flex: 1; }
+.token-val { font-size: 11px; color: var(--attio-text-tertiary); }
+.token-preview { width: 24px; height: 24px; border-radius: var(--r-sm); }
+
+.annotation {
+  font-size: 10px; color: var(--attio-accent);
+  background: var(--attio-accent-soft);
+  border: 0.5px solid rgba(107,92,231,0.2);
+  border-radius: var(--r-sm);
+  padding: 2px 7px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+</style>
+
+<div class="ds-wrap">
+
+<div style="padding: 28px 28px 0;">
+  <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+    <div style="width:32px;height:32px;border-radius:8px;background:var(--attio-accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;">LB</div>
+    <div>
+      <div style="font-size:16px;font-weight:500;color:var(--attio-text-primary);">LeadBajaar — Attio Design System</div>
+      <div style="font-size:11px;color:var(--attio-text-tertiary);">Complete token set + component anatomy for your CRM redesign</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider" style="margin:20px 0 0;"></div>
+
+<!-- COLOR TOKENS -->
+<div class="section">
+  <div class="section-label">01 — Color Tokens</div>
+  <div class="color-grid">
+    <div class="color-chip">
+      <div class="color-swatch" style="background:#0f0f0f;border-bottom:0.5px solid rgba(255,255,255,0.06);"></div>
+      <div class="color-meta"><div class="color-name">bg-base</div><div class="color-hex">#0f0f0f</div></div>
+    </div>
+    <div class="color-chip">
+      <div class="color-swatch" style="background:#161616;border-bottom:0.5px solid rgba(255,255,255,0.06);"></div>
+      <div class="color-meta"><div class="color-name">surface-1</div><div class="color-hex">#161616</div></div>
+    </div>
+    <div class="color-chip">
+      <div class="color-swatch" style="background:#1c1c1c;border-bottom:0.5px solid rgba(255,255,255,0.06);"></div>
+      <div class="color-meta"><div class="color-name">surface-2</div><div class="color-hex">#1c1c1c</div></div>
+    </div>
+    <div class="color-chip">
+      <div class="color-swatch" style="background:#242424;border-bottom:0.5px solid rgba(255,255,255,0.06);"></div>
+      <div class="color-meta"><div class="color-name">surface-3</div><div class="color-hex">#242424</div></div>
+    </div>
+    <div class="color-chip">
+      <div class="color-swatch" style="background:#2e2e2e;border-bottom:0.5px solid rgba(255,255,255,0.06);"></div>
+      <div class="color-meta"><div class="color-name">surface-4</div><div class="color-hex">#2e2e2e</div></div>
+    </div>
+    <div class="color-chip">
+      <div class="color-swatch" style="background:#6b5ce7;border-bottom:0.5px solid rgba(255,255,255,0.06);"></div>
+      <div class="color-meta"><div class="color-name">accent</div><div class="color-hex">#6b5ce7</div></div>
+    </div>
+    <div class="color-chip">
+      <div class="color-swatch" style="background:#e8e8e6;border-bottom:0.5px solid rgba(255,255,255,0.06);"></div>
+      <div class="color-meta"><div class="color-name">text-primary</div><div class="color-hex">#e8e8e6</div></div>
+    </div>
+    <div class="color-chip">
+      <div class="color-swatch" style="background:#8a8a85;border-bottom:0.5px solid rgba(255,255,255,0.06);"></div>
+      <div class="color-meta"><div class="color-name">text-secondary</div><div class="color-hex">#8a8a85</div></div>
+    </div>
+    <div class="color-chip">
+      <div class="color-swatch" style="background:#5a5a56;border-bottom:0.5px solid rgba(255,255,255,0.06);"></div>
+      <div class="color-meta"><div class="color-name">text-tertiary</div><div class="color-hex">#5a5a56</div></div>
+    </div>
+    <div class="color-chip">
+      <div class="color-swatch" style="background:#3ecf8e;border-bottom:0.5px solid rgba(255,255,255,0.06);"></div>
+      <div class="color-meta"><div class="color-name">semantic-green</div><div class="color-hex">#3ecf8e</div></div>
+    </div>
+    <div class="color-chip">
+      <div class="color-swatch" style="background:#f59e0b;border-bottom:0.5px solid rgba(255,255,255,0.06);"></div>
+      <div class="color-meta"><div class="color-name">semantic-amber</div><div class="color-hex">#f59e0b</div></div>
+    </div>
+    <div class="color-chip">
+      <div class="color-swatch" style="background:#ef4444;border-bottom:0.5px solid rgba(255,255,255,0.06);"></div>
+      <div class="color-meta"><div class="color-name">semantic-red</div><div class="color-hex">#ef4444</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TYPOGRAPHY -->
+<div class="section">
+  <div class="section-label">02 — Typography Scale</div>
+  <div>
+    <div class="type-row">
+      <div class="type-label">display</div>
+      <div class="type-sample" style="font-size:22px;font-weight:500;">Lead Management</div>
+      <div class="type-spec">22px / 500 / -0.02em</div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">heading-lg</div>
+      <div class="type-sample" style="font-size:16px;font-weight:500;">All Leads</div>
+      <div class="type-spec">16px / 500 / -0.01em</div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">heading-sm</div>
+      <div class="type-sample" style="font-size:14px;font-weight:500;">Filter options</div>
+      <div class="type-spec">14px / 500</div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">body-lg</div>
+      <div class="type-sample" style="font-size:14px;font-weight:400;color:#8a8a85;">Rajesh Kumar · Sales Lead</div>
+      <div class="type-spec">14px / 400</div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">body-md</div>
+      <div class="type-sample" style="font-size:13px;color:#8a8a85;">+91 98765 43210</div>
+      <div class="type-spec">13px / 400</div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">body-sm</div>
+      <div class="type-sample" style="font-size:12px;color:#8a8a85;">Created 14 May, 2026</div>
+      <div class="type-spec">12px / 400</div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">label</div>
+      <div class="type-sample" style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#5a5a56;">Stage</div>
+      <div class="type-spec">10px / 600 / 0.10em UC</div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">mono</div>
+      <div class="type-sample" style="font-size:12px;font-family:'SF Mono',monospace;color:#8a8a85;">911234567800</div>
+      <div class="type-spec">12px mono</div>
+    </div>
+  </div>
+</div>
+
+<!-- SPACING + RADIUS -->
+<div class="section">
+  <div class="two-col">
+    <div>
+      <div class="section-label" style="margin-top:0;">03a — Spacing Scale</div>
+      <div class="space-grid">
+        <div class="space-row"><div class="space-label">sp-1</div><div class="space-bar-wrap"><div class="space-bar" style="width:4px;"></div></div><div class="space-val">4px</div></div>
+        <div class="space-row"><div class="space-label">sp-2</div><div class="space-bar-wrap"><div class="space-bar" style="width:8px;"></div></div><div class="space-val">8px</div></div>
+        <div class="space-row"><div class="space-label">sp-3</div><div class="space-bar-wrap"><div class="space-bar" style="width:12px;"></div></div><div class="space-val">12px</div></div>
+        <div class="space-row"><div class="space-label">sp-4</div><div class="space-bar-wrap"><div class="space-bar" style="width:16px;"></div></div><div class="space-val">16px</div></div>
+        <div class="space-row"><div class="space-label">sp-6</div><div class="space-bar-wrap"><div class="space-bar" style="width:24px;"></div></div><div class="space-val">24px</div></div>
+        <div class="space-row"><div class="space-label">sp-8</div><div class="space-bar-wrap"><div class="space-bar" style="width:32px;"></div></div><div class="space-val">32px</div></div>
+        <div class="space-row"><div class="space-label">sp-12</div><div class="space-bar-wrap"><div class="space-bar" style="width:48px;"></div></div><div class="space-val">48px</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-label" style="margin-top:0;">03b — Border Radius</div>
+      <div class="radius-grid">
+        <div class="radius-chip" style="border-radius:3px;"><div class="radius-name">r-xs</div><div class="radius-val">3px</div></div>
+        <div class="radius-chip" style="border-radius:5px;"><div class="radius-name">r-sm</div><div class="radius-val">5px</div></div>
+        <div class="radius-chip" style="border-radius:7px;"><div class="radius-name">r-md</div><div class="radius-val">7px</div></div>
+        <div class="radius-chip" style="border-radius:10px;"><div class="radius-name">r-lg</div><div class="radius-val">10px</div></div>
+        <div class="radius-chip" style="border-radius:14px;"><div class="radius-name">r-xl</div><div class="radius-val">14px</div></div>
+        <div class="radius-chip" style="border-radius:99px;width:auto;padding:0 12px;"><div class="radius-name">pill</div><div class="radius-val">99px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BUTTONS -->
+<div class="section">
+  <div class="section-label">04 — Buttons</div>
+  <div class="two-col">
+    <div class="comp-card">
+      <div class="comp-card-label">Variants</div>
+      <div class="btn-stack">
+        <div><button class="btn btn-primary"><i class="ti ti-plus" aria-hidden="true"></i> Add Lead</button></div>
+        <div><button class="btn btn-secondary"><i class="ti ti-adjustments-horizontal" aria-hidden="true"></i> Columns</button></div>
+        <div><button class="btn btn-ghost"><i class="ti ti-download" aria-hidden="true"></i> Export</button></div>
+        <div><button class="btn btn-danger"><i class="ti ti-trash" aria-hidden="true"></i> Delete</button></div>
+      </div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-card-label">Sizes + Icon Buttons</div>
+      <div class="btn-stack">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="btn btn-secondary" style="padding:10px 16px;font-size:14px;">Large</button>
+          <button class="btn btn-secondary">Default</button>
+          <button class="btn btn-secondary btn-xs">Small</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button class="btn-icon"><i class="ti ti-edit" aria-label="Edit"></i></button>
+          <button class="btn-icon"><i class="ti ti-message" aria-label="Message"></i></button>
+          <button class="btn-icon"><i class="ti ti-phone" aria-label="Call"></i></button>
+          <button class="btn-icon" style="color:var(--attio-red);"><i class="ti ti-trash" aria-label="Delete"></i></button>
+          <button class="btn-icon" style="background:var(--attio-accent);border-color:var(--attio-accent);color:#fff;"><i class="ti ti-user-check" aria-label="Assign"></i></button>
+        </div>
+        <div style="font-size:10px;color:var(--attio-text-tertiary);">Row action pattern → edit · chat · call · pay · assign · delete</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BADGES + STATUS -->
+<div class="section">
+  <div class="section-label">05 — Stage Badges + Status Chips</div>
+  <div class="two-col">
+    <div class="comp-card">
+      <div class="comp-card-label">Lead Stages (Pill style)</div>
+      <div class="stages-grid">
+        <div class="stage-row">
+          <div class="stage-color" style="background:#3ecf8e;"></div>
+          <div class="stage-name">Appointment Booked</div>
+          <div class="stage-badge-sample badge-green" style="background:rgba(62,207,142,0.12);color:#3ecf8e;">Appt. Booked</div>
+        </div>
+        <div class="stage-row">
+          <div class="stage-color" style="background:#6b5ce7;"></div>
+          <div class="stage-name">Qualified</div>
+          <div class="stage-badge-sample badge-purple" style="background:rgba(107,92,231,0.15);color:#a89cf7;">Qualified</div>
+        </div>
+        <div class="stage-row">
+          <div class="stage-color" style="background:#f59e0b;"></div>
+          <div class="stage-name">In Progress</div>
+          <div class="stage-badge-sample" style="background:rgba(245,158,11,0.12);color:#f59e0b;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:500;">In Progress</div>
+        </div>
+        <div class="stage-row">
+          <div class="stage-color" style="background:#3b82f6;"></div>
+          <div class="stage-name">Contacted</div>
+          <div class="stage-badge-sample" style="background:rgba(59,130,246,0.12);color:#3b82f6;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:500;">Contacted</div>
+        </div>
+        <div class="stage-row">
+          <div class="stage-color" style="background:#ef4444;"></div>
+          <div class="stage-name">Lost</div>
+          <div class="stage-badge-sample badge-red" style="background:rgba(239,68,68,0.12);color:#ef4444;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:500;">Lost</div>
+        </div>
+        <div class="stage-row">
+          <div class="stage-color" style="background:#5a5a56;"></div>
+          <div class="stage-name">New Lead</div>
+          <div class="stage-badge-sample badge-neutral" style="background:var(--attio-surface-3);color:var(--attio-text-secondary);border:0.5px solid var(--attio-border);padding:2px 8px;border-radius:99px;font-size:10px;font-weight:500;">New Lead</div>
+        </div>
+      </div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-card-label">Generic Status Badges</div>
+      <div class="badge-stack">
+        <span class="badge badge-green"><span class="badge-dot"></span>Active</span>
+        <span class="badge badge-amber"><span class="badge-dot"></span>Pending</span>
+        <span class="badge badge-red"><span class="badge-dot"></span>Overdue</span>
+        <span class="badge badge-purple"><span class="badge-dot"></span>Premium</span>
+        <span class="badge badge-blue"><span class="badge-dot"></span>Synced</span>
+        <span class="badge badge-neutral">No status</span>
+      </div>
+      <div style="margin-top:16px;">
+        <div class="comp-card-label">ICP / Score Tags</div>
+        <div class="badge-stack">
+          <span style="background:rgba(62,207,142,0.12);color:#3ecf8e;border:0.5px solid rgba(62,207,142,0.2);border-radius:4px;padding:3px 8px;font-size:11px;font-weight:500;">Hot 🔥</span>
+          <span style="background:rgba(245,158,11,0.12);color:#f59e0b;border:0.5px solid rgba(245,158,11,0.2);border-radius:4px;padding:3px 8px;font-size:11px;font-weight:500;">Warm</span>
+          <span style="background:rgba(59,130,246,0.12);color:#3b82f6;border:0.5px solid rgba(59,130,246,0.2);border-radius:4px;padding:3px 8px;font-size:11px;font-weight:500;">Cold</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FORM INPUTS -->
+<div class="section">
+  <div class="section-label">06 — Form Inputs</div>
+  <div class="two-col">
+    <div class="comp-card">
+      <div class="comp-card-label">Text Inputs</div>
+      <div class="input-stack">
+        <div class="field-wrap">
+          <div class="field-label">Search</div>
+          <div class="input-with-icon">
+            <i class="ti ti-search input-icon" aria-hidden="true"></i>
+            <input type="text" class="attio-input" placeholder="Search leads..." />
+          </div>
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">Phone Number</div>
+          <input type="text" class="attio-input" placeholder="+91 98765 43210" />
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">Stage</div>
+          <select class="attio-select">
+            <option>All Stages</option>
+            <option>Appointment Booked</option>
+            <option>Qualified</option>
+            <option>Lost</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-card-label">Filter Pills</div>
+      <div class="filter-bar" style="margin-bottom:12px;">
+        <div class="filter-pill"><i class="ti ti-world" aria-hidden="true"></i> All Territory</div>
+        <div class="filter-pill active"><i class="ti ti-flag" aria-hidden="true"></i> All Stage</div>
+        <div class="filter-pill"><i class="ti ti-share" aria-hidden="true"></i> All Source</div>
+      </div>
+      <div style="font-size:10px;color:var(--attio-text-tertiary);margin-bottom:10px;">Date range chips</div>
+      <div class="filter-bar">
+        <div class="filter-pill"><i class="ti ti-calendar" aria-hidden="true"></i> Last Contact</div>
+        <div class="filter-pill"><i class="ti ti-calendar-event" aria-hidden="true"></i> Created Date</div>
+        <div class="filter-pill active" style="color:var(--attio-red);background:var(--attio-red-soft);border-color:rgba(239,68,68,0.25);"><i class="ti ti-x" aria-hidden="true"></i> Clear</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TABLE ANATOMY -->
+<div class="section">
+  <div class="section-label">07 — Table / List View Anatomy</div>
+  <div class="table-demo">
+    <div class="table-header">
+      <div></div>
+      <div class="th"><i class="ti ti-user" aria-hidden="true" style="font-size:11px;"></i> Name</div>
+      <div class="th"><i class="ti ti-phone" aria-hidden="true" style="font-size:11px;"></i> Phone</div>
+      <div class="th"><i class="ti ti-flag" aria-hidden="true" style="font-size:11px;"></i> Stage</div>
+      <div class="th"><i class="ti ti-calendar" aria-hidden="true" style="font-size:11px;"></i> Created</div>
+      <div class="th">Actions</div>
+    </div>
+    <div class="table-row">
+      <div><div class="checkbox-fake"></div></div>
+      <div>
+        <div class="cell-name">
+          <div class="avatar-sm" style="background:rgba(107,92,231,0.15);color:#a89cf7;">RK</div>
+          <div><div class="cell-name-text">Rajesh Kumar</div><div class="cell-sub">+91 98765 43210</div></div>
+        </div>
+      </div>
+      <div class="td" style="font-family:'SF Mono',monospace;font-size:12px;">911234567900</div>
+      <div><span class="badge badge-green" style="font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(62,207,142,0.12);color:#3ecf8e;font-weight:500;">Appt. Booked</span></div>
+      <div class="td-muted">14 May, 26</div>
+      <div style="display:flex;gap:5px;">
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;"><i class="ti ti-edit" aria-label="edit"></i></button>
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;"><i class="ti ti-message" aria-label="note"></i></button>
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;color:var(--attio-red);"><i class="ti ti-trash" aria-label="delete"></i></button>
+      </div>
+    </div>
+    <div class="table-row" style="background:var(--attio-surface-2);">
+      <div><div class="checkbox-fake" style="background:var(--attio-accent-soft);border-color:rgba(107,92,231,0.4);"></div></div>
+      <div>
+        <div class="cell-name">
+          <div class="avatar-sm" style="background:rgba(62,207,142,0.12);color:#3ecf8e;">PS</div>
+          <div><div class="cell-name-text">Priya Sharma</div><div class="cell-sub">+91 83194 04802</div></div>
+        </div>
+      </div>
+      <div class="td" style="font-family:'SF Mono',monospace;font-size:12px;">918319404802</div>
+      <div><span style="font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(107,92,231,0.15);color:#a89cf7;font-weight:500;">Qualified</span></div>
+      <div class="td-muted">01 May, 26</div>
+      <div style="display:flex;gap:5px;">
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;"><i class="ti ti-edit" aria-label="edit"></i></button>
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;"><i class="ti ti-message" aria-label="note"></i></button>
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;color:var(--attio-red);"><i class="ti ti-trash" aria-label="delete"></i></button>
+      </div>
+    </div>
+    <div class="table-row">
+      <div><div class="checkbox-fake"></div></div>
+      <div>
+        <div class="cell-name">
+          <div class="avatar-sm" style="background:rgba(245,158,11,0.12);color:#f59e0b;">AM</div>
+          <div><div class="cell-name-text">Amit Mehta</div><div class="cell-sub">+91 11234 56779</div></div>
+        </div>
+      </div>
+      <div class="td" style="font-family:'SF Mono',monospace;font-size:12px;">911234567790</div>
+      <div><span style="font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(245,158,11,0.12);color:#f59e0b;font-weight:500;">In Progress</span></div>
+      <div class="td-muted">27 Apr, 26</div>
+      <div style="display:flex;gap:5px;">
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;"><i class="ti ti-edit" aria-label="edit"></i></button>
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;"><i class="ti ti-message" aria-label="note"></i></button>
+        <button class="btn-icon" style="width:24px;height:24px;font-size:12px;color:var(--attio-red);"><i class="ti ti-trash" aria-label="delete"></i></button>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--attio-surface);border:0.5px solid var(--attio-border);border-top:none;border-radius:0 0 var(--r-lg) var(--r-lg);">
+    <div style="font-size:11px;color:var(--attio-text-tertiary);">1–5 of 5 leads · Rows: <select style="background:var(--attio-surface-2);border:0.5px solid var(--attio-border);border-radius:3px;color:var(--attio-text-secondary);font-size:11px;padding:1px 4px;"><option>25</option></select></div>
+    <div style="display:flex;gap:4px;">
+      <button class="btn-icon" style="width:22px;height:22px;font-size:11px;"><i class="ti ti-chevrons-left" aria-label="first"></i></button>
+      <button class="btn-icon" style="width:22px;height:22px;font-size:11px;"><i class="ti ti-chevron-left" aria-label="prev"></i></button>
+      <span style="font-size:11px;color:var(--attio-text-secondary);padding:0 6px;line-height:22px;">Page 1 of 1</span>
+      <button class="btn-icon" style="width:22px;height:22px;font-size:11px;"><i class="ti ti-chevron-right" aria-label="next"></i></button>
+      <button class="btn-icon" style="width:22px;height:22px;font-size:11px;"><i class="ti ti-chevrons-right" aria-label="last"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR ANATOMY -->
+<div class="section">
+  <div class="section-label">08 — Sidebar Nav Anatomy</div>
+  <div style="display:flex;gap:12px;align-items:flex-start;">
+    <div class="sidebar-demo">
+      <div class="sidebar-top">
+        <div class="ws-logo">LB</div>
+        <div class="ws-name">LeadBajaar</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="nav-item active"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard</div>
+        <div class="nav-item"><i class="ti ti-users" aria-hidden="true"></i> Leads</div>
+        <div class="nav-item"><i class="ti ti-message-circle" aria-hidden="true"></i> Live Chat</div>
+        <div class="nav-item"><i class="ti ti-robot" aria-hidden="true"></i> Chatbot</div>
+        <div class="nav-item"><i class="ti ti-calendar" aria-hidden="true"></i> Meetings</div>
+      </div>
+      <div class="sidebar-section" style="border-top:0.5px solid var(--attio-border);margin-top:4px;padding-top:8px;">
+        <div class="sidebar-section-label">Integrations</div>
+        <div class="nav-item"><i class="ti ti-puzzle" aria-hidden="true"></i> Integrations</div>
+        <div class="nav-item"><i class="ti ti-brand-whatsapp" aria-hidden="true"></i> WhatsApp Bot</div>
+      </div>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:10px;color:var(--attio-text-tertiary);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-bottom:10px;">Nav item anatomy</div>
+      <div class="token-row">
+        <div class="token-name">height</div>
+        <div class="token-val">32px (6px v-pad + 14px icon)</div>
+      </div>
+      <div class="token-row">
+        <div class="token-name">h-padding</div>
+        <div class="token-val">8px</div>
+      </div>
+      <div class="token-row">
+        <div class="token-name">border-radius</div>
+        <div class="token-val">r-sm (5px)</div>
+      </div>
+      <div class="token-row">
+        <div class="token-name">icon size</div>
+        <div class="token-val">16px Tabler outline</div>
+      </div>
+      <div class="token-row">
+        <div class="token-name">font active</div>
+        <div class="token-val">500 · text-primary</div>
+      </div>
+      <div class="token-row">
+        <div class="token-name">font inactive</div>
+        <div class="token-val">400 · text-secondary</div>
+      </div>
+      <div class="token-row">
+        <div class="token-name">active bg</div>
+        <div class="token-val">surface-3 (#242424)</div>
+      </div>
+      <div class="token-row">
+        <div class="token-name">sidebar width</div>
+        <div class="token-val">220px fixed</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE HEADER / TOOLBAR -->
+<div class="section">
+  <div class="section-label">09 — Page Header + Toolbar</div>
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    <div class="toolbar-demo">
+      <div>
+        <div style="font-size:16px;font-weight:500;color:var(--attio-text-primary);">Leads</div>
+        <div style="font-size:11px;color:var(--attio-text-tertiary);">Manage and track your leads</div>
+      </div>
+      <div class="toolbar-actions" style="margin-left:auto;">
+        <button class="btn btn-ghost btn-xs"><i class="ti ti-adjustments-horizontal" aria-hidden="true"></i> Columns</button>
+        <button class="btn btn-ghost btn-xs"><i class="ti ti-filter" aria-hidden="true"></i></button>
+        <button class="btn btn-primary btn-xs"><i class="ti ti-plus" aria-hidden="true"></i> Add Lead</button>
+        <button class="btn btn-ghost btn-xs"><i class="ti ti-download" aria-hidden="true"></i> Export</button>
+        <button class="btn btn-ghost btn-xs"><i class="ti ti-upload" aria-hidden="true"></i> Import</button>
+        <button class="btn btn-ghost btn-xs"><i class="ti ti-refresh" aria-hidden="true"></i> Sync</button>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--attio-text-tertiary);padding:0 4px;">↑ Primary action (Add Lead) = white filled btn · Secondary = ghost outlined · always right-aligned</div>
+  </div>
+</div>
+
+<!-- METRIC CARDS -->
+<div class="section">
+  <div class="section-label">10 — Dashboard Metric Cards</div>
+  <div class="metrics-row">
+    <div class="metric-card">
+      <div class="metric-label">Total Leads</div>
+      <div class="metric-val">1,284</div>
+      <div class="metric-change up">↑ 12% this week</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Appointments</div>
+      <div class="metric-val">342</div>
+      <div class="metric-change up">↑ 8% vs last</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Conversion</div>
+      <div class="metric-val">26.6%</div>
+      <div class="metric-change down">↓ 2% this month</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Lost Leads</div>
+      <div class="metric-val">89</div>
+      <div class="metric-change down">↑ 3 this week</div>
+    </div>
+  </div>
+</div>
+
+<!-- LEAD CARD -->
+<div class="section">
+  <div class="section-label">11 — Lead Detail Card (Side Panel)</div>
+  <div class="two-col">
+    <div class="lead-card">
+      <div class="lead-card-header">
+        <div class="lead-avatar" style="color:#a89cf7;">RK</div>
+        <div>
+          <div class="lead-name">Rajesh Kumar</div>
+          <div class="lead-phone">+91 98765 43210</div>
+        </div>
+        <span class="badge badge-green" style="margin-left:auto;font-size:10px;">Appt. Booked</span>
+      </div>
+      <div class="lead-fields">
+        <div><div class="lead-field-label">Profession</div><div class="lead-field-val">Business Owner</div></div>
+        <div><div class="lead-field-label">City</div><div class="lead-field-val">Mumbai</div></div>
+        <div><div class="lead-field-label">Source</div><div class="lead-field-val">Meta Ads</div></div>
+        <div><div class="lead-field-label">Created</div><div class="lead-field-val">14 May, 2026</div></div>
+      </div>
+      <div class="lead-actions">
+        <div class="lead-action-btn"><i class="ti ti-message" aria-hidden="true" style="font-size:13px;"></i> Note</div>
+        <div class="lead-action-btn"><i class="ti ti-phone" aria-hidden="true" style="font-size:13px;"></i> Call</div>
+        <div class="lead-action-btn"><i class="ti ti-currency-rupee" aria-hidden="true" style="font-size:13px;"></i> Pay</div>
+        <div class="lead-action-btn" style="background:rgba(107,92,231,0.1);border-color:rgba(107,92,231,0.2);color:#a89cf7;"><i class="ti ti-user-check" aria-hidden="true" style="font-size:13px;"></i></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--attio-text-tertiary);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-bottom:10px;">Card spec</div>
+      <div class="token-row"><div class="token-name">background</div><div class="token-val">surface-1 (#161616)</div></div>
+      <div class="token-row"><div class="token-name">border</div><div class="token-val">0.5px rgba(255,255,255,0.08)</div></div>
+      <div class="token-row"><div class="token-name">border-radius</div><div class="token-val">r-xl (14px)</div></div>
+      <div class="token-row"><div class="token-name">avatar size</div><div class="token-val">36px circle, initials</div></div>
+      <div class="token-row"><div class="token-name">avatar colors</div><div class="token-val">cycle accent palette</div></div>
+      <div class="token-row"><div class="token-name">field label</div><div class="token-val">10px tertiary</div></div>
+      <div class="token-row"><div class="token-name">field value</div><div class="token-val">12px secondary</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- EMPTY STATE -->
+<div class="section">
+  <div class="section-label">12 — Empty State</div>
+  <div class="two-col">
+    <div class="comp-card" style="display:flex;align-items:center;justify-content:center;">
+      <div class="empty-state">
+        <div class="empty-icon"><i class="ti ti-users" aria-hidden="true"></i></div>
+        <div class="empty-title">No leads yet</div>
+        <div class="empty-desc">Add your first lead or sync from Meta Ads to get started.</div>
+        <button class="btn btn-primary" style="margin-top:14px;font-size:12px;"><i class="ti ti-plus" aria-hidden="true"></i> Add Lead</button>
+      </div>
+    </div>
+    <div style="padding:12px 0;">
+      <div style="font-size:10px;color:var(--attio-text-tertiary);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-bottom:10px;">Empty state rules</div>
+      <div class="token-row"><div class="token-name">icon size</div><div class="token-val">28–32px, color: tertiary</div></div>
+      <div class="token-row"><div class="token-name">title</div><div class="token-val">13px / 500 / secondary</div></div>
+      <div class="token-row"><div class="token-name">description</div><div class="token-val">11px / tertiary / max 2 lines</div></div>
+      <div class="token-row"><div class="token-name">CTA</div><div class="token-val">btn-primary, centered</div></div>
+      <div class="token-row"><div class="token-name">v-padding</div><div class="token-val">24px top+bottom</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ICON SYSTEM -->
+<div class="section" style="padding-bottom:0;">
+  <div class="section-label">13 — Icon System (Tabler Outline)</div>
+  <div class="comp-card">
+    <div class="comp-card-label">Standard icon sizes + LeadBajaar mapped icons</div>
+    <div class="icon-grid" style="margin-bottom:16px;">
+      <div class="icon-chip"><i class="ti ti-users" style="font-size:12px;" aria-hidden="true"></i><div class="icon-sz">12px · dense</div></div>
+      <div class="icon-chip"><i class="ti ti-users" style="font-size:14px;" aria-hidden="true"></i><div class="icon-sz">14px · table</div></div>
+      <div class="icon-chip"><i class="ti ti-users" style="font-size:16px;" aria-hidden="true"></i><div class="icon-sz">16px · nav</div></div>
+      <div class="icon-chip"><i class="ti ti-users" style="font-size:20px;" aria-hidden="true"></i><div class="icon-sz">20px · feature</div></div>
+      <div class="icon-chip"><i class="ti ti-users" style="font-size:24px;" aria-hidden="true"></i><div class="icon-sz">24px · hero</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px;background:var(--attio-surface-2);border-radius:var(--r-md);"><i class="ti ti-layout-dashboard" style="font-size:18px;color:var(--attio-text-secondary);" aria-hidden="true"></i><div style="font-size:9px;color:var(--attio-text-tertiary);text-align:center;">Dashboard</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px;background:var(--attio-surface-2);border-radius:var(--r-md);"><i class="ti ti-users" style="font-size:18px;color:var(--attio-text-secondary);" aria-hidden="true"></i><div style="font-size:9px;color:var(--attio-text-tertiary);text-align:center;">Leads</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px;background:var(--attio-surface-2);border-radius:var(--r-md);"><i class="ti ti-message-circle" style="font-size:18px;color:var(--attio-text-secondary);" aria-hidden="true"></i><div style="font-size:9px;color:var(--attio-text-tertiary);text-align:center;">Live Chat</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px;background:var(--attio-surface-2);border-radius:var(--r-md);"><i class="ti ti-robot" style="font-size:18px;color:var(--attio-text-secondary);" aria-hidden="true"></i><div style="font-size:9px;color:var(--attio-text-tertiary);text-align:center;">Chatbot</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px;background:var(--attio-surface-2);border-radius:var(--r-md);"><i class="ti ti-calendar" style="font-size:18px;color:var(--attio-text-secondary);" aria-hidden="true"></i><div style="font-size:9px;color:var(--attio-text-tertiary);text-align:center;">Meetings</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px;background:var(--attio-surface-2);border-radius:var(--r-md);"><i class="ti ti-puzzle" style="font-size:18px;color:var(--attio-text-secondary);" aria-hidden="true"></i><div style="font-size:9px;color:var(--attio-text-tertiary);text-align:center;">Integrations</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px;background:var(--attio-surface-2);border-radius:var(--r-md);"><i class="ti ti-brand-whatsapp" style="font-size:18px;color:var(--attio-text-secondary);" aria-hidden="true"></i><div style="font-size:9px;color:var(--attio-text-tertiary);text-align:center;">WhatsApp</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px;background:var(--attio-surface-2);border-radius:var(--r-md);"><i class="ti ti-currency-rupee" style="font-size:18px;color:var(--attio-text-secondary);" aria-hidden="true"></i><div style="font-size:9px;color:var(--attio-text-tertiary);text-align:center;">Payments</div></div>
+    </div>
+  </div>
+</div>
+
+<div style="height:32px;"></div>
+
+</div>

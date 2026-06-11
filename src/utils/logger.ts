@@ -5,12 +5,12 @@ import { toast } from "sonner";
 const isDev = process.env.NODE_ENV === "development";
 
 export const logger = {
-  error: (message: string, error?: any, options?: { silent?: boolean }) => {
+  error: (message: string, error?: any, options?: { silent?: boolean, hideConsole?: boolean }) => {
     // Only log to console in dev if it's NOT a handled validation error or a network error
     const isHandled = error?.status === 422 || error?.status === 401;
     const isNetworkError = error?.message === 'Network Error' || (error && !error.status && error.message?.includes('connect'));
 
-    if (isDev && !isHandled && !isNetworkError) {
+    if (isDev && !isHandled && !isNetworkError && !options?.hideConsole) {
       console.error(`[LEADBAJAAR ERR] ${message}`, error);
     }
     

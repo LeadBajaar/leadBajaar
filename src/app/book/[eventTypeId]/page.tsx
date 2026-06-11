@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { CustomCalendar } from "@/components/ui/custom-calendar"
 import { format, addDays, isBefore, isAfter, startOfDay, endOfDay, isWithinInterval } from "date-fns"
-import { ChevronLeft, ChevronRight, Clock, Globe, CheckCircle2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, Globe, CheckCircle2, Zap, Calendar, AlertCircle } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -79,41 +79,26 @@ const isDateAvailable = (date: Date, eventType: EventType) => {
 
 function CalendarSkeleton() {
   return (
-    <div className="space-y-8">
-      {/* Calendar Grid Skeleton */}
-      <div className="p-6 bg-muted/20 rounded-lg">
-        <div className="space-y-4">
-          {/* Month Navigation */}
-          <div className="flex justify-between items-center pb-4">
-            <div className="h-6 w-32 bg-muted rounded animate-pulse" />
-            <div className="flex gap-1">
-              <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-              <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-            </div>
-          </div>
-          
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-1">
-            {/* Week days */}
-            {[...Array(7)].map((_, i) => (
-              <div key={i} className="h-8 bg-muted rounded animate-pulse" />
-            ))}
-            {/* Date cells */}
-            {[...Array(35)].map((_, i) => (
-              <div key={i} className="aspect-square bg-muted rounded animate-pulse" />
-            ))}
-          </div>
+    <div className="space-y-6">
+      {/* Month Navigation */}
+      <div className="flex justify-between items-center px-2">
+        <div className="h-5 w-32 bg-muted rounded animate-pulse" />
+        <div className="flex gap-2">
+          <div className="h-8 w-8 bg-muted rounded-full animate-pulse" />
+          <div className="h-8 w-8 bg-muted rounded-full animate-pulse" />
         </div>
       </div>
-
-      {/* Time Slots Skeleton */}
-      <div className="space-y-4">
-        <div className="h-6 w-48 bg-muted rounded animate-pulse" />
-        <div className="grid grid-cols-3 gap-2">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-10 bg-muted rounded animate-pulse" />
-          ))}
-        </div>
+      
+      {/* Calendar Grid */}
+      <div className="grid grid-cols-7 gap-y-2 gap-x-1">
+        {/* Week days */}
+        {[...Array(7)].map((_, i) => (
+          <div key={i} className="h-4 w-full max-w-6 mx-auto bg-muted/50 rounded animate-pulse mb-2" />
+        ))}
+        {/* Date cells */}
+        {[...Array(35)].map((_, i) => (
+          <div key={i} className="aspect-square w-full max-w-10 rounded-full bg-muted/30 animate-pulse mx-auto" />
+        ))}
       </div>
     </div>
   )
@@ -122,6 +107,8 @@ function CalendarSkeleton() {
 export default function BookingPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isEmbed = searchParams.get('embed') === 'true'
   const [step, setStep] = useState(1)
   const [answers, setAnswers] = useState<Record<string, any>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -145,8 +132,6 @@ export default function BookingPage() {
   useEffect(() => {
     const fetchEventType = async () => {
       try {
-        console.log('Fetching event type with ID:', params.eventTypeId);
-        
         const response = await fetch(
           `${API_BASE_URL}/event-types/${params.eventTypeId}`,
           {
@@ -158,13 +143,10 @@ export default function BookingPage() {
         );
         
         if (!response.ok) {
-          const errorData = await response.json();
-          console.error('API Error Response:', errorData);
           throw new Error('Failed to fetch event type');
         }
 
         const data = await response.json();
-        console.log('Event Type Data:', data);
         
         // Map API response to frontend model with proper scheduling data
         const mappedEventType = {
@@ -198,10 +180,8 @@ export default function BookingPage() {
           redirect_url: data.redirect_url
         };
 
-        console.log('Mapped Event Type:', mappedEventType);
         setEventType(mappedEventType);
       } catch (error) {
-        console.error('Error fetching event type:', error);
         setError(error instanceof Error ? error.message : 'Failed to fetch event type');
       }
     };
@@ -523,7 +503,12 @@ export default function BookingPage() {
   }
 
   const handleNextQuestion = () => {
-    const currentQuestion = eventType?.questions[currentQuestionIndex]
+    if (!eventType?.questions || eventType.questions.length === 0) {
+      handleSubmit()
+      return
+    }
+
+    const currentQuestion = eventType.questions[currentQuestionIndex]
     
     // Validate current question
     if (currentQuestion.required && !answers[currentQuestion.id]) {
@@ -567,11 +552,26 @@ export default function BookingPage() {
     }
   }
 
+  if (error) {
+    return (
+      <div className={cn(isEmbed ? "p-0 bg-transparent w-full" : "min-h-screen flex flex-col items-center justify-center bg-[var(--lb-bg)] py-6 px-4")}>
+        <div className="w-full max-w-md mx-auto text-center space-y-4">
+          <div className="mx-auto w-16 h-16 bg-red-50 rounded-full flex items-center justify-center text-red-500">
+            <AlertCircle className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-bold text-[var(--crm-text-primary)]">Event Not Found</h2>
+          <p className="text-[var(--crm-text-secondary)]">The event type you are looking for does not exist or has been removed.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!eventType) return (
-    <div className="container max-w-4xl mx-auto py-10">
-      <Card>
-        <CardContent className="p-0 relative overflow-hidden">
-          <div className="grid md:grid-cols-[300px,1fr]">
+    <div className={cn(isEmbed ? "p-0 bg-transparent w-full" : "min-h-screen flex flex-col items-center justify-center bg-[var(--lb-bg)] py-6 px-4")}>
+      <div className="w-full max-w-[820px] mx-auto">
+        <Card className="border-[0.5px] border-[var(--lb-border)] bg-white shadow-sm rounded-[16px] overflow-hidden w-full">
+          <CardContent className="p-0 relative overflow-hidden">
+          <div className="grid sm:grid-cols-[220px,1fr]">
             {/* Left Section Skeleton */}
             <div className="p-6 border-r">
               <div className="flex flex-col items-center text-center space-y-4">
@@ -589,105 +589,107 @@ export default function BookingPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 
   return (
-    <div className="container max-w-4xl mx-auto py-0 md:py-10">
-      <Card>
-        <CardContent className="p-0 relative overflow-hidden">
-          <div className="grid md:grid-cols-[300px,1fr]">
-            {/* Left Section - Event Info */}
-            <div className="p-6 border-r">
-              <div className="flex flex-col items-center text-center mb-6">
-                <Avatar className="w-16 h-16 mb-4">
-                  <AvatarImage src={eventType?.owner?.avatar_url || eventType?.teamMembers?.[0]?.avatar} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-bold">
+    <div className={cn(isEmbed ? "p-0 bg-transparent w-full" : "min-h-screen flex flex-col items-center justify-center bg-[var(--lb-bg)] py-6 px-4")}>
+      <div className="w-full max-w-[820px] mx-auto">
+        <Card className="border-[0.5px] border-[var(--lb-border)] bg-white shadow-sm rounded-[16px] overflow-hidden w-full">
+          <CardContent className="p-0 relative overflow-hidden">
+          <div className="grid sm:grid-cols-[220px,1fr]">
+            <div className={cn("p-4 sm:p-[24px_20px] border-b sm:border-b-0 sm:border-r border-[var(--lb-border)] bg-white flex flex-row sm:flex-col items-center sm:items-center text-left sm:text-center gap-4 sm:gap-0")}>
+              <div className="mb-0 sm:mb-[16px] shrink-0">
+                <Avatar className="w-[48px] h-[48px] sm:w-[64px] sm:h-[64px] rounded-2xl border-[0.5px] border-[var(--lb-border)] shadow-sm">
+                  <AvatarImage src={eventType?.owner?.avatar_url || eventType?.teamMembers?.[0]?.avatar} className="object-cover" />
+                  <AvatarFallback className="bg-[var(--lb-s2)] text-[var(--lb-navy)] font-bold text-lg sm:text-xl rounded-2xl">
                     {eventType?.owner?.name?.[0]?.toUpperCase() || 'LB'}
                   </AvatarFallback>
                 </Avatar>
-                <h2 className="text-xl font-semibold mb-1">{eventType?.title}</h2>
-                <div className="flex items-center text-muted-foreground mb-4">
-                  <Clock className="w-4 h-4 mr-2" />
+              </div>
+              <div className="flex flex-col flex-1">
+                <div className="text-[15px] font-medium text-[var(--lb-t1)] mb-0.5 sm:mb-1">
+                  {eventType?.owner?.name || eventType?.teamMembers?.[0]?.name || 'LeadBajaar'}
+                </div>
+                <div className="flex items-center gap-1.5 text-[12px] text-[var(--lb-t2)] mb-0 sm:mb-2">
+                  <Clock className="w-3.5 h-3.5" />
                   <span>{eventType?.duration} min</span>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {eventType?.description}
-                </p>
+                <div className="hidden sm:block text-[12px] text-[var(--lb-t3)] leading-relaxed">
+                  {eventType?.description || eventType?.title}
+                </div>
               </div>
 
-              {/* Meeting Summary - Add null checks */}
+              {/* Meeting Summary */}
               {selectedDate && selectedTime && (
-                <div className="mt-6 p-4 bg-muted rounded-lg">
-                  <h3 className="font-medium mb-2">Meeting Summary</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Date</span>
-                      <span>{format(selectedDate, 'EEEE, MMMM d, yyyy')}</span>
+                <div className="hidden sm:block mt-4 p-[12px_14px] bg-[var(--lb-s2)] border-[0.5px] border-[var(--lb-border)] rounded-xl w-full">
+                  <div className="text-[10px] font-semibold tracking-[0.08em] uppercase text-[var(--lb-navy)] mb-2">
+                    Meeting summary
+                  </div>
+                  <div className="space-y-0">
+                    <div className="flex justify-between items-center py-1.5 border-b-[0.5px] border-[var(--lb-border)]">
+                      <span className="text-[11px] text-[var(--lb-t3)]">Date</span>
+                      <span className="text-[11px] font-medium text-[var(--lb-t1)]">{format(selectedDate, 'MMM d, yyyy')}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Time</span>
-                      <span>{selectedTime ? format(new Date(selectedTime), 'h:mm a') : ''}</span>
+                    <div className="flex justify-between items-center py-1.5 border-b-[0.5px] border-[var(--lb-border)]">
+                      <span className="text-[11px] text-[var(--lb-t3)]">Time</span>
+                      <span className="text-[11px] font-medium text-[var(--lb-t1)]">{selectedTime ? format(new Date(selectedTime), 'h:mm a') : ''}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Duration</span>
-                      <span>{eventType?.duration} minutes</span>
+                    <div className="flex justify-between items-center py-1.5 border-b-[0.5px] border-[var(--lb-border)]">
+                      <span className="text-[11px] text-[var(--lb-t3)]">Duration</span>
+                      <span className="text-[11px] font-medium text-[var(--lb-t1)]">{eventType?.duration} minutes</span>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Powered by Badge */}
-              <div className="absolute top-0 right-0 bg-gray-700 text-white py-1 px-3 transform rotate-45 translate-x-12 translate-y-6">
-                <span className="text-xs">Powered by LeadBajaar</span>
-              </div>
+              {/* Powered by Badge moved to bottom of container */}
             </div>
 
             {/* Right Section - Calendar & Questions */}
-            <div className="p-6">
+            <div className="p-6 min-h-[500px] relative flex flex-col">
               {showSuccess && bookingDetails ? (
-                <div className="flex flex-col items-center justify-center py-6 text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                  <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/30 flex items-center justify-center shadow-md ring-4 ring-emerald-50 dark:ring-emerald-950/20">
-                    <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+                <div className="flex flex-col py-2 animate-in fade-in slide-in-from-bottom-4 duration-300 w-full">
+                  <div className="w-14 h-14 rounded-full bg-[var(--lb-green-soft)] border-[0.5px] border-[var(--lb-green-border)] flex items-center justify-center mx-auto mb-3.5">
+                    <CheckCircle2 className="w-[26px] h-[26px] text-[var(--lb-green)]" />
                   </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Booking Confirmed!</h3>
-                    <p className="text-sm text-muted-foreground mt-2 max-w-sm">
-                      Thank you! Your meeting has been scheduled and confirmed.
-                    </p>
-                  </div>
+                  <h2 className="text-[20px] font-medium text-center mb-1.5 text-[var(--lb-t1)]">
+                    Booking confirmed!
+                  </h2>
+                  <p className="text-[13px] text-[var(--lb-t2)] text-center mb-5">
+                    Your meeting has been scheduled and confirmed.
+                  </p>
 
-                  <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 w-full max-w-md shadow-sm">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 text-left">
+                  <div className="bg-[var(--lb-s2)] border-[0.5px] border-[var(--lb-border)] rounded-xl overflow-hidden mb-3 w-full max-w-md mx-auto">
+                    <div className="text-[10px] font-semibold tracking-[0.10em] uppercase text-[var(--lb-navy)] px-3.5 py-2.5 border-b-[0.5px] border-[var(--lb-border)]">
                       Meeting Details
-                    </h4>
-                    <div className="space-y-3 text-sm text-left">
-                      <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800/50">
-                        <span className="text-slate-500 font-medium">Date</span>
-                        <span className="font-semibold text-slate-800 dark:text-white">
-                          {bookingDetails?.start_time ? 
-                            formatInTimeZone(new Date(bookingDetails.start_time), 'UTC', 'EEEE, MMMM d, yyyy') : 
-                            selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : ''}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800/50">
-                        <span className="text-slate-500 font-medium">Time</span>
-                        <span className="font-semibold text-slate-800 dark:text-white">
-                          {bookingDetails?.start_time ? 
-                            formatInTimeZone(new Date(bookingDetails.start_time), 'UTC', 'h:mm a') : 
-                            selectedTime ? format(new Date(selectedTime), 'h:mm a') : ''}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-slate-500 font-medium">Duration</span>
-                        <span className="font-semibold text-slate-800 dark:text-white">{eventType?.duration} minutes</span>
-                      </div>
+                    </div>
+                    <div className="flex justify-between items-center px-3.5 py-[9px] border-b-[0.5px] border-[var(--lb-border)]">
+                      <span className="text-[12px] text-[var(--lb-t3)]">Date</span>
+                      <span className="text-[12px] font-medium text-[var(--lb-t1)]">
+                        {bookingDetails?.start_time ? 
+                          formatInTimeZone(new Date(bookingDetails.start_time), 'UTC', 'EEEE, MMMM d, yyyy') : 
+                          selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : ''}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center px-3.5 py-[9px] border-b-[0.5px] border-[var(--lb-border)]">
+                      <span className="text-[12px] text-[var(--lb-t3)]">Time</span>
+                      <span className="text-[12px] font-medium text-[var(--lb-t1)]">
+                        {bookingDetails?.start_time ? 
+                          formatInTimeZone(new Date(bookingDetails.start_time), 'UTC', 'h:mm a') : 
+                          selectedTime ? format(new Date(selectedTime), 'h:mm a') : ''}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center px-3.5 py-[9px]">
+                      <span className="text-[12px] text-[var(--lb-t3)]">Duration</span>
+                      <span className="text-[12px] font-medium text-[var(--lb-t1)]">{eventType?.duration} minutes</span>
                     </div>
                   </div>
 
-                  <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 rounded-xl max-w-md w-full text-xs font-medium flex items-center justify-center gap-2 border border-emerald-100 dark:border-emerald-900/30">
-                    <span>📅</span>
-                    <span>A calendar invite has been sent to your email</span>
+                  <div className="flex items-center gap-2 bg-[var(--lb-green-soft)] border-[0.5px] border-[var(--lb-green-border)] rounded-xl px-3.5 py-2.5 text-[12px] text-[var(--lb-green)] mb-3.5 w-full max-w-md mx-auto">
+                    <Calendar className="w-[15px] h-[15px] flex-shrink-0" />
+                    A calendar invite has been sent to your email
                   </div>
 
                   {eventType?.redirect_url && (
@@ -696,7 +698,7 @@ export default function BookingPage() {
                     </p>
                   )}
 
-                  <Button
+                  <button
                     onClick={() => {
                       setShowSuccess(false);
                       setBookingDetails(null);
@@ -712,28 +714,35 @@ export default function BookingPage() {
                         setCurrentQuestionIndex(0);
                       }
                     }}
-                    className="w-full max-w-xs font-bold uppercase tracking-widest text-[11px] h-10 shadow-sm mt-4"
+                    className="w-full max-w-md mx-auto bg-[var(--lb-navy)] text-white border-none rounded-xl p-[13px] text-[14px] font-medium cursor-pointer tracking-[0.04em] uppercase hover:opacity-90 transition-opacity"
                   >
                     Done
-                  </Button>
+                  </button>
                 </div>
               ) : step === 1 ? (
                 <>
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-semibold">
-                      {selectedDate
-                        ? `Available Times (${format(selectedDate, 'EEEE, MMMM d')})`
-                        : 'Select Date & Time'}
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-[16px] font-medium text-[var(--lb-t1)]">
+                      {selectedDate ? (
+                        <>
+                          Available times
+                          <span className="text-[13px] font-normal text-[var(--lb-t2)] ml-1.5">
+                            — {format(selectedDate, 'EEEE, MMMM d')}
+                          </span>
+                        </>
+                      ) : (
+                        'Select date & time'
+                      )}
                     </h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Globe className="h-4 w-4" />
+                    <div className="flex items-center gap-[5px] text-[11px] text-[var(--lb-t2)] bg-[var(--lb-s2)] border-[0.5px] border-[var(--lb-border)] rounded-full px-2.5 py-1">
+                      <Globe className="h-[13px] w-[13px]" />
                       <span>{eventType.scheduling.timezone}</span>
                     </div>
                   </div>
                   
-                  <div className="grid gap-8">
+                  <div className="grid gap-0">
                     {/* Calendar/Slots Transition Container */}
-                    <div className="p-0 bg-muted/20 rounded-lg">
+                    <div className="p-0 rounded-lg flex-grow">
                       {/* Calendar View */}
                       <div
                         className={cn(
@@ -751,7 +760,7 @@ export default function BookingPage() {
                           isDateAvailable={(date) => isDateAvailable(date, eventType)}
                         />
                         {!selectedDate && (
-                          <div className="pt-6 text-center text-sm text-muted-foreground">
+                          <div className="pt-6 text-center text-sm text-[var(--crm-text-secondary)]">
                             Select a date to view available times
                           </div>
                         )}
@@ -766,28 +775,22 @@ export default function BookingPage() {
                         )}
                         aria-hidden={!selectedDate}
                       >
-                        <div className="flex items-center justify-between mb-4">
-                          {/* <h4 className="font-medium">
-                            {selectedDate ? `Available Times (${format(selectedDate, 'EEEE, MMMM d')})` : 'Available Times'}
-                          </h4> */}
-                          <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedTime(null)
-                                setSelectedDate(undefined)
-                              }}
-                              className="ml-2"
-                            >
-                              <ChevronLeft className="h-4 w-4 mr-1" /> Change date
-                          </Button>
+                        <div className="flex items-center justify-between mb-3.5 mt-[-8px]">
+                          <button
+                            onClick={() => {
+                              setSelectedTime(null)
+                              setSelectedDate(undefined)
+                            }}
+                            className="inline-flex items-center gap-[6px] bg-[var(--lb-s2)] border-[0.5px] border-[var(--lb-border)] rounded-xl px-3 py-[7px] text-[12px] text-[var(--lb-t2)] hover:bg-[var(--lb-s3)] transition-colors cursor-pointer"
+                          >
+                            <ChevronLeft className="h-[13px] w-[13px]" /> Change date
+                          </button>
                           <div className="flex items-center gap-2">
                             {availableSlots.length > 0 && (
-                              <span className="text-sm text-muted-foreground">
+                              <span className="text-[11px] text-[var(--lb-t3)]">
                                 {availableSlots.length} slots available
                               </span>
                             )}
-                            
                           </div>
                         </div>
 
@@ -800,37 +803,36 @@ export default function BookingPage() {
                         ) : availableSlots.length > 0 ? (
                           <div className="grid grid-cols-3 gap-2">
                             {availableSlots.map((slot) => (
-                              <Button
+                              <button
                                 key={slot.startTime}
-                                variant={selectedTime === slot.startTime ? "default" : "outline"}
                                 className={cn(
-                                  "w-full transition-all",
-                                  !slot.available && "opacity-50 cursor-not-allowed",
-                                  selectedTime === slot.startTime && "ring-2 ring-primary ring-offset-2"
+                                  "w-full transition-all duration-200 border-[0.5px] rounded-xl font-medium text-[13px] p-[10px]",
+                                  !slot.available && "opacity-50 cursor-not-allowed bg-[var(--lb-s2)] border-[var(--lb-border)] text-[var(--lb-t3)]",
+                                  selectedTime !== slot.startTime && slot.available && "bg-[var(--lb-s2)] border-[var(--lb-border)] text-[var(--lb-t1)] hover:border-[var(--lb-navy)]",
+                                  selectedTime === slot.startTime && "bg-[var(--lb-navy)] text-white border-[var(--lb-navy)]"
                                 )}
                                 onClick={() => slot.available && setSelectedTime(slot.startTime)}
                                 disabled={!slot.available}
                               >
                                 {format(new Date(slot.startTime), 'h:mm a')}
-                              </Button>
+                              </button>
                             ))}
                           </div>
                         ) : (
                           <div className="py-8 text-center">
-                            <p className="text-muted-foreground">No available slots for this date</p>
+                            <p className="text-[var(--lb-t2)] text-[13px]">No available slots for this date</p>
                           </div>
                         )}
 
                         {/* Next Button */}
                         {selectedDate && selectedTime && (
-                          <Button 
+                          <button 
                             ref={nextButtonRef}
-                            className="w-full mt-6"
-                            size="lg"
+                            className="w-full mt-4 bg-[var(--lb-navy)] text-white border-none rounded-xl p-[13px] text-[14px] font-medium cursor-pointer hover:opacity-90 transition-opacity"
                             onClick={() => setStep(2)}
                           >
-                            Next
-                          </Button>
+                            Next &rarr;
+                          </button>
                         )}
                       </div>
                     </div>
@@ -838,47 +840,70 @@ export default function BookingPage() {
                 </>
               ) : (
                 <>
-                  <div className="flex items-center mb-6">
-                    <Button variant="ghost" onClick={handlePreviousQuestion} className="mr-2">
-                      <ChevronLeft className="w-4 h-4" />
-                    </Button>
-                    <h3 className="text-xl font-semibold">Enter Details</h3>
+                  <div className="flex items-center justify-between pb-3.5 border-b-[0.5px] border-[var(--lb-border)] mb-4">
+                    <button onClick={handlePreviousQuestion} className="flex items-center gap-[5px] bg-transparent border-none text-[13px] text-[var(--lb-t2)] cursor-pointer hover:text-[var(--lb-t1)] transition-colors">
+                      <ChevronLeft className="w-[14px] h-[14px]" /> Back
+                    </button>
+                    <span className="text-[15px] font-medium text-[var(--lb-t1)]">Enter your details</span>
+                    <div className="w-10" />
                   </div>
 
-                  {/* Progress Bar */}
-                  <div className="mb-8">
-                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-primary transition-all duration-300 ease-in-out"
-                        style={{ 
-                          width: `${((currentQuestionIndex + 1) / eventType.questions.length) * 100}%` 
-                        }}
-                      />
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Question {currentQuestionIndex + 1} of {eventType.questions.length}
-                    </p>
-                  </div>
+                  {/* Progress Bar & Questions */}
+                  {eventType?.questions && eventType.questions.length > 0 ? (
+                    <>
+                      <div className="mb-6 flex flex-col items-center w-full">
+                        <div className="flex items-center justify-start sm:justify-center mb-2 w-full overflow-x-auto px-2 py-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                          {eventType.questions.map((_, index) => {
+                            const isCompleted = index < currentQuestionIndex;
+                            const isCurrent = index === currentQuestionIndex;
+                            return (
+                              <div key={index} className="flex items-center shrink-0">
+                                <div
+                                  className={cn(
+                                    "flex items-center justify-center w-7 h-7 rounded-full text-[12px] font-medium transition-all duration-300 shrink-0",
+                                    isCompleted
+                                      ? "bg-[var(--lb-green)] text-white border border-[var(--lb-green)]"
+                                      : isCurrent
+                                      ? "bg-[var(--lb-navy)] text-white border border-[var(--lb-navy)] shadow-sm"
+                                      : "bg-[var(--lb-s2)] text-[var(--lb-t3)] border border-[var(--lb-border)]"
+                                  )}
+                                >
+                                  {isCompleted ? "✓" : index + 1}
+                                </div>
+                                {index < eventType.questions.length - 1 && (
+                                  <div
+                                    className={cn(
+                                      "w-8 h-[2px] mx-1 rounded-full transition-colors duration-300 shrink-0",
+                                      isCompleted ? "bg-[var(--lb-green)]" : "bg-[var(--lb-s3)]"
+                                    )}
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="text-[11px] text-[var(--lb-t3)]">
+                          Question {currentQuestionIndex + 1} of {eventType.questions.length}
+                        </div>
+                      </div>
 
                   {/* Current Question */}
                   <div className="space-y-6">
                     <div 
                       key={eventType.questions[currentQuestionIndex].id} 
-                      className="space-y-4 min-h-[200px]"
+                      className="space-y-1.5 min-h-[200px]"
                     >
-                      <div className="space-y-2">
-                        <Label className="text-lg">
-                          {eventType.questions[currentQuestionIndex].question}
-                          {eventType.questions[currentQuestionIndex].required && (
-                            <span className="text-destructive ml-1">*</span>
-                          )}
-                        </Label>
-                        {eventType.questions[currentQuestionIndex].description && (
-                          <p className="text-sm text-muted-foreground">
-                            {eventType.questions[currentQuestionIndex].description}
-                          </p>
+                      <div className="text-[11px] font-semibold tracking-[0.08em] uppercase text-[var(--lb-t2)] flex items-center gap-1">
+                        {eventType.questions[currentQuestionIndex].question}
+                        {eventType.questions[currentQuestionIndex].required && (
+                          <span className="text-[var(--lb-red)] text-[12px]">*</span>
                         )}
                       </div>
+                      {eventType.questions[currentQuestionIndex].description && (
+                        <p className="text-[11px] text-[var(--lb-t3)]">
+                          {eventType.questions[currentQuestionIndex].description}
+                        </p>
+                      )}
 
                       {renderQuestion(eventType.questions[currentQuestionIndex])}
                       
@@ -888,18 +913,25 @@ export default function BookingPage() {
                         </p>
                       )}
                     </div>
+                  </div>
+                  </>
+                  ) : (
+                    <div className="py-12 text-center border rounded-xl bg-[var(--lb-s2)] border-[var(--lb-border)]">
+                      <p className="text-[var(--lb-t2)] text-[13px] font-medium">No additional details required.</p>
+                      <p className="text-[12px] text-[var(--lb-t3)] mt-2">Click Schedule below to confirm your booking.</p>
+                    </div>
+                  )}
 
-                    <div className="flex justify-between pt-4">
-                      <Button 
-                        variant="outline" 
+                  <div className="flex justify-between mt-6">
+                      <button 
                         onClick={handlePreviousQuestion}
-                        className="w-[120px]"
+                        className="bg-[var(--lb-s2)] text-[var(--lb-t1)] border-[0.5px] border-[var(--lb-border)] rounded-xl px-5 py-2.5 text-[13px] font-medium cursor-pointer hover:bg-[var(--lb-s3)] transition-colors"
                       >
                         Previous
-                      </Button>
-                      <Button 
+                      </button>
+                      <button 
                         onClick={currentQuestionIndex === eventType.questions.length - 1 ? handleSubmit : handleNextQuestion}
-                        className="w-[120px]"
+                        className="bg-[var(--lb-navy)] text-white border-none rounded-xl px-7 py-2.5 text-[13px] font-medium cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={isSubmitting || !isCurrentQuestionValid()}
                       >
                         {isSubmitting ? (
@@ -908,18 +940,24 @@ export default function BookingPage() {
                             Scheduling...
                           </div>
                         ) : (
-                          currentQuestionIndex === eventType.questions.length - 1 ? 'Schedule' : 'Next'
+                          (!eventType?.questions?.length || currentQuestionIndex === eventType.questions.length - 1) ? 'Schedule' : 'Next →'
                         )}
-                      </Button>
+                      </button>
                     </div>
-                  </div>
                 </>
               )}
             </div>
           </div>
         </CardContent>
       </Card>
-
+      
+      {!isEmbed && (
+        <div className="mt-4 text-center flex items-center justify-center text-[var(--lb-t3)] text-[11px] font-medium space-x-1">
+           <Zap className="h-3 w-3" />
+           <span>Powered by LeadBajaar</span>
+        </div>
+      )}
+      </div>
       <ErrorDialog 
         isOpen={errorDialog.isOpen}
         onOpenChange={(open) => setErrorDialog(prev => ({ ...prev, isOpen: open }))}
@@ -927,8 +965,6 @@ export default function BookingPage() {
         description={errorDialog.message}
         action={errorDialog.message.includes('slot') ? "Please select a different time or date, as this one was just taken." : "Please check your information and try again."}
       />
-
-
     </div>
   )
 } 

@@ -3,6 +3,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import { ErrorProvider } from '@/contexts/ErrorContext'
 import '@/styles/globals.css'
+import '@tabler/icons-webfont/dist/tabler-icons.min.css'
 import '@/lib/globalErrorHandler'
 
 const inter = Inter({ subsets: ['latin'] })

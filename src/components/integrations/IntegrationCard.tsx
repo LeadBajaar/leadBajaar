@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, Trash2, Settings, Plus, Play, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Integration {
@@ -37,6 +37,7 @@ interface IntegrationCardProps {
   connectedIntegrations: ConnectedIntegration[];
   onAction: (integration: Integration) => void;
   onDeactivate: (integrationId: string) => void;
+  isConnecting?: boolean;
 }
 
 export function IntegrationCard({
@@ -44,6 +45,7 @@ export function IntegrationCard({
   connectedIntegrations,
   onAction,
   onDeactivate,
+  isConnecting = false,
 }: IntegrationCardProps) {
   const router = useRouter();
   const isConnected = connectedIntegrations.some(
@@ -55,96 +57,98 @@ export function IntegrationCard({
   ).length;
 
   return (
-    <Card className="flex flex-col h-full border-none shadow-md hover:shadow-xl transition-all duration-300 dark:bg-slate-900 group">
-      <CardHeader>
-        <div className="flex justify-between items-start">
+    <Card className="flex flex-col group p-4 gap-3">
+      <div className="flex justify-between items-start">
+        <div className="flex items-center gap-3">
           <div
-            className="p-3 rounded-2xl shadow-sm transition-transform group-hover:scale-110 duration-300"
+            className="p-2 rounded-xl flex items-center justify-center"
             style={{ backgroundColor: `${integration.color}15` }}
           >
             <integration.icon
-              className="h-6 w-6"
+              className="h-5 w-5"
               style={{ color: integration.color }}
             />
           </div>
-          {isConnected && (
-            <Badge variant="secondary" className="flex gap-1 items-center bg-green-500/10 text-green-600 border-green-500/20">
-              <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-              Connected
-              {integration.allowMultiple && (
-                <span className="ml-1 text-xs">({connectedCount})</span>
-              )}
-            </Badge>
-          )}
+          <div>
+            <h3 className="text-sm font-bold leading-none">{integration.name}</h3>
+            <p className="text-[11px] text-[var(--crm-text-secondary)] mt-1 line-clamp-1">{integration.description}</p>
+          </div>
         </div>
-        <div className="pt-4">
-          <CardTitle className="text-lg font-bold">
-            {integration.name}
-          </CardTitle>
-          <Badge variant="outline" className="mt-1 text-[10px] uppercase tracking-wider font-bold opacity-70">
-            {integration.category}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="flex-1">
-        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-          {integration.description}
-        </p>
-        <div className="flex flex-wrap gap-1 mb-4">
-          {integration.features.map((feature) => (
-            <Badge
-              key={feature}
-              variant="secondary"
-              className="text-[10px] font-medium bg-slate-100 dark:bg-slate-800"
-            >
-              {feature}
-            </Badge>
-          ))}
-        </div>
-      </CardContent>
-      <CardFooter className="pt-0 flex flex-col gap-2">
+        
         {isConnected && (
-          <div className="flex gap-2 w-full">
+          <div className="flex items-center gap-1.5 bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-bold border border-green-500/20 shrink-0">
+            <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+            {integration.allowMultiple && connectedCount > 1 ? `(${connectedCount})` : null}
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2 mt-2 pt-3 border-t border-[var(--crm-border)]">
+        {isConnected ? (
+          <>
             {integration.id === "whatsapp" && (
               <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 text-primary border-primary/20 hover:bg-primary/5 rounded-xl font-bold h-9"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-primary hover:bg-primary/10 rounded-lg"
                 onClick={() => router.push("/integrations/whatsapp")}
+                title="Manage WhatsApp"
               >
-                Manage Hub
+                <Settings className="h-3.5 w-3.5" />
               </Button>
             )}
             {integration.id === "facebook_conversion_api" && (
               <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 text-indigo-500 border-indigo-500/20 hover:bg-indigo-500/5 rounded-xl font-bold h-9"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-indigo-500 hover:bg-indigo-500/10 rounded-lg"
                 onClick={() => router.push("/integrations/meta-capi")}
+                title="Manage CAPI"
               >
-                Manage Hub
+                <Settings className="h-3.5 w-3.5" />
               </Button>
             )}
             <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-red-500 hover:bg-red-500/10 hover:text-red-600 rounded-lg"
+              onClick={() => onDeactivate(integration.id)}
+              title="Deactivate"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+            
+            <div className="flex-1" />
+            
+            <Button
               variant="outline"
               size="sm"
-              className="flex-1 text-red-500 border-red-100 hover:bg-red-50 hover:text-red-600 dark:border-red-900/30 dark:hover:bg-red-900/20 rounded-xl font-bold h-9"
-              onClick={() => onDeactivate(integration.id)}
+              className="h-7 text-[11px] px-3 rounded-lg font-semibold"
+              onClick={() => onAction(integration)}
             >
-              Deactivate
+              <Settings className="h-3 w-3 mr-1.5" /> Configure
             </Button>
-          </div>
+          </>
+        ) : (
+          <>
+            <div className="flex-1" />
+            <Button
+              variant="default"
+              size="sm"
+              className="h-7 text-[11px] px-3 rounded-lg font-semibold"
+              onClick={() => onAction(integration)}
+              disabled={isConnecting}
+            >
+              {isConnecting ? (
+                <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
+              ) : (
+                <Plus className="h-3 w-3 mr-1.5" />
+              )}
+              {isConnecting ? "Connecting..." : "Connect"}
+            </Button>
+          </>
         )}
-        <Button
-          variant={isConnected ? "secondary" : "default"}
-          className={`w-full rounded-xl font-bold h-10 transition-all ${
-            !isConnected ? "bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 dark:shadow-none" : ""
-          }`}
-          onClick={() => onAction(integration)}
-        >
-          {isConnected ? "Configure Settings" : "Connect Now"}
-        </Button>
-      </CardFooter>
+      </div>
     </Card>
   );
 }

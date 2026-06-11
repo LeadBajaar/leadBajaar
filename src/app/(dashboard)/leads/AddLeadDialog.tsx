@@ -47,8 +47,8 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[500px] max-h-[85vh] flex flex-col p-0 overflow-hidden">
-        <DialogHeader className="px-6 py-4 border-b">
+      <DialogContent className="max-w-[500px] max-h-[85vh] flex flex-col p-0 overflow-hidden bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-[var(--r-xl)] shadow-lg">
+        <DialogHeader className="px-6 py-4 border-b border-[var(--crm-border)]">
           <DialogTitle>Add New Lead</DialogTitle>
           <DialogDescription>
             Enter the details for the new lead.
@@ -65,7 +65,7 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
 
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="name" className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <Label htmlFor="name" className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">
                 Name <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -79,7 +79,7 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
                 }}
                 placeholder="John Doe"
                 className={cn(
-                  "h-10 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-all",
+                  "h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] focus:ring-[var(--crm-blue)] focus:border-[var(--crm-blue)] text-[var(--crm-text-primary)] transition-all",
                   formErrors.name && "border-red-500 ring-1 ring-red-500"
                 )}
               />
@@ -89,7 +89,7 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">
                 Email
               </Label>
               <Input
@@ -104,7 +104,7 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
                 }}
                 placeholder="john@example.com"
                 className={cn(
-                  "h-10 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-all",
+                  "h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] focus:ring-[var(--crm-blue)] focus:border-[var(--crm-blue)] text-[var(--crm-text-primary)] transition-all",
                   formErrors.email && "border-red-500 ring-1 ring-red-500"
                 )}
               />
@@ -114,7 +114,7 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-slate-500">Phone</Label>
+              <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Phone</Label>
               <Input
                 id="phone"
                 value={newLead.phone}
@@ -126,7 +126,7 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
                 }}
                 placeholder="+1234567890"
                 className={cn(
-                  "h-10 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-all",
+                  "h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] focus:ring-[var(--crm-blue)] focus:border-[var(--crm-blue)] text-[var(--crm-text-primary)] transition-all",
                   formErrors.phone && "border-red-500 ring-1 ring-red-500"
                 )}
               />
@@ -136,45 +136,45 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="company" className="text-xs font-bold uppercase tracking-wider text-slate-500">Company</Label>
+              <Label htmlFor="company" className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Company</Label>
               <Input
                 id="company"
                 value={newLead.company}
                 onChange={(e) => setNewLead(prev => ({ ...prev, company: e.target.value }))}
                 placeholder="Company Name"
-                className="h-10 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-all"
+                className="h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] focus:ring-[var(--crm-blue)] focus:border-[var(--crm-blue)] text-[var(--crm-text-primary)] transition-all"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="profession" className="text-xs font-bold uppercase tracking-wider text-slate-500">Profession</Label>
+                <Label htmlFor="profession" className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Profession</Label>
                 <Input
                   id="profession"
                   value={newLead.profession}
                   onChange={(e) => setNewLead(prev => ({ ...prev, profession: e.target.value }))}
                   placeholder="Software Engineer"
-                  className="h-10 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-all"
+                  className="h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] focus:ring-[var(--crm-blue)] focus:border-[var(--crm-blue)] text-[var(--crm-text-primary)] transition-all"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="city" className="text-xs font-bold uppercase tracking-wider text-slate-500">City</Label>
+                <Label htmlFor="city" className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">City</Label>
                 <Input
                   id="city"
                   value={newLead.city}
                   onChange={(e) => setNewLead(prev => ({ ...prev, city: e.target.value }))}
                   placeholder="Pune"
-                  className="h-10 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-all"
+                  className="h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] focus:ring-[var(--crm-blue)] focus:border-[var(--crm-blue)] text-[var(--crm-text-primary)] transition-all"
                 />
               </div>
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="stage" className="text-xs font-bold uppercase tracking-wider text-slate-500">Stage</Label>
+              <Label htmlFor="stage" className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Stage</Label>
               <Select
                 value={newLead.stage}
                 onValueChange={(value) => setNewLead(prev => ({ ...prev, stage: value }))}>
-                <SelectTrigger id="stage" className="h-10 text-sm bg-slate-50 border-slate-200">
+                <SelectTrigger id="stage" className="h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-primary)]">
                   <SelectValue placeholder="Select stage" />
                 </SelectTrigger>
                 <SelectContent>
@@ -191,11 +191,11 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="temperature" className="text-xs font-bold uppercase tracking-wider text-slate-500">Temperature</Label>
+              <Label htmlFor="temperature" className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Temperature</Label>
               <Select
                 value={newLead.status}
                 onValueChange={(value) => setNewLead(prev => ({ ...prev, status: value as TemperatureType }))}>
-                <SelectTrigger id="temperature" className="h-10 text-sm bg-slate-50 border-slate-200">
+                <SelectTrigger id="temperature" className="h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-primary)]">
                   <SelectValue placeholder="Select temperature" />
                 </SelectTrigger>
                 <SelectContent>
@@ -212,11 +212,11 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="source" className="text-xs font-bold uppercase tracking-wider text-slate-500">Source</Label>
+              <Label htmlFor="source" className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Source</Label>
               <Select
                 value={newLead.source}
                 onValueChange={(value) => setNewLead(prev => ({ ...prev, source: value }))}>
-                <SelectTrigger id="source" className="h-10 text-sm bg-slate-50 border-slate-200">
+                <SelectTrigger id="source" className="h-10 text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-primary)]">
                   <SelectValue placeholder="Select source" />
                 </SelectTrigger>
                 <SelectContent>
@@ -233,19 +233,19 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="notes" className="text-xs font-bold uppercase tracking-wider text-slate-500">Notes</Label>
+              <Label htmlFor="notes" className="text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Notes</Label>
               <Textarea
                 id="notes"
                 value={newLead.notes || ''}
                 onChange={(e) => setNewLead(prev => ({ ...prev, notes: e.target.value }))}
                 placeholder="Initial notes..."
-                className="min-h-[100px] text-sm bg-slate-50 border-slate-200 focus:bg-white transition-all no-scrollbar"
+                className="min-h-[100px] text-sm bg-[var(--crm-surface-1)] border-[var(--crm-border)] focus:ring-[var(--crm-blue)] focus:border-[var(--crm-blue)] text-[var(--crm-text-primary)] transition-all no-scrollbar"
               />
             </div>
           </div>
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t bg-slate-50/10">
+        <DialogFooter className="px-6 py-4 border-t border-[var(--crm-border)] bg-[var(--crm-surface-2)]/30">
           <Button variant="outline" size="sm" onClick={onCancel} disabled={isSubmitting}>
             Cancel
           </Button>
@@ -253,7 +253,7 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
             size="sm"
             onClick={onSave}
             disabled={isSubmitting}
-            className="bg-indigo-600 hover:bg-indigo-700 font-bold"
+            className="bg-[var(--crm-blue)] hover:opacity-90 font-bold"
           >
             {isSubmitting ? (
               <>
