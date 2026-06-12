@@ -596,12 +596,12 @@ export default function BookingPage() {
   );
 
   return (
-    <div className={cn(isEmbed ? "p-0 bg-transparent w-full" : "min-h-screen flex flex-col items-center justify-center bg-[var(--lb-bg)] py-6 px-4")}>
-      <div className="w-full max-w-[820px] mx-auto">
-        <Card className="border-[0.5px] border-[var(--lb-border)] bg-white shadow-sm rounded-[16px] overflow-hidden w-full">
-          <CardContent className="p-0 relative overflow-hidden">
-          <div className="grid sm:grid-cols-[220px,1fr]">
-            <div className={cn("p-4 sm:p-[24px_20px] border-b sm:border-b-0 sm:border-r border-[var(--lb-border)] bg-white flex flex-row sm:flex-col items-center sm:items-center text-left sm:text-center gap-4 sm:gap-0")}>
+    <div className={cn(isEmbed ? "p-0 bg-transparent w-full" : "min-h-[100dvh] flex flex-col items-center sm:justify-center bg-[var(--lb-s1)] sm:bg-[var(--lb-bg)] sm:py-6 sm:px-4")}>
+      <div className="w-full h-full sm:h-auto max-w-[820px] mx-auto flex flex-col flex-1">
+        <Card className="border-0 sm:border-[0.5px] border-[var(--lb-border)] bg-[var(--lb-s1)] shadow-none sm:shadow-sm rounded-none sm:rounded-[16px] overflow-hidden w-full flex-1 flex flex-col">
+          <CardContent className="p-0 relative flex-1 flex flex-col">
+          <div className="grid sm:grid-cols-[220px,1fr] flex-1">
+            <div className={cn("p-4 sm:p-[24px_20px] border-b sm:border-b-0 sm:border-r border-[var(--lb-border)] bg-[var(--lb-s1)] flex flex-row sm:flex-col items-center sm:items-center text-left sm:text-center gap-4 sm:gap-0")}>
               <div className="mb-0 sm:mb-[16px] shrink-0">
                 <Avatar className="w-[48px] h-[48px] sm:w-[64px] sm:h-[64px] rounded-2xl border-[0.5px] border-[var(--lb-border)] shadow-sm">
                   <AvatarImage src={eventType?.owner?.avatar_url || eventType?.teamMembers?.[0]?.avatar} className="object-cover" />

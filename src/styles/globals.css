@@ -238,6 +238,18 @@
   --crm-btn-primary-text: #ffffff;
   
   --crm-nav-active-icon: #EDEDEF;
+
+  /* ── BOOKING FLOW DARK MODE FIXES ── */
+  --lb-navy: #3b82f6;
+  --lb-bg: var(--crm-bg);
+  --lb-s1: var(--crm-surface-1);
+  --lb-s2: var(--crm-surface-2);
+  --lb-s3: var(--crm-surface-3);
+  --lb-border: var(--crm-border);
+  --lb-border-hover: var(--crm-border-hover);
+  --lb-t1: var(--crm-text-primary);
+  --lb-t2: var(--crm-text-secondary);
+  --lb-t3: var(--crm-text-tertiary);
 }
 
 /* ── CENTRALIZED DARK MODE FIXES ────────────────────────────

@@ -108,7 +108,7 @@ export function CustomCalendar({
     
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDayOfMonth; i++) {
-      days.push(<div key={`empty-${i}`} className="h-9 w-9" />)
+      days.push(<div key={`empty-${i}`} className="aspect-square w-full max-w-[45px] sm:w-[34px] sm:h-[34px] mx-auto" />)
     }
     
     // Add days of the month
@@ -123,11 +123,11 @@ export function CustomCalendar({
         <div
           key={day}
           className={cn(
-            "h-[34px] w-[34px] flex items-center justify-center text-[13px] rounded-lg transition-all duration-200",
+            "aspect-square w-full max-w-[45px] sm:w-[34px] sm:h-[34px] flex items-center justify-center text-[13px] rounded-full transition-all duration-200",
             "mx-auto",
             isSelected && "bg-[var(--lb-navy)] text-white font-medium shadow-sm",
             isTodayDate && !isSelected && "border-[0.5px] border-[var(--lb-navy)] text-[var(--lb-navy)] font-medium",
-            isAvailable && !isDisabled && !isSelected && !isTodayDate && "text-[var(--lb-t1)] font-medium hover:bg-[var(--lb-s3)] cursor-pointer",
+            isAvailable && !isDisabled && !isSelected && !isTodayDate && "text-indigo-600 dark:text-indigo-300 font-medium bg-indigo-50 dark:bg-indigo-900/40 border-[0.5px] border-indigo-100 dark:border-indigo-800/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 cursor-pointer shadow-sm",
             isDisabled && "text-[var(--lb-t3)] cursor-default",
             !isAvailable && !isDisabled && !isSelected && !isTodayDate && "text-[var(--lb-t3)] cursor-default"
           )}
@@ -155,7 +155,7 @@ export function CustomCalendar({
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={goToPreviousMonth}
-          className="w-7 h-7 rounded-md border-[0.5px] border-[var(--lb-border)] bg-white flex items-center justify-center cursor-pointer text-[var(--lb-t2)] hover:bg-[var(--lb-s3)] transition-colors"
+          className="w-7 h-7 rounded-md border-[0.5px] border-[var(--lb-border)] bg-[var(--lb-bg)] flex items-center justify-center cursor-pointer text-[var(--lb-t2)] hover:bg-[var(--lb-s3)] transition-colors"
           aria-label="Previous month"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -167,7 +167,7 @@ export function CustomCalendar({
         
         <button
           onClick={goToNextMonth}
-          className="w-7 h-7 rounded-md border-[0.5px] border-[var(--lb-border)] bg-white flex items-center justify-center cursor-pointer text-[var(--lb-t2)] hover:bg-[var(--lb-s3)] transition-colors"
+          className="w-7 h-7 rounded-md border-[0.5px] border-[var(--lb-border)] bg-[var(--lb-bg)] flex items-center justify-center cursor-pointer text-[var(--lb-t2)] hover:bg-[var(--lb-s3)] transition-colors"
           aria-label="Next month"
         >
           <ChevronRight className="h-4 w-4" />
@@ -194,7 +194,7 @@ export function CustomCalendar({
       {/* Legend */}
       <div className="flex gap-4 pt-3 mt-2 border-t-[0.5px] border-[var(--lb-border)] text-[11px] text-[var(--lb-t2)]">
         <div className="flex items-center gap-1.5">
-          <div className="h-2 w-2 rounded-full bg-[var(--lb-t1)]" />
+          <div className="h-2 w-2 rounded-full bg-indigo-50 dark:bg-indigo-900/40 border-[0.5px] border-indigo-100 dark:border-indigo-800/60" />
           Available
         </div>
         <div className="flex items-center gap-1.5">
