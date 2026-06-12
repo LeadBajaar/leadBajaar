@@ -78,10 +78,10 @@ export default function FacebookLeadFormsPage() {
       const payload = {
         type: "leadform",
         config: {
-          leadFormName: config.leadFormName,
-          pageId: config.pageId,
-          formId: config.formId,
-          accessToken: config.accessToken,
+          project_name: config.leadFormName,
+          page_id: config.pageId,
+          form_id: config.formId,
+          page_access_token: config.accessToken,
         },
         isActive: true,
         environment: "production" as "sandbox" | "production",
@@ -192,15 +192,15 @@ export default function FacebookLeadFormsPage() {
                       <div className="flex-1 min-w-0 flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                           <h3 className="text-sm font-semibold text-[var(--crm-text-primary)] truncate">
-                            {form.config?.project_name || "Unnamed Form"}
+                            {form.config?.project_name || form.config?.leadFormName || "Unnamed Form"}
                           </h3>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-[var(--crm-bg)] border border-[var(--crm-border)] text-[var(--crm-text-secondary)] truncate max-w-[200px]">
-                            PAGE: {form.config?.page_id}
+                            PAGE: {form.config?.page_id || form.config?.pageId}
                           </span>
                           <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-[var(--crm-bg)] border border-[var(--crm-border)] text-[var(--crm-text-secondary)] truncate max-w-[200px]">
-                            FORM: {form.config?.form_id}
+                            FORM: {form.config?.form_id || form.config?.formId}
                           </span>
                         </div>
                       </div>
@@ -224,10 +224,10 @@ export default function FacebookLeadFormsPage() {
                           size="icon"
                           onClick={() => {
                             setConfig({
-                              leadFormName: form.config?.project_name || "",
-                              pageId: form.config?.page_id || "",
-                              formId: form.config?.form_id || "",
-                              accessToken: form.config?.page_access_token || "",
+                              leadFormName: form.config?.project_name || form.config?.leadFormName || "",
+                              pageId: form.config?.page_id || form.config?.pageId || "",
+                              formId: form.config?.form_id || form.config?.formId || "",
+                              accessToken: form.config?.page_access_token || form.config?.accessToken || "",
                             });
                             setErrors({});
                             setSelectedFormId(form.id);

@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Pencil, Plus, Trash2, MessageSquare, RefreshCcw, ChevronLeft, ChevronRight, AlertCircle, X, Loader2, CheckCircle2 } from 'lucide-react'
+import { Pencil, Plus, Trash2, MessageSquare, RefreshCcw, ChevronLeft, ChevronRight, AlertCircle, X, Loader2, CheckCircle2, ClipboardCopy, Settings, Eye, EyeOff, Globe, ShieldCheck } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
 import { integrationApi, companyApi } from '@/lib/api'
 import { useRouter } from 'next/navigation'
+import { useUser } from '@/contexts/UserContext'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
@@ -24,6 +25,9 @@ interface WhatsAppAccount {
   id: number;
   business_name: string;
   phone_number: string;
+  phone_number_id?: string;
+  waba_id?: string;
+  access_token?: string;
   status: string;
   templates_count: number;
   last_synced: string;
@@ -73,6 +77,7 @@ interface NewTemplate {
 export default function WhatsAppManagementPage() {
   const { toast } = useToast()
   const router = useRouter()
+  const { user } = useUser()
   const [accounts, setAccounts] = useState<WhatsAppAccount[]>([])
   const [templates, setTemplates] = useState<MessageTemplate[]>([])
   const [selectedAccount, setSelectedAccount] = useState<WhatsAppAccount | null>(null)
@@ -142,6 +147,11 @@ export default function WhatsAppManagementPage() {
     enableTemplates: true,
   })
   const [isConfiguring, setIsConfiguring] = useState(false)
+  const [showUpdateModal, setShowUpdateModal] = useState(false)
+  const [updatingAccountId, setUpdatingAccountId] = useState<number | null>(null)
+  const [updateConfig, setUpdateConfig] = useState({ phoneNumberId: '', wabaId: '', accessToken: '' })
+  const [showUpdateToken, setShowUpdateToken] = useState(false)
+  const [isUpdatingConfig, setIsUpdatingConfig] = useState(false)
 
   // Reset template form to initial state
   const resetTemplateForm = () => {
@@ -282,6 +292,34 @@ export default function WhatsAppManagementPage() {
       toast({ title: "Setup failed", description: err.message, variant: "destructive" });
     } finally {
       setIsConfiguring(false);
+    }
+  };
+
+  const handleUpdateConfig = async () => {
+    if (!updatingAccountId) return;
+    if (!updateConfig.phoneNumberId || !updateConfig.wabaId || !updateConfig.accessToken) {
+      toast({ title: 'Validation Error', description: 'All fields are required.', variant: 'destructive' });
+      return;
+    }
+    try {
+      setIsUpdatingConfig(true);
+      await integrationApi.updateIntegration(updatingAccountId.toString(), {
+        type: 'whatsapp',
+        config: {
+          phoneNumberId: updateConfig.phoneNumberId,
+          wabaId: updateConfig.wabaId,
+          accessToken: updateConfig.accessToken,
+        },
+        isActive: true,
+        environment: 'production',
+      });
+      toast({ title: 'Configuration updated successfully!' });
+      setShowUpdateModal(false);
+      fetchAccounts();
+    } catch (err: any) {
+      toast({ title: 'Update failed', description: err.message, variant: 'destructive' });
+    } finally {
+      setIsUpdatingConfig(false);
     }
   };
 
@@ -835,25 +873,27 @@ export default function WhatsAppManagementPage() {
         </TabsList>
 
         <TabsContent value="accounts">
-          <Card>
-            <CardHeader>
-              <CardTitle>Connected WhatsApp Business Accounts</CardTitle>
-              <CardDescription>
-                Manage your connected WhatsApp Business accounts and their templates.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Business Name</TableHead>
-                    <TableHead>Phone Number</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Templates</TableHead>
-                    <TableHead>Last Synced</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Connected WhatsApp Business Accounts</CardTitle>
+                  <CardDescription>
+                    Manage your connected WhatsApp Business accounts and their templates.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Business Name</TableHead>
+                        <TableHead>Phone Number</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Templates</TableHead>
+                        <TableHead>Last Synced</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
                 <TableBody>
                 
                   {accounts.map((account) => (
@@ -886,6 +926,23 @@ export default function WhatsAppManagementPage() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            title="Update Configuration"
+                            onClick={() => {
+                              setUpdatingAccountId(account.id);
+                              setUpdateConfig({ 
+                                phoneNumberId: account.phone_number_id || '', 
+                                wabaId: account.waba_id || '', 
+                                accessToken: account.access_token || '' 
+                              });
+                              setShowUpdateToken(false);
+                              setShowUpdateModal(true);
+                            }}
+                          >
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => {
                               setSelectedAccount(account)
                               fetchTemplates(account.id)
@@ -901,6 +958,74 @@ export default function WhatsAppManagementPage() {
               </Table>
             </CardContent>
           </Card>
+        </div>
+
+            {/* ── Webhook Info Card (Right sidebar in Accounts Tab) ── */}
+            <div className="lg:col-span-1 space-y-4">
+              <h2 className="text-sm font-semibold text-[var(--crm-text-primary)] px-1">Meta Configuration</h2>
+              <div className="p-5 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 space-y-5">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-bold uppercase text-emerald-700 dark:text-emerald-400 flex items-center gap-2 tracking-wider">
+                    <Globe className="h-4 w-4" /> Webhook Info
+                  </Label>
+                  <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20">
+                    Dashboard Setup
+                  </Badge>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs text-[var(--crm-text-secondary)] uppercase font-bold ml-1">Webhook URL</Label>
+                    <div className="flex items-center gap-2">
+                      <code className="text-[12px] p-3 bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl flex-1 font-mono break-all text-[var(--crm-text-primary)] shadow-sm">
+                        {`https://api.leadbajaar.com/api/webhook/whatsapp?id=${user?.id || 1}`}
+                      </code>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="shrink-0 h-11 w-11 rounded-xl bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`https://api.leadbajaar.com/api/webhook/whatsapp?id=${user?.id || 1}`);
+                          toast({ title: 'Copied!', description: 'Webhook URL copied to clipboard.' });
+                        }}
+                      >
+                        <ClipboardCopy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs text-[var(--crm-text-secondary)] uppercase font-bold ml-1">Verify Token</Label>
+                    <div className="flex items-center gap-2">
+                      <code className="text-[13px] p-3 bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl flex-1 font-mono text-[var(--crm-text-primary)] shadow-sm">
+                        123abc
+                      </code>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="shrink-0 h-11 w-11 rounded-xl bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]"
+                        onClick={() => {
+                          navigator.clipboard.writeText('123abc');
+                          toast({ title: 'Copied!', description: 'Verify token copied to clipboard.' });
+                        }}
+                      >
+                        <ClipboardCopy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 pt-1">
+                  <div className="h-6 w-6 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <p className="text-[13px] text-[var(--crm-text-secondary)] leading-relaxed pt-0.5">
+                    Add these values in your <strong className="text-[var(--crm-text-primary)]">Meta Developer Dashboard → WhatsApp → Configuration → Webhooks</strong> to receive real-time messages.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="templates">
@@ -2075,6 +2200,69 @@ export default function WhatsAppManagementPage() {
         </DialogContent>
       </Dialog>
     </div>
+
+      {/* ── Update Config Dialog ─────────────────────────────────── */}
+      <Dialog open={showUpdateModal} onOpenChange={(open) => { if (!open) { setShowUpdateModal(false); setUpdatingAccountId(null); } }}>
+        <DialogContent className="sm:max-w-[460px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Update WhatsApp Configuration</DialogTitle>
+            <DialogDescription className="text-sm text-[var(--crm-text-secondary)]">
+              Enter new credentials to update this WhatsApp Business account.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold uppercase text-[var(--crm-text-secondary)]">Phone Number ID</Label>
+              <Input
+                placeholder="123456789012345"
+                value={updateConfig.phoneNumberId}
+                onChange={(e) => setUpdateConfig({ ...updateConfig, phoneNumberId: e.target.value })}
+                className="font-mono text-sm"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold uppercase text-[var(--crm-text-secondary)]">WhatsApp Business Account ID</Label>
+              <Input
+                placeholder="123456789012345"
+                value={updateConfig.wabaId}
+                onChange={(e) => setUpdateConfig({ ...updateConfig, wabaId: e.target.value })}
+                className="font-mono text-sm"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold uppercase text-[var(--crm-text-secondary)]">System User Access Token</Label>
+              <div className="relative">
+                <Input
+                  type={showUpdateToken ? 'text' : 'password'}
+                  placeholder="EAA..."
+                  value={updateConfig.accessToken}
+                  onChange={(e) => setUpdateConfig({ ...updateConfig, accessToken: e.target.value })}
+                  className="font-mono text-sm pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowUpdateToken(!showUpdateToken)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]"
+                >
+                  {showUpdateToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowUpdateModal(false)} disabled={isUpdatingConfig}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateConfig} disabled={isUpdatingConfig || !updateConfig.phoneNumberId || !updateConfig.wabaId || !updateConfig.accessToken}>
+              {isUpdatingConfig ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</> : 'Save Configuration'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </RoleGuard>
+
   )
 }

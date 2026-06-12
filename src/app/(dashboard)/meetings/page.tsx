@@ -331,23 +331,30 @@ function MeetingDetailDialog({
                 <SelectTrigger className="h-10 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
                   <SelectValue placeholder="Select Host" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800">
-                  {team.filter(m => m.status === 'Active').map(m => (
-                    <SelectItem key={m.id} value={m.email} className="rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className="h-6 w-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-sm"
-                          style={{ backgroundColor: getAgentColor(m.id).bg }}
-                        >
-                          {initials(m.name)}
+                <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800 z-[200]" position="popper" sideOffset={4}>
+                  {team.filter(m => !m.status || m.status.toLowerCase() !== 'invited').length === 0 ? (
+                    <div className="px-3 py-4 text-center">
+                      <p className="text-sm font-semibold text-slate-500">No team members available</p>
+                      <p className="text-[11px] text-slate-400 mt-1">Invite members from the Team page</p>
+                    </div>
+                  ) : (
+                    team.filter(m => !m.status || m.status.toLowerCase() !== 'invited').map(m => (
+                      <SelectItem key={m.id} value={m.email} className="rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div 
+                            className="h-6 w-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-sm"
+                            style={{ backgroundColor: getAgentColor(m.id).bg }}
+                          >
+                            {initials(m.name)}
+                          </div>
+                          <div className="text-left">
+                            <p className="text-sm font-bold">{m.name || m.email}</p>
+                            <p className="text-[10px] text-slate-500 font-medium italic">{m.role} {m.status ? `· ${m.status}` : ''}</p>
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <p className="text-sm font-bold">{m.name}</p>
-                          <p className="text-[10px] text-slate-500 font-medium italic">{m.role}</p>
-                        </div>
-                      </div>
-                    </SelectItem>
-                  ))}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             ) : (

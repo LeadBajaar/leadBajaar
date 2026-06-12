@@ -75,13 +75,16 @@ export const FacebookRetrievalDialog: React.FC<FacebookRetrievalDialogProps> = (
           <div className="space-y-6 py-4">
             <div className="space-y-2">
               <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Select Form</Label>
-              <Select value={selectedForm} onValueChange={setSelectedForm}>
+              <Select 
+                value={selectedForm || undefined} 
+                onValueChange={setSelectedForm}
+              >
                 <SelectTrigger className="h-11 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
                   <SelectValue placeholder="Chose a lead form" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper" sideOffset={5} className="z-[100] max-h-[300px] bg-white dark:bg-slate-900">
                   {facebookForms.map((form) => (
-                    <SelectItem key={form.id} value={form.id} className="py-2">
+                    <SelectItem key={String(form.id)} value={String(form.id)} className="py-2">
                       <div className="flex flex-col">
                         <span className="font-medium">{form.name}</span>
                         <span className="text-[10px] text-slate-500">{form.page_id}</span>

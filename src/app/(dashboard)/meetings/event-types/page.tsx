@@ -34,6 +34,7 @@ import { EventType } from '@/types/events'
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from '@/lib/utils'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useUser } from '@/contexts/UserContext'
 
 const locationIcons = {
   video: { icon: Video, label: 'Video Call', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
@@ -43,6 +44,7 @@ const locationIcons = {
 
 export default function EventTypesPage() {
   const router = useRouter()
+  const { user } = useUser()
   const [eventTypes, setEventTypes] = useState<EventType[]>([])
   const [loading, setLoading] = useState(true)
   const [showShareDialog, setShowShareDialog] = useState(false)
@@ -76,9 +78,11 @@ export default function EventTypesPage() {
   }, [])
 
   const getBookingUrl = (eventType: EventType) => {
-    // If owner name exists, format it nicely, otherwise use developernd as default
+    // If owner name exists, format it nicely, otherwise use the logged-in user's name
     // @ts-ignore - owner might not be strongly typed here
-    const username = eventType.owner?.name?.toLowerCase().replace(/\s+/g, '-') || 'developernd';
+    const username = eventType.owner?.name?.toLowerCase().replace(/\s+/g, '-') || user?.name?.toLowerCase().replace(/\s+/g, '-');
+    if (!username) return '#';
+    
     const identifier = eventType.slug || eventType.id;
     return `${window.location.origin}/${username}/${identifier}`;
   };
@@ -145,12 +149,20 @@ export default function EventTypesPage() {
             <Calendar className="h-4 w-4 text-[var(--crm-text-secondary)]" />
             Connect Google Calendar
           </Button>
-          <Link href="/meetings/event-types/new">
-            <Button size="sm" className="h-9 bg-[var(--crm-primary)] hover:opacity-90 text-white gap-1.5 shadow-sm">
-              <Plus className="h-4 w-4" />
-              New Event Type
-            </Button>
-          </Link>
+          <Button 
+            onClick={() => {
+              if (!user?.name) {
+                toast.error("User profile name is required to create an event type.")
+                return
+              }
+              router.push('/meetings/event-types/new')
+            }}
+            size="sm" 
+            className="h-9 bg-[var(--crm-primary)] hover:opacity-90 text-white gap-1.5 shadow-sm"
+          >
+            <Plus className="h-4 w-4" />
+            New Event Type
+          </Button>
         </div>
       </div>
 
@@ -184,12 +196,19 @@ export default function EventTypesPage() {
             <p className="text-sm text-[var(--crm-text-secondary)] mt-2 max-w-xs mx-auto mb-8">
               Create your first event type to start scheduling meetings and automating your booking process.
             </p>
-            <Link href="/meetings/event-types/new">
-              <Button className="bg-[var(--crm-primary)] hover:opacity-90 text-white gap-2 px-6">
-                <Plus className="h-4 w-4" />
-                Create your first event
-              </Button>
-            </Link>
+            <Button 
+              onClick={() => {
+                if (!user?.name) {
+                  toast.error("User profile name is required to create an event type.")
+                  return
+                }
+                router.push('/meetings/event-types/new')
+              }}
+              className="bg-[var(--crm-primary)] hover:opacity-90 text-white gap-2 px-6"
+            >
+              <Plus className="h-4 w-4" />
+              Create your first event
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
@@ -276,17 +295,24 @@ export default function EventTypesPage() {
             })}
 
             {/* Add New Card Slot */}
-            <Link href="/meetings/event-types/new" className="group">
-              <div className="h-full border-2 border-dashed border-[var(--crm-border)] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 hover:border-[var(--crm-primary)]/50 hover:bg-[var(--crm-surface-2)] transition-all duration-300 cursor-pointer min-h-[160px]">
-                <div className="h-10 w-10 rounded-full bg-[var(--crm-surface-3)] flex items-center justify-center group-hover:scale-110 group-hover:bg-[var(--crm-primary)] group-hover:text-white transition-all duration-300">
-                  <Plus className="h-5 w-5 text-[var(--crm-text-secondary)] group-hover:text-white" />
-                </div>
-                <div className="text-center">
-                  <p className="font-bold text-[var(--crm-text-primary)]">Add Event Type</p>
-                  <p className="text-xs text-[var(--crm-text-secondary)] mt-1">Create a new scheduling card</p>
-                </div>
+            <div 
+              onClick={() => {
+                if (!user?.name) {
+                  toast.error("User profile name is required to create an event type.")
+                  return
+                }
+                router.push('/meetings/event-types/new')
+              }}
+              className="group h-full border-2 border-dashed border-[var(--crm-border)] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 hover:border-[var(--crm-primary)]/50 hover:bg-[var(--crm-surface-2)] transition-all duration-300 cursor-pointer min-h-[160px]"
+            >
+              <div className="h-10 w-10 rounded-full bg-[var(--crm-surface-3)] flex items-center justify-center group-hover:scale-110 group-hover:bg-[var(--crm-primary)] group-hover:text-white transition-all duration-300">
+                <Plus className="h-5 w-5 text-[var(--crm-text-secondary)] group-hover:text-white" />
               </div>
-            </Link>
+              <div className="text-center">
+                <p className="font-bold text-[var(--crm-text-primary)]">Add Event Type</p>
+                <p className="text-xs text-[var(--crm-text-secondary)] mt-1">Create a new scheduling card</p>
+              </div>
+            </div>
           </div>
         )}
       </div>

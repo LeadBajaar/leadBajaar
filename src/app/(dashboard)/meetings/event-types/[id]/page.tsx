@@ -268,6 +268,12 @@ export default function EventTypeForm() {
   const handleSave = async () => {
     // Basic frontend validation
     const errors: Record<string, string> = {}
+    
+    if (isNew && !user?.name) {
+      toast({ title: "Error", description: "User profile name is required to create an event type.", variant: "destructive" })
+      return
+    }
+
     if (!eventType.title?.trim()) errors.title = 'Title is required'
     if (!eventType.duration) errors.duration = 'Duration is required'
     if (!eventType.description?.trim()) errors.description = 'Description is required'
