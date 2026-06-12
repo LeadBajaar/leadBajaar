@@ -241,7 +241,7 @@ export function WebhookConfigDialog({
                                         )}
                                       </SelectValue>
                                     </SelectTrigger>
-                                    <SelectContent className="max-h-[280px] bg-[var(--crm-surface-1)] border-[var(--crm-border)]">
+                                    <SelectContent position="popper" className="z-[200] max-h-[280px] bg-[var(--crm-surface-1)] border-[var(--crm-border)]">
                                       {availableFields.map((f) => {
                                         const preview = f.value === null ? 'null' : f.value === '' ? '(empty)' : String(f.value);
                                         const truncated = preview.length > 80 ? preview.slice(0, 77) + '...' : preview;
@@ -279,7 +279,7 @@ export function WebhookConfigDialog({
                                   <SelectTrigger className="h-8 bg-[var(--crm-bg)] border-[var(--crm-border)] text-[var(--crm-text-primary)] rounded-md text-xs">
                                     <SelectValue placeholder="To CRM Field" />
                                   </SelectTrigger>
-                                  <SelectContent className="bg-[var(--crm-surface-1)] border-[var(--crm-border)]">
+                                  <SelectContent position="popper" className="z-[200] bg-[var(--crm-surface-1)] border-[var(--crm-border)]">
                                     <SelectItem value="full_name" className="text-xs text-[var(--crm-text-primary)] focus:bg-[var(--crm-surface-3)]">Full Name</SelectItem>
                                     <SelectItem value="email" className="text-xs text-[var(--crm-text-primary)] focus:bg-[var(--crm-surface-3)]">Email</SelectItem>
                                     <SelectItem value="phone" className="text-xs text-[var(--crm-text-primary)] focus:bg-[var(--crm-surface-3)]">Phone</SelectItem>

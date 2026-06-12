@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -648,7 +648,7 @@ export default function BookingPage() {
             </div>
 
             {/* Right Section - Calendar & Questions */}
-            <div className="p-6 min-h-[500px] relative flex flex-col">
+            <div className="p-4 sm:p-6 min-h-[500px] relative flex flex-col w-full max-w-[100vw] sm:max-w-none overflow-x-hidden sm:overflow-x-visible">
               {showSuccess && bookingDetails ? (
                 <div className="flex flex-col py-2 animate-in fade-in slide-in-from-bottom-4 duration-300 w-full">
                   <div className="w-14 h-14 rounded-full bg-[var(--lb-green-soft)] border-[0.5px] border-[var(--lb-green-border)] flex items-center justify-center mx-auto mb-3.5">
@@ -852,15 +852,15 @@ export default function BookingPage() {
                   {eventType?.questions && eventType.questions.length > 0 ? (
                     <>
                       <div className="mb-6 flex flex-col items-center w-full">
-                        <div className="flex items-center justify-start sm:justify-center mb-2 w-full overflow-x-auto px-2 py-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                        <div className="flex items-center justify-center mb-2 w-full px-1 py-1">
                           {eventType.questions.map((_, index) => {
                             const isCompleted = index < currentQuestionIndex;
                             const isCurrent = index === currentQuestionIndex;
                             return (
-                              <div key={index} className="flex items-center shrink-0">
+                              <React.Fragment key={index}>
                                 <div
                                   className={cn(
-                                    "flex items-center justify-center w-7 h-7 rounded-full text-[12px] font-medium transition-all duration-300 shrink-0",
+                                    "flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full text-[10px] sm:text-[12px] font-medium transition-all duration-300 shrink-0",
                                     isCompleted
                                       ? "bg-[var(--lb-green)] text-white border border-[var(--lb-green)]"
                                       : isCurrent
@@ -873,12 +873,12 @@ export default function BookingPage() {
                                 {index < eventType.questions.length - 1 && (
                                   <div
                                     className={cn(
-                                      "w-8 h-[2px] mx-1 rounded-full transition-colors duration-300 shrink-0",
+                                      "flex-1 h-[2px] mx-0.5 sm:mx-1.5 rounded-full transition-colors duration-300 min-w-[2px] max-w-[24px] sm:max-w-[32px]",
                                       isCompleted ? "bg-[var(--lb-green)]" : "bg-[var(--lb-s3)]"
                                     )}
                                   />
                                 )}
-                              </div>
+                              </React.Fragment>
                             );
                           })}
                         </div>
@@ -922,16 +922,16 @@ export default function BookingPage() {
                     </div>
                   )}
 
-                  <div className="flex justify-between mt-6">
+                  <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 mt-6">
                       <button 
                         onClick={handlePreviousQuestion}
-                        className="bg-[var(--lb-s2)] text-[var(--lb-t1)] border-[0.5px] border-[var(--lb-border)] rounded-xl px-5 py-2.5 text-[13px] font-medium cursor-pointer hover:bg-[var(--lb-s3)] transition-colors"
+                        className="w-full sm:w-auto bg-[var(--lb-s2)] text-[var(--lb-t1)] border-[0.5px] border-[var(--lb-border)] rounded-xl px-5 py-2.5 text-[13px] font-medium cursor-pointer hover:bg-[var(--lb-s3)] transition-colors"
                       >
                         Previous
                       </button>
                       <button 
                         onClick={currentQuestionIndex === eventType.questions.length - 1 ? handleSubmit : handleNextQuestion}
-                        className="bg-[var(--lb-navy)] text-white border-none rounded-xl px-7 py-2.5 text-[13px] font-medium cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full sm:w-auto bg-[var(--lb-navy)] text-white border-none rounded-xl px-7 py-2.5 text-[13px] font-medium cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                         disabled={isSubmitting || !isCurrentQuestionValid()}
                       >
                         {isSubmitting ? (
