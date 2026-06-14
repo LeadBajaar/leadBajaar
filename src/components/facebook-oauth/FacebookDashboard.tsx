@@ -1490,16 +1490,17 @@ export function FacebookDashboard() {
                           <p className="text-[12px] text-red-600/80 max-w-sm">
                             {formsError}
                           </p>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="h-7 text-[11px]"
-                            onClick={handleMetaConnect}
-                            disabled={isConnectingMeta}
-                          >
-                            {isConnectingMeta ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : <Facebook className="h-3 w-3 mr-1.5" />}
-                            Reconnect
-                          </Button>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className="h-7 text-[11px] px-3 !bg-[#1877F2] hover:!bg-[#1877F2]/90 !text-white border-0"
+                              style={{ backgroundColor: '#1877F2', color: 'white' }}
+                              onClick={handleMetaConnect}
+                              disabled={isConnectingMeta}
+                            >
+                              {isConnectingMeta ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : <Facebook className="h-3 w-3 mr-1.5" />}
+                              Reconnect Facebook
+                            </Button>
                         </div>
                       ) : forms.length > 0 ? (
                         forms.map((form) => (

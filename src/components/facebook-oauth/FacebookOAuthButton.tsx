@@ -284,10 +284,15 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
             size="sm"
             onClick={handleConnect}
             disabled={isConnecting}
-            className="flex-1 sm:flex-none h-7 text-[11px] px-3 bg-blue-600 hover:bg-blue-700"
+            className="flex-1 sm:flex-none h-7 text-[11px] px-3 !bg-[#1877F2] hover:!bg-[#1877F2]/90 !text-white border-0"
+            style={{ backgroundColor: '#1877F2', color: 'white' }}
           >
-            {isConnecting ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : <Facebook className="h-3 w-3 mr-1.5" />}
-            Manage
+            {isConnecting ? (
+              <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
+            ) : (
+              <Facebook className="h-3 w-3 mr-1.5" />
+            )}
+            Manage Facebook
           </Button>
         </div>
       </div>
@@ -312,19 +317,15 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
           onClick={handleConnect}
           disabled={isConnecting}
           size="sm"
-          className="flex-1 sm:flex-none h-7 text-[11px] px-3 bg-blue-600 hover:bg-blue-700"
+          className="flex-1 sm:flex-none h-7 text-[11px] px-3 !bg-[#1877F2] hover:!bg-[#1877F2]/90 !text-white border-0"
+          style={{ backgroundColor: '#1877F2', color: 'white' }}
         >
           {isConnecting ? (
-            <>
-              <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
-              Connecting...
-            </>
+            <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
           ) : (
-            <>
-              <Facebook className="h-3 w-3 mr-1.5" />
-              Connect Facebook
-            </>
+            <Facebook className="h-3 w-3 mr-1.5" />
           )}
+          Connect Facebook
         </Button>
       </div>
     </div>
