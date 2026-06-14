@@ -43,7 +43,7 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
     try {
       setIsLoading(true)
       const response = await api.get('/meta/status')
-      console.log('Meta connection status:', response.data)
+      // console.log('Meta connection status:', response.data)
 
       if (response.data) {
         const data = response.data
@@ -100,7 +100,7 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
         }
 
         setConnectedServices(services)
-        console.log('Parsed services:', services)
+        // console.log('Parsed services:', services)
       }
     } catch (error) {
       console.error('Failed to load connected services:', error)

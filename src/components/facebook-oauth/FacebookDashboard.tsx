@@ -289,17 +289,17 @@ export function FacebookDashboard() {
           setIsLoading(true)
           const response = await integrationApi.getMetaBusinessAssets(selectedBusiness.business_id)
           if (response.status === 'success') {
-            setAdAccounts(response.ad_accounts || [])
-            setPages(response.facebook_pages || [])
-            if (response.ad_accounts?.length > 0) {
-                setSelectedAdAccount(response.ad_accounts[0])
+            setAdAccounts(Array.isArray(response.ad_accounts) ? response.ad_accounts : [])
+            setPages(Array.isArray(response.facebook_pages) ? response.facebook_pages : [])
+            if (Array.isArray(response.ad_accounts) && response.ad_accounts.length > 0) {
+              setSelectedAdAccount(response.ad_accounts[0])
             }
             if (response.facebook_pages?.length > 0) {
-                setSelectedAdPageId(response.facebook_pages[0].id)
+              setSelectedAdPageId(response.facebook_pages[0].id)
             }
           }
         } catch (err) {
-          console.error("Error loading business assets:", err)
+          // console.error("Error loading business assets:", err)
           toast.error("Asset Sync Failed", { description: "Could not retrieve assets for this business." })
         } finally {
           setIsLoading(false)
@@ -434,16 +434,16 @@ export function FacebookDashboard() {
       if (response.connected) {
         setPages(response.facebook_pages || [])
         setBusinesses(response.businesses || [])
-        
+
         // Auto-select first business if none selected
         if (!selectedBusiness && response.businesses?.length > 0) {
           setSelectedBusiness(response.businesses[0])
         }
-        
+
         setSetupChecklist(response.setup_checklist || null)
       }
     } catch (error: any) {
-      console.error('Failed to load Meta pages:', error)
+      // console.error('Failed to load Meta pages:', error)
       const metaErr = formatMetaError(error.message);
       setLastError(metaErr);
       toast.error(metaErr.title, {
@@ -462,10 +462,10 @@ export function FacebookDashboard() {
     try {
       setIsDeletingData(true)
       const response = await integrationApi.dataDeletionRequest()
-      
+
       if (response.confirmation_code) {
-        toast.success("Request Sent", { 
-          description: `Your data deletion request (ID: ${response.confirmation_code}) has been registered.` 
+        toast.success("Request Sent", {
+          description: `Your data deletion request (ID: ${response.confirmation_code}) has been registered.`
         })
       }
       setIsDataDeletionDialogOpen(false)
@@ -500,23 +500,23 @@ export function FacebookDashboard() {
     try {
       setIsSyncingAssets(true)
       await loadPages()
-      
+
       if (selectedBusiness) {
         const response = await integrationApi.getMetaBusinessAssets(selectedBusiness.business_id)
         if (response.status === 'success') {
-          setAdAccounts(response.ad_accounts || [])
-          setPages(response.facebook_pages || [])
+          setAdAccounts(Array.isArray(response.ad_accounts) ? response.ad_accounts : [])
+          setPages(Array.isArray(response.facebook_pages) ? response.facebook_pages : [])
         }
       } else {
         await loadAdAccounts()
       }
-      
+
       await loadTemplates()
       await loadPixels()
-      
+
       toast.success("Sync Complete", { description: "Your Meta assets have been synchronized." })
     } catch (err) {
-      console.error("Refresh failed:", err)
+      // console.error("Refresh failed:", err)
       toast.error("Sync Failed", { description: "Could not refresh your Meta assets." })
     } finally {
       setIsSyncingAssets(false)
@@ -524,7 +524,7 @@ export function FacebookDashboard() {
   }
 
   const handleCheckDeletionStatus = () => {
-    console.log("Checking Deletion Status. Current statusData:", statusData);
+    // console.log("Checking Deletion Status. Current statusData:", statusData);
     if (statusData?.status === 'deletion_pending' || statusData?.deletion_details?.status === 'deletion_pending') {
       setIsDeletionStatusDialogOpen(true)
     } else {
@@ -551,7 +551,7 @@ export function FacebookDashboard() {
         setAdAccounts(uniqueAccounts)
       }
     } catch (error: any) {
-      console.error('Failed to load ad accounts:', error)
+      // console.error('Failed to load ad accounts:', error)
       const metaErr = formatMetaError(error.message);
       setLastError(metaErr);
       toast.error("Account Load Failed", {
@@ -574,7 +574,7 @@ export function FacebookDashboard() {
       if (insightsRes.status === 'success') {
         setInsights(insightsRes.insights || [])
       }
-      
+
       // Only clear child states if we are NOT just refreshing
       if (!isRefreshing) {
         setSelectedCampaign(null)
@@ -582,7 +582,7 @@ export function FacebookDashboard() {
         setAds([])
       }
     } catch (error: any) {
-      console.error('Failed to load campaigns:', error)
+      // console.error('Failed to load campaigns:', error)
       toast.error("Failed to load campaigns", {
         description: "Failed to load Meta Ads data",
       })
@@ -598,7 +598,7 @@ export function FacebookDashboard() {
         setTemplates(response.templates || [])
       }
     } catch (error) {
-      console.error('Failed to load templates')
+      // console.error('Failed to load templates')
       toast.error("Failed to load templates", { description: "Could not retrieve ad templates." })
     }
   }
@@ -880,7 +880,7 @@ export function FacebookDashboard() {
 
   const handleUpdateStatus = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === 'ACTIVE' ? 'PAUSED' : 'ACTIVE'
-    
+
     // Optimistic UI Update
     setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
     setAdSets(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s));
@@ -892,7 +892,7 @@ export function FacebookDashboard() {
         toast.success(newStatus === 'ACTIVE' ? "Started" : "Paused", {
           description: `Status updated to ${newStatus}`
         });
-        
+
         // Refresh silently in background to ensure sync
         if (selectedAdAccount) {
           if (activeInnerTab === 'campaigns') loadCampaigns(selectedAdAccount.id, true);
@@ -907,7 +907,7 @@ export function FacebookDashboard() {
         else if (activeInnerTab === 'ad_sets' && selectedCampaign) loadAdSets(selectedCampaign, true);
         else if (activeInnerTab === 'ads' && selectedAdSet) loadAds(selectedAdSet, true);
       }
-      
+
       const metaErr = formatMetaError(error.message);
       setLastError(metaErr);
       setIsErrorDialogOpen(true);
@@ -939,7 +939,7 @@ export function FacebookDashboard() {
       const response = await integrationApi.deleteMetaObject(id)
       if (response.status === 'success') {
         toast.success("Deleted Successfully", { description: `${label} has been removed from Meta.` })
-        
+
         // Instant Local Update: Filter out the deleted object from UI lists
         if (label === 'Creative') {
           setCreatives(prev => prev.filter(c => c.id !== id))
@@ -1185,7 +1185,7 @@ export function FacebookDashboard() {
         setPixels(response.pixels || [])
       }
     } catch (error: any) {
-      console.error('Failed to load pixels:', error)
+      // console.error('Failed to load pixels:', error)
       toast.error("Failed to load Pixels", { description: "Could not retrieve Meta Pixels." })
     } finally {
       setIsLoadingPixels(false)
@@ -1262,14 +1262,14 @@ export function FacebookDashboard() {
           <span className="text-[14px] font-medium text-[var(--crm-text-primary)]">Meta Business Suite</span>
           <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest leading-none h-[18px] flex items-center">AGENCY PRO</span>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
           {/* Account Selector */}
           {businesses.length > 0 && (
             <div className="flex items-center bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-md h-7 px-1">
               <Briefcase className="h-3.5 w-3.5 text-[var(--crm-text-secondary)] ml-1.5" />
-              <Select 
-                value={selectedBusiness?.business_id || ""} 
+              <Select
+                value={selectedBusiness?.business_id || ""}
                 onValueChange={(val) => {
                   const business = businesses.find(b => b.business_id === val);
                   if (business) setSelectedBusiness(business);
@@ -1348,342 +1348,1327 @@ export function FacebookDashboard() {
         </div>
 
         <div className="w-full">
-        <TabsContent value="pages" className="m-0 space-y-6">
+          <TabsContent value="pages" className="m-0 space-y-6">
 
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Pages Column */}
-            <div className="border border-[var(--crm-border)] rounded-xl bg-[var(--crm-surface-1)] shadow-sm flex flex-col max-h-[500px]">
-              <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[var(--crm-border)]">
-                <Globe className="h-4 w-4 text-[var(--crm-text-secondary)]" />
-                <h3 className="text-[13px] font-medium text-[var(--crm-text-primary)]">Managed Pages</h3>
-                <span className="text-[11px] text-[var(--crm-text-tertiary)] ml-auto">
-                  {pages.filter(p => !!p.access_token).length}/{pages.length} Accessible
-                </span>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Pages Column */}
+              <div className="border border-[var(--crm-border)] rounded-xl bg-[var(--crm-surface-1)] shadow-sm flex flex-col max-h-[500px]">
+                <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[var(--crm-border)]">
+                  <Globe className="h-4 w-4 text-[var(--crm-text-secondary)]" />
+                  <h3 className="text-[13px] font-medium text-[var(--crm-text-primary)]">Managed Pages</h3>
+                  <span className="text-[11px] text-[var(--crm-text-tertiary)] ml-auto">
+                    {pages.filter(p => !!p.access_token).length}/{pages.length} Accessible
+                  </span>
+                </div>
+                <div className="p-2 space-y-1.5 overflow-y-auto">
+                  {pages.map((page) => {
+                    const isDisabled = !page.access_token;
+                    return (
+                      <div
+                        key={page.id}
+                        onClick={() => !isDisabled && loadPageForms(page)}
+                        className={`flex items-center gap-2.5 p-2 rounded-md transition-colors border border-transparent ${isDisabled
+                            ? 'opacity-60 cursor-not-allowed bg-[var(--crm-surface-2)] grayscale-[0.5]'
+                            : `cursor-pointer ${selectedPage?.id === page.id ? 'bg-blue-50/50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800' : 'bg-[var(--crm-surface-2)] hover:bg-[var(--crm-surface-3)]'}`
+                          }`}
+                      >
+                        <div className="h-7 w-7 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center text-[12px] font-bold shrink-0">
+                          {page.name.charAt(0)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] font-medium text-[var(--crm-text-primary)] truncate">{page.name}</p>
+                          <p className="text-[10px] text-[var(--crm-text-tertiary)] flex items-center gap-1 mt-0.5">
+                            {page.access_token ? (
+                              <span className="text-green-600 font-semibold uppercase tracking-widest">Connected</span>
+                            ) : (
+                              <span className="text-amber-600 font-semibold uppercase tracking-widest">Not Selected</span>
+                            )}
+                            <span>&middot;</span>
+                            <span className="truncate">ID: {page.id}</span>
+                          </p>
+                        </div>
+                        <ChevronRight className={`h-3.5 w-3.5 shrink-0 ${selectedPage?.id === page.id ? 'text-blue-500' : 'text-[var(--crm-text-tertiary)]'}`} />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="p-2 space-y-1.5 overflow-y-auto">
-                {pages.map((page) => {
-                  const isDisabled = !page.access_token;
-                  return (
-                    <div
-                      key={page.id}
-                      onClick={() => !isDisabled && loadPageForms(page)}
-                      className={`flex items-center gap-2.5 p-2 rounded-md transition-colors border border-transparent ${
-                        isDisabled 
-                          ? 'opacity-60 cursor-not-allowed bg-[var(--crm-surface-2)] grayscale-[0.5]' 
-                          : `cursor-pointer ${selectedPage?.id === page.id ? 'bg-blue-50/50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800' : 'bg-[var(--crm-surface-2)] hover:bg-[var(--crm-surface-3)]'}`
-                      }`}
-                    >
-                      <div className="h-7 w-7 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center text-[12px] font-bold shrink-0">
-                        {page.name.charAt(0)}
+
+              {/* Forms Column */}
+              <div className="border border-[var(--crm-border)] rounded-xl bg-[var(--crm-surface-1)] shadow-sm flex flex-col max-h-[500px]">
+                {selectedPage ? (
+                  <>
+                    <div className="flex flex-wrap items-center gap-2 px-3 py-2.5 border-b border-[var(--crm-border)]">
+                      <Facebook className="h-4 w-4 text-[var(--crm-text-secondary)]" />
+                      <h3 className="text-[13px] font-medium text-[var(--crm-text-primary)] truncate max-w-[200px]">
+                        {selectedPage.name}
+                      </h3>
+                      {selectedPage.access_token && (
+                        <span className="bg-green-50 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest leading-none h-[18px] flex items-center shrink-0">Connected</span>
+                      )}
+
+                      <div className="ml-auto flex items-center gap-2 shrink-0">
+                        {process.env.NEXT_PUBLIC_FEATURE_ADS === 'true' && (
+                          <Dialog open={isCreateFormDialogOpen} onOpenChange={setIsCreateFormDialogOpen}>
+                            <DialogTrigger asChild>
+                              <Button size="sm" className="h-7 text-[11px] px-3 bg-blue-600 hover:bg-blue-700">
+                                <Plus className="h-3 w-3 mr-1" />
+                                Create Form
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Create Lead Generation Form</DialogTitle>
+                                <DialogDescription>
+                                  This will create a new Lead Gen Form on your Facebook Page "{selectedPage.name}".
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="grid gap-4 py-4">
+                                <div className="grid gap-2">
+                                  <Label htmlFor="form-name">Form Name</Label>
+                                  <Input
+                                    id="form-name"
+                                    value={newFormName}
+                                    onChange={(e) => setNewFormName(e.target.value)}
+                                    placeholder="e.g. Website Lead Form"
+                                  />
+                                </div>
+                                <div className="text-xs text-slate-500 bg-slate-50 dark:bg-slate-800 p-3 rounded-md">
+                                  <p className="font-semibold mb-1">Standard fields included:</p>
+                                  <ul className="list-disc list-inside space-y-0.5">
+                                    <li>Full Name</li>
+                                    <li>Email Address</li>
+                                    <li>Phone Number</li>
+                                  </ul>
+                                </div>
+                              </div>
+                              <DialogFooter>
+                                <Button variant="outline" onClick={() => setIsCreateFormDialogOpen(false)}>Cancel</Button>
+                                <Button
+                                  onClick={handleCreateForm}
+                                  disabled={isCreatingForm || !newFormName}
+                                  className="bg-blue-600 hover:bg-blue-700"
+                                >
+                                  {isCreatingForm ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                                  Launch Form
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        )}
+                        <WebhookVerificationDialog
+                          pageId={selectedPage.id}
+                          pageName={selectedPage.name}
+                        />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-medium text-[var(--crm-text-primary)] truncate">{page.name}</p>
-                        <p className="text-[10px] text-[var(--crm-text-tertiary)] flex items-center gap-1 mt-0.5">
-                          {page.access_token ? (
-                            <span className="text-green-600 font-semibold uppercase tracking-widest">Connected</span>
-                          ) : (
-                            <span className="text-amber-600 font-semibold uppercase tracking-widest">Not Selected</span>
-                          )}
-                          <span>&middot;</span>
-                          <span className="truncate">ID: {page.id}</span>
-                        </p>
-                      </div>
-                      <ChevronRight className={`h-3.5 w-3.5 shrink-0 ${selectedPage?.id === page.id ? 'text-blue-500' : 'text-[var(--crm-text-tertiary)]'}`} />
                     </div>
-                  );
-                })}
+
+                    <div className="p-2 space-y-2 overflow-y-auto">
+                      {isLoadingForms ? (
+                        <div className="flex flex-col items-center justify-center py-10 space-y-3">
+                          <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+                          <p className="text-[12px] text-muted-foreground">Loading forms...</p>
+                        </div>
+                      ) : formsError ? (
+                        <div className="flex flex-col items-center justify-center py-8 px-4 bg-red-50/50 rounded-lg border border-red-100 text-center space-y-3">
+                          <ShieldAlert className="h-5 w-5 text-red-500" />
+                          <p className="text-[12px] text-red-600/80 max-w-sm">
+                            {formsError}
+                          </p>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="h-7 text-[11px]"
+                            onClick={handleMetaConnect}
+                            disabled={isConnectingMeta}
+                          >
+                            {isConnectingMeta ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : <Facebook className="h-3 w-3 mr-1.5" />}
+                            Reconnect
+                          </Button>
+                        </div>
+                      ) : forms.length > 0 ? (
+                        forms.map((form) => (
+                          <div key={form.id} className="flex flex-wrap items-center gap-3 p-2 bg-[var(--crm-surface-2)] rounded-md">
+                            <Checkbox
+                              id={`track-form-${form.id}`}
+                              checked={trackedForms.some(tf => tf.form_id === form.id)}
+                              onCheckedChange={(checked) => handleTrackFormToggle(form, !!checked)}
+                              className="w-4 h-4 rounded-sm border-gray-300"
+                            />
+                            <FileText className="h-4 w-4 text-blue-500 shrink-0" />
+                            <div className="flex-1 min-w-[150px]">
+                              <label htmlFor={`track-form-${form.id}`} className="text-[12px] font-medium text-[var(--crm-text-primary)] cursor-pointer truncate block">{form.name}</label>
+                              <p className="text-[10px] text-[var(--crm-text-tertiary)] flex items-center gap-1 mt-0.5">
+                                ID: {form.id}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className={cn(
+                                "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest leading-none h-[18px] flex items-center",
+                                form.status === 'ACTIVE' ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500"
+                              )}>
+                                {form.status}
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-[11px] px-3 bg-transparent shadow-none border-[var(--crm-border)] text-[var(--crm-text-secondary)]"
+                                onClick={() => handleSyncHistory(form)}
+                                disabled={isSyncingHistory === form.id}
+                              >
+                                {isSyncingHistory === form.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
+                                ) : (
+                                  <RefreshCw className="h-3 w-3 mr-1.5" />
+                                )}
+                                {isSyncingHistory === form.id ? 'Syncing...' : 'Sync History'}
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-10 text-[12px] text-[var(--crm-text-tertiary)]">No forms found for this page.</div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center text-[var(--crm-text-tertiary)]">
+                    <Facebook className="h-8 w-8 opacity-20 mb-3" />
+                    <p className="text-[12px]">Select a Facebook page to manage lead forms</p>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Forms Column */}
-            <div className="border border-[var(--crm-border)] rounded-xl bg-[var(--crm-surface-1)] shadow-sm flex flex-col max-h-[500px]">
-              {selectedPage ? (
-                <>
-                  <div className="flex flex-wrap items-center gap-2 px-3 py-2.5 border-b border-[var(--crm-border)]">
-                    <Facebook className="h-4 w-4 text-[var(--crm-text-secondary)]" />
-                    <h3 className="text-[13px] font-medium text-[var(--crm-text-primary)] truncate max-w-[200px]">
-                      {selectedPage.name}
-                    </h3>
-                    {selectedPage.access_token && (
-                      <span className="bg-green-50 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest leading-none h-[18px] flex items-center shrink-0">Connected</span>
-                    )}
-                    
-                    <div className="ml-auto flex items-center gap-2 shrink-0">
-                      {process.env.NEXT_PUBLIC_FEATURE_ADS === 'true' && (
-                        <Dialog open={isCreateFormDialogOpen} onOpenChange={setIsCreateFormDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button size="sm" className="h-7 text-[11px] px-3 bg-blue-600 hover:bg-blue-700">
-                              <Plus className="h-3 w-3 mr-1" />
-                              Create Form
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Create Lead Generation Form</DialogTitle>
-                              <DialogDescription>
-                                This will create a new Lead Gen Form on your Facebook Page "{selectedPage.name}".
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                              <div className="grid gap-2">
-                                <Label htmlFor="form-name">Form Name</Label>
-                                <Input
-                                  id="form-name"
-                                  value={newFormName}
-                                  onChange={(e) => setNewFormName(e.target.value)}
-                                  placeholder="e.g. Website Lead Form"
-                                />
-                              </div>
-                              <div className="text-xs text-slate-500 bg-slate-50 dark:bg-slate-800 p-3 rounded-md">
-                                <p className="font-semibold mb-1">Standard fields included:</p>
-                                <ul className="list-disc list-inside space-y-0.5">
-                                  <li>Full Name</li>
-                                  <li>Email Address</li>
-                                  <li>Phone Number</li>
-                                </ul>
-                              </div>
-                            </div>
-                            <DialogFooter>
-                              <Button variant="outline" onClick={() => setIsCreateFormDialogOpen(false)}>Cancel</Button>
-                              <Button
-                                onClick={handleCreateForm}
-                                disabled={isCreatingForm || !newFormName}
-                                className="bg-blue-600 hover:bg-blue-700"
-                              >
-                                {isCreatingForm ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                                Launch Form
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      )}
-                      <WebhookVerificationDialog 
-                        pageId={selectedPage.id} 
-                        pageName={selectedPage.name} 
-                      />
+            {/* Data Privacy & Compliance Section (Strongly recommended for Meta verification) */}
+            <div className="mt-8 space-y-4">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-blue-600" />
+                <h3 className="text-lg font-bold">Data Privacy & Compliance</h3>
+              </div>
+              <Card className="border-none shadow-sm bg-blue-50/30 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
+                <CardContent className="p-6">
+                  <div className="flex flex-col gap-6">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="bg-indigo-50/50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 h-9 px-4 font-bold rounded-xl"
+                        onClick={handleRefreshStatus}
+                      >
+                        <RefreshCw className={cn("h-3.5 w-3.5 mr-2", isSyncingAssets && "animate-spin")} />
+                        Refresh Status
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="bg-amber-50/50 border-amber-200 text-amber-700 hover:bg-amber-100 h-9 px-4 font-bold rounded-xl"
+                        onClick={handleCheckDeletionStatus}
+                      >
+                        <ShieldCheck className="h-3.5 w-3.5 mr-2" />
+                        Check Deletion Status
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="bg-white dark:bg-slate-900 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 h-9 px-4 font-bold rounded-xl"
+                        onClick={handleManualDataDeletionRequest}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-2" />
+                        Request Data Deletion
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="bg-white dark:bg-slate-900 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 h-9 px-4 font-bold rounded-xl"
+                        onClick={handleDisconnectMeta}
+                      >
+                        <X className="h-3.5 w-3.5 mr-2" />
+                        Disconnect Account
+                      </Button>
+                    </div>
+
+                    <div className="space-y-1.5 opacity-80 border-t border-blue-100/50 dark:border-blue-900/20 pt-4">
+                      <p className="text-xs font-bold text-blue-900 dark:text-blue-100 flex items-center gap-2">
+                        <Info className="h-3 w-3" /> Meta Data Rights & Compliance
+                      </p>
+                      <p className="text-[11px] text-blue-800/70 dark:text-blue-200/60 leading-relaxed max-w-4xl">
+                        Once a deletion request is processed, all your Meta-related data (Leads, Forms, and Tokens) will be permanently purged from our infrastructure after manual verification.
+                        Purge target completion is typically 30 days in accordance with the Meta Platform Terms.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          <TabsContent value="ads" className="m-0 space-y-6">
+            <div className="grid grid-cols-1 gap-6">
+              <div className="space-y-6">
+                {/* Header / Account Selector Row - Global for this tab */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 p-3.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-3.5">
+                    <div className="h-10 w-10 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-600 shadow-inner shrink-0">
+                      <Briefcase className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-base font-black tracking-tight flex items-center gap-3">
+                        <span className="truncate">{selectedAdAccount ? selectedAdAccount.name : "Portfolio Overview"}</span>
+                        {selectedAdAccount && <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-[10px] h-5 px-2 border-0 shrink-0">ACTIVE</Badge>}
+                      </h3>
+                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-60 truncate">
+                        {selectedAdAccount ? (selectedAdAccount.business?.name || 'Personal Account') : 'Meta Ads Network'}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="p-2 space-y-2 overflow-y-auto">
-                    {isLoadingForms ? (
-                      <div className="flex flex-col items-center justify-center py-10 space-y-3">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-                        <p className="text-[12px] text-muted-foreground">Loading forms...</p>
-                      </div>
-                    ) : formsError ? (
-                      <div className="flex flex-col items-center justify-center py-8 px-4 bg-red-50/50 rounded-lg border border-red-100 text-center space-y-3">
-                        <ShieldAlert className="h-5 w-5 text-red-500" />
-                        <p className="text-[12px] text-red-600/80 max-w-sm">
-                          {formsError}
-                        </p>
-                        <Button 
-                          variant="destructive" 
-                          size="sm" 
-                          className="h-7 text-[11px]"
-                          onClick={handleMetaConnect}
-                          disabled={isConnectingMeta}
-                        >
-                          {isConnectingMeta ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : <Facebook className="h-3 w-3 mr-1.5" />}
-                          Reconnect
+                  <div className="flex items-center gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="default" className="!bg-[#00a400] hover:!bg-[#008a00] text-white font-black shadow-md border-none gap-2">
+                          <Plus className="h-4 w-4" /> Create
                         </Button>
-                      </div>
-                    ) : forms.length > 0 ? (
-                      forms.map((form) => (
-                        <div key={form.id} className="flex flex-wrap items-center gap-3 p-2 bg-[var(--crm-surface-2)] rounded-md">
-                          <Checkbox 
-                            id={`track-form-${form.id}`}
-                            checked={trackedForms.some(tf => tf.form_id === form.id)}
-                            onCheckedChange={(checked) => handleTrackFormToggle(form, !!checked)}
-                            className="w-4 h-4 rounded-sm border-gray-300"
-                          />
-                          <FileText className="h-4 w-4 text-blue-500 shrink-0" />
-                          <div className="flex-1 min-w-[150px]">
-                            <label htmlFor={`track-form-${form.id}`} className="text-[12px] font-medium text-[var(--crm-text-primary)] cursor-pointer truncate block">{form.name}</label>
-                            <p className="text-[10px] text-[var(--crm-text-tertiary)] flex items-center gap-1 mt-0.5">
-                              ID: {form.id}
-                            </p>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
+                        <DropdownMenuItem className="py-2.5 font-bold cursor-pointer" onClick={() => selectedAdAccount ? setIsCreateCampaignDialogOpen(true) : toast.info("Select Account", { description: "Please select an ad account first." })}>
+                          <Layout className="h-4 w-4 mr-2 text-blue-500" /> New Campaign
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="py-2.5 font-bold cursor-pointer"
+                          onClick={() => {
+                            if (!selectedAdAccount) {
+                              toast.info("Select Account", { description: "Please select an ad account first." });
+                              return;
+                            }
+                            if (selectedCampaign) {
+                              setIsCreateAdSetDialogOpen(true);
+                            } else {
+                              setActiveInnerTab('campaigns');
+                              toast.info("Select Campaign", { description: "Select a campaign first to add an ad set." });
+                            }
+                          }}
+                        >
+                          <Layers className="h-4 w-4 mr-2 text-purple-500" /> New Ad Set
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="py-2.5 font-bold cursor-pointer"
+                          onClick={() => {
+                            if (!selectedAdAccount) {
+                              toast.info("Select Account", { description: "Please select an ad account first." });
+                              return;
+                            }
+                            if (selectedAdSet) {
+                              setIsCreateAdDialogOpen(true);
+                            } else {
+                              setActiveInnerTab('ad_sets');
+                              toast.info("Select Ad Set", { description: "Select an ad set first to add an ad." });
+                            }
+                          }}
+                        >
+                          <FileText className="h-4 w-4 mr-2 text-green-500" /> New Ad
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="py-2.5 font-bold cursor-pointer border-t border-slate-100 mt-1 dark:border-slate-800"
+                          onClick={() => {
+                            if (!selectedAdAccount) {
+                              toast.info("Select Account", { description: "Please select an ad account first." });
+                              return;
+                            }
+                            setIsCreateAudienceDialogOpen(true);
+                          }}
+                        >
+                          <Users className="h-4 w-4 mr-2 text-blue-600" /> New Audience
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <Popover open={isAdAccountOpen} onOpenChange={setIsAdAccountOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={isAdAccountOpen}
+                          className="w-full md:w-[320px] justify-between h-10 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold rounded-xl shadow-sm hover:border-blue-500 hover:ring-4 hover:ring-blue-500/10 transition-all group"
+                        >
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            <Search className="h-4 w-4 text-slate-400 shrink-0 group-hover:text-blue-500 transition-colors" />
+                            <span className="truncate">{selectedAdAccount ? selectedAdAccount.name : "Select Ad Account..."}</span>
                           </div>
-                          
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className={cn(
-                              "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest leading-none h-[18px] flex items-center",
-                              form.status === 'ACTIVE' ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500"
-                            )}>
-                              {form.status}
-                            </span>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 text-[11px] px-3 bg-transparent shadow-none border-[var(--crm-border)] text-[var(--crm-text-secondary)]"
-                              onClick={() => handleSyncHistory(form)}
-                              disabled={isSyncingHistory === form.id}
-                            >
-                              {isSyncingHistory === form.id ? (
-                                <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
-                              ) : (
-                                <RefreshCw className="h-3 w-3 mr-1.5" />
-                              )}
-                              {isSyncingHistory === form.id ? 'Syncing...' : 'Sync History'}
-                            </Button>
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-[450px] p-0 border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl overflow-hidden"
+                        align="end"
+                        side="bottom"
+                        sideOffset={8}
+                        avoidCollisions={false}
+                      >
+                        <div className="p-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <Input
+                              placeholder="Search ad accounts..."
+                              value={adAccountSearch}
+                              onChange={(e) => setAdAccountSearch(e.target.value)}
+                              className="pl-9 h-10 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-none text-sm rounded-lg"
+                            />
                           </div>
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-10 text-[12px] text-[var(--crm-text-tertiary)]">No forms found for this page.</div>
-                    )}
+                        <ScrollArea className="h-[300px]">
+                          <div className="p-2 space-y-1">
+                            {adAccounts
+                              .filter(acc =>
+                                acc.name?.toLowerCase().includes(adAccountSearch.toLowerCase()) ||
+                                acc.id?.toLowerCase().includes(adAccountSearch.toLowerCase()) ||
+                                acc.business?.name?.toLowerCase().includes(adAccountSearch.toLowerCase())
+                              )
+                              .map((acc) => {
+                                const accStatus = AD_ACCOUNT_STATUS_MAP[acc.account_status] || { text: 'Unknown', color: 'bg-slate-100 text-slate-700' };
+                                return (
+                                  <button
+                                    key={acc.id}
+                                    onClick={() => {
+                                      setSelectedAdAccount(acc);
+                                      loadCampaigns(acc.id);
+                                      setIsAdAccountOpen(false);
+                                    }}
+                                    className={`w-full flex items-start gap-3 p-3 text-left rounded-xl transition-all bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800/80 group ${selectedAdAccount?.id === acc.id ? 'bg-blue-50 dark:bg-blue-900/30' : ''} ${acc.account_status !== 1 ? 'opacity-60' : ''}`}
+                                  >
+                                    <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-white dark:group-hover:bg-slate-700 transition-colors">
+                                      <Briefcase className={`h-4 w-4 ${selectedAdAccount?.id === acc.id ? 'text-blue-500' : 'text-slate-400'}`} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center justify-between mb-0.5">
+                                        <span className="font-bold text-sm truncate uppercase tracking-tight">{acc.name}</span>
+                                        <div className="flex items-center gap-1.5 shrink-0">
+                                          <Badge className={`text-[9px] px-1.5 h-4 leading-none border-0 ${accStatus.color}`}>{accStatus.text}</Badge>
+                                          {selectedAdAccount?.id === acc.id && <Check className="h-3.5 w-3.5 text-blue-500" />}
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest opacity-70">
+                                        <span>{acc.business?.name || 'Personal'}</span>
+                                        <span>•</span>
+                                        <span className="font-mono">{acc.id}</span>
+                                        <span>•</span>
+                                        <span className="font-mono">{acc.currency}</span>
+                                      </div>
+                                    </div>
+                                  </button>
+                                );
+                              })
+                            }
+                            {adAccounts.length === 0 && <div className="p-8 text-center text-sm text-slate-500 italic">No ad accounts found</div>}
+                          </div>
+                        </ScrollArea>
+                      </PopoverContent>
+                    </Popover>
                   </div>
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center text-[var(--crm-text-tertiary)]">
-                  <Facebook className="h-8 w-8 opacity-20 mb-3" />
-                  <p className="text-[12px]">Select a Facebook page to manage lead forms</p>
+                </div>
+
+                {selectedAdAccount ? (
+                  <div className="flex flex-col h-full bg-[#f0f2f5] dark:bg-slate-950 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
+                    {/* Insights Summary Cards */}
+                    <div className="p-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                      <div className="min-w-[140px] flex-1 bg-blue-600 p-2.5 rounded-xl text-white shadow-sm transition-all hover:bg-blue-700">
+                        <p className="text-[9px] opacity-80 uppercase font-black tracking-widest leading-none mb-1">Spend (30d)</p>
+                        <h3 className="text-sm font-black truncate">
+                          {selectedAdAccount.currency} {insights.reduce((sum, i) => sum + parseFloat(i.spend || '0'), 0).toFixed(2)}
+                        </h3>
+                      </div>
+                      <div className="min-w-[140px] flex-1 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest leading-none mb-1">Impressions</p>
+                        <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">
+                          {insights.reduce((sum, i) => sum + parseInt(i.impressions || '0'), 0).toLocaleString()}
+                        </h3>
+                      </div>
+                      <div className="min-w-[140px] flex-1 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest leading-none mb-1">Link Clicks</p>
+                        <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">
+                          {insights.reduce((sum, i) => sum + parseInt(i.inline_link_clicks || '0'), 0).toLocaleString()}
+                        </h3>
+                      </div>
+                      <div className="min-w-[140px] flex-1 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest leading-none mb-1">Avg. CTR</p>
+                        <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">
+                          {(insights.reduce((sum, i) => sum + parseFloat(i.ctr || '0'), 0) / Math.max(insights.length, 1)).toFixed(2)}%
+                        </h3>
+                      </div>
+                      <div className="min-w-[140px] flex-1 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest leading-none mb-1">Avg. CPC</p>
+                        <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">
+                          {selectedAdAccount.currency} {(insights.reduce((sum, i) => sum + parseFloat(i.cpc || '0'), 0) / Math.max(insights.length, 1)).toFixed(2)}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Top Breadcrumb Header */}
+                    <div className="flex items-center justify-between px-4 py-2 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-bold text-slate-900 dark:text-white capitalize">
+                          {activeInnerTab.replace('_', ' ')}
+                        </span>
+                        <div className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800 mx-1" />
+                        <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 cursor-pointer transition-colors group">
+                          <div className="h-5 w-5 bg-blue-100 dark:bg-blue-900/30 rounded flex items-center justify-center text-blue-600 font-bold text-[10px]">
+                            {selectedAdAccount.name.charAt(0)}
+                          </div>
+                          <span className="text-xs font-medium text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white">
+                            {selectedAdAccount.name} ({selectedAdAccount.id})
+                          </span>
+                          <ChevronDown className="h-3 w-3 text-slate-400" />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
+                          <span>Updated just now</span>
+                          <button onClick={() => loadCampaigns(selectedAdAccount.id)} className="p-1 bg-white border border-slate-200 shadow-sm hover:bg-blue-50 dark:hover:bg-slate-800 rounded transition-colors" title="Reload Basic Data">
+                            <RefreshCw className={`h-3 w-3 ${isLoadingAds ? 'animate-spin' : ''}`} />
+                          </button>
+                          <button
+                            onClick={handleDeepSyncAccount}
+                            disabled={isDeepSyncing}
+                            className={`p-1 bg-white border border-slate-200 shadow-sm hover:bg-blue-50 dark:hover:bg-slate-800 rounded transition-all ${isDeepSyncing ? 'animate-spin border-blue-500 text-blue-500' : ''}`}
+                            title="Deep Sync (Reports & Metrics)"
+                          >
+                            <Zap className={`h-3 w-3 ${isDeepSyncing ? 'text-blue-500' : ''}`} />
+                          </button>
+                        </div>
+                        <Button size="sm" variant="outline" className="h-8 text-xs font-bold bg-[#e4e6eb] dark:bg-slate-800 border-none hover:bg-slate-200 dark:hover:bg-slate-700">
+                          Review and publish
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Meta Resource Bar */}                   <div className="px-4 py-2 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setResourceFilter('all')}
+                        className={`h-8 px-3 text-xs font-bold transition-all ${resourceFilter === 'all' ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <List className="h-3.5 w-3.5" /> All ads
+                        </div>
+                      </Button>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 px-3 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
+                            <Zap className="h-3.5 w-3.5 mr-2" /> Actions <ChevronDown className="h-3 w-3 ml-1" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-48 p-2 rounded-xl">
+                          <DropdownMenuItem className="py-2.5 font-bold cursor-pointer" onClick={() => loadCampaigns(selectedAdAccount.id, true)}>
+                            <RefreshCw className="h-4 w-4 mr-2 text-blue-500" /> Refresh Current View
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="py-2.5 font-bold cursor-pointer" onClick={handleDeepSyncAccount}>
+                            <Zap className="h-4 w-4 mr-2 text-amber-500" /> Account Deep Sync
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="py-2.5 font-bold cursor-pointer text-red-500 border-t border-slate-50 mt-1" onClick={() => toast.info("Lead Flow Active", { description: "Currently monitoring real-time form submissions." })}>
+                            <Trash2 className="h-4 w-4 mr-2" /> Bulk Delete
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="py-2.5 font-bold cursor-pointer opacity-50">
+                            <Archive className="h-4 w-4 mr-2" /> Bulk Archive
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setResourceFilter('active')}
+                        className={`h-8 px-3 text-xs font-bold transition-all ${resourceFilter === 'active' ? 'text-green-600 bg-green-50 dark:bg-green-900/10' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                      >
+                        <TrendingUp className="h-3.5 w-3.5 mr-2" /> Active ads
+                      </Button>
+
+                      <div className="flex-1 min-w-[200px] relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input
+                          type="text"
+                          placeholder="Search to filter by: name, ID or metrics"
+                          className="w-full pl-9 pr-4 py-1.5 bg-transparent border-none text-xs focus:ring-0 placeholder:text-slate-400 font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Inner Tabs */}
+                    <div className="flex items-center bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-1">
+                      <button
+                        onClick={() => setActiveInnerTab('campaigns')}
+                        className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'campaigns' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Layout className="h-4 w-4" /> Campaigns
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => setActiveInnerTab('ad_sets')}
+                        className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'ad_sets' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Layers className="h-4 w-4" /> Ad sets
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => setActiveInnerTab('ads')}
+                        className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'ads' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" /> Ads
+                        </div>
+                      </button>
+                    </div>
+
+                    {/* Toolbar */}
+                    <div className="px-4 py-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="default" size="sm" className="h-8 !bg-[#00a400] hover:!bg-[#008a00] text-white font-bold text-xs px-4 rounded-md border-none">
+                              <Plus className="h-3.5 w-3.5 mr-1.5" /> Create <ChevronDown className="h-3 w-3 ml-1" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="w-48 p-2 rounded-xl">
+                            <DropdownMenuItem className="py-2 font-bold cursor-pointer" onClick={() => setIsCreateCampaignDialogOpen(true)}>
+                              <Layout className="h-4 w-4 mr-2 text-blue-500" /> Create Campaign
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="py-2 font-bold cursor-pointer" onClick={() => selectedCampaign ? setIsCreateAdSetDialogOpen(true) : toast.info("Select Campaign", { description: "Please select a campaign first." })}>
+                              <Layers className="h-4 w-4 mr-2 text-purple-500" /> Create Ad Set
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="py-2 font-bold cursor-pointer" onClick={() => selectedAdSet ? setIsCreateAdDialogOpen(true) : toast.info("Select Ad Set", { description: "Please select an ad set first." })}>
+                              <FileText className="h-4 w-4 mr-2 text-green-500" /> Create Ad
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="py-2 font-bold cursor-pointer border-t border-slate-100 mt-1 dark:border-slate-800" onClick={() => setIsCreateAudienceDialogOpen(true)}>
+                              <Users className="h-4 w-4 mr-2 text-blue-600" /> New Audience
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+
+
+                        <Button variant="outline" size="sm" onClick={() => toast.info("Select items", { description: "Please select one or more items to duplicate." })} className="h-8 text-xs font-bold gap-1.5 px-3">
+                          <Copy className="h-3.5 w-3.5" /> Duplicate
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => toast.info("Select item", { description: "Please select a specific item to edit." })} className="h-8 text-xs font-bold gap-1.5 px-3">
+                          <Pencil className="h-3.5 w-3.5" /> Edit
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => toast.info("A/B Testing", { description: "Select two items to start an A/B test comparison." })} className="h-8 text-xs font-bold gap-1.5 px-3">
+                          <Share2 className="h-3.5 w-3.5" /> A/B test
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 text-xs font-bold">
+                              More <ChevronDown className="h-3 w-3 ml-1" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start">
+                            <DropdownMenuItem onClick={() => toast.info("ROAS Estimate", { description: "Expected range: 2.1x - 3.5x" })}>Export</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => toast.info("Import", { description: "Bulk import restricted." })}>Import</DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-500" onClick={() => toast.info("Delete", { description: "Select items for bulk deletion." })}>Delete</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 dark:border-slate-800 rounded-md bg-slate-50/50 dark:bg-slate-800/50 text-[10px] uppercase tracking-wider font-extrabold text-slate-500">
+                          <Calendar className="h-3 w-3" /> Last 30 days
+                        </div>
+                        <Button variant="outline" size="sm" className="h-8 font-bold text-xs gap-1.5 px-3">
+                          <Filter className="h-3.5 w-3.5" /> Columns
+                        </Button>
+                      </div>
+                    </div>
+                    {/* Dynamic Inner Content */}
+                    <div className="flex-1 overflow-auto bg-white dark:bg-slate-900">
+                      {/* Campaigns View */}
+                      {activeInnerTab === 'campaigns' && (
+                        <Table>
+                          <TableHeader className="bg-slate-50 dark:bg-green-900/20 sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
+                            <TableRow className="hover:bg-transparent">
+                              <TableHead className="w-10 px-4"><Checkbox /></TableHead>
+                              <TableHead className="w-12 text-center text-[11px] font-black uppercase text-slate-600 py-4">Off/On</TableHead>
+                              <TableHead className="min-w-[200px] text-[11px] font-black uppercase text-slate-600">Campaign Name</TableHead>
+                              <TableHead className="text-[11px] font-black uppercase text-slate-600">Delivery</TableHead>
+                              <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Results</TableHead>
+                              <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Budget</TableHead>
+                              <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Amount Spent</TableHead>
+                              <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">CTR</TableHead>
+                              <TableHead className="text-center text-[11px] font-black uppercase text-slate-600">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {isLoadingAds ? (
+                              <TableRow>
+                                <TableCell colSpan={9} className="h-64 text-center">
+                                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500 opacity-20 mb-2" />
+                                  <span className="text-xs font-medium text-slate-400">Loading campaigns...</span>
+                                </TableCell>
+                              </TableRow>
+                            ) : campaigns.length > 0 ? (
+                              campaigns
+                                .filter(camp => resourceFilter === 'all' || camp.status === 'ACTIVE')
+                                .map((camp) => {
+                                  const campInsight = insights.find(i => i.campaign_name === camp.name);
+                                  return (
+                                    <TableRow key={camp.id} className="group hover:bg-blue-100/30 dark:hover:bg-blue-900/10 border-b border-slate-100 dark:border-slate-800 h-16">
+                                      <TableCell className="px-4"><Checkbox /></TableCell>
+                                      <TableCell className="text-center">
+                                        <Switch
+                                          checked={camp.status === 'ACTIVE'}
+                                          className="scale-90 data-[state=checked]:!bg-[#00a400] data-[state=unchecked]:bg-slate-100 dark:data-[state=unchecked]:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 shadow-sm"
+                                          onCheckedChange={() => handleUpdateStatus(camp.id, camp.status)}
+                                        />
+                                      </TableCell>
+                                      <TableCell>
+                                        <div
+                                          className="font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer truncate max-w-[250px] transition-colors"
+                                          onClick={() => {
+                                            loadAdSets(camp);
+                                            setActiveInnerTab('ad_sets');
+                                          }}
+                                        >
+                                          {camp.name}
+                                        </div>
+                                        <div className="flex items-center gap-1.5 mt-1 text-[9px] text-slate-400 font-bold tracking-tight uppercase">
+                                          <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[8px]">{camp.objective?.replace('OUTCOME_', '')}</span>
+                                          <span>•</span>
+                                          <span className="font-mono">ID: {camp.id}</span>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex items-center gap-2">
+                                          <div className={`h-2.5 w-2.5 rounded-full ${camp.status === 'ACTIVE' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-slate-400'}`} />
+                                          <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 capitalize">{camp.status.toLowerCase()}</span>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        <div className="text-xs font-black">{campInsight?.results || '-'}</div>
+                                        <div className="text-[10px] text-slate-400">Leads</div>
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        <div className="text-xs font-black">{selectedAdAccount.currency} {camp.daily_budget ? (camp.daily_budget / 100).toFixed(2) : '-'}</div>
+                                        <div className="text-[10px] text-slate-400">Daily Average</div>
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        <div className="text-xs font-black">{selectedAdAccount.currency} {parseFloat(campInsight?.spend || '0').toFixed(2)}</div>
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        <div className="text-xs font-black">{campInsight?.ctr || '0.00'}%</div>
+                                      </TableCell>
+                                      <TableCell className="text-center">
+                                        <div className="flex items-center justify-center gap-1 transition-opacity">
+                                          <button
+                                            className="p-1.5 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-full text-blue-600 transition-colors"
+                                            onClick={() => {
+                                              setSelectedCampaign(camp);
+                                              setIsCreateAdSetDialogOpen(true);
+                                            }}
+                                            title="Add Ad Set"
+                                          >
+                                            <Plus className="h-3.5 w-3.5" />
+                                          </button>
+                                          <button
+                                            className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full"
+                                            title="Edit"
+                                            onClick={() => {
+                                              setEditingCampaign(camp);
+                                              setNewCampaignName(camp.name);
+                                              setIsEditCampaignDialogOpen(true);
+                                            }}
+                                          >
+                                            <Edit3 className="h-3.5 w-3.5 text-slate-500" />
+                                          </button>
+                                          <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-red-500" onClick={() => handleDuplicateObject(camp.id, 'Campaign')} title="Duplicate"><Copy className="h-3.5 w-3.5" /></button><button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-red-500" onClick={() => handleDeleteObject(camp.id, 'Campaign')} title="Delete">
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                          </button>
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })
+                            ) : (
+                              <TableRow>
+                                <TableCell colSpan={9} className="h-64 text-center">
+                                  <div className="flex flex-col items-center justify-center space-y-4">
+                                    <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center">
+                                      <Layout className="h-8 w-8 text-slate-300" />
+                                    </div>
+                                    <div>
+                                      <p className="text-slate-500 font-bold mb-1">No campaigns found in this account</p>
+                                      <p className="text-slate-400 text-xs">Start your lead generation journey by creating a campaign.</p>
+                                    </div>
+                                    <Button
+                                      onClick={() => setIsCreateCampaignDialogOpen(true)}
+                                      className="!bg-[#00a400] hover:!bg-[#008a00] text-white font-black shadow-md border-none gap-2"
+                                    >
+                                      <Plus className="h-4 w-4 mr-2" />
+                                      Create Campaign
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </TableBody>
+                        </Table>
+                      )}
+
+                      {/* Ad Sets View */}
+                      {activeInnerTab === 'ad_sets' && (
+                        <Table>
+                          <TableHeader className="bg-slate-50 dark:bg-green-900/20 sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
+                            <TableRow className="hover:bg-transparent">
+                              <TableHead className="w-10 px-4"><Checkbox /></TableHead>
+                              <TableHead className="w-12 text-center text-[11px] font-black uppercase text-slate-600 py-4">Off/On</TableHead>
+                              <TableHead className="min-w-[200px] text-[11px] font-black uppercase text-slate-600">Ad Set Name</TableHead>
+                              <TableHead className="text-[11px] font-black uppercase text-slate-600">Delivery</TableHead>
+                              <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Results</TableHead>
+                              <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Budget</TableHead>
+                              <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Amount Spent</TableHead>
+                              <TableHead className="text-center text-[11px] font-black uppercase text-slate-600">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {isLoadingAdSets ? (
+                              <TableRow>
+                                <TableCell colSpan={8} className="h-64 text-center">
+                                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500 opacity-20 mb-2" />
+                                  <span className="text-xs font-medium text-slate-400">Loading ad sets...</span>
+                                </TableCell>
+                              </TableRow>
+                            ) : adSets.length > 0 ? (
+                              adSets
+                                .filter(set => resourceFilter === 'all' || set.status === 'ACTIVE')
+                                .map((set) => (
+                                  <TableRow key={set.id} className="group hover:bg-blue-100/30 dark:hover:bg-blue-900/10 border-b border-slate-100 dark:border-slate-800 h-16">
+                                    <TableCell className="px-4"><Checkbox /></TableCell>
+                                    <TableCell className="text-center">
+                                      <Switch
+                                        checked={set.status === 'ACTIVE'}
+                                        className="scale-90 data-[state=checked]:!bg-[#00a400] data-[state=unchecked]:bg-slate-100 dark:data-[state=unchecked]:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 shadow-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                        onCheckedChange={() => handleUpdateStatus(set.id, set.status)}
+                                      />
+                                    </TableCell>
+                                    <TableCell>
+                                      <div
+                                        className="font-bold text-blue-600 hover:underline cursor-pointer truncate max-w-[250px]"
+                                        onClick={() => {
+                                          loadAds(set);
+                                          setActiveInnerTab('ads');
+                                        }}
+                                      >
+                                        {set.name}
+                                      </div>
+                                      <div className="text-[9px] text-slate-400 mt-0.5 uppercase tracking-widest font-mono">ID: {set.id}</div>
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center gap-2">
+                                        <div className={`h-2.5 w-2.5 rounded-full ${set.status === 'ACTIVE' ? 'bg-green-500' : 'bg-slate-400'}`} />
+                                        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 capitalize">{set.status.toLowerCase()}</span>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      <div className="text-xs font-black">-</div>
+                                      <div className="text-[10px] text-slate-400">Leads</div>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      <div className="text-xs font-black">{selectedAdAccount.currency} {set.daily_budget ? (set.daily_budget / 100).toFixed(2) : '-'}</div>
+                                      <div className="text-[10px] text-slate-400">Daily Average</div>
+                                    </TableCell>
+                                    <TableCell className="text-right font-black text-xs">
+                                      {selectedAdAccount.currency} 0.00
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      <div className="flex items-center justify-center gap-1 transition-opacity">
+                                        <button
+                                          className="p-1.5 hover:bg-green-50 dark:hover:bg-green-900/40 rounded-full text-green-600 transition-colors"
+                                          onClick={() => {
+                                            setSelectedAdSet(set);
+                                            setIsCreateAdDialogOpen(true);
+                                          }}
+                                          title="Add Ad"
+                                        >
+                                          <Plus className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => toast.info("Edit Ad Set", { description: "Audience editing coming soon." })} title="Edit">
+                                          <Edit3 className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-full text-blue-500 transition-colors" onClick={() => handleDuplicateObject(set.id, 'Ad Set')} title="Duplicate">
+                                          <Copy className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/40 rounded-full text-red-500 transition-colors" onClick={() => handleDeleteObject(set.id, 'Ad Set')} title="Delete">
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                        </button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))
+                            ) : (
+                              <TableRow>
+                                <TableCell colSpan={8} className="h-64 text-center">
+                                  <div className="flex flex-col items-center justify-center space-y-4">
+                                    <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center">
+                                      <Layers className="h-8 w-8 text-slate-300" />
+                                    </div>
+                                    <div>
+                                      <p className="text-slate-500 font-bold mb-1">
+                                        {selectedCampaign ? `No ad sets found for campaign: ${selectedCampaign.name}` : 'Select a campaign to view ad sets'}
+                                      </p>
+                                      <p className="text-slate-400 text-xs">Define your audience and budget by creating an ad set.</p>
+                                    </div>
+                                    {selectedCampaign && (
+                                      <Button
+                                        onClick={() => setIsCreateAdSetDialogOpen(true)}
+                                        className="!bg-[#00a400] hover:!bg-[#008a00] text-white font-black shadow-md border-none gap-2"
+                                      >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Create Ad Set
+                                      </Button>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </TableBody>
+                        </Table>
+                      )}
+
+                      {/* Ads View */}
+                      {activeInnerTab === 'ads' && (
+                        <Table>
+                          <TableHeader className="bg-slate-50 dark:bg-green-900/20 sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
+                            <TableRow className="hover:bg-transparent">
+                              <TableHead className="w-10 px-4"><Checkbox /></TableHead>
+                              <TableHead className="w-12 text-center text-[11px] font-black uppercase text-slate-600 py-4">Off/On</TableHead>
+                              <TableHead className="min-w-[200px] text-[11px] font-black uppercase text-slate-600">Ad Name</TableHead>
+                              <TableHead className="text-[11px] font-black uppercase text-slate-600">Delivery</TableHead>
+                              <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Results</TableHead>
+                              <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Reach</TableHead>
+                              <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Frequency</TableHead>
+                              <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Amount Spent</TableHead>
+                              <TableHead className="text-center text-[11px] font-black uppercase text-slate-600">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {isLoadingSpecificAds ? (
+                              <TableRow>
+                                <TableCell colSpan={8} className="h-64 text-center">
+                                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500 opacity-20 mb-2" />
+                                  <span className="text-xs font-medium text-slate-400">Loading ads...</span>
+                                </TableCell>
+                              </TableRow>
+                            ) : ads.length > 0 ? (
+                              ads
+                                .filter(ad => resourceFilter === 'all' || ad.status === 'ACTIVE')
+                                .map((ad) => (
+                                  <TableRow key={ad.id} className="group hover:bg-blue-100/30 dark:hover:bg-blue-900/10 border-b border-slate-100 dark:border-slate-800 h-16">
+                                    <TableCell className="px-4"><Checkbox /></TableCell>
+                                    <TableCell className="text-center">
+                                      <Switch
+                                        checked={ad.status === 'ACTIVE'}
+                                        className="scale-90 data-[state=checked]:!bg-[#00a400] data-[state=unchecked]:bg-slate-100 dark:data-[state=unchecked]:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 shadow-sm"
+                                        onCheckedChange={() => handleUpdateStatus(ad.id, ad.status)}
+                                      />
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="font-bold text-slate-900 dark:text-white truncate max-w-[250px]">{ad.name}</div>
+                                      <div className="text-[9px] text-slate-400 mt-0.5 uppercase tracking-widest font-mono">ID: {ad.id}</div>
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center gap-2">
+                                        <div className={`h-2.5 w-2.5 rounded-full ${ad.status === 'ACTIVE' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-slate-400'}`} />
+                                        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 capitalize">{ad.status.toLowerCase()}</span>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-right font-black text-xs">-</TableCell>
+                                    <TableCell className="text-right text-xs">0</TableCell>
+                                    <TableCell className="text-right text-xs">0.00</TableCell>
+                                    <TableCell className="text-right font-black text-xs">{selectedAdAccount.currency} 0.00</TableCell>
+                                    <TableCell className="text-center">
+                                      <div className="flex items-center justify-center gap-1 transition-opacity">
+                                        <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => toast.info("Edit Ad", { description: "Ad creative editing coming soon." })} title="Edit">
+                                          <Edit3 className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-full text-blue-500 transition-colors" onClick={() => handleDuplicateObject(ad.id, 'Ad')} title="Duplicate">
+                                          <Copy className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => window.open(`https://www.facebook.com/ads/manager/preview/display/?ad_id=${ad.id}`, '_blank')} title="Preview Ad">
+                                          <Eye className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-red-500" onClick={() => handleDeleteObject(ad.id, 'Ad')} title="Delete">
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                        </button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))
+                            ) : (
+                              <TableRow>
+                                <TableCell colSpan={8} className="h-64 text-center">
+                                  <div className="flex flex-col items-center justify-center space-y-4">
+                                    <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center">
+                                      <FileText className="h-8 w-8 text-slate-300" />
+                                    </div>
+                                    <div>
+                                      <p className="text-slate-500 font-bold mb-1">
+                                        {selectedAdSet ? `No ads found for ad set: ${selectedAdSet.name}` : 'Select an ad set to view ads'}
+                                      </p>
+                                      <p className="text-slate-400 text-xs">Start showing your message by creating an ad.</p>
+                                    </div>
+                                    {selectedAdSet && (
+                                      <Button
+                                        onClick={() => setIsCreateAdDialogOpen(true)}
+                                        className="!bg-[#00a400] hover:!bg-[#008a00] text-white font-black shadow-md border-none gap-2"
+                                      >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Create Ad
+                                      </Button>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </div>
+
+                    {/* Bottom Global Status Bar */}
+                    <div className="px-4 py-2 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                      <div className="flex items-center gap-6">
+                        <span>1 Ad account selected</span>
+                        {activeInnerTab === 'campaigns' && <span>Results for {campaigns.length} Campaign{campaigns.length !== 1 ? 's' : ''}</span>}
+                        {activeInnerTab === 'ad_sets' && <span>Results for {adSets.length} Ad Set{adSets.length !== 1 ? 's' : ''}</span>}
+                        {activeInnerTab === 'ads' && <span>Results for {ads.length} Ad{ads.length !== 1 ? 's' : ''}</span>}
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="flex items-center gap-1.5"><Globe className="h-3 w-3" /> API Version v25.0</span>
+                        <span className="text-blue-600 cursor-pointer hover:underline">Facebook Ads Manager API</span>
+                      </div>
+                    </div>
+
+                    {/* Creation Dialogs */}
+                    <Dialog open={isCreateCampaignDialogOpen} onOpenChange={setIsCreateCampaignDialogOpen}>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <Layout className="h-5 w-5 text-blue-500" />
+                            Launch New Campaign
+                          </DialogTitle>
+                          <DialogDescription>Create a lead generation campaign for "{selectedAdAccount?.name}".</DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label className="text-xs font-bold uppercase text-slate-500">Campaign Name</Label>
+                              <Input value={newCampaignName} onChange={(e) => setNewCampaignName(e.target.value)} placeholder="e.g. Q4 Real Estate Leads" />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label className="text-xs font-bold uppercase text-slate-500">Objective</Label>
+                              <Select value={newCampaignObjective} onValueChange={setNewCampaignObjective}>
+                                <SelectTrigger><SelectValue placeholder="Select Goal" /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="OUTCOME_AWARENESS">Awareness</SelectItem>
+                                  <SelectItem value="OUTCOME_TRAFFIC">Traffic</SelectItem>
+                                  <SelectItem value="OUTCOME_ENGAGEMENT">Engagement</SelectItem>
+                                  <SelectItem value="OUTCOME_LEADS">Leads</SelectItem>
+                                  <SelectItem value="OUTCOME_APP_PROMOTION">App Promotion</SelectItem>
+                                  <SelectItem value="OUTCOME_SALES">Sales</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="flex items-center space-x-2 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-100 dark:border-amber-900/30">
+                              <Checkbox id="special-cat" checked={isSpecialCategory} onCheckedChange={(c) => setIsSpecialCategory(!!c)} />
+                              <div className="grid gap-1.5 leading-none">
+                                <label htmlFor="special-cat" className="text-[11px] font-bold uppercase leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                  Special Ad Category
+                                </label>
+                                <p className="text-[10px] text-amber-700 dark:text-amber-400">Required for Housing, Employment, Credit, or Politics.</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-[11px] text-blue-600 dark:text-blue-400 font-medium">
+                            Note: This campaign will be created as "PAUSED". All ads must manually be set to ACTIVE after review.
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button variant="ghost" onClick={() => setIsCreateCampaignDialogOpen(false)}>Cancel</Button>
+                          <Button onClick={handleCreateCampaign} disabled={isCreatingCampaign || !newCampaignName} className="bg-blue-600 hover:bg-blue-700 font-bold">
+                            {isCreatingCampaign && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                            Create Campaign
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+
+                    <Dialog open={isCreateAdSetDialogOpen} onOpenChange={setIsCreateAdSetDialogOpen}>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <Layers className="h-5 w-5 text-purple-500" />
+                            Create New Ad Set
+                          </DialogTitle>
+                          <DialogDescription>Setting up target audience for "{selectedCampaign?.name}".</DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs font-bold uppercase text-slate-500">Ad Set Name</Label>
+                            <Input value={newAdSetName} onChange={(e) => setNewAdSetName(e.target.value)} placeholder="e.g. Pune Leads - Age 25-45" />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-[11px] font-black uppercase text-slate-600 text-slate-400">Budget (Daily)</Label>
+                              <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
+                                <span className="text-xs font-bold text-slate-500">{selectedAdAccount?.currency}</span>
+                                <Input
+                                  type="number"
+                                  className="h-8 border-none bg-transparent shadow-none focus-visible:ring-0 text-xs font-black p-0"
+                                  value={newAdSetBudget}
+                                  onChange={(e) => setNewAdSetBudget(Number(e.target.value))}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[11px] font-black uppercase text-slate-600 text-slate-400">Targeting</Label>
+                              <div className="text-[10px] font-bold text-slate-600 truncate bg-slate-50 dark:bg-slate-800 px-3 py-2.5 rounded-md border border-slate-200 dark:border-slate-700">India (Default)</div>
+                            </div>
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button variant="ghost" onClick={() => setIsCreateAdSetDialogOpen(false)}>Cancel</Button>
+                          <Button onClick={handleCreateAdSet} disabled={isCreatingAdSet || !newAdSetName} className="bg-purple-600 hover:bg-purple-700 font-bold">
+                            {isCreatingAdSet && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                            Create Ad Set
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+
+                    <Dialog open={isCreateAdDialogOpen} onOpenChange={setIsCreateAdDialogOpen}>
+                      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <FileText className="h-5 w-5 text-green-500" />
+                            Design New Lead Ad
+                          </DialogTitle>
+                          <DialogDescription>Quickly create a Lead Ad for "{selectedAdAccount?.name}" using existing forms.</DialogDescription>
+                        </DialogHeader>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label className="text-xs font-bold uppercase text-slate-500">Creative Type</Label>
+                              <Tabs value={useLibraryCreative ? "library" : "new"} onValueChange={(v) => {
+                                setUseLibraryCreative(v === "library")
+                                if (v === "library" && creatives.length === 0 && selectedAdAccount) {
+                                  loadCreatives(selectedAdAccount.id)
+                                }
+                              }}>
+                                <TabsList className="grid w-full grid-cols-2 h-9">
+                                  <TabsTrigger value="new" className="text-xs">Create New</TabsTrigger>
+                                  <TabsTrigger value="library" className="text-xs">From Library</TabsTrigger>
+                                </TabsList>
+                              </Tabs>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label className="text-xs font-bold uppercase text-slate-500">Ad Name</Label>
+                              <Input value={newAdName} onChange={(e) => setNewAdName(e.target.value)} placeholder="e.g. Free Consultation Offer" />
+                            </div>
+
+                            {useLibraryCreative ? (
+                              <div className="space-y-2">
+                                <Label className="text-xs font-bold uppercase text-slate-500">Select Creative</Label>
+                                <Select value={selectedLibraryCreativeId} onValueChange={(val) => {
+                                  setSelectedLibraryCreativeId(val)
+                                  const creative = creatives.find(c => c.id === val)
+                                  if (creative) {
+                                    // Update preview with selected creative info
+                                    setNewAdPrimaryText(creative.message || creative.object_story_spec?.link_data?.message || '')
+                                    setNewAdHeadline(creative.headline || creative.object_story_spec?.link_data?.name || '')
+                                    setNewAdImageUrl(creative.image_url || creative.thumbnail_url || '')
+                                  }
+                                }}>
+                                  <SelectTrigger><SelectValue placeholder="Select Creative" /></SelectTrigger>
+                                  <SelectContent>
+                                    {creatives.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="space-y-2">
+                                  <Label className="text-xs font-bold uppercase text-slate-500">Facebook Page</Label>
+                                  <Select value={selectedAdPageId} onValueChange={setSelectedAdPageId}>
+                                    <SelectTrigger><SelectValue placeholder="Select Page" /></SelectTrigger>
+                                    <SelectContent>{pages.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label className="text-xs font-bold uppercase text-slate-500">Lead Form</Label>
+                                  <Select value={selectedAdFormId} onValueChange={setSelectedAdFormId}>
+                                    <SelectTrigger><SelectValue placeholder={isLoadingAdCreationForms ? "Loading..." : "Select Form"} /></SelectTrigger>
+                                    <SelectContent>{adCreationForms.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                </div>
+                              </>
+                            )}
+
+                            {/* When using library, hide individual design fields as they are part of the creative */}
+                            {!useLibraryCreative && (
+                              <>
+                                <div className="space-y-2">
+                                  <Label className="text-xs font-bold uppercase text-slate-500">Body Text (Primary)</Label>
+                                  <textarea
+                                    className="w-full h-24 p-2 text-sm border rounded-md dark:bg-slate-800 dark:border-slate-700"
+                                    value={newAdPrimaryText}
+                                    onChange={(e) => setNewAdPrimaryText(e.target.value)}
+                                    placeholder="Describe what you are offering..."
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label className="text-xs font-bold uppercase text-slate-500">Headline</Label>
+                                  <Input value={newAdHeadline} onChange={(e) => setNewAdHeadline(e.target.value)} placeholder="e.g. Claim Your Free Bonus" />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label className="text-xs font-bold uppercase text-slate-500">Image URL</Label>
+                                  <Input value={newAdImageUrl} onChange={(e) => setNewAdImageUrl(e.target.value)} placeholder="https://example.com/image.jpg" />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label className="text-xs font-bold uppercase text-slate-500">Call to Action</Label>
+                                  <Select value={newAdCta} onValueChange={setNewAdCta}>
+                                    <SelectTrigger><SelectValue placeholder="Select CTA" /></SelectTrigger>
+                                    <SelectContent>{CTA_OPTIONS.map(cta => <SelectItem key={cta.value} value={cta.value}>{cta.label}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                </div>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Preview Side */}
+                          <div className="space-y-4">
+                            <Label className="text-xs font-bold uppercase text-slate-500 block mb-2">Ad Preview (Feed)</Label>
+                            <div className="border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+                              <div className="p-3 border-b flex items-center gap-2">
+                                <div className="h-8 w-8 bg-slate-100 rounded-full shrink-0" />
+                                <div>
+                                  <div className="text-[11px] font-bold">{pages.find(p => p.id === selectedAdPageId)?.name || 'Page Name'}</div>
+                                  <div className="text-[10px] text-slate-400">Sponsored</div>
+                                </div>
+                              </div>
+                              <div className="p-3 text-xs leading-relaxed whitespace-pre-wrap">{newAdPrimaryText}</div>
+                              <div className="aspect-[1.91/1] bg-slate-100 relative group overflow-hidden">
+                                {newAdImageUrl ? (
+                                  <img src={newAdImageUrl} className="w-full h-full object-cover" alt="Ad Creative" />
+                                ) : (
+                                  <div className="flex items-center justify-center h-full text-slate-300"><Plus className="h-6 w-6" /></div>
+                                )}
+                              </div>
+                              <div className="p-3 bg-slate-50 dark:bg-slate-800 flex items-center justify-between border-t">
+                                <div className="min-w-0 pr-4">
+                                  <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Facebook</p>
+                                  <p className="text-sm font-bold truncate">{newAdHeadline || 'Headline'}</p>
+                                </div>
+                                <Button size="sm" className="bg-slate-200 hover:bg-slate-300 text-slate-900 border-none h-8 px-4 font-bold text-xs uppercase tracking-tight shrink-0">
+                                  {CTA_OPTIONS.find(c => c.value === newAdCta)?.label || 'Learn More'}
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button variant="ghost" onClick={() => setIsCreateAdDialogOpen(false)}>Cancel</Button>
+                          <Button onClick={handleCreateAd} disabled={isCreatingAd || !newAdName || (!useLibraryCreative && !selectedAdFormId) || (useLibraryCreative && !selectedLibraryCreativeId)} className="bg-green-600 hover:bg-green-700 font-bold">
+                            {isCreatingAd && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                            Create Ad
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+
+                  </div>
+                ) : (
+                  <Card className="h-[500px] border-none shadow-sm flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <div className="h-20 w-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
+                      <TrendingUp className="h-10 w-10 text-slate-300" />
+                    </div>
+                    <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Select an Ad Account</h3>
+                    <p className="text-muted-foreground mt-3 max-w-xs mx-auto text-base font-medium leading-relaxed"> Use the account selector in the top right to start viewing your campaign performance.</p>
+                  </Card>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="templates" className="m-0 space-y-6">
+            <div className="flex flex-col items-center justify-center p-8 text-center bg-blue-50/30 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/30 mb-8">
+              <h2 className="text-2xl font-black text-blue-600 dark:text-blue-400">One-Click Lead Ads</h2>
+              <p className="text-muted-foreground mt-2 max-w-lg">Launch high-converting lead campaigns using our pre-built industry templates. We handle targeting and optimization defaults.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {templates.length > 0 ? templates.map((tpl) => (
+                <Card key={tpl.id} className="border-none shadow-lg hover:shadow-xl transition-all overflow-hidden group">
+                  <div className="h-3 bg-blue-500" />
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 mb-2">{tpl.category}</Badge>
+                      <TrendingUp className="h-5 w-5 text-blue-500 opacity-20 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <CardTitle className="text-lg">{tpl.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-2 text-[10px] uppercase font-bold text-slate-400">
+                        <div>Objective</div>
+                        <div className="text-right">Budget Type</div>
+                        <div className="text-slate-900 dark:text-slate-100">{tpl.objective?.replace('OUTCOME_', '')}</div>
+                        <div className="text-right text-slate-900 dark:text-slate-100">Daily</div>
+                      </div>
+
+                      <Button
+                        className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700"
+                        onClick={() => handleLaunchTemplate(tpl.id)}
+                        disabled={isLaunchingTemplate || !selectedAdAccount}
+                      >
+                        {isLaunchingTemplate ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                        {selectedAdAccount ? 'Launch Template' : 'Select Ad Account First'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )) : (
+                <div className="col-span-3 text-center py-20 bg-slate-50 rounded-2xl border-dashed border-2">
+                  <p className="text-slate-400">No templates available. Add them to `meta_campaign_templates` table.</p>
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Data Privacy & Compliance Section (Strongly recommended for Meta verification) */}
-          <div className="mt-8 space-y-4">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-blue-600" />
-              <h3 className="text-lg font-bold">Data Privacy & Compliance</h3>
-            </div>
-            <Card className="border-none shadow-sm bg-blue-50/30 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
-              <CardContent className="p-6">
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-wrap items-center gap-3">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="bg-indigo-50/50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 h-9 px-4 font-bold rounded-xl"
-                onClick={handleRefreshStatus}
-              >
-                <RefreshCw className={cn("h-3.5 w-3.5 mr-2", isSyncingAssets && "animate-spin")} />
-                Refresh Status
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="bg-amber-50/50 border-amber-200 text-amber-700 hover:bg-amber-100 h-9 px-4 font-bold rounded-xl"
-                onClick={handleCheckDeletionStatus}
-              >
-                <ShieldCheck className="h-3.5 w-3.5 mr-2" />
-                Check Deletion Status
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="bg-white dark:bg-slate-900 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 h-9 px-4 font-bold rounded-xl"
-                onClick={handleManualDataDeletionRequest}
-              >
-                <Trash2 className="h-3.5 w-3.5 mr-2" />
-                Request Data Deletion
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="bg-white dark:bg-slate-900 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 h-9 px-4 font-bold rounded-xl"
-                onClick={handleDisconnectMeta}
-              >
-                <X className="h-3.5 w-3.5 mr-2" />
-                Disconnect Account
-              </Button>
-            </div>
-            
-            <div className="space-y-1.5 opacity-80 border-t border-blue-100/50 dark:border-blue-900/20 pt-4">
-              <p className="text-xs font-bold text-blue-900 dark:text-blue-100 flex items-center gap-2">
-                <Info className="h-3 w-3" /> Meta Data Rights & Compliance
-              </p>
-              <p className="text-[11px] text-blue-800/70 dark:text-blue-200/60 leading-relaxed max-w-4xl">
-                Once a deletion request is processed, all your Meta-related data (Leads, Forms, and Tokens) will be permanently purged from our infrastructure after manual verification. 
-                Purge target completion is typically 30 days in accordance with the Meta Platform Terms.
-              </p>
-            </div>
-          </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        <TabsContent value="ads" className="m-0 space-y-6">
-          <div className="grid grid-cols-1 gap-6">
-            <div className="space-y-6">
-              {/* Header / Account Selector Row - Global for this tab */}
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 p-3.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-3.5">
-                  <div className="h-10 w-10 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-600 shadow-inner shrink-0">
-                    <Briefcase className="h-5 w-5" />
+          </TabsContent>
+          <TabsContent value="creatives" className="m-0 space-y-6">
+            <div className="grid grid-cols-1 gap-6">
+              <div className="space-y-6">
+                {/* Header / Account Selector Row */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 p-3.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-3.5">
+                    <div className="h-10 w-10 bg-purple-50 dark:bg-purple-900/30 rounded-xl flex items-center justify-center text-purple-600 shadow-inner shrink-0">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-base font-black tracking-tight flex items-center gap-3">
+                        <span className="truncate">Creatives Library</span>
+                        {selectedAdAccount && <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 text-[10px] h-5 px-2 border-0 uppercase tracking-widest shrink-0">{selectedAdAccount.currency}</Badge>}
+                      </h3>
+                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-60 truncate">
+                        Visual Assets & Copy
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="text-base font-black tracking-tight flex items-center gap-3">
-                      <span className="truncate">{selectedAdAccount ? selectedAdAccount.name : "Portfolio Overview"}</span>
-                      {selectedAdAccount && <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-[10px] h-5 px-2 border-0 shrink-0">ACTIVE</Badge>}
-                    </h3>
-                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-60 truncate">
-                      {selectedAdAccount ? (selectedAdAccount.business?.name || 'Personal Account') : 'Meta Ads Network'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="default" className="!bg-[#00a400] hover:!bg-[#008a00] text-white font-black shadow-md border-none gap-2">
-                        <Plus className="h-4 w-4" /> Create
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
-                      <DropdownMenuItem className="py-2.5 font-bold cursor-pointer" onClick={() => selectedAdAccount ? setIsCreateCampaignDialogOpen(true) : toast.info("Select Account", { description: "Please select an ad account first." })}>
-                        <Layout className="h-4 w-4 mr-2 text-blue-500" /> New Campaign
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="py-2.5 font-bold cursor-pointer" 
-                        onClick={() => {
-                          if (!selectedAdAccount) {
-                            toast.info("Select Account", { description: "Please select an ad account first." });
-                            return;
-                          }
-                          if (selectedCampaign) {
-                            setIsCreateAdSetDialogOpen(true);
-                          } else {
-                            setActiveInnerTab('campaigns');
-                            toast.info("Select Campaign", { description: "Select a campaign first to add an ad set." });
-                          }
-                        }}
-                      >
-                        <Layers className="h-4 w-4 mr-2 text-purple-500" /> New Ad Set
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="py-2.5 font-bold cursor-pointer" 
-                        onClick={() => {
-                          if (!selectedAdAccount) {
-                            toast.info("Select Account", { description: "Please select an ad account first." });
-                            return;
-                          }
-                          if (selectedAdSet) {
-                            setIsCreateAdDialogOpen(true);
-                          } else {
-                            setActiveInnerTab('ad_sets');
-                            toast.info("Select Ad Set", { description: "Select an ad set first to add an ad." });
-                          }
-                        }}
-                      >
-                        <FileText className="h-4 w-4 mr-2 text-green-500" /> New Ad
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="py-2.5 font-bold cursor-pointer border-t border-slate-100 mt-1 dark:border-slate-800" 
-                        onClick={() => {
-                          if (!selectedAdAccount) {
-                            toast.info("Select Account", { description: "Please select an ad account first." });
-                            return;
-                          }
-                          setIsCreateAudienceDialogOpen(true);
-                        }}
-                      >
-                        <Users className="h-4 w-4 mr-2 text-blue-600" /> New Audience
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
 
                   <Popover open={isAdAccountOpen} onOpenChange={setIsAdAccountOpen}>
                     <PopoverTrigger asChild>
@@ -1691,10 +2676,10 @@ export function FacebookDashboard() {
                         variant="outline"
                         role="combobox"
                         aria-expanded={isAdAccountOpen}
-                        className="w-full md:w-[320px] justify-between h-10 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold rounded-xl shadow-sm hover:border-blue-500 hover:ring-4 hover:ring-blue-500/10 transition-all group"
+                        className="w-full md:w-[320px] justify-between h-10 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold rounded-xl shadow-sm hover:border-purple-500 hover:ring-4 hover:ring-purple-500/10 transition-all group"
                       >
                         <div className="flex items-center gap-2 overflow-hidden">
-                          <Search className="h-4 w-4 text-slate-400 shrink-0 group-hover:text-blue-500 transition-colors" />
+                          <Search className="h-4 w-4 text-slate-400 shrink-0 group-hover:text-purple-500 transition-colors" />
                           <span className="truncate">{selectedAdAccount ? selectedAdAccount.name : "Select Ad Account..."}</span>
                         </div>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -1733,20 +2718,20 @@ export function FacebookDashboard() {
                                   key={acc.id}
                                   onClick={() => {
                                     setSelectedAdAccount(acc);
-                                    loadCampaigns(acc.id);
+                                    loadCreatives(acc.id);
                                     setIsAdAccountOpen(false);
                                   }}
-                                  className={`w-full flex items-start gap-3 p-3 text-left rounded-xl transition-all bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800/80 group ${selectedAdAccount?.id === acc.id ? 'bg-blue-50 dark:bg-blue-900/30' : ''} ${acc.account_status !== 1 ? 'opacity-60' : ''}`}
+                                  className={`w-full flex items-start gap-3 p-3 text-left rounded-xl transition-all bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800/80 group ${selectedAdAccount?.id === acc.id ? 'bg-purple-50 dark:bg-purple-900/30' : ''} ${acc.account_status !== 1 ? 'opacity-60' : ''}`}
                                 >
                                   <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-white dark:group-hover:bg-slate-700 transition-colors">
-                                    <Briefcase className={`h-4 w-4 ${selectedAdAccount?.id === acc.id ? 'text-blue-500' : 'text-slate-400'}`} />
+                                    <Briefcase className={`h-4 w-4 ${selectedAdAccount?.id === acc.id ? 'text-purple-500' : 'text-slate-400'}`} />
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between mb-0.5">
                                       <span className="font-bold text-sm truncate uppercase tracking-tight">{acc.name}</span>
                                       <div className="flex items-center gap-1.5 shrink-0">
                                         <Badge className={`text-[9px] px-1.5 h-4 leading-none border-0 ${accStatus.color}`}>{accStatus.text}</Badge>
-                                        {selectedAdAccount?.id === acc.id && <Check className="h-3.5 w-3.5 text-blue-500" />}
+                                        {selectedAdAccount?.id === acc.id && <Check className="h-3.5 w-3.5 text-purple-500" />}
                                       </div>
                                     </div>
                                     <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest opacity-70">
@@ -1761,1254 +2746,268 @@ export function FacebookDashboard() {
                               );
                             })
                           }
-                          {adAccounts.length === 0 && <div className="p-8 text-center text-sm text-slate-500 italic">No ad accounts found</div>}
                         </div>
                       </ScrollArea>
                     </PopoverContent>
                   </Popover>
                 </div>
-              </div>
 
-              {selectedAdAccount ? (
-                  <div className="flex flex-col h-full bg-[#f0f2f5] dark:bg-slate-950 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
-                    {/* Insights Summary Cards */}
-                    <div className="p-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
-                      <div className="min-w-[140px] flex-1 bg-blue-600 p-2.5 rounded-xl text-white shadow-sm transition-all hover:bg-blue-700">
-                        <p className="text-[9px] opacity-80 uppercase font-black tracking-widest leading-none mb-1">Spend (30d)</p>
-                        <h3 className="text-sm font-black truncate">
-                          {selectedAdAccount.currency} {insights.reduce((sum, i) => sum + parseFloat(i.spend || '0'), 0).toFixed(2)}
-                        </h3>
+                <Card className="border-none shadow-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+                  <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/50 p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-xl font-black tracking-tight">Ad Creatives Library</CardTitle>
+                        <CardDescription className="text-xs font-bold uppercase tracking-wider opacity-70">Manage visual fragments</CardDescription>
                       </div>
-                      <div className="min-w-[140px] flex-1 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800">
-                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest leading-none mb-1">Impressions</p>
-                        <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">
-                          {insights.reduce((sum, i) => sum + parseInt(i.impressions || '0'), 0).toLocaleString()}
-                        </h3>
-                      </div>
-                      <div className="min-w-[140px] flex-1 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800">
-                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest leading-none mb-1">Link Clicks</p>
-                        <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">
-                          {insights.reduce((sum, i) => sum + parseInt(i.inline_link_clicks || '0'), 0).toLocaleString()}
-                        </h3>
-                      </div>
-                      <div className="min-w-[140px] flex-1 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800">
-                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest leading-none mb-1">Avg. CTR</p>
-                        <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">
-                          {(insights.reduce((sum, i) => sum + parseFloat(i.ctr || '0'), 0) / Math.max(insights.length, 1)).toFixed(2)}%
-                        </h3>
-                      </div>
-                      <div className="min-w-[140px] flex-1 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800">
-                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest leading-none mb-1">Avg. CPC</p>
-                        <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">
-                          {selectedAdAccount.currency} {(insights.reduce((sum, i) => sum + parseFloat(i.cpc || '0'), 0) / Math.max(insights.length, 1)).toFixed(2)}
-                        </h3>
-                      </div>
-                    </div>
-
-                    {/* Top Breadcrumb Header */}
-                  <div className="flex items-center justify-between px-4 py-2 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-bold text-slate-900 dark:text-white capitalize">
-                        {activeInnerTab.replace('_', ' ')}
-                      </span>
-                      <div className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800 mx-1" />
-                      <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 cursor-pointer transition-colors group">
-                         <div className="h-5 w-5 bg-blue-100 dark:bg-blue-900/30 rounded flex items-center justify-center text-blue-600 font-bold text-[10px]">
-                           {selectedAdAccount.name.charAt(0)}
-                         </div>
-                         <span className="text-xs font-medium text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white">
-                           {selectedAdAccount.name} ({selectedAdAccount.id})
-                         </span>
-                         <ChevronDown className="h-3 w-3 text-slate-400" />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
-                        <span>Updated just now</span>
-                        <button onClick={() => loadCampaigns(selectedAdAccount.id)} className="p-1 bg-white border border-slate-200 shadow-sm hover:bg-blue-50 dark:hover:bg-slate-800 rounded transition-colors" title="Reload Basic Data">
-                          <RefreshCw className={`h-3 w-3 ${isLoadingAds ? 'animate-spin' : ''}`} />
-                        </button>
-                        <button 
-                          onClick={handleDeepSyncAccount} 
-                          disabled={isDeepSyncing}
-                          className={`p-1 bg-white border border-slate-200 shadow-sm hover:bg-blue-50 dark:hover:bg-slate-800 rounded transition-all ${isDeepSyncing ? 'animate-spin border-blue-500 text-blue-500' : ''}`}
-                          title="Deep Sync (Reports & Metrics)"
-                        >
-                          <Zap className={`h-3 w-3 ${isDeepSyncing ? 'text-blue-500' : ''}`} />
-                        </button>
-                      </div>
-                      <Button size="sm" variant="outline" className="h-8 text-xs font-bold bg-[#e4e6eb] dark:bg-slate-800 border-none hover:bg-slate-200 dark:hover:bg-slate-700">
-                        Review and publish
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Meta Resource Bar */}                   <div className="px-4 py-2 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setResourceFilter('all')}
-                        className={`h-8 px-3 text-xs font-bold transition-all ${resourceFilter === 'all' ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <List className="h-3.5 w-3.5" /> All ads
-                        </div>
-                      </Button>
-
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 px-3 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
-                            <Zap className="h-3.5 w-3.5 mr-2" /> Actions <ChevronDown className="h-3 w-3 ml-1" />
+                      <Dialog open={isCreateCreativeDialogOpen} onOpenChange={setIsCreateCreativeDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button className="bg-slate-900 hover:bg-black dark:bg-blue-600 dark:hover:bg-blue-700 px-6 font-bold rounded-xl h-11" disabled={!selectedAdAccount}>
+                            <Plus className="h-4 w-4 mr-2" /> Create Creative
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-48 p-2 rounded-xl">
-                           <DropdownMenuItem className="py-2.5 font-bold cursor-pointer" onClick={() => loadCampaigns(selectedAdAccount.id, true)}>
-                             <RefreshCw className="h-4 w-4 mr-2 text-blue-500" /> Refresh Current View
-                           </DropdownMenuItem>
-                           <DropdownMenuItem className="py-2.5 font-bold cursor-pointer" onClick={handleDeepSyncAccount}>
-                             <Zap className="h-4 w-4 mr-2 text-amber-500" /> Account Deep Sync
-                           </DropdownMenuItem>
-                           <DropdownMenuItem className="py-2.5 font-bold cursor-pointer text-red-500 border-t border-slate-50 mt-1" onClick={() => toast.info("Lead Flow Active", { description: "Currently monitoring real-time form submissions." })}>
-                             <Trash2 className="h-4 w-4 mr-2" /> Bulk Delete
-                           </DropdownMenuItem>
-                           <DropdownMenuItem className="py-2.5 font-bold cursor-pointer opacity-50">
-                             <Archive className="h-4 w-4 mr-2" /> Bulk Archive
-                           </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setResourceFilter('active')}
-                        className={`h-8 px-3 text-xs font-bold transition-all ${resourceFilter === 'active' ? 'text-green-600 bg-green-50 dark:bg-green-900/10' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                      >
-                        <TrendingUp className="h-3.5 w-3.5 mr-2" /> Active ads
-                      </Button>
-
-                      <div className="flex-1 min-w-[200px] relative">
-                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                       <input
-                         type="text"
-                         placeholder="Search to filter by: name, ID or metrics"
-                         className="w-full pl-9 pr-4 py-1.5 bg-transparent border-none text-xs focus:ring-0 placeholder:text-slate-400 font-medium"
-                     />
-                     </div>
-                  </div>
-
-                  {/* Inner Tabs */}
-                  <div className="flex items-center bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-1">
-                     <button
-                       onClick={() => setActiveInnerTab('campaigns')}
-                       className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'campaigns' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                     >
-                       <div className="flex items-center gap-2">
-                         <Layout className="h-4 w-4" /> Campaigns
-                       </div>
-                     </button>
-                     <button
-                       onClick={() => setActiveInnerTab('ad_sets')}
-                       className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'ad_sets' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                     >
-                       <div className="flex items-center gap-2">
-                         <Layers className="h-4 w-4" /> Ad sets
-                       </div>
-                     </button>
-                     <button
-                       onClick={() => setActiveInnerTab('ads')}
-                       className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'ads' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                     >
-                       <div className="flex items-center gap-2">
-                         <FileText className="h-4 w-4" /> Ads
-                       </div>
-                     </button>
-                  </div>
-
-                  {/* Toolbar */}
-                  <div className="px-4 py-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                     <div className="flex items-center gap-2">
-                       <DropdownMenu>
-                         <DropdownMenuTrigger asChild>
-                            <Button variant="default" size="sm" className="h-8 !bg-[#00a400] hover:!bg-[#008a00] text-white font-bold text-xs px-4 rounded-md border-none">
-                              <Plus className="h-3.5 w-3.5 mr-1.5" /> Create <ChevronDown className="h-3 w-3 ml-1" />
-                            </Button>
-                         </DropdownMenuTrigger>
-                         <DropdownMenuContent align="start" className="w-48 p-2 rounded-xl">
-                            <DropdownMenuItem className="py-2 font-bold cursor-pointer" onClick={() => setIsCreateCampaignDialogOpen(true)}>
-                              <Layout className="h-4 w-4 mr-2 text-blue-500" /> Create Campaign
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="py-2 font-bold cursor-pointer" onClick={() => selectedCampaign ? setIsCreateAdSetDialogOpen(true) : toast.info("Select Campaign", { description: "Please select a campaign first." })}>
-                              <Layers className="h-4 w-4 mr-2 text-purple-500" /> Create Ad Set
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="py-2 font-bold cursor-pointer" onClick={() => selectedAdSet ? setIsCreateAdDialogOpen(true) : toast.info("Select Ad Set", { description: "Please select an ad set first." })}>
-                              <FileText className="h-4 w-4 mr-2 text-green-500" /> Create Ad
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="py-2 font-bold cursor-pointer border-t border-slate-100 mt-1 dark:border-slate-800" onClick={() => setIsCreateAudienceDialogOpen(true)}>
-                              <Users className="h-4 w-4 mr-2 text-blue-600" /> New Audience
-                            </DropdownMenuItem>
-                         </DropdownMenuContent>
-                       </DropdownMenu>
-
-
-                       <Button variant="outline" size="sm" onClick={() => toast.info("Select items", { description: "Please select one or more items to duplicate." })} className="h-8 text-xs font-bold gap-1.5 px-3">
-                         <Copy className="h-3.5 w-3.5" /> Duplicate
-                       </Button>
-                       <Button variant="outline" size="sm" onClick={() => toast.info("Select item", { description: "Please select a specific item to edit." })} className="h-8 text-xs font-bold gap-1.5 px-3">
-                         <Pencil className="h-3.5 w-3.5" /> Edit
-                       </Button>
-                       <Button variant="outline" size="sm" onClick={() => toast.info("A/B Testing", { description: "Select two items to start an A/B test comparison." })} className="h-8 text-xs font-bold gap-1.5 px-3">
-                         <Share2 className="h-3.5 w-3.5" /> A/B test
-                       </Button>
-                       <DropdownMenu>
-                         <DropdownMenuTrigger asChild>
-                           <Button variant="ghost" size="sm" className="h-8 text-xs font-bold">
-                             More <ChevronDown className="h-3 w-3 ml-1" />
-                           </Button>
-                         </DropdownMenuTrigger>
-                         <DropdownMenuContent align="start">
-                           <DropdownMenuItem onClick={() => toast.info("ROAS Estimate", { description: "Expected range: 2.1x - 3.5x" })}>Export</DropdownMenuItem>
-                           <DropdownMenuItem onClick={() => toast.info("Import", { description: "Bulk import restricted." })}>Import</DropdownMenuItem>
-                           <DropdownMenuItem className="text-red-500" onClick={() => toast.info("Delete", { description: "Select items for bulk deletion." })}>Delete</DropdownMenuItem>
-                         </DropdownMenuContent>
-                       </DropdownMenu>
-                     </div>
-                     <div className="flex items-center gap-2">
-                       <div className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 dark:border-slate-800 rounded-md bg-slate-50/50 dark:bg-slate-800/50 text-[10px] uppercase tracking-wider font-extrabold text-slate-500">
-                         <Calendar className="h-3 w-3" /> Last 30 days
-                       </div>
-                       <Button variant="outline" size="sm" className="h-8 font-bold text-xs gap-1.5 px-3">
-                          <Filter className="h-3.5 w-3.5" /> Columns
-                       </Button>
-                     </div>
-                  </div>
-                  {/* Dynamic Inner Content */}
-                  <div className="flex-1 overflow-auto bg-white dark:bg-slate-900">
-                     {/* Campaigns View */}
-                     {activeInnerTab === 'campaigns' && (
-                       <Table>
-                         <TableHeader className="bg-slate-50 dark:bg-green-900/20 sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
-                           <TableRow className="hover:bg-transparent">
-                             <TableHead className="w-10 px-4"><Checkbox /></TableHead>
-                             <TableHead className="w-12 text-center text-[11px] font-black uppercase text-slate-600 py-4">Off/On</TableHead>
-                             <TableHead className="min-w-[200px] text-[11px] font-black uppercase text-slate-600">Campaign Name</TableHead>
-                             <TableHead className="text-[11px] font-black uppercase text-slate-600">Delivery</TableHead>
-                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Results</TableHead>
-                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Budget</TableHead>
-                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Amount Spent</TableHead>
-                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">CTR</TableHead>
-                             <TableHead className="text-center text-[11px] font-black uppercase text-slate-600">Actions</TableHead>
-                           </TableRow>
-                         </TableHeader>
-                         <TableBody>
-                           {isLoadingAds ? (
-                             <TableRow>
-                               <TableCell colSpan={9} className="h-64 text-center">
-                                 <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500 opacity-20 mb-2" />
-                                 <span className="text-xs font-medium text-slate-400">Loading campaigns...</span>
-                               </TableCell>
-                             </TableRow>
-                           ) : campaigns.length > 0 ? (
-                             campaigns
-                               .filter(camp => resourceFilter === 'all' || camp.status === 'ACTIVE')
-                               .map((camp) => {
-                               const campInsight = insights.find(i => i.campaign_name === camp.name);
-                               return (
-                                 <TableRow key={camp.id} className="group hover:bg-blue-100/30 dark:hover:bg-blue-900/10 border-b border-slate-100 dark:border-slate-800 h-16">
-                                   <TableCell className="px-4"><Checkbox /></TableCell>
-                                   <TableCell className="text-center">
-                                     <Switch 
-                                       checked={camp.status === 'ACTIVE'} 
-                                       className="scale-90 data-[state=checked]:!bg-[#00a400] data-[state=unchecked]:bg-slate-100 dark:data-[state=unchecked]:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 shadow-sm"
-                                       onCheckedChange={() => handleUpdateStatus(camp.id, camp.status)}
-                                     />
-                                   </TableCell>
-                                   <TableCell>
-                                     <div 
-                                       className="font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer truncate max-w-[250px] transition-colors"
-                                       onClick={() => {
-                                         loadAdSets(camp);
-                                         setActiveInnerTab('ad_sets');
-                                       }}
-                                     >
-                                       {camp.name}
-                                     </div>
-                                     <div className="flex items-center gap-1.5 mt-1 text-[9px] text-slate-400 font-bold tracking-tight uppercase">
-                                        <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[8px]">{camp.objective?.replace('OUTCOME_', '')}</span>
-                                        <span>•</span>
-                                        <span className="font-mono">ID: {camp.id}</span>
-                                     </div>
-                                   </TableCell>
-                                   <TableCell>
-                                     <div className="flex items-center gap-2">
-                                       <div className={`h-2.5 w-2.5 rounded-full ${camp.status === 'ACTIVE' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-slate-400'}`} />
-                                       <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 capitalize">{camp.status.toLowerCase()}</span>
-                                     </div>
-                                   </TableCell>
-                                   <TableCell className="text-right">
-                                     <div className="text-xs font-black">{campInsight?.results || '-'}</div>
-                                     <div className="text-[10px] text-slate-400">Leads</div>
-                                   </TableCell>
-                                   <TableCell className="text-right">
-                                     <div className="text-xs font-black">{selectedAdAccount.currency} {camp.daily_budget ? (camp.daily_budget / 100).toFixed(2) : '-'}</div>
-                                     <div className="text-[10px] text-slate-400">Daily Average</div>
-                                   </TableCell>
-                                   <TableCell className="text-right">
-                                     <div className="text-xs font-black">{selectedAdAccount.currency} {parseFloat(campInsight?.spend || '0').toFixed(2)}</div>
-                                   </TableCell>
-                                   <TableCell className="text-right">
-                                     <div className="text-xs font-black">{campInsight?.ctr || '0.00'}%</div>
-                                   </TableCell>
-                                   <TableCell className="text-center">
-                                     <div className="flex items-center justify-center gap-1 transition-opacity">
-                                       <button 
-                                          className="p-1.5 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-full text-blue-600 transition-colors" 
-                                          onClick={() => {
-                                            setSelectedCampaign(camp);
-                                            setIsCreateAdSetDialogOpen(true);
-                                          }} 
-                                          title="Add Ad Set"
-                                        >
-                                          <Plus className="h-3.5 w-3.5" />
-                                        </button>
-                                        <button 
-                                           className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full" 
-                                           title="Edit"
-                                           onClick={() => {
-                                             setEditingCampaign(camp);
-                                             setNewCampaignName(camp.name);
-                                             setIsEditCampaignDialogOpen(true);
-                                           }}
-                                         >
-                                           <Edit3 className="h-3.5 w-3.5 text-slate-500" />
-                                         </button>
-                                       <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-red-500" onClick={() => handleDuplicateObject(camp.id, 'Campaign')} title="Duplicate"><Copy className="h-3.5 w-3.5" /></button><button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-red-500" onClick={() => handleDeleteObject(camp.id, 'Campaign')} title="Delete">
-                                         <Trash2 className="h-3.5 w-3.5" />
-                                       </button>
-                                     </div>
-                                   </TableCell>
-                                 </TableRow>
-                               );
-                             })
-                           ) : (
-                             <TableRow>
-                               <TableCell colSpan={9} className="h-64 text-center">
-                                 <div className="flex flex-col items-center justify-center space-y-4">
-                                   <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center">
-                                     <Layout className="h-8 w-8 text-slate-300" />
-                                   </div>
-                                   <div>
-                                     <p className="text-slate-500 font-bold mb-1">No campaigns found in this account</p>
-                                     <p className="text-slate-400 text-xs">Start your lead generation journey by creating a campaign.</p>
-                                   </div>
-                                   <Button 
-                                     onClick={() => setIsCreateCampaignDialogOpen(true)}
-                                     className="!bg-[#00a400] hover:!bg-[#008a00] text-white font-black shadow-md border-none gap-2"
-                                   >
-                                     <Plus className="h-4 w-4 mr-2" />
-                                     Create Campaign
-                                   </Button>
-                                 </div>
-                               </TableCell>
-                             </TableRow>
-                           )}
-                         </TableBody>
-                       </Table>
-                     )}
-
-                     {/* Ad Sets View */}
-                     {activeInnerTab === 'ad_sets' && (
-                       <Table>
-                         <TableHeader className="bg-slate-50 dark:bg-green-900/20 sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
-                           <TableRow className="hover:bg-transparent">
-                             <TableHead className="w-10 px-4"><Checkbox /></TableHead>
-                             <TableHead className="w-12 text-center text-[11px] font-black uppercase text-slate-600 py-4">Off/On</TableHead>
-                             <TableHead className="min-w-[200px] text-[11px] font-black uppercase text-slate-600">Ad Set Name</TableHead>
-                             <TableHead className="text-[11px] font-black uppercase text-slate-600">Delivery</TableHead>
-                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Results</TableHead>
-                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Budget</TableHead>
-                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Amount Spent</TableHead>
-                             <TableHead className="text-center text-[11px] font-black uppercase text-slate-600">Actions</TableHead>
-                           </TableRow>
-                         </TableHeader>
-                         <TableBody>
-                           {isLoadingAdSets ? (
-                             <TableRow>
-                               <TableCell colSpan={8} className="h-64 text-center">
-                                 <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500 opacity-20 mb-2" />
-                                 <span className="text-xs font-medium text-slate-400">Loading ad sets...</span>
-                               </TableCell>
-                             </TableRow>
-                           ) : adSets.length > 0 ? (
-                             adSets
-                             .filter(set => resourceFilter === 'all' || set.status === 'ACTIVE')
-                             .map((set) => (
-                               <TableRow key={set.id} className="group hover:bg-blue-100/30 dark:hover:bg-blue-900/10 border-b border-slate-100 dark:border-slate-800 h-16">
-                                 <TableCell className="px-4"><Checkbox /></TableCell>
-                                 <TableCell className="text-center">
-                                   <Switch 
-                                      checked={set.status === 'ACTIVE'} 
-                                      className="scale-90 data-[state=checked]:!bg-[#00a400] data-[state=unchecked]:bg-slate-100 dark:data-[state=unchecked]:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 shadow-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" 
-                                      onCheckedChange={() => handleUpdateStatus(set.id, set.status)}
-                                    />
-                                 </TableCell>
-                                 <TableCell>
-                                   <div 
-                                     className="font-bold text-blue-600 hover:underline cursor-pointer truncate max-w-[250px]"
-                                     onClick={() => {
-                                       loadAds(set);
-                                       setActiveInnerTab('ads');
-                                     }}
-                                   >
-                                     {set.name}
-                                   </div>
-                                   <div className="text-[9px] text-slate-400 mt-0.5 uppercase tracking-widest font-mono">ID: {set.id}</div>
-                                 </TableCell>
-                                 <TableCell>
-                                   <div className="flex items-center gap-2">
-                                     <div className={`h-2.5 w-2.5 rounded-full ${set.status === 'ACTIVE' ? 'bg-green-500' : 'bg-slate-400'}`} />
-                                     <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 capitalize">{set.status.toLowerCase()}</span>
-                                   </div>
-                                 </TableCell>
-                                 <TableCell className="text-right">
-                                   <div className="text-xs font-black">-</div>
-                                   <div className="text-[10px] text-slate-400">Leads</div>
-                                 </TableCell>
-                                 <TableCell className="text-right">
-                                   <div className="text-xs font-black">{selectedAdAccount.currency} {set.daily_budget ? (set.daily_budget / 100).toFixed(2) : '-'}</div>
-                                   <div className="text-[10px] text-slate-400">Daily Average</div>
-                                 </TableCell>
-                                 <TableCell className="text-right font-black text-xs">
-                                   {selectedAdAccount.currency} 0.00
-                                 </TableCell>
-                                  <TableCell className="text-center">
-                                   <div className="flex items-center justify-center gap-1 transition-opacity">
-                                     <button 
-                                       className="p-1.5 hover:bg-green-50 dark:hover:bg-green-900/40 rounded-full text-green-600 transition-colors" 
-                                       onClick={() => {
-                                         setSelectedAdSet(set);
-                                         setIsCreateAdDialogOpen(true);
-                                       }} 
-                                       title="Add Ad"
-                                     >
-                                       <Plus className="h-3.5 w-3.5" />
-                                     </button>
-                                     <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => toast.info("Edit Ad Set", { description: "Audience editing coming soon." })} title="Edit">
-                                       <Edit3 className="h-3.5 w-3.5" />
-                                     </button>
-                                     <button className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-full text-blue-500 transition-colors" onClick={() => handleDuplicateObject(set.id, 'Ad Set')} title="Duplicate">
-                                       <Copy className="h-3.5 w-3.5" />
-                                     </button>
-                                     <button className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/40 rounded-full text-red-500 transition-colors" onClick={() => handleDeleteObject(set.id, 'Ad Set')} title="Delete">
-                                       <Trash2 className="h-3.5 w-3.5" />
-                                     </button>
-                                   </div>
-                                 </TableCell>
-                               </TableRow>
-                             ))
-                           ) : (
-                             <TableRow>
-                               <TableCell colSpan={8} className="h-64 text-center">
-                                 <div className="flex flex-col items-center justify-center space-y-4">
-                                   <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center">
-                                     <Layers className="h-8 w-8 text-slate-300" />
-                                   </div>
-                                   <div>
-                                     <p className="text-slate-500 font-bold mb-1">
-                                       {selectedCampaign ? `No ad sets found for campaign: ${selectedCampaign.name}` : 'Select a campaign to view ad sets'}
-                                     </p>
-                                     <p className="text-slate-400 text-xs">Define your audience and budget by creating an ad set.</p>
-                                   </div>
-                                   {selectedCampaign && (
-                                     <Button 
-                                       onClick={() => setIsCreateAdSetDialogOpen(true)}
-                                       className="!bg-[#00a400] hover:!bg-[#008a00] text-white font-black shadow-md border-none gap-2"
-                                     >
-                                       <Plus className="h-4 w-4 mr-2" />
-                                       Create Ad Set
-                                     </Button>
-                                   )}
-                                 </div>
-                               </TableCell>
-                             </TableRow>
-                           )}
-                         </TableBody>
-                       </Table>
-                     )}
-
-                     {/* Ads View */}
-                     {activeInnerTab === 'ads' && (
-                       <Table>
-                         <TableHeader className="bg-slate-50 dark:bg-green-900/20 sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
-                           <TableRow className="hover:bg-transparent">
-                             <TableHead className="w-10 px-4"><Checkbox /></TableHead>
-                             <TableHead className="w-12 text-center text-[11px] font-black uppercase text-slate-600 py-4">Off/On</TableHead>
-                             <TableHead className="min-w-[200px] text-[11px] font-black uppercase text-slate-600">Ad Name</TableHead>
-                             <TableHead className="text-[11px] font-black uppercase text-slate-600">Delivery</TableHead>
-                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Results</TableHead>
-                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Reach</TableHead>
-                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Frequency</TableHead>
-                             <TableHead className="text-right text-[11px] font-black uppercase text-slate-600">Amount Spent</TableHead>
-                              <TableHead className="text-center text-[11px] font-black uppercase text-slate-600">Actions</TableHead>
-                           </TableRow>
-                         </TableHeader>
-                         <TableBody>
-                           {isLoadingSpecificAds ? (
-                             <TableRow>
-                               <TableCell colSpan={8} className="h-64 text-center">
-                                 <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500 opacity-20 mb-2" />
-                                 <span className="text-xs font-medium text-slate-400">Loading ads...</span>
-                               </TableCell>
-                             </TableRow>
-                           ) : ads.length > 0 ? (
-                             ads
-                             .filter(ad => resourceFilter === 'all' || ad.status === 'ACTIVE')
-                             .map((ad) => (
-                               <TableRow key={ad.id} className="group hover:bg-blue-100/30 dark:hover:bg-blue-900/10 border-b border-slate-100 dark:border-slate-800 h-16">
-                                 <TableCell className="px-4"><Checkbox /></TableCell>
-                                 <TableCell className="text-center">
-                                   <Switch 
-                                      checked={ad.status === 'ACTIVE'} 
-                                      className="scale-90 data-[state=checked]:!bg-[#00a400] data-[state=unchecked]:bg-slate-100 dark:data-[state=unchecked]:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 shadow-sm" 
-                                      onCheckedChange={() => handleUpdateStatus(ad.id, ad.status)}
-                                    />
-                                 </TableCell>
-                                 <TableCell>
-                                   <div className="font-bold text-slate-900 dark:text-white truncate max-w-[250px]">{ad.name}</div>
-                                   <div className="text-[9px] text-slate-400 mt-0.5 uppercase tracking-widest font-mono">ID: {ad.id}</div>
-                                 </TableCell>
-                                 <TableCell>
-                                   <div className="flex items-center gap-2">
-                                     <div className={`h-2.5 w-2.5 rounded-full ${ad.status === 'ACTIVE' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-slate-400'}`} />
-                                     <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 capitalize">{ad.status.toLowerCase()}</span>
-                                   </div>
-                                 </TableCell>
-                                 <TableCell className="text-right font-black text-xs">-</TableCell>
-                                 <TableCell className="text-right text-xs">0</TableCell>
-                                 <TableCell className="text-right text-xs">0.00</TableCell>
-                                 <TableCell className="text-right font-black text-xs">{selectedAdAccount.currency} 0.00</TableCell>
-                                 <TableCell className="text-center">
-                                   <div className="flex items-center justify-center gap-1 transition-opacity">
-                                     <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => toast.info("Edit Ad", { description: "Ad creative editing coming soon." })} title="Edit">
-                                       <Edit3 className="h-3.5 w-3.5" />
-                                     </button>
-                                     <button className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-full text-blue-500 transition-colors" onClick={() => handleDuplicateObject(ad.id, 'Ad')} title="Duplicate">
-                                       <Copy className="h-3.5 w-3.5" />
-                                     </button>
-                                     <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => window.open(`https://www.facebook.com/ads/manager/preview/display/?ad_id=${ad.id}`, '_blank')} title="Preview Ad">
-                                       <Eye className="h-3.5 w-3.5" />
-                                     </button>
-                                     <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-red-500" onClick={() => handleDeleteObject(ad.id, 'Ad')} title="Delete">
-                                       <Trash2 className="h-3.5 w-3.5" />
-                                     </button>
-                                   </div>
-                                 </TableCell>
-                               </TableRow>
-                             ))
-                           ) : (
-                             <TableRow>
-                               <TableCell colSpan={8} className="h-64 text-center">
-                                 <div className="flex flex-col items-center justify-center space-y-4">
-                                   <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center">
-                                     <FileText className="h-8 w-8 text-slate-300" />
-                                   </div>
-                                   <div>
-                                     <p className="text-slate-500 font-bold mb-1">
-                                       {selectedAdSet ? `No ads found for ad set: ${selectedAdSet.name}` : 'Select an ad set to view ads'}
-                                     </p>
-                                     <p className="text-slate-400 text-xs">Start showing your message by creating an ad.</p>
-                                   </div>
-                                   {selectedAdSet && (
-                                     <Button 
-                                       onClick={() => setIsCreateAdDialogOpen(true)}
-                                       className="!bg-[#00a400] hover:!bg-[#008a00] text-white font-black shadow-md border-none gap-2"
-                                     >
-                                       <Plus className="h-4 w-4 mr-2" />
-                                       Create Ad
-                                     </Button>
-                                   )}
-                                 </div>
-                               </TableCell>
-                             </TableRow>
-                           )}
-                         </TableBody>
-                       </Table>
-                     )}
-                  </div>
-                  
-                  {/* Bottom Global Status Bar */}
-                  <div className="px-4 py-2 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-                     <div className="flex items-center gap-6">
-                       <span>1 Ad account selected</span>
-                       {activeInnerTab === 'campaigns' && <span>Results for {campaigns.length} Campaign{campaigns.length !== 1 ? 's' : ''}</span>}
-                       {activeInnerTab === 'ad_sets' && <span>Results for {adSets.length} Ad Set{adSets.length !== 1 ? 's' : ''}</span>}
-                       {activeInnerTab === 'ads' && <span>Results for {ads.length} Ad{ads.length !== 1 ? 's' : ''}</span>}
-                     </div>
-                     <div className="flex items-center gap-4">
-                       <span className="flex items-center gap-1.5"><Globe className="h-3 w-3" /> API Version v25.0</span>
-                       <span className="text-blue-600 cursor-pointer hover:underline">Facebook Ads Manager API</span>
-                     </div>
-                  </div>
-
-                  {/* Creation Dialogs */}
-                  <Dialog open={isCreateCampaignDialogOpen} onOpenChange={setIsCreateCampaignDialogOpen}>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                          <Layout className="h-5 w-5 text-blue-500" />
-                          Launch New Campaign
-                        </DialogTitle>
-                        <DialogDescription>Create a lead generation campaign for "{selectedAdAccount?.name}".</DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label className="text-xs font-bold uppercase text-slate-500">Campaign Name</Label>
-                            <Input value={newCampaignName} onChange={(e) => setNewCampaignName(e.target.value)} placeholder="e.g. Q4 Real Estate Leads" />
-                          </div>
-                          
-                          <div className="space-y-2">
-                             <Label className="text-xs font-bold uppercase text-slate-500">Objective</Label>
-                             <Select value={newCampaignObjective} onValueChange={setNewCampaignObjective}>
-                               <SelectTrigger><SelectValue placeholder="Select Goal" /></SelectTrigger>
-                               <SelectContent>
-                                 <SelectItem value="OUTCOME_AWARENESS">Awareness</SelectItem>
-                                 <SelectItem value="OUTCOME_TRAFFIC">Traffic</SelectItem>
-                                 <SelectItem value="OUTCOME_ENGAGEMENT">Engagement</SelectItem>
-                                 <SelectItem value="OUTCOME_LEADS">Leads</SelectItem>
-                                 <SelectItem value="OUTCOME_APP_PROMOTION">App Promotion</SelectItem>
-                                 <SelectItem value="OUTCOME_SALES">Sales</SelectItem>
-                               </SelectContent>
-                             </Select>
-                          </div>
-
-                          <div className="flex items-center space-x-2 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-100 dark:border-amber-900/30">
-                            <Checkbox id="special-cat" checked={isSpecialCategory} onCheckedChange={(c) => setIsSpecialCategory(!!c)} />
-                            <div className="grid gap-1.5 leading-none">
-                              <label htmlFor="special-cat" className="text-[11px] font-bold uppercase leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                Special Ad Category
-                              </label>
-                              <p className="text-[10px] text-amber-700 dark:text-amber-400">Required for Housing, Employment, Credit, or Politics.</p>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-lg">
+                          <DialogHeader>
+                            <DialogTitle>Create Standalone Creative</DialogTitle>
+                            <DialogDescription>Create a lead generation creative to reuse across multiple ads.</DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="grid gap-2">
+                              <Label>Creative Name</Label>
+                              <Input value={newCreativeName} onChange={(e) => setNewCreativeName(e.target.value)} placeholder="e.g. Summer Promo 2024" />
                             </div>
-                          </div>
-                        </div>
-                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-[11px] text-blue-600 dark:text-blue-400 font-medium">
-                          Note: This campaign will be created as "PAUSED". All ads must manually be set to ACTIVE after review.
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button variant="ghost" onClick={() => setIsCreateCampaignDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleCreateCampaign} disabled={isCreatingCampaign || !newCampaignName} className="bg-blue-600 hover:bg-blue-700 font-bold">
-                          {isCreatingCampaign && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                          Create Campaign
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-
-                  <Dialog open={isCreateAdSetDialogOpen} onOpenChange={setIsCreateAdSetDialogOpen}>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                          <Layers className="h-5 w-5 text-purple-500" />
-                          Create New Ad Set
-                        </DialogTitle>
-                        <DialogDescription>Setting up target audience for "{selectedCampaign?.name}".</DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase text-slate-500">Ad Set Name</Label>
-                          <Input value={newAdSetName} onChange={(e) => setNewAdSetName(e.target.value)} placeholder="e.g. Pune Leads - Age 25-45" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label className="text-[11px] font-black uppercase text-slate-600 text-slate-400">Budget (Daily)</Label>
-                            <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
-                               <span className="text-xs font-bold text-slate-500">{selectedAdAccount?.currency}</span>
-                               <Input 
-                                 type="number" 
-                                 className="h-8 border-none bg-transparent shadow-none focus-visible:ring-0 text-xs font-black p-0" 
-                                 value={newAdSetBudget}
-                                 onChange={(e) => setNewAdSetBudget(Number(e.target.value))}
-                               />
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="grid gap-2">
+                                <Label>Page</Label>
+                                <Select value={selectedAdPageId} onValueChange={setSelectedAdPageId}>
+                                  <SelectTrigger><SelectValue placeholder="Select Page" /></SelectTrigger>
+                                  <SelectContent>{pages.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+                                </Select>
+                              </div>
+                              <div className="grid gap-2">
+                                <Label>Lead Form</Label>
+                                <Select value={selectedAdFormId} onValueChange={setSelectedAdFormId} disabled={adCreationForms.length === 0}>
+                                  <SelectTrigger><SelectValue placeholder={isLoadingAdCreationForms ? "Loading..." : "Select Form"} /></SelectTrigger>
+                                  <SelectContent>{adCreationForms.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}</SelectContent>
+                                </Select>
+                              </div>
                             </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-[11px] font-black uppercase text-slate-600 text-slate-400">Targeting</Label>
-                            <div className="text-[10px] font-bold text-slate-600 truncate bg-slate-50 dark:bg-slate-800 px-3 py-2.5 rounded-md border border-slate-200 dark:border-slate-700">India (Default)</div>
-                          </div>
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button variant="ghost" onClick={() => setIsCreateAdSetDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleCreateAdSet} disabled={isCreatingAdSet || !newAdSetName} className="bg-purple-600 hover:bg-purple-700 font-bold">
-                          {isCreatingAdSet && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                          Create Ad Set
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-
-                  <Dialog open={isCreateAdDialogOpen} onOpenChange={setIsCreateAdDialogOpen}>
-                    <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                          <FileText className="h-5 w-5 text-green-500" />
-                          Design New Lead Ad
-                        </DialogTitle>
-                        <DialogDescription>Quickly create a Lead Ad for "{selectedAdAccount?.name}" using existing forms.</DialogDescription>
-                      </DialogHeader>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                             <Label className="text-xs font-bold uppercase text-slate-500">Creative Type</Label>
-                             <Tabs value={useLibraryCreative ? "library" : "new"} onValueChange={(v) => {
-                               setUseLibraryCreative(v === "library")
-                               if (v === "library" && creatives.length === 0 && selectedAdAccount) {
-                                  loadCreatives(selectedAdAccount.id)
-                               }
-                             }}>
-                               <TabsList className="grid w-full grid-cols-2 h-9">
-                                 <TabsTrigger value="new" className="text-xs">Create New</TabsTrigger>
-                                 <TabsTrigger value="library" className="text-xs">From Library</TabsTrigger>
-                               </TabsList>
-                             </Tabs>
-                           </div>
-
-                           <div className="space-y-2">
-                            <Label className="text-xs font-bold uppercase text-slate-500">Ad Name</Label>
-                            <Input value={newAdName} onChange={(e) => setNewAdName(e.target.value)} placeholder="e.g. Free Consultation Offer" />
-                          </div>
-
-                          {useLibraryCreative ? (
-                            <div className="space-y-2">
-                              <Label className="text-xs font-bold uppercase text-slate-500">Select Creative</Label>
-                              <Select value={selectedLibraryCreativeId} onValueChange={(val) => {
-                                setSelectedLibraryCreativeId(val)
-                                const creative = creatives.find(c => c.id === val)
-                                if (creative) {
-                                  // Update preview with selected creative info
-                                  setNewAdPrimaryText(creative.message || creative.object_story_spec?.link_data?.message || '')
-                                  setNewAdHeadline(creative.headline || creative.object_story_spec?.link_data?.name || '')
-                                  setNewAdImageUrl(creative.image_url || creative.thumbnail_url || '')
-                                }
-                              }}>
-                                <SelectTrigger><SelectValue placeholder="Select Creative" /></SelectTrigger>
+                            <div className="grid gap-2">
+                              <Label>Headline</Label>
+                              <Input
+                                value={newCreativeHeadline}
+                                onChange={(e) => setNewCreativeHeadline(e.target.value)}
+                                placeholder="e.g. Free Consultation Offer"
+                              />
+                            </div>
+                            <div className="grid gap-2">
+                              <Label>Call to Action</Label>
+                              <Select value={newCreativeCta} onValueChange={setNewCreativeCta}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select CTA" />
+                                </SelectTrigger>
                                 <SelectContent>
-                                  {creatives.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                                  <SelectItem value="SIGN_UP">Sign Up</SelectItem>
+                                  <SelectItem value="LEARN_MORE">Learn More</SelectItem>
+                                  <SelectItem value="GET_QUOTE">Get Quote</SelectItem>
+                                  <SelectItem value="APPLY_NOW">Apply Now</SelectItem>
+                                  <SelectItem value="DOWNLOAD">Download</SelectItem>
+                                  <SelectItem value="GET_OFFER">Get Offer</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
-                          ) : (
-                            <>
-                              <div className="space-y-2">
-                                 <Label className="text-xs font-bold uppercase text-slate-500">Facebook Page</Label>
-                                 <Select value={selectedAdPageId} onValueChange={setSelectedAdPageId}>
-                                   <SelectTrigger><SelectValue placeholder="Select Page" /></SelectTrigger>
-                                   <SelectContent>{pages.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
-                                 </Select>
-                              </div>
-
-                              <div className="space-y-2">
-                                 <Label className="text-xs font-bold uppercase text-slate-500">Lead Form</Label>
-                                 <Select value={selectedAdFormId} onValueChange={setSelectedAdFormId}>
-                                   <SelectTrigger><SelectValue placeholder={isLoadingAdCreationForms ? "Loading..." : "Select Form"} /></SelectTrigger>
-                                   <SelectContent>{adCreationForms.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}</SelectContent>
-                                 </Select>
-                              </div>
-                            </>
-                          )}
-
-                          {/* When using library, hide individual design fields as they are part of the creative */}
-                          {!useLibraryCreative && (
-                            <>
-                              <div className="space-y-2">
-                                <Label className="text-xs font-bold uppercase text-slate-500">Body Text (Primary)</Label>
-                                <textarea 
-                                  className="w-full h-24 p-2 text-sm border rounded-md dark:bg-slate-800 dark:border-slate-700" 
-                                  value={newAdPrimaryText}
-                                  onChange={(e) => setNewAdPrimaryText(e.target.value)}
-                                  placeholder="Describe what you are offering..."
-                                />
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label className="text-xs font-bold uppercase text-slate-500">Headline</Label>
-                                <Input value={newAdHeadline} onChange={(e) => setNewAdHeadline(e.target.value)} placeholder="e.g. Claim Your Free Bonus" />
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label className="text-xs font-bold uppercase text-slate-500">Image URL</Label>
-                                <Input value={newAdImageUrl} onChange={(e) => setNewAdImageUrl(e.target.value)} placeholder="https://example.com/image.jpg" />
-                              </div>
-
-                              <div className="space-y-2">
-                                 <Label className="text-xs font-bold uppercase text-slate-500">Call to Action</Label>
-                                 <Select value={newAdCta} onValueChange={setNewAdCta}>
-                                   <SelectTrigger><SelectValue placeholder="Select CTA" /></SelectTrigger>
-                                   <SelectContent>{CTA_OPTIONS.map(cta => <SelectItem key={cta.value} value={cta.value}>{cta.label}</SelectItem>)}</SelectContent>
-                                 </Select>
-                              </div>
-                            </>
-                          )}
+                            <div className="grid gap-2">
+                              <Label>Default Message (Ad Primary Text)</Label>
+                              <textarea
+                                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring theme-scrollbar"
+                                value={newCreativeMsg}
+                                onChange={(e) => setNewCreativeMsg(e.target.value)}
+                              />
+                            </div>
+                            <div className="grid gap-2">
+                              <Label>Image URL (Landscape 1200x628)</Label>
+                              <Input value={newCreativeImageUrl} onChange={(e) => setNewCreativeImageUrl(e.target.value)} placeholder="https://example.com/image.jpg" />
+                            </div>
+                          </div>
+                          <DialogFooter>
+                            <Button onClick={handleCreateCreative} disabled={isCreatingCreative || !newCreativeName || !selectedAdFormId}>
+                              {isCreatingCreative && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                              Save Creative
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    {!selectedAdAccount ? (
+                      <div className="py-24 text-center text-slate-400 flex flex-col items-center">
+                        <div className="h-20 w-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-6">
+                          <Briefcase className="h-10 w-10 opacity-10" />
                         </div>
-
-                        {/* Preview Side */}
-                        <div className="space-y-4">
-                          <Label className="text-xs font-bold uppercase text-slate-500 block mb-2">Ad Preview (Feed)</Label>
-                          <div className="border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
-                            <div className="p-3 border-b flex items-center gap-2">
-                              <div className="h-8 w-8 bg-slate-100 rounded-full shrink-0" />
-                              <div>
-                                <div className="text-[11px] font-bold">{pages.find(p => p.id === selectedAdPageId)?.name || 'Page Name'}</div>
-                                <div className="text-[10px] text-slate-400">Sponsored</div>
+                        <p className="text-lg font-bold text-slate-500">Select an Ad Account to view creatives</p>
+                      </div>
+                    ) : isCreativesLoading ? (
+                      <div className="flex flex-col items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-2" /><p className="text-sm text-slate-400">Loading library...</p></div>
+                    ) : creatives.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {creatives.map(c => (
+                          <div key={c.id} className="border dark:bg-slate-800/50 rounded-2xl p-4 flex flex-col space-y-3 hover:border-blue-500 transition-all group overflow-hidden shadow-sm hover:shadow-md">
+                            <div className="h-32 w-full bg-slate-100 dark:bg-slate-900 rounded-xl overflow-hidden relative">
+                              {c.image_url || c.thumbnail_url ? (
+                                <img src={c.image_url || c.thumbnail_url} className="h-full w-full object-cover transition-transform group-hover:scale-105" alt={c.name} />
+                              ) : (
+                                <div className="h-full w-full flex items-center justify-center text-slate-300"><FileText className="h-10 w-10" /></div>
+                              )}
+                              <div className="absolute top-2 right-2">
+                                <Badge variant={c.status === 'ACTIVE' ? 'default' : 'secondary'} className="text-[9px] h-5 bg-white/90 dark:bg-black/80 backdrop-blur-sm text-black dark:text-white border-0">
+                                  {c.status || 'ACTIVE'}
+                                </Badge>
+                              </div>
+                              <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteObject(c.id, 'Creative');
+                                  }}
+                                  className="p-1.5 bg-white/90 dark:bg-black/80 backdrop-blur-sm text-red-500 hover:bg-red-500 hover:text-white rounded-lg shadow-sm transition-all border border-slate-200 dark:border-slate-700"
+                                  title="Delete Creative"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
                               </div>
                             </div>
-                            <div className="p-3 text-xs leading-relaxed whitespace-pre-wrap">{newAdPrimaryText}</div>
-                            <div className="aspect-[1.91/1] bg-slate-100 relative group overflow-hidden">
-                                {newAdImageUrl ? (
-                                  <img src={newAdImageUrl} className="w-full h-full object-cover" alt="Ad Creative" />
-                                ) : (
-                                  <div className="flex items-center justify-center h-full text-slate-300"><Plus className="h-6 w-6" /></div>
-                                )}
-                            </div>
-                            <div className="p-3 bg-slate-50 dark:bg-slate-800 flex items-center justify-between border-t">
-                              <div className="min-w-0 pr-4">
-                                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Facebook</p>
-                                <p className="text-sm font-bold truncate">{newAdHeadline || 'Headline'}</p>
+                            <div className="space-y-1">
+                              <p className="font-bold text-sm truncate" title={c.name}>{c.name}</p>
+                              <div className="flex items-center justify-between">
+                                <p className="text-[9px] text-slate-400 font-mono tracking-tighter uppercase tracking-widest">ID: {c.id}</p>
                               </div>
-                              <Button size="sm" className="bg-slate-200 hover:bg-slate-300 text-slate-900 border-none h-8 px-4 font-bold text-xs uppercase tracking-tight shrink-0">
-                                {CTA_OPTIONS.find(c => c.value === newAdCta)?.label || 'Learn More'}
+                            </div>
+                            <div className="flex items-center space-x-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                              <Button size="sm" variant="ghost" className="h-7 text-[10px] w-full" disabled>
+                                <Eye className="h-3 w-3 mr-2" /> Preview
                               </Button>
                             </div>
                           </div>
-                        </div>
+                        ))}
                       </div>
-                      <DialogFooter>
-                        <Button variant="ghost" onClick={() => setIsCreateAdDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleCreateAd} disabled={isCreatingAd || !newAdName || (!useLibraryCreative && !selectedAdFormId) || (useLibraryCreative && !selectedLibraryCreativeId)} className="bg-green-600 hover:bg-green-700 font-bold">
-                          {isCreatingAd && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                          Create Ad
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-
-                </div>
-              ) : (
-                <Card className="h-[500px] border-none shadow-sm flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
-                  <div className="h-20 w-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
-                    <TrendingUp className="h-10 w-10 text-slate-300" />
-                  </div>
-                  <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Select an Ad Account</h3>
-                  <p className="text-muted-foreground mt-3 max-w-xs mx-auto text-base font-medium leading-relaxed"> Use the account selector in the top right to start viewing your campaign performance.</p>
+                    ) : (
+                      <div className="py-20 text-center bg-slate-50 dark:bg-slate-800/20 rounded-2xl border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center">
+                        <FileText className="h-12 w-12 text-slate-200 mb-4" />
+                        <p className="text-slate-500 font-medium">No standalone creatives found.</p>
+                        <p className="text-slate-400 text-xs mt-1">Ready-to-use creatives created here can be reused in your campaigns.</p>
+                      </div>
+                    )}
+                  </CardContent>
                 </Card>
-              )}
+              </div>
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="templates" className="m-0 space-y-6">
-          <div className="flex flex-col items-center justify-center p-8 text-center bg-blue-50/30 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/30 mb-8">
-            <h2 className="text-2xl font-black text-blue-600 dark:text-blue-400">One-Click Lead Ads</h2>
-            <p className="text-muted-foreground mt-2 max-w-lg">Launch high-converting lead campaigns using our pre-built industry templates. We handle targeting and optimization defaults.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {templates.length > 0 ? templates.map((tpl) => (
-              <Card key={tpl.id} className="border-none shadow-lg hover:shadow-xl transition-all overflow-hidden group">
-                <div className="h-3 bg-blue-500" />
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 mb-2">{tpl.category}</Badge>
-                    <TrendingUp className="h-5 w-5 text-blue-500 opacity-20 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <CardTitle className="text-lg">{tpl.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-2 text-[10px] uppercase font-bold text-slate-400">
-                      <div>Objective</div>
-                      <div className="text-right">Budget Type</div>
-                      <div className="text-slate-900 dark:text-slate-100">{tpl.objective?.replace('OUTCOME_', '')}</div>
-                      <div className="text-right text-slate-900 dark:text-slate-100">Daily</div>
-                    </div>
-
-                    <Button
-                      className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700"
-                      onClick={() => handleLaunchTemplate(tpl.id)}
-                      disabled={isLaunchingTemplate || !selectedAdAccount}
-                    >
-                      {isLaunchingTemplate ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-                      {selectedAdAccount ? 'Launch Template' : 'Select Ad Account First'}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )) : (
-              <div className="col-span-3 text-center py-20 bg-slate-50 rounded-2xl border-dashed border-2">
-                <p className="text-slate-400">No templates available. Add them to `meta_campaign_templates` table.</p>
+          <TabsContent value="pixels" className="m-0 space-y-6">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h3 className="text-2xl font-extrabold tracking-tight">Pixels & CAPI Console</h3>
+                <p className="text-sm text-muted-foreground">Sync pixels, fire test events, and generate tracking scripts.</p>
               </div>
-            )}
-          </div>
-        </TabsContent>
-        <TabsContent value="creatives" className="m-0 space-y-6">
-          <div className="grid grid-cols-1 gap-6">
-            <div className="space-y-6">
-              {/* Header / Account Selector Row */}
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 p-3.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-3.5">
-                  <div className="h-10 w-10 bg-purple-50 dark:bg-purple-900/30 rounded-xl flex items-center justify-center text-purple-600 shadow-inner shrink-0">
-                    <FileText className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-base font-black tracking-tight flex items-center gap-3">
-                      <span className="truncate">Creatives Library</span>
-                      {selectedAdAccount && <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 text-[10px] h-5 px-2 border-0 uppercase tracking-widest shrink-0">{selectedAdAccount.currency}</Badge>}
-                    </h3>
-                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-60 truncate">
-                      Visual Assets & Copy
-                    </p>
-                  </div>
-                </div>
+              <Button
+                onClick={handleSyncPixels}
+                disabled={isSyncingPixels}
+                className="bg-blue-600 hover:bg-blue-700 shadow-md"
+              >
+                {isSyncingPixels ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                Sync Pixels from Meta
+              </Button>
+            </div>
 
-                <Popover open={isAdAccountOpen} onOpenChange={setIsAdAccountOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={isAdAccountOpen}
-                      className="w-full md:w-[320px] justify-between h-10 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold rounded-xl shadow-sm hover:border-purple-500 hover:ring-4 hover:ring-purple-500/10 transition-all group"
-                    >
-                      <div className="flex items-center gap-2 overflow-hidden">
-                        <Search className="h-4 w-4 text-slate-400 shrink-0 group-hover:text-purple-500 transition-colors" />
-                        <span className="truncate">{selectedAdAccount ? selectedAdAccount.name : "Select Ad Account..."}</span>
-                      </div>
-                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent 
-                    className="w-[450px] p-0 border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl overflow-hidden" 
-                    align="end" 
-                    side="bottom" 
-                    sideOffset={8}
-                    avoidCollisions={false}
-                  >
-                    <div className="p-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                        <Input
-                          placeholder="Search ad accounts..."
-                          value={adAccountSearch}
-                          onChange={(e) => setAdAccountSearch(e.target.value)}
-                          className="pl-9 h-10 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-none text-sm rounded-lg"
-                        />
-                      </div>
-                    </div>
-                    <ScrollArea className="h-[300px]">
-                      <div className="p-2 space-y-1">
-                        {adAccounts
-                          .filter(acc =>
-                            acc.name?.toLowerCase().includes(adAccountSearch.toLowerCase()) ||
-                            acc.id?.toLowerCase().includes(adAccountSearch.toLowerCase()) ||
-                            acc.business?.name?.toLowerCase().includes(adAccountSearch.toLowerCase())
-                          )
-                          .map((acc) => {
-                            const accStatus = AD_ACCOUNT_STATUS_MAP[acc.account_status] || { text: 'Unknown', color: 'bg-slate-100 text-slate-700' };
-                            return (
-                              <button
-                                key={acc.id}
-                                onClick={() => {
-                                  setSelectedAdAccount(acc);
-                                  loadCreatives(acc.id);
-                                  setIsAdAccountOpen(false);
-                                }}
-                                className={`w-full flex items-start gap-3 p-3 text-left rounded-xl transition-all bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800/80 group ${selectedAdAccount?.id === acc.id ? 'bg-purple-50 dark:bg-purple-900/30' : ''} ${acc.account_status !== 1 ? 'opacity-60' : ''}`}
-                              >
-                                <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-white dark:group-hover:bg-slate-700 transition-colors">
-                                  <Briefcase className={`h-4 w-4 ${selectedAdAccount?.id === acc.id ? 'text-purple-500' : 'text-slate-400'}`} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center justify-between mb-0.5">
-                                    <span className="font-bold text-sm truncate uppercase tracking-tight">{acc.name}</span>
-                                    <div className="flex items-center gap-1.5 shrink-0">
-                                      <Badge className={`text-[9px] px-1.5 h-4 leading-none border-0 ${accStatus.color}`}>{accStatus.text}</Badge>
-                                      {selectedAdAccount?.id === acc.id && <Check className="h-3.5 w-3.5 text-purple-500" />}
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest opacity-70">
-                                    <span>{acc.business?.name || 'Personal'}</span>
-                                    <span>•</span>
-                                    <span className="font-mono">{acc.id}</span>
-                                    <span>•</span>
-                                    <span className="font-mono">{acc.currency}</span>
-                                  </div>
-                                </div>
-                              </button>
-                            );
-                          })
-                        }
-                      </div>
-                    </ScrollArea>
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-            <Card className="border-none shadow-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
-              <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/50 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-xl font-black tracking-tight">Ad Creatives Library</CardTitle>
-                    <CardDescription className="text-xs font-bold uppercase tracking-wider opacity-70">Manage visual fragments</CardDescription>
-                  </div>
-                  <Dialog open={isCreateCreativeDialogOpen} onOpenChange={setIsCreateCreativeDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-slate-900 hover:bg-black dark:bg-blue-600 dark:hover:bg-blue-700 px-6 font-bold rounded-xl h-11" disabled={!selectedAdAccount}>
-                        <Plus className="h-4 w-4 mr-2" /> Create Creative
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-lg">
-                      <DialogHeader>
-                        <DialogTitle>Create Standalone Creative</DialogTitle>
-                        <DialogDescription>Create a lead generation creative to reuse across multiple ads.</DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="grid gap-2">
-                          <Label>Creative Name</Label>
-                          <Input value={newCreativeName} onChange={(e) => setNewCreativeName(e.target.value)} placeholder="e.g. Summer Promo 2024" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="grid gap-2">
-                            <Label>Page</Label>
-                            <Select value={selectedAdPageId} onValueChange={setSelectedAdPageId}>
-                              <SelectTrigger><SelectValue placeholder="Select Page" /></SelectTrigger>
-                              <SelectContent>{pages.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
-                            </Select>
-                          </div>
-                          <div className="grid gap-2">
-                            <Label>Lead Form</Label>
-                            <Select value={selectedAdFormId} onValueChange={setSelectedAdFormId} disabled={adCreationForms.length === 0}>
-                              <SelectTrigger><SelectValue placeholder={isLoadingAdCreationForms ? "Loading..." : "Select Form"} /></SelectTrigger>
-                              <SelectContent>{adCreationForms.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}</SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Headline</Label>
-                          <Input 
-                            value={newCreativeHeadline}
-                            onChange={(e) => setNewCreativeHeadline(e.target.value)}
-                            placeholder="e.g. Free Consultation Offer"
-                          />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Call to Action</Label>
-                          <Select value={newCreativeCta} onValueChange={setNewCreativeCta}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select CTA" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="SIGN_UP">Sign Up</SelectItem>
-                              <SelectItem value="LEARN_MORE">Learn More</SelectItem>
-                              <SelectItem value="GET_QUOTE">Get Quote</SelectItem>
-                              <SelectItem value="APPLY_NOW">Apply Now</SelectItem>
-                              <SelectItem value="DOWNLOAD">Download</SelectItem>
-                              <SelectItem value="GET_OFFER">Get Offer</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Default Message (Ad Primary Text)</Label>
-                          <textarea
-                            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring theme-scrollbar"
-                            value={newCreativeMsg}
-                            onChange={(e) => setNewCreativeMsg(e.target.value)}
-                          />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Image URL (Landscape 1200x628)</Label>
-                          <Input value={newCreativeImageUrl} onChange={(e) => setNewCreativeImageUrl(e.target.value)} placeholder="https://example.com/image.jpg" />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button onClick={handleCreateCreative} disabled={isCreatingCreative || !newCreativeName || !selectedAdFormId}>
-                          {isCreatingCreative && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                          Save Creative
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
+            {/* Pixels status table */}
+            <Card className="border-none shadow-md bg-white dark:bg-slate-900 overflow-hidden">
+              <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
+                <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                  <Zap className="h-4 w-4" /> Connected Pixels
+                  <Badge variant="secondary" className="ml-auto">{pixels.length}</Badge>
+                </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                {!selectedAdAccount ? (
-                  <div className="py-24 text-center text-slate-400 flex flex-col items-center">
-                    <div className="h-20 w-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-6">
-                      <Briefcase className="h-10 w-10 opacity-10" />
-                    </div>
-                    <p className="text-lg font-bold text-slate-500">Select an Ad Account to view creatives</p>
-                  </div>
-                ) : isCreativesLoading ? (
-                  <div className="flex flex-col items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-2" /><p className="text-sm text-slate-400">Loading library...</p></div>
-                ) : creatives.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {creatives.map(c => (
-                      <div key={c.id} className="border dark:bg-slate-800/50 rounded-2xl p-4 flex flex-col space-y-3 hover:border-blue-500 transition-all group overflow-hidden shadow-sm hover:shadow-md">
-                        <div className="h-32 w-full bg-slate-100 dark:bg-slate-900 rounded-xl overflow-hidden relative">
-                          {c.image_url || c.thumbnail_url ? (
-                            <img src={c.image_url || c.thumbnail_url} className="h-full w-full object-cover transition-transform group-hover:scale-105" alt={c.name} />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center text-slate-300"><FileText className="h-10 w-10" /></div>
-                          )}
-                          <div className="absolute top-2 right-2">
-                            <Badge variant={c.status === 'ACTIVE' ? 'default' : 'secondary'} className="text-[9px] h-5 bg-white/90 dark:bg-black/80 backdrop-blur-sm text-black dark:text-white border-0">
-                              {c.status || 'ACTIVE'}
-                            </Badge>
-                          </div>
-                          <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                            <button 
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 handleDeleteObject(c.id, 'Creative');
-                               }}
-                               className="p-1.5 bg-white/90 dark:bg-black/80 backdrop-blur-sm text-red-500 hover:bg-red-500 hover:text-white rounded-lg shadow-sm transition-all border border-slate-200 dark:border-slate-700"
-                               title="Delete Creative"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="font-bold text-sm truncate" title={c.name}>{c.name}</p>
-                          <div className="flex items-center justify-between">
-                             <p className="text-[9px] text-slate-400 font-mono tracking-tighter uppercase tracking-widest">ID: {c.id}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                          <Button size="sm" variant="ghost" className="h-7 text-[10px] w-full" disabled>
-                            <Eye className="h-3 w-3 mr-2" /> Preview
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="py-20 text-center bg-slate-50 dark:bg-slate-800/20 rounded-2xl border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center">
-                    <FileText className="h-12 w-12 text-slate-200 mb-4" />
-                    <p className="text-slate-500 font-medium">No standalone creatives found.</p>
-                    <p className="text-slate-400 text-xs mt-1">Ready-to-use creatives created here can be reused in your campaigns.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="pixels" className="m-0 space-y-6">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h3 className="text-2xl font-extrabold tracking-tight">Pixels & CAPI Console</h3>
-              <p className="text-sm text-muted-foreground">Sync pixels, fire test events, and generate tracking scripts.</p>
-            </div>
-            <Button
-              onClick={handleSyncPixels}
-              disabled={isSyncingPixels}
-              className="bg-blue-600 hover:bg-blue-700 shadow-md"
-            >
-              {isSyncingPixels ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-              Sync Pixels from Meta
-            </Button>
-          </div>
-
-          {/* Pixels status table */}
-          <Card className="border-none shadow-md bg-white dark:bg-slate-900 overflow-hidden">
-            <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                <Zap className="h-4 w-4" /> Connected Pixels
-                <Badge variant="secondary" className="ml-auto">{pixels.length}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 overflow-x-auto w-full">
-              <Table className="min-w-full">
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent border-slate-100 dark:border-slate-800">
-                    <TableHead className="font-bold text-slate-700 dark:text-slate-300">Pixel</TableHead>
-                    <TableHead className="font-bold text-slate-700 dark:text-slate-300">Pixel ID</TableHead>
-                    <TableHead className="font-bold text-slate-700 dark:text-slate-300">Ad Account</TableHead>
-                    <TableHead className="font-bold text-slate-700 dark:text-slate-300">Status</TableHead>
-                    <TableHead className="text-right font-bold text-slate-700 dark:text-slate-300">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoadingPixels ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="h-24 text-center">
-                        <Loader2 className="h-6 w-6 animate-spin mx-auto text-blue-500" />
-                      </TableCell>
+              <CardContent className="p-0 overflow-x-auto w-full">
+                <Table className="min-w-full">
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent border-slate-100 dark:border-slate-800">
+                      <TableHead className="font-bold text-slate-700 dark:text-slate-300">Pixel</TableHead>
+                      <TableHead className="font-bold text-slate-700 dark:text-slate-300">Pixel ID</TableHead>
+                      <TableHead className="font-bold text-slate-700 dark:text-slate-300">Ad Account</TableHead>
+                      <TableHead className="font-bold text-slate-700 dark:text-slate-300">Status</TableHead>
+                      <TableHead className="text-right font-bold text-slate-700 dark:text-slate-300">Actions</TableHead>
                     </TableRow>
-                  ) : pixels.length > 0 ? (
-                    pixels.map((pixel) => (
-                      <TableRow key={pixel.id} className="border-slate-50 dark:border-slate-800/50">
-                        <TableCell className="font-medium">
-                          <div className="flex items-center space-x-2">
-                            <div className="h-8 w-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center text-purple-600">
-                              <Zap className="h-4 w-4" />
-                            </div>
-                            <span className="font-semibold">{pixel.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-mono text-xs text-slate-500">{pixel.pixel_id}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{pixel.ad_account_id || '—'}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={pixel.is_active ? 'default' : 'secondary'}
-                            className={pixel.is_active ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''}
-                          >
-                            {pixel.is_active ? 'Active' : 'Inactive'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost" size="icon"
-                            className={`h-8 w-8 ${pixel.is_active ? 'text-amber-500' : 'text-green-500'}`}
-                            onClick={() => handleTogglePixelStatus(pixel)}
-                          >
-                            {pixel.is_active ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                          </Button>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoadingPixels ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center">
+                          <Loader2 className="h-6 w-6 animate-spin mx-auto text-blue-500" />
                         </TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={5} className="h-28 text-center text-muted-foreground">
-                        <div className="flex flex-col items-center gap-2">
-                          <Zap className="h-10 w-10 opacity-10" />
-                          <p>No pixels synced. Click "Sync Pixels from Meta" to get started.</p>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                    ) : pixels.length > 0 ? (
+                      pixels.map((pixel) => (
+                        <TableRow key={pixel.id} className="border-slate-50 dark:border-slate-800/50">
+                          <TableCell className="font-medium">
+                            <div className="flex items-center space-x-2">
+                              <div className="h-8 w-8 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center text-purple-600">
+                                <Zap className="h-4 w-4" />
+                              </div>
+                              <span className="font-semibold">{pixel.name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs text-slate-500">{pixel.pixel_id}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{pixel.ad_account_id || '—'}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={pixel.is_active ? 'default' : 'secondary'}
+                              className={pixel.is_active ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''}
+                            >
+                              {pixel.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost" size="icon"
+                              className={`h-8 w-8 ${pixel.is_active ? 'text-amber-500' : 'text-green-500'}`}
+                              onClick={() => handleTogglePixelStatus(pixel)}
+                            >
+                              {pixel.is_active ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-28 text-center text-muted-foreground">
+                          <div className="flex flex-col items-center gap-2">
+                            <Zap className="h-10 w-10 opacity-10" />
+                            <p>No pixels synced. Click "Sync Pixels from Meta" to get started.</p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
 
-          {/* Test Console + Script Generator */}
-          <PixelTestConsole
-            pixels={pixels}
-            adAccounts={adAccounts}
-            onRefreshPixels={handleSyncPixels}
-            isSyncingPixels={isSyncingPixels}
-          />
-        </TabsContent>
+            {/* Test Console + Script Generator */}
+            <PixelTestConsole
+              pixels={pixels}
+              adAccounts={adAccounts}
+              onRefreshPixels={handleSyncPixels}
+              isSyncingPixels={isSyncingPixels}
+            />
+          </TabsContent>
 
-        <TabsContent value="roi" className="m-0 space-y-6">
-          <RoiDashboard />
-        </TabsContent>
+          <TabsContent value="roi" className="m-0 space-y-6">
+            <RoiDashboard />
+          </TabsContent>
         </div>
       </Tabs>
-      <ErrorDialog 
+      <ErrorDialog
         isOpen={isErrorDialogOpen}
         onOpenChange={setIsErrorDialogOpen}
         title={lastError?.title || "Meta Operation Blocked"}
@@ -3052,10 +3051,10 @@ export function FacebookDashboard() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label className="text-xs font-bold uppercase text-slate-500">Campaign Name</Label>
-              <Input 
-                value={newCampaignName} 
-                onChange={(e) => setNewCampaignName(e.target.value)} 
-                placeholder="Enter new name" 
+              <Input
+                value={newCampaignName}
+                onChange={(e) => setNewCampaignName(e.target.value)}
+                placeholder="Enter new name"
               />
             </div>
           </div>
@@ -3094,13 +3093,13 @@ export function FacebookDashboard() {
               <p className="text-[11px] font-bold text-slate-500 uppercase mb-2">Audience Details</p>
               <ul className="space-y-2 text-xs">
                 <li className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                   <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> Source: Lead Forms Activity
+                  <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> Source: Lead Forms Activity
                 </li>
                 <li className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                   <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> Type: Custom Audience
+                  <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> Type: Custom Audience
                 </li>
                 <li className="flex items-center gap-2 text-slate-600 dark:text-slate-400 leading-relaxed italic opacity-80">
-                   "Includes all people who opened and submitted a lead form in the past 90 days."
+                  "Includes all people who opened and submitted a lead form in the past 90 days."
                 </li>
               </ul>
             </div>
@@ -3135,22 +3134,22 @@ export function FacebookDashboard() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
-             <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-xl border border-amber-100 dark:border-amber-900/30">
-               <div className="flex gap-3">
-                 <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-                 <p className="text-xs text-amber-800 dark:text-amber-400 leading-relaxed">
-                   <strong>Important:</strong> This action cannot be undone once processed. It may take up to 30 days for all backups and distributed records to be fully purged from our infrastructure.
-                 </p>
-               </div>
-             </div>
-             <p className="text-sm text-slate-500">
-               A confirmation code will be generated and logged with your request for compliance tracking.
-             </p>
+            <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-xl border border-amber-100 dark:border-amber-900/30">
+              <div className="flex gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-800 dark:text-amber-400 leading-relaxed">
+                  <strong>Important:</strong> This action cannot be undone once processed. It may take up to 30 days for all backups and distributed records to be fully purged from our infrastructure.
+                </p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-500">
+              A confirmation code will be generated and logged with your request for compliance tracking.
+            </p>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setIsDataDeletionDialogOpen(false)}>Cancel</Button>
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700 font-bold" 
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 font-bold"
               onClick={handleConfirmDataDeletion}
               disabled={isDeletingData}
             >
@@ -3175,10 +3174,10 @@ export function FacebookDashboard() {
           </DialogHeader>
           <DialogFooter className="mt-4 gap-2 sm:gap-0">
             <Button variant="ghost" onClick={() => setIsDisconnectMetaDialogOpen(false)}>Cancel</Button>
-            <Button 
-              variant="destructive" 
-              onClick={confirmDisconnectMeta} 
-              disabled={isDisconnecting} 
+            <Button
+              variant="destructive"
+              onClick={confirmDisconnectMeta}
+              disabled={isDisconnecting}
               className="font-bold shadow-lg"
             >
               {isDisconnecting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
@@ -3191,33 +3190,33 @@ export function FacebookDashboard() {
       <Dialog open={isDeletionStatusDialogOpen} onOpenChange={setIsDeletionStatusDialogOpen}>
         <DialogContent className="sm:max-w-[400px] gap-0 border-none shadow-2xl rounded-3xl p-0 overflow-hidden">
           <div className="bg-amber-50 dark:bg-amber-900/10 p-6 flex flex-col items-center">
-             <div className="h-14 w-14 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center text-amber-600 mb-3 shadow-sm">
-                <ShieldCheck className="h-7 w-7" />
-             </div>
-             <DialogTitle className="text-lg font-black text-slate-900 dark:text-white">Active Deletion Request</DialogTitle>
-             <p className="text-[11px] font-bold text-amber-700/70 dark:text-amber-400 uppercase tracking-widest mt-1">Status: Registered & Verified</p>
+            <div className="h-14 w-14 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center text-amber-600 mb-3 shadow-sm">
+              <ShieldCheck className="h-7 w-7" />
+            </div>
+            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white">Active Deletion Request</DialogTitle>
+            <p className="text-[11px] font-bold text-amber-700/70 dark:text-amber-400 uppercase tracking-widest mt-1">Status: Registered & Verified</p>
           </div>
-          
-          <div className="p-6 space-y-5 bg-white dark:bg-slate-900">
-             <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl flex flex-col items-center gap-1 shadow-inner">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Confirmation Code</p>
-                <p className="font-mono font-black text-xl text-indigo-600 dark:text-indigo-400 tracking-wider">
-                   {statusData?.deletion_details?.code || 'LBJ-DEL-XXXXXX'}
-                </p>
-             </div>
 
-             <div className="space-y-3 px-1">
-                <div className="flex items-center justify-between text-[11px]">
-                   <span className="text-slate-500 font-bold uppercase tracking-wide">Registry Date</span>
-                   <span className="text-slate-900 dark:text-white font-black">
-                     {statusData?.deletion_details?.requested_at ? new Date(statusData.deletion_details.requested_at).toLocaleDateString() : 'N/A'}
-                   </span>
-                </div>
-                <div className="flex items-center justify-between text-[11px]">
-                   <span className="text-slate-500 font-bold uppercase tracking-wide">Queue Status</span>
-                   <Badge className="bg-emerald-100 text-emerald-700 border-none px-2 h-5 font-black uppercase text-[8px] tracking-widest">Awaiting Admin</Badge>
-                </div>
-             </div>
+          <div className="p-6 space-y-5 bg-white dark:bg-slate-900">
+            <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl flex flex-col items-center gap-1 shadow-inner">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Confirmation Code</p>
+              <p className="font-mono font-black text-xl text-indigo-600 dark:text-indigo-400 tracking-wider">
+                {statusData?.deletion_details?.code || 'LBJ-DEL-XXXXXX'}
+              </p>
+            </div>
+
+            <div className="space-y-3 px-1">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-500 font-bold uppercase tracking-wide">Registry Date</span>
+                <span className="text-slate-900 dark:text-white font-black">
+                  {statusData?.deletion_details?.requested_at ? new Date(statusData.deletion_details.requested_at).toLocaleDateString() : 'N/A'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-500 font-bold uppercase tracking-wide">Queue Status</span>
+                <Badge className="bg-emerald-100 text-emerald-700 border-none px-2 h-5 font-black uppercase text-[8px] tracking-widest">Awaiting Admin</Badge>
+              </div>
+            </div>
           </div>
 
           <div className="px-6 pb-6 pt-2 bg-white dark:bg-slate-900">
