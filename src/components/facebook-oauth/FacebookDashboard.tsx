@@ -227,13 +227,12 @@ export function FacebookDashboard() {
   const [isDeletionStatusDialogOpen, setIsDeletionStatusDialogOpen] = useState(false)
 
   useEffect(() => {
-    // Check for success/error parameters from Meta OAuth redirect
+    // Check for success/error parameters from Meta OAuth redirect (if loaded directly)
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('meta_connected') === 'success') {
       toast.success("Meta Connected Successfully", {
-        description: "Your Meta account has been linked and pages are being synced.",
+        description: "Your Meta account has been linked.",
       });
-      // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (urlParams.get('error')) {
       toast.error("Connection Failed", {
@@ -242,10 +241,26 @@ export function FacebookDashboard() {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
+    // Listen for the custom event from the parent page when OAuth completes
+    const handleTriggerSync = () => {
+      // The backend already synced during the callback, so just fetch the latest DB data
+      setTimeout(() => {
+        loadPages()
+        loadAdAccounts()
+      }, 500);
+    };
+
+    window.addEventListener('TRIGGER_META_SYNC', handleTriggerSync);
+
+    // Initial load
     loadPages()
     loadAdAccounts()
     loadTemplates()
     loadPixels()
+
+    return () => {
+      window.removeEventListener('TRIGGER_META_SYNC', handleTriggerSync);
+    };
   }, [])
 
   useEffect(() => {
@@ -676,10 +691,9 @@ export function FacebookDashboard() {
         if (popup.closed) {
           clearInterval(checkClosed)
           setIsConnectingMeta(false)
-          toast.success("Connection Updated", { description: "Refreshing your assets from Meta..." })
+          toast.success("Connection Updated", { description: "Loading your newly connected assets..." })
           loadPages()
-          // Optional: Trigger a manual sync to be sure
-          handleManualSyncAssets()
+          loadAdAccounts()
         }
       }, 1000)
     } catch (error: any) {
@@ -1269,9 +1283,9 @@ export function FacebookDashboard() {
             <div className="flex items-center bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-md h-7 px-1">
               <Briefcase className="h-3.5 w-3.5 text-[var(--crm-text-secondary)] ml-1.5" />
               <Select
-                value={selectedBusiness?.business_id || ""}
+                value={selectedBusiness?.business_id?.toString() || ""}
                 onValueChange={(val) => {
-                  const business = businesses.find(b => b.business_id === val);
+                  const business = businesses.find(b => b.business_id?.toString() === val?.toString());
                   if (business) setSelectedBusiness(business);
                 }}
               >
@@ -1280,7 +1294,7 @@ export function FacebookDashboard() {
                 </SelectTrigger>
                 <SelectContent>
                   {businesses.map((biz) => (
-                    <SelectItem key={biz.business_id} value={biz.business_id} className="text-[12px] font-medium">
+                    <SelectItem key={biz.business_id} value={biz.business_id?.toString()} className="text-[12px] font-medium">
                       {biz.name}
                     </SelectItem>
                   ))}

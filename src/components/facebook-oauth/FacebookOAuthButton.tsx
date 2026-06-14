@@ -129,13 +129,10 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
         throw new Error('Popup blocked. Please allow popups for this site.')
       }
 
-      // Listen for the postMessage signal from the popup page
-      const handleMessage = (event: MessageEvent) => {
-        // Only accept messages from our own origin
-        if (event.origin !== window.location.origin) return;
-
-        if (event.data?.type === 'META_OAUTH_SUCCESS') {
-          window.removeEventListener('message', handleMessage)
+      // Listen for localStorage changes (Bulletproof fallback for COOP blocking window.opener)
+      const handleStorage = (event: StorageEvent) => {
+        if (event.key === 'META_OAUTH_SUCCESS') {
+          window.removeEventListener('storage', handleStorage)
           clearInterval(fallbackCheck)
           setIsConnecting(false)
           loadConnectedServices()
@@ -143,29 +140,34 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
             title: "Facebook Connected",
             description: "Your Facebook services have been connected successfully!",
           })
+          // Clear it so it can fire again next time
+          localStorage.removeItem('META_OAUTH_SUCCESS')
           onConnect?.(connectedServices)
-        } else if (event.data?.type === 'META_OAUTH_ERROR') {
-          window.removeEventListener('message', handleMessage)
+        } else if (event.key === 'META_OAUTH_ERROR') {
+          window.removeEventListener('storage', handleStorage)
           clearInterval(fallbackCheck)
           setIsConnecting(false)
           toast({
             title: "Connection Failed",
-            description: event.data.message || "Meta OAuth failed. Please try again.",
+            description: "Meta OAuth failed. Please try again.",
             variant: "destructive",
           })
+          localStorage.removeItem('META_OAUTH_ERROR')
         }
       }
 
-      window.addEventListener('message', handleMessage)
+      window.addEventListener('storage', handleStorage)
 
       // Fallback: if popup is closed without sending a message (user closed it manually)
       const fallbackCheck = setInterval(() => {
         if (popup.closed) {
           clearInterval(fallbackCheck)
-          window.removeEventListener('message', handleMessage)
+          window.removeEventListener('storage', handleStorage)
           setIsConnecting(false)
           // Silently reload in case auth succeeded but postMessage wasn't sent
           loadConnectedServices()
+          // Ensure dashboard sync is triggered
+          onConnect?.([])
         }
       }, 1000)
 

@@ -18,29 +18,28 @@ export default function FacebookAuthPage() {
     const errorMsg   = searchParams.get("message");
 
     // Case 1: This page was opened as a popup by window.open() in FacebookOAuthButton.
-    // Signal parent and close ourselves.
-    if (window.opener && !window.opener.closed) {
-      if (metaStatus === "success") {
-        window.opener.postMessage({ type: "META_OAUTH_SUCCESS" }, window.location.origin);
-      } else if (errorMsg) {
-        window.opener.postMessage({ type: "META_OAUTH_ERROR", message: errorMsg }, window.location.origin);
-      }
-      // Small delay so the message is sent before close
+    // Because of Cross-Origin Opener Policy (COOP), window.opener is often null after returning from facebook.com.
+    // We use localStorage to reliably broadcast success back to the main window.
+    if (metaStatus === "success") {
+      // Broadcast via localStorage (Bulletproof for COOP)
+      localStorage.setItem('META_OAUTH_SUCCESS', Date.now().toString());
+      
+      // Close the popup automatically
+      setTimeout(() => {
+        window.close();
+        // If window.close is blocked, fallback to normal toast
+        if (!window.closed) {
+          toast.success("Facebook Connected!", {
+            description: "Your Meta account has been connected successfully. You may close this window.",
+          });
+          window.history.replaceState({}, "", "/integrations/facebook-auth");
+        }
+      }, 300);
+      return;
+    } else if (errorMsg) {
+      localStorage.setItem('META_OAUTH_ERROR', Date.now().toString());
       setTimeout(() => window.close(), 300);
       return;
-    }
-
-    // Case 2: Page was NOT a popup (e.g. user was redirected here directly).
-    // Just show a toast notification.
-    if (metaStatus === "success") {
-      toast.success("Facebook Connected!", {
-        description: "Your Meta account has been connected successfully.",
-      });
-      // Clean the URL without reloading
-      window.history.replaceState({}, "", "/integrations/facebook-auth");
-    } else if (errorMsg) {
-      toast.error("Connection Failed", { description: decodeURIComponent(errorMsg) });
-      window.history.replaceState({}, "", "/integrations/facebook-auth");
     }
   }, [searchParams]);
 
@@ -73,7 +72,7 @@ export default function FacebookAuthPage() {
             <div className="w-full">
               <FacebookOAuthButton
                 onConnect={() => {
-                  window.location.reload();
+                  window.dispatchEvent(new CustomEvent('TRIGGER_META_SYNC'));
                 }}
               />
             </div>
