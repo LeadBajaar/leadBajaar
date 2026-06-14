@@ -165,20 +165,28 @@ export default function TeamManagementPage() {
 
   return (
     <RoleGuard allowedRoles={['Super Admin', 'Admin']}>
-      <div className="flex flex-col space-y-4 w-full">
+      <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:min-h-screen space-y-4 sm:space-y-6 p-4 sm:p-6 overflow-y-auto z-10 bg-slate-50/50 dark:bg-slate-950/20">
         <div className="w-full">
           {/* Header Actions */}
-          <div className="flex justify-end items-center gap-3">
-            <Dialog open={isInviteModalOpen} onOpenChange={(v) => {
-              setIsInviteModalOpen(v)
-              if (!v) setError(null)
-            }}>
-              <DialogTrigger asChild>
-                <Button className="btn-primary font-bold shadow-md shadow-indigo-500/20 rounded-xl px-5 h-10 text-sm transition-all hover:scale-[1.02]">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Invite Member
-                </Button>
-              </DialogTrigger>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 mb-4 sm:mb-6">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
+                Team Management
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">Manage team members, roles, and permissions</p>
+            </div>
+            <div className="flex justify-start sm:justify-end items-center gap-3 w-full sm:w-auto">
+              <Dialog open={isInviteModalOpen} onOpenChange={(v) => {
+                setIsInviteModalOpen(v)
+                if (!v) setError(null)
+              }}>
+                <DialogTrigger asChild>
+                  <Button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]">
+                    <UserPlus className="h-4 w-4 mr-2 shrink-0" />
+                    Invite Member
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="sm:max-w-[425px] rounded-2xl">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-bold">Invite Team Member</DialogTitle>
@@ -258,17 +266,17 @@ export default function TeamManagementPage() {
               </DialogContent>
             </Dialog>
           </div>
+        </div>
 
-
-        <Tabs defaultValue="directory" className="space-y-4">
-          <TabsList className="bg-[var(--crm-surface-3)] p-1 rounded-xl h-11 border border-[var(--crm-border)] w-fit">
-            <TabsTrigger value="directory" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all">
-              <Users className="h-4 w-4 mr-2" />
-              Directory
+        <Tabs defaultValue="directory" className="space-y-4 w-full">
+          <TabsList className="bg-[var(--crm-surface-3)] p-1 rounded-xl h-auto flex flex-row border border-[var(--crm-border)] w-full sm:w-fit shrink-0">
+            <TabsTrigger value="directory" className="flex-1 sm:flex-none rounded-lg px-4 sm:px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all">
+              <Users className="h-4 w-4 mr-2 shrink-0" />
+              <span className="truncate">Directory</span>
             </TabsTrigger>
-            <TabsTrigger value="roles" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all">
-              <Shield className="h-4 w-4 mr-2" />
-              Roles
+            <TabsTrigger value="roles" className="flex-1 sm:flex-none rounded-lg px-4 sm:px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all">
+              <Shield className="h-4 w-4 mr-2 shrink-0" />
+              <span className="truncate">Roles</span>
             </TabsTrigger>
           </TabsList>
 
@@ -318,8 +326,8 @@ export default function TeamManagementPage() {
 
             {/* Members Table */}
             <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden">
-              <CardHeader className="border-b border-[var(--crm-border)] bg-[var(--crm-surface-2)] py-4 px-6">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <CardHeader className="border-b border-[var(--crm-border)] bg-[var(--crm-surface-2)] py-4 px-4 sm:px-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <CardTitle className="text-base font-bold text-[var(--crm-text-primary)]">Directory</CardTitle>
                   <div className="relative w-full sm:w-72">
                     <Input 
@@ -331,8 +339,8 @@ export default function TeamManagementPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-0">
-                <Table>
+              <CardContent className="p-0 overflow-x-auto no-scrollbar">
+                <Table className="min-w-[800px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4 pl-6">User</TableHead>

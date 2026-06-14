@@ -51,7 +51,7 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[500px] h-[90vh] p-0 flex flex-col bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-[var(--r-xl)] shadow-lg">
+      <DialogContent className="w-full max-w-none h-[100dvh] sm:max-w-[500px] sm:h-[90vh] p-0 flex flex-col bg-[var(--crm-surface-1)] border-0 sm:border sm:border-[var(--crm-border)] rounded-none sm:rounded-[var(--r-xl)] shadow-lg sm:shadow-lg mt-0 mb-0">
         <DialogHeader className="px-6 py-4 border-b border-[var(--crm-border)]">
           <DialogTitle>Edit Lead</DialogTitle>
           <DialogDescription>
@@ -258,7 +258,7 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
             </div>
           </div>
         </div>
-        <DialogFooter className="px-6 py-4 border-t border-[var(--crm-border)] bg-[var(--crm-surface-2)]/30">
+        <div className="px-6 py-4 border-t border-[var(--crm-border)] bg-[var(--crm-surface-2)]/30 flex flex-row items-center justify-end gap-2">
           <Button variant="outline" size="sm" onClick={onCancel} disabled={isUpdating}>
             Cancel
           </Button>
@@ -275,7 +275,7 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
                </>
             ) : 'Save Changes'}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   )

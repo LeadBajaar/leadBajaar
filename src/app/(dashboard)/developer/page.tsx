@@ -78,7 +78,11 @@ const features = [
         color: 'blue',
         badge: 'New & Live'
     }
-]
+].filter(f => {
+    if (f.href === '/developer/pixel-capi' && process.env.NEXT_PUBLIC_FEATURE_PIXELS !== 'true') return false;
+    if (f.href === '/developer/ads' && process.env.NEXT_PUBLIC_FEATURE_ADS !== 'true') return false;
+    return true;
+})
 
 export default function DeveloperHubPage() {
     return (

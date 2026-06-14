@@ -19,7 +19,7 @@ export function handleError(error: any, options?: HandleErrorOptions) {
   const errorTitle = options?.title || "Error";
 
   // Log the error centrally via our logger (silently, as we handle UI here)
-  logger.error(errorTitle, error, { silent: true });
+  logger.error(errorTitle, error, { silent: true, hideConsole: true });
 
   if (options?.silent) {
     return errorMessage;

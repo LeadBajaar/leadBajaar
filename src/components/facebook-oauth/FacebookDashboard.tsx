@@ -105,6 +105,7 @@ interface FacebookPage {
   tasks?: string[]
   category?: string
   connected_at?: string
+  webhook_subscribed?: boolean
 }
 
 interface LeadForm {
@@ -433,6 +434,12 @@ export function FacebookDashboard() {
       if (response.connected) {
         setPages(response.facebook_pages || [])
         setBusinesses(response.businesses || [])
+        
+        // Auto-select first business if none selected
+        if (!selectedBusiness && response.businesses?.length > 0) {
+          setSelectedBusiness(response.businesses[0])
+        }
+        
         setSetupChecklist(response.setup_checklist || null)
       }
     } catch (error: any) {
@@ -517,7 +524,8 @@ export function FacebookDashboard() {
   }
 
   const handleCheckDeletionStatus = () => {
-    if (statusData?.status === 'deletion_pending') {
+    console.log("Checking Deletion Status. Current statusData:", statusData);
+    if (statusData?.status === 'deletion_pending' || statusData?.deletion_details?.status === 'deletion_pending') {
       setIsDeletionStatusDialogOpen(true)
     } else {
       toast.info("No Active Deletion", { description: "You don't have a pending data deletion request for this account." })
@@ -1248,221 +1256,165 @@ export function FacebookDashboard() {
         </Alert>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-2 border-b border-slate-100 dark:border-slate-800/50 mb-6">
-        <div className="space-y-1">
-          <h2 className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
-            Meta Business Suite
-            <Badge className="bg-blue-600 text-white border-none px-2 rounded-lg font-black text-[10px] tracking-widest uppercase">Agency Pro</Badge>
-          </h2>
-          <p className="text-muted-foreground">Manage your agency portfolios, ad accounts and lead generation assets (v25.1-Agency).</p>
+      {/* Header Toolbar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-[var(--crm-border)] mb-4 mt-2">
+        <div className="flex items-center gap-2">
+          <span className="text-[14px] font-medium text-[var(--crm-text-primary)]">Meta Business Suite</span>
+          <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest leading-none h-[18px] flex items-center">AGENCY PRO</span>
         </div>
         
-        {/* Meta Business Selector (Justification for business_management) */}
-        <div className="bg-white dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2 min-w-[300px] animate-in fade-in zoom-in duration-500">
-            <div className="h-10 w-10 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl flex items-center justify-center text-indigo-600">
-              <Briefcase className="h-5 w-5" />
-            </div>
-            <div className="flex-1 px-1">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+          {/* Account Selector */}
+          {businesses.length > 0 && (
+            <div className="flex items-center bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-md h-7 px-1">
+              <Briefcase className="h-3.5 w-3.5 text-[var(--crm-text-secondary)] ml-1.5" />
               <Select 
-                value={selectedBusiness?.business_id || "all"} 
+                value={selectedBusiness?.business_id || ""} 
                 onValueChange={(val) => {
                   const business = businesses.find(b => b.business_id === val);
-                  setSelectedBusiness(business || null);
+                  if (business) setSelectedBusiness(business);
                 }}
               >
-                <SelectTrigger className="border-none bg-transparent h-8 focus:ring-0 px-0 font-bold text-slate-900 dark:text-white shadow-none">
+                <SelectTrigger className="border-none bg-transparent h-6 focus:ring-0 px-2 py-0 shadow-none text-[12px] font-medium min-w-[180px]">
                   <SelectValue placeholder="Select Business Manager" />
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl border-slate-200 dark:border-slate-800 shadow-2xl">
-                  <SelectItem value="all" className="font-bold">Personal Account (Default)</SelectItem>
+                <SelectContent>
                   {businesses.map((biz) => (
-                    <SelectItem key={biz.business_id} value={biz.business_id} className="font-bold">
+                    <SelectItem key={biz.business_id} value={biz.business_id} className="text-[12px] font-medium">
                       {biz.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mt-0.5">
-                {selectedBusiness ? "Business Manager Portfolio" : "Standard Personal Assets"}
-              </p>
             </div>
-          </div>
-        <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
-          {setupChecklist && (
-            <TooltipProvider>
-              <div className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-bold transition-all hover:bg-slate-200 dark:hover:bg-slate-700">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center space-x-1 cursor-default">
-                      <div className={`h-2 w-2 rounded-full ${setupChecklist.oauth_connected ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-amber-500'}`} />
-                      <span className="text-slate-700 dark:text-slate-300">
-                        {setupChecklist.oauth_connected ? 'Active' : 'Setup'}
-                      </span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="rounded-xl border-slate-200 shadow-xl bg-white text-slate-900 font-bold text-[10px]">
-                    {setupChecklist.oauth_connected ? 'Meta Platform Active & Connected' : 'Meta Setup Required'}
-                  </TooltipContent>
-                </Tooltip>
-
-                <span className="text-slate-300 dark:text-slate-600">|</span>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="text-slate-600 dark:text-slate-400 cursor-default hover:text-blue-600 transition-colors">
-                      {pages.length}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="rounded-xl border-slate-200 shadow-xl bg-white text-slate-900 font-bold text-[10px]">
-                     {pages.length} Total Registered Pages
-                  </TooltipContent>
-                </Tooltip>
-
-                <span className="text-slate-300 dark:text-slate-600">|</span>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="text-slate-600 dark:text-slate-400 cursor-default hover:text-indigo-600 transition-colors">
-                      {adAccounts.length}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="rounded-xl border-slate-200 shadow-xl bg-white text-slate-900 font-bold text-[10px]">
-                    {adAccounts.length} Connected Ad Accounts
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </TooltipProvider>
           )}
-          <Button
-            onClick={handleManualSyncAssets}
-            disabled={isSyncingAssets || isLoading}
-            variant="outline"
-            size="sm"
-            className="h-8 shadow-sm border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100"
-          >
-            {isSyncingAssets || isLoading ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
-            ) : (
-              <RefreshCw className="h-3.5 w-3.5 mr-2" />
-            )}
-            {isSyncingAssets ? 'Syncing...' : 'Sync from Meta'}
-          </Button>
+
+          <div className="flex items-center gap-2">
+            <span className="bg-green-50 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest leading-none whitespace-nowrap h-[18px] flex items-center">
+              Active &middot; {pages.length}
+            </span>
+            <Button
+              onClick={handleManualSyncAssets}
+              disabled={isSyncingAssets || isLoading}
+              variant="outline"
+              size="sm"
+              className="h-7 text-[11px] px-3 whitespace-nowrap shadow-sm"
+            >
+              {isSyncingAssets || isLoading ? (
+                <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
+              ) : (
+                <RefreshCw className="h-3 w-3 mr-1.5" />
+              )}
+              {isSyncingAssets ? 'Syncing...' : 'Sync'}
+            </Button>
+          </div>
         </div>
       </div>
 
-      <Tabs defaultValue="pages" className="flex flex-col md:flex-row gap-6 w-full">
-        <div className="w-full md:w-48 lg:w-52 shrink-0">
-          <TabsList className="flex flex-col h-auto w-full bg-transparent p-0 space-y-1 pb-4">
-            <TabsTrigger value="pages" className="w-full justify-start gap-2 border-b-0 data-[state=active]:border-b-0 data-[state=active]:bg-[var(--crm-surface-2)] rounded-md px-3 py-2">
-              <Globe className="h-4 w-4" />
+      <Tabs defaultValue="pages" className="w-full">
+        <div className="border-b border-[var(--crm-border)] mb-4 overflow-x-auto scrollbar-hide">
+          <TabsList className="flex h-auto w-max bg-transparent p-0 gap-2">
+            <TabsTrigger value="pages" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+              <Globe className="h-3.5 w-3.5" />
               <span>Pages & Leads</span>
             </TabsTrigger>
-            <TabsTrigger value="ads" className="w-full justify-start gap-2 border-b-0 data-[state=active]:border-b-0 data-[state=active]:bg-[var(--crm-surface-2)] rounded-md px-3 py-2">
-              <TrendingUp className="h-4 w-4" />
-              <span>Ads Manager</span>
-            </TabsTrigger>
-            <TabsTrigger value="creatives" className="w-full justify-start gap-2 border-b-0 data-[state=active]:border-b-0 data-[state=active]:bg-[var(--crm-surface-2)] rounded-md px-3 py-2">
-              <FileText className="h-4 w-4" />
-              <span>Ad Creatives</span>
-            </TabsTrigger>
-            <TabsTrigger value="templates" className="w-full justify-start gap-2 border-b-0 data-[state=active]:border-b-0 data-[state=active]:bg-[var(--crm-surface-2)] rounded-md px-3 py-2">
-              <BarChart3 className="h-4 w-4" />
-              <span>Ad Templates</span>
-            </TabsTrigger>
-            <TabsTrigger value="pixels" className="w-full justify-start gap-2 border-b-0 data-[state=active]:border-b-0 data-[state=active]:bg-[var(--crm-surface-2)] rounded-md px-3 py-2">
-              <Zap className="h-4 w-4" />
-              <span>Pixels / CAPI</span>
-            </TabsTrigger>
-            <TabsTrigger value="roi" className="w-full justify-start gap-2 border-b-0 data-[state=active]:border-b-0 data-[state=active]:bg-[var(--crm-surface-2)] rounded-md px-3 py-2">
-              <TrendingUp className="h-4 w-4" />
-              <span>ROI Analytics</span>
-            </TabsTrigger>
+            {process.env.NEXT_PUBLIC_FEATURE_ADS === 'true' && (
+              <>
+                <TabsTrigger value="ads" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  <span>Ads Manager</span>
+                </TabsTrigger>
+                <TabsTrigger value="creatives" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+                  <FileText className="h-3.5 w-3.5" />
+                  <span>Ad Creatives</span>
+                </TabsTrigger>
+                <TabsTrigger value="templates" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+                  <BarChart3 className="h-3.5 w-3.5" />
+                  <span>Ad Templates</span>
+                </TabsTrigger>
+                <TabsTrigger value="roi" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  <span>ROI Analytics</span>
+                </TabsTrigger>
+              </>
+            )}
+            {process.env.NEXT_PUBLIC_FEATURE_PIXELS === 'true' && (
+              <TabsTrigger value="pixels" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+                <Zap className="h-3.5 w-3.5" />
+                <span>Pixels / CAPI</span>
+              </TabsTrigger>
+            )}
           </TabsList>
         </div>
 
-        <div className="flex-1 min-w-0 w-full">
+        <div className="w-full">
         <TabsContent value="pages" className="m-0 space-y-6">
 
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Pages Column */}
-            <Card className="lg:col-span-1 border-none shadow-md bg-white dark:bg-slate-900">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Globe className="h-5 w-5 text-blue-500" />
-                  <span>Managed Pages</span>
-                </CardTitle>
-                <CardDescription>
-                  {pages.filter(p => !!p.access_token).length}/{pages.length} Pages Accessible
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
-                  {pages.map((page) => (
-                    <button
+            <div className="border border-[var(--crm-border)] rounded-xl bg-[var(--crm-surface-1)] shadow-sm flex flex-col max-h-[500px]">
+              <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[var(--crm-border)]">
+                <Globe className="h-4 w-4 text-[var(--crm-text-secondary)]" />
+                <h3 className="text-[13px] font-medium text-[var(--crm-text-primary)]">Managed Pages</h3>
+                <span className="text-[11px] text-[var(--crm-text-tertiary)] ml-auto">
+                  {pages.filter(p => !!p.access_token).length}/{pages.length} Accessible
+                </span>
+              </div>
+              <div className="p-2 space-y-1.5 overflow-y-auto">
+                {pages.map((page) => {
+                  const isDisabled = !page.access_token;
+                  return (
+                    <div
                       key={page.id}
-                      onClick={() => loadPageForms(page)}
-                      className={`w-full flex items-center justify-between p-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50 text-left ${selectedPage?.id === page.id ? 'bg-blue-50/50 dark:bg-blue-900/20 border-l-4 border-blue-500' : ''
-                        }`}
+                      onClick={() => !isDisabled && loadPageForms(page)}
+                      className={`flex items-center gap-2.5 p-2 rounded-md transition-colors border border-transparent ${
+                        isDisabled 
+                          ? 'opacity-60 cursor-not-allowed bg-[var(--crm-surface-2)] grayscale-[0.5]' 
+                          : `cursor-pointer ${selectedPage?.id === page.id ? 'bg-blue-50/50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800' : 'bg-[var(--crm-surface-2)] hover:bg-[var(--crm-surface-3)]'}`
+                      }`}
                     >
-                      <div className="flex items-center space-x-3">
-                        <div className="h-8 w-8 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shrink-0">
-                          {page.name.charAt(0)}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-semibold line-clamp-1 flex items-center gap-1.5">
-                            {page.name}
-                          </p>
-                          <p className="text-[10px] uppercase opacity-70 tracking-tighter flex items-center gap-1">
-                            {page.access_token ? (
-                              <span className="text-green-600 font-bold flex items-center"><CheckCircle2 className="h-2 w-2 mr-0.5" /> Connected</span>
-                            ) : (
-                              <span className="text-amber-600 font-bold flex items-center"><AlertCircle className="h-2 w-2 mr-0.5" /> Not Selected</span>
-                            )}
-                            <span className="text-slate-400">| ID: {page.id}</span>
-                          </p>
-                        </div>
+                      <div className="h-7 w-7 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center text-[12px] font-bold shrink-0">
+                        {page.name.charAt(0)}
                       </div>
-                      <ChevronRight className={`h-4 w-4 text-slate-400 shrink-0 ${selectedPage?.id === page.id ? 'text-blue-500' : ''}`} />
-                    </button>
-                  ))}
-                  <div className="px-4 py-3 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800">
-                    <p className="text-[10px] text-slate-500 font-medium italic leading-tight">
-                      Only pages selected during Meta connection can be managed.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-medium text-[var(--crm-text-primary)] truncate">{page.name}</p>
+                        <p className="text-[10px] text-[var(--crm-text-tertiary)] flex items-center gap-1 mt-0.5">
+                          {page.access_token ? (
+                            <span className="text-green-600 font-semibold uppercase tracking-widest">Connected</span>
+                          ) : (
+                            <span className="text-amber-600 font-semibold uppercase tracking-widest">Not Selected</span>
+                          )}
+                          <span>&middot;</span>
+                          <span className="truncate">ID: {page.id}</span>
+                        </p>
+                      </div>
+                      <ChevronRight className={`h-3.5 w-3.5 shrink-0 ${selectedPage?.id === page.id ? 'text-blue-500' : 'text-[var(--crm-text-tertiary)]'}`} />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
             {/* Forms Column */}
-            <Card className="lg:col-span-2 border-none shadow-md bg-white dark:bg-slate-900">
+            <div className="border border-[var(--crm-border)] rounded-xl bg-[var(--crm-surface-1)] shadow-sm flex flex-col max-h-[500px]">
               {selectedPage ? (
                 <>
-                  <CardHeader className="border-b border-slate-100 dark:border-slate-800">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center text-white">
-                          <Facebook className="h-5 w-5" />
-                        </div>
-                        <div>
-                           <div className="flex items-center gap-2">
-                             <CardTitle>{selectedPage.name}</CardTitle>
-                             {selectedPage.access_token && (
-                               <Badge variant="outline" className="h-5 text-[9px] font-bold bg-blue-50 text-blue-700 border-blue-200">
-                                 Connected via Meta
-                               </Badge>
-                             )}
-                           </div>
-                           <CardDescription>Managed Lead Forms</CardDescription>
-                         </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
+                  <div className="flex flex-wrap items-center gap-2 px-3 py-2.5 border-b border-[var(--crm-border)]">
+                    <Facebook className="h-4 w-4 text-[var(--crm-text-secondary)]" />
+                    <h3 className="text-[13px] font-medium text-[var(--crm-text-primary)] truncate max-w-[200px]">
+                      {selectedPage.name}
+                    </h3>
+                    {selectedPage.access_token && (
+                      <span className="bg-green-50 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest leading-none h-[18px] flex items-center shrink-0">Connected</span>
+                    )}
+                    
+                    <div className="ml-auto flex items-center gap-2 shrink-0">
+                      {process.env.NEXT_PUBLIC_FEATURE_ADS === 'true' && (
                         <Dialog open={isCreateFormDialogOpen} onOpenChange={setIsCreateFormDialogOpen}>
                           <DialogTrigger asChild>
-                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                              <Plus className="h-4 w-4 mr-1" />
+                            <Button size="sm" className="h-7 text-[11px] px-3 bg-blue-600 hover:bg-blue-700">
+                              <Plus className="h-3 w-3 mr-1" />
                               Create Form
                             </Button>
                           </DialogTrigger>
@@ -1505,99 +1457,90 @@ export function FacebookDashboard() {
                             </DialogFooter>
                           </DialogContent>
                         </Dialog>
-                        <WebhookVerificationDialog 
-                          pageId={selectedPage.id} 
-                          pageName={selectedPage.name} 
-                        />
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-slate-200">
-                          Active
-                        </Badge>
-                      </div>
+                      )}
+                      <WebhookVerificationDialog 
+                        pageId={selectedPage.id} 
+                        pageName={selectedPage.name} 
+                      />
                     </div>
-                  </CardHeader>
-                    <CardContent className="pt-6">
+                  </div>
+
+                  <div className="p-2 space-y-2 overflow-y-auto">
                     {isLoadingForms ? (
-                      <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                        <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-                        <p className="text-sm text-muted-foreground">Loading forms...</p>
+                      <div className="flex flex-col items-center justify-center py-10 space-y-3">
+                        <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+                        <p className="text-[12px] text-muted-foreground">Loading forms...</p>
                       </div>
                     ) : formsError ? (
-                      <div className="flex flex-col items-center justify-center py-10 px-6 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/20 text-center space-y-4">
-                        <div className="h-14 w-14 bg-white dark:bg-red-900/20 rounded-full shadow-sm flex items-center justify-center text-red-500">
-                          <ShieldAlert className="h-7 w-7" />
-                        </div>
-                        <div className="space-y-2">
-                          <p className="font-bold text-red-800 dark:text-red-400">Permission Required</p>
-                          <p className="text-sm text-red-600/80 dark:text-red-400/60 max-w-sm mx-auto">
-                            {formsError}
-                          </p>
-                        </div>
+                      <div className="flex flex-col items-center justify-center py-8 px-4 bg-red-50/50 rounded-lg border border-red-100 text-center space-y-3">
+                        <ShieldAlert className="h-5 w-5 text-red-500" />
+                        <p className="text-[12px] text-red-600/80 max-w-sm">
+                          {formsError}
+                        </p>
                         <Button 
                           variant="destructive" 
                           size="sm" 
-                          className="font-bold shadow-md rounded-xl"
+                          className="h-7 text-[11px]"
                           onClick={handleMetaConnect}
                           disabled={isConnectingMeta}
                         >
-                          {isConnectingMeta ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Facebook className="h-3 w-3 mr-2" />}
-                          Reconnect & Select Pages
+                          {isConnectingMeta ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : <Facebook className="h-3 w-3 mr-1.5" />}
+                          Reconnect
                         </Button>
                       </div>
                     ) : forms.length > 0 ? (
-                      <div className="grid gap-4">
-                        {forms.map((form) => (
-                          <div key={form.id} className="group flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
-                            <div className="flex items-center space-x-4">
-                              <div className="h-10 w-10 bg-white dark:bg-slate-700 rounded-lg shadow-sm flex items-center justify-center text-blue-500 shrink-0">
-                                <FileText className="h-5 w-5" />
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center space-x-2">
-                                  {/* Fix 14: Form tracking checkbox */}
-                                  <Checkbox 
-                                    id={`track-form-${form.id}`}
-                                    checked={trackedForms.some(tf => tf.form_id === form.id)}
-                                    onCheckedChange={(checked) => handleTrackFormToggle(form, !!checked)}
-                                  />
-                                  <label htmlFor={`track-form-${form.id}`} className="font-bold cursor-pointer">{form.name}</label>
-                                </div>
-                                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono mt-1 ml-6">ID: {form.id}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2 shrink-0">
-                              <Badge variant={form.status === 'ACTIVE' ? 'default' : 'secondary'} className={form.status === 'ACTIVE' ? 'bg-green-500' : ''}>
-                                {form.status}
-                              </Badge>
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                className="h-8 text-xs font-semibold px-3"
-                                onClick={() => handleSyncHistory(form)}
-                                disabled={isSyncingHistory === form.id}
-                              >
-                                {isSyncingHistory === form.id ? (
-                                  <Loader2 className="h-3 w-3 animate-spin mr-2" />
-                                ) : (
-                                  <RefreshCw className="h-3 w-3 mr-2" />
-                                )}
-                                {isSyncingHistory === form.id ? 'Syncing...' : 'Sync History'}
-                              </Button>
-                            </div>
+                      forms.map((form) => (
+                        <div key={form.id} className="flex flex-wrap items-center gap-3 p-2 bg-[var(--crm-surface-2)] rounded-md">
+                          <Checkbox 
+                            id={`track-form-${form.id}`}
+                            checked={trackedForms.some(tf => tf.form_id === form.id)}
+                            onCheckedChange={(checked) => handleTrackFormToggle(form, !!checked)}
+                            className="w-4 h-4 rounded-sm border-gray-300"
+                          />
+                          <FileText className="h-4 w-4 text-blue-500 shrink-0" />
+                          <div className="flex-1 min-w-[150px]">
+                            <label htmlFor={`track-form-${form.id}`} className="text-[12px] font-medium text-[var(--crm-text-primary)] cursor-pointer truncate block">{form.name}</label>
+                            <p className="text-[10px] text-[var(--crm-text-tertiary)] flex items-center gap-1 mt-0.5">
+                              ID: {form.id}
+                            </p>
                           </div>
-                        ))}
-                      </div>
+                          
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className={cn(
+                              "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest leading-none h-[18px] flex items-center",
+                              form.status === 'ACTIVE' ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500"
+                            )}>
+                              {form.status}
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-[11px] px-3 bg-transparent shadow-none border-[var(--crm-border)] text-[var(--crm-text-secondary)]"
+                              onClick={() => handleSyncHistory(form)}
+                              disabled={isSyncingHistory === form.id}
+                            >
+                              {isSyncingHistory === form.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
+                              ) : (
+                                <RefreshCw className="h-3 w-3 mr-1.5" />
+                              )}
+                              {isSyncingHistory === form.id ? 'Syncing...' : 'Sync History'}
+                            </Button>
+                          </div>
+                        </div>
+                      ))
                     ) : (
-                      <div className="text-center py-12 text-muted-foreground">No forms found for this page.</div>
+                      <div className="text-center py-10 text-[12px] text-[var(--crm-text-tertiary)]">No forms found for this page.</div>
                     )}
-                  </CardContent>
+                  </div>
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center h-full p-12 text-center text-muted-foreground">
-                  <Facebook className="h-12 w-12 opacity-20 mb-4" />
-                  <p>Select a Facebook page to manage lead forms</p>
+                <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center text-[var(--crm-text-tertiary)]">
+                  <Facebook className="h-8 w-8 opacity-20 mb-3" />
+                  <p className="text-[12px]">Select a Facebook page to manage lead forms</p>
                 </div>
               )}
-            </Card>
+            </div>
           </div>
 
           {/* Data Privacy & Compliance Section (Strongly recommended for Meta verification) */}

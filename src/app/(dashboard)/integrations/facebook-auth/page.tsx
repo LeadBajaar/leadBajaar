@@ -48,34 +48,39 @@ export default function FacebookAuthPage() {
     <RoleGuard allowedRoles={['Super Admin', 'Admin']} allowedPlans={['pro', 'enterprise']}>
       <div className="absolute inset-0 flex flex-col bg-[var(--crm-bg)] z-10 overflow-hidden">
         {/* ── Header ────────────────────────────────────────────────────────────── */}
-        <div className="shrink-0 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
-          <div className="flex items-center gap-4 p-6">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8 rounded-[8px] text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-3)]"
-              onClick={() => router.push('/integrations')}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-[var(--crm-text-primary)]">Facebook OAuth</h1>
-              <p className="text-sm text-[var(--crm-text-secondary)] mt-1">
-                Connect your Facebook accounts to manage pages and services.
-              </p>
-            </div>
+        <div className="shrink-0 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)] px-6 py-3">
+          <div>
+            <h1 className="text-[18px] font-medium text-[var(--crm-text-primary)] flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-7 w-7 rounded-[6px] text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-3)]"
+                onClick={() => router.push('/integrations')}
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              Facebook Integration
+            </h1>
+            <p className="text-[12px] text-[var(--crm-text-secondary)] mt-0.5 ml-9">
+              Connect your Facebook accounts to manage pages and services.
+            </p>
           </div>
         </div>
 
         {/* ── Content ──────────────────────────────────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-5xl mx-auto space-y-8">
-            <FacebookOAuthButton
-              onConnect={() => {
-                window.location.reload();
-              }}
-            />
-            <FacebookDashboard />
+        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div className="w-full space-y-6">
+            <div className="w-full">
+              <FacebookOAuthButton
+                onConnect={() => {
+                  window.location.reload();
+                }}
+              />
+            </div>
+            
+            <div className="w-full">
+              <FacebookDashboard />
+            </div>
           </div>
         </div>
       </div>

@@ -221,15 +221,15 @@ export default function AgencyPortalPage() {
 
   return (
     <RoleGuard allowedRoles={['Super Admin', 'Admin']} allowedTypes={['agency', 'super_admin']}>
-      <div className="flex flex-col min-h-screen bg-slate-50/50 dark:bg-slate-950/20 p-4 lg:p-6 space-y-6">
+      <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:min-h-screen bg-slate-50/50 dark:bg-slate-950/20 p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto z-10">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              <Briefcase className="h-6 w-6 text-indigo-600" />
-              Agency Management Center
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+              <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
+              Agency Management
             </h1>
-            <p className="text-sm text-slate-500 font-medium">Oversee your client portfolio and performance metrics</p>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">Oversee your client portfolio and performance metrics</p>
           </div>
 
           <Dialog open={isOnboardingOpen} onOpenChange={(open) => {
@@ -237,8 +237,8 @@ export default function AgencyPortalPage() {
             if (!open) setOnboardingResult(null);
           }}>
             <DialogTrigger asChild>
-              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]">
-                <UserPlus2 className="h-4 w-4 mr-2" /> Onboard New Client
+              <Button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]">
+                <UserPlus2 className="h-4 w-4 mr-2 shrink-0" /> Onboard New Client
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[450px] rounded-3xl p-6 border-none shadow-2xl">
@@ -347,7 +347,7 @@ export default function AgencyPortalPage() {
         </div>
 
         {/* Portfolio Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 shrink-0">
           {[
             { label: 'Managed Clients', value: stats?.total_clients || '0', icon: Building2, color: 'indigo', sub: 'Total onboarded orgs' },
             { label: 'Total Leads Managed', value: stats?.total_leads_managed || '0', icon: TrendingUp, color: 'emerald', sub: 'Aggregate across all clients' },
@@ -372,24 +372,24 @@ export default function AgencyPortalPage() {
         </div>
 
         {/* Clients Table */}
-        <Card className="border-none shadow-sm rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden">
-          <CardHeader className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center justify-between pb-6">
+        <Card className="border-none shadow-sm rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden shrink-0">
+          <CardHeader className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 pb-4 sm:pb-6">
             <div>
               <CardTitle className="text-lg font-bold">Client Portfolio</CardTitle>
               <CardDescription>Direct management of Individual accounts</CardDescription>
             </div>
-            <div className="relative w-64">
+            <div className="relative w-full sm:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input 
                 placeholder="Search clients..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 pl-10 rounded-xl bg-slate-50 border-slate-200 text-sm shadow-inner"
+                className="h-10 pl-10 w-full rounded-xl bg-slate-50 border-slate-200 text-sm shadow-inner"
               />
             </div>
           </CardHeader>
-          <CardContent className="p-0">
-            <Table>
+          <CardContent className="p-0 overflow-x-auto no-scrollbar">
+            <Table className="min-w-[800px]">
               <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
                 <TableRow>
                   <TableHead className="font-bold py-5 pl-6 text-xs uppercase text-slate-500">Client / Owner</TableHead>

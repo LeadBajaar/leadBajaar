@@ -302,15 +302,6 @@ function MeetingDetailDialog({
             </div>
           </div>
 
-          {/* Meeting link */}
-          {meeting.meetingLink && (
-            <a href={meeting.meetingLink} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 text-sm text-indigo-600 font-medium hover:bg-indigo-100 transition-colors w-fit">
-              <ExternalLink className="h-4 w-4" />
-              Join Meeting
-            </a>
-          )}
-
           {/* Assigned Rep */}
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -666,9 +657,9 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
       <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-3 sm:pt-0 border-t border-[var(--crm-border)] sm:border-t-0 mt-1 sm:mt-0">
         <div className="flex items-center gap-2">
           {/* Type badge */}
-          <div className={cn('flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm', typeInfo.bg, typeInfo.color, 'border-current/10')}>
-            <TypeIcon className="h-3 w-3" />
-            <span className="text-[10px]">{typeInfo.label}</span>
+          <div className={cn('flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border shadow-sm', typeInfo.bg, typeInfo.color, 'border-current/10')}>
+            <TypeIcon className="h-2.5 w-2.5 shrink-0" />
+            <span className="truncate whitespace-nowrap">{typeInfo.label.replace(' Call', '')}</span>
           </div>
 
           {/* Status */}
@@ -760,7 +751,7 @@ const mapBooking = (booking: any, defaultStatus: string): Meeting => {
   return {
     id: booking.id,
     title: `Meeting with ${name}`,
-    date: formatInTimeZone(startTime, 'UTC', 'EEEE, MMMM d, yyyy'),
+    date: formatInTimeZone(startTime, 'UTC', 'EEE, MMM d, yyyy'),
     time: formatInTimeZone(startTime, 'UTC', 'h:mm a'),
     duration: `${booking.eventType?.duration || 30} minutes`,
     type: (booking.eventType?.location as Meeting['type']) || 'video',
@@ -999,44 +990,39 @@ export default function MeetingsPage() {
 
   return (
     <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
-      <div className="flex flex-col h-full bg-[var(--crm-bg)] overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)] shrink-0">
-          <div>
+      <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:h-full bg-[var(--crm-bg)] overflow-hidden z-10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-3 sm:py-5 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)] shrink-0 gap-3 sm:gap-0">
+          <div className="hidden sm:block">
             <h1 className="text-xl font-semibold text-[var(--crm-text-primary)]">Meetings</h1>
             <p className="text-sm text-[var(--crm-text-secondary)] mt-1">Manage your scheduled meetings</p>
           </div>
-          <div className="flex items-center gap-3">
-            <Link href="/meetings/event-types">
-              <Button variant="outline" size="sm" className="bg-[var(--crm-surface-2)] border-[var(--crm-border)] text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-3)]">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <Link href="/meetings/event-types" className="flex-1 sm:flex-none">
+              <Button variant="outline" size="sm" className="w-full sm:w-auto bg-[var(--crm-surface-2)] border-[var(--crm-border)] text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-3)]">
                 <Settings2 className="h-4 w-4 mr-2" />
                 Event Types
               </Button>
             </Link>
-            <Button size="sm" className="bg-[var(--crm-primary)] hover:opacity-90 text-white">
+            <Button size="sm" className="flex-1 sm:flex-none bg-[var(--crm-primary)] hover:opacity-90 text-white">
               <FileText className="h-4 w-4 mr-2" />
               Questions
             </Button>
           </div>
         </div>
 
-        {/* ── KPI Cards ── */}
-        <div className="grid grid-cols-4 gap-4 shrink-0 px-6 py-4 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
+        {/* ── KPI Text Row ── */}
+        <div className="flex overflow-x-auto gap-5 shrink-0 px-4 sm:px-6 py-2.5 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)] no-scrollbar items-center whitespace-nowrap">
           {[
-            { label: 'Upcoming', value: totalUpcoming, icon: CalendarDays },
-            { label: 'Confirmed', value: totalConfirmed, icon: CalendarCheck },
-            { label: 'Completed', value: totalCompleted, icon: CheckCircle2 },
-            { label: 'Total', value: totalUpcoming + totalHistory, icon: Users },
-          ].map(({ label, value, icon: Icon }) => (
-            <div key={label} className="flex items-center gap-4 bg-[var(--crm-surface-2)] rounded-lg p-4 border border-[var(--crm-border)] shadow-sm">
-              <div className="h-10 w-10 rounded-md flex items-center justify-center bg-[var(--crm-surface-3)] shrink-0 border border-[var(--crm-border)]">
-                <Icon className="h-5 w-5 text-[var(--crm-text-secondary)]" />
-              </div>
-              <div>
-                <p className="text-xs text-[var(--crm-text-secondary)] font-medium mb-1">{label}</p>
-                <div className="text-xl font-semibold text-[var(--crm-text-primary)]">
-                  {isLoading ? <Skeleton className="h-6 w-10" /> : value}
-                </div>
-              </div>
+            { label: 'Upcoming', value: totalUpcoming },
+            { label: 'Confirmed', value: totalConfirmed },
+            { label: 'Completed', value: totalCompleted },
+            { label: 'Total', value: totalUpcoming + totalHistory },
+          ].map(({ label, value }) => (
+            <div key={label} className="flex items-center gap-1.5 text-xs">
+              <span className="text-[var(--crm-text-secondary)] font-medium">{label}</span>
+              <span className="font-bold text-[var(--crm-text-primary)]">
+                {isLoading ? <Skeleton className="h-3 w-4 inline-block" /> : value}
+              </span>
             </div>
           ))}
         </div>
@@ -1092,8 +1078,8 @@ export default function MeetingsPage() {
                   {Object.entries(groupMeetingsByDate(meetings.upcoming)).map(([date, dayMeetings]) => (
                     <div key={date}>
                       <div className="flex items-center gap-3 mb-4">
-                        <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1 rounded-full">
-                          {formatInTimeZone(new Date(date), 'UTC', 'EEEE, MMMM d, yyyy')}
+                        <p className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-1 rounded-full whitespace-nowrap">
+                          {formatInTimeZone(new Date(date), 'UTC', 'EEE, MMM d, yyyy')}
                         </p>
                         <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
                         <span className="text-xs font-medium text-slate-400">{dayMeetings.length} meeting{dayMeetings.length > 1 ? 's' : ''}</span>

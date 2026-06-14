@@ -253,7 +253,21 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                               {lead.name.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex flex-col min-w-0">
-                              <span className="font-medium text-[13px] text-[var(--crm-text-primary)] truncate">{lead.name}</span>
+                              <span className="font-medium text-[13px] text-[var(--crm-text-primary)] truncate flex items-center gap-1.5">
+                                {lead.name}
+                                {lead.is_incomplete ? (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <AlertCircle className="h-3 w-3 text-amber-500 cursor-help" />
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Missing Phone Number</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                ) : null}
+                              </span>
                               <span className="text-[12px] text-[var(--crm-text-tertiary)] font-normal truncate opacity-80">{lead.phone || lead.email}</span>
                             </div>
                           </div>

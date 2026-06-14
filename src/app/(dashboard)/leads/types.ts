@@ -23,6 +23,7 @@ export interface Lead {
   last_contact: string;
   created_at: string;
   updated_at: string;
+  is_incomplete?: boolean;
   user_id?: number | null;
   agent?: {
     id: number;

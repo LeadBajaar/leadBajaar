@@ -144,9 +144,9 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center gap-4 bg-slate-50/50 dark:bg-slate-800/30 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 bg-slate-50/50 dark:bg-slate-800/30 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 bg-white dark:bg-slate-900 rounded-lg flex items-center justify-center shadow-sm border border-slate-200/50 dark:border-slate-800">
+          <div className="h-8 w-8 shrink-0 bg-white dark:bg-slate-900 rounded-lg flex items-center justify-center shadow-sm border border-slate-200/50 dark:border-slate-800">
             <Calendar className="h-4 w-4 text-indigo-500" />
           </div>
           <div>
@@ -156,7 +156,7 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
         </div>
         <Button 
           onClick={addSlot} 
-          className="h-8 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-[9px] uppercase tracking-widest gap-2 transition-all shadow-sm"
+          className="w-full sm:w-auto h-9 sm:h-8 px-4 sm:px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-[10px] sm:text-[9px] uppercase tracking-widest gap-2 transition-all shadow-sm shrink-0"
         >
           <Plus className="h-3 w-3" />
           Add Window
@@ -170,7 +170,7 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
               <CardContent className="p-0">
                 <div className="grid lg:grid-cols-12">
                   {/* Time Range */}
-                  <div className="lg:col-span-4 p-5 border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-slate-800 space-y-4">
+                  <div className="lg:col-span-4 p-4 sm:p-5 border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-slate-800 space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
                         <Label className={labelStyle}>Start</Label>
@@ -178,7 +178,7 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                           type="time"
                           value={slot.startTime}
                           onChange={(e) => updateSlot(slot.id, 'startTime', e.target.value)}
-                          className={cn(inputStyle, "pl-1.5")}
+                          className={cn(inputStyle, "pl-1.5 h-11 sm:h-10")}
                         />
                       </div>
                       <div className="space-y-1.5">
@@ -187,7 +187,7 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                           type="time"
                           value={slot.endTime}
                           onChange={(e) => updateSlot(slot.id, 'endTime', e.target.value)}
-                          className={cn(inputStyle, "pl-1.5")}
+                          className={cn(inputStyle, "pl-1.5 h-11 sm:h-10")}
                         />
                       </div>
                     </div>
@@ -196,7 +196,7 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                       variant="ghost"
                       size="sm"
                       onClick={() => removeSlot(slot.id)}
-                      className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 font-bold text-[9px] uppercase tracking-[0.1em] gap-1.5 rounded-lg h-8 transition-all"
+                      className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 font-bold text-[10px] sm:text-[9px] uppercase tracking-[0.1em] gap-1.5 rounded-lg h-9 sm:h-8 transition-all"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       Discard Window
@@ -204,10 +204,10 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                   </div>
 
                   {/* Days and Breaks */}
-                  <div className="lg:col-span-8 p-5 space-y-6 bg-slate-50/20 dark:bg-slate-900/40">
+                  <div className="lg:col-span-8 p-4 sm:p-5 space-y-6 bg-slate-50/20 dark:bg-slate-900/40">
                     <div className="space-y-2.5">
                       <Label className={labelStyle}>Active Days</Label>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="grid grid-cols-7 gap-1 sm:gap-1.5 w-full">
                         {daysOfWeek.map((day, index) => {
                           const isActive = slot.daysOfWeek.includes(index)
                           return (
@@ -216,13 +216,14 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                               type="button"
                               onClick={() => toggleDay(slot.id, index)}
                               className={cn(
-                                "h-8 w-11 rounded-lg text-[10px] font-black uppercase tracking-tight transition-all duration-200 border shadow-sm",
+                                "h-10 sm:h-8 w-full rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-tight transition-all duration-200 border shadow-sm",
                                 isActive 
                                   ? "bg-indigo-600 border-indigo-600 text-white shadow-sm" 
                                   : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400 hover:border-indigo-300 hover:text-indigo-600"
                               )}
                             >
-                              {day}
+                              {day.charAt(0)}
+                              <span className="hidden sm:inline">{day.slice(1)}</span>
                             </button>
                           )
                         })}

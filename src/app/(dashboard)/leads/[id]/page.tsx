@@ -125,9 +125,9 @@ export default function LeadDetailsPage() {
 
   return (
     <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
-      <div className="flex flex-col h-full bg-white dark:bg-slate-950 overflow-hidden relative">
+      <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:h-full bg-[var(--crm-bg)] overflow-hidden z-10">
       {/* Subtle Header */}
-      <div className="relative z-20 shrink-0 px-4 py-3 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md">
+      <div className="relative z-20 shrink-0 px-4 py-3 flex items-center justify-between border-b border-[var(--crm-border)] bg-[var(--crm-bg)]/80 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <Button 
             variant="ghost" 
@@ -138,173 +138,167 @@ export default function LeadDetailsPage() {
             <ChevronLeft className="h-6 w-6 text-slate-500" />
           </Button>
           <div className="min-w-0">
-            <h1 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Lead Profile</h1>
-            <p className="text-sm font-bold text-slate-900 dark:text-white leading-none truncate max-w-[150px]">{lead.name}</p>
+            <h1 className="text-[10px] font-bold uppercase tracking-widest text-[var(--crm-text-secondary)] mb-0.5">Lead Profile</h1>
+            <p className="text-sm font-bold text-[var(--crm-text-primary)] leading-none truncate max-w-[150px]">{lead.name}</p>
           </div>
         </div>
-        <div className="flex gap-1">
-          <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 text-slate-400 hover:text-indigo-600">
-            <Edit2 className="h-4.5 w-4.5" />
+        <div className="flex items-center gap-1.5">
+          <Button variant="ghost" size="icon" className="h-9 w-9 text-[var(--crm-text-secondary)] hover:text-indigo-600 rounded-[var(--r-lg)] transition-all">
+            <Edit2 className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 text-slate-400 hover:text-rose-500">
-            <Trash2 className="h-4.5 w-4.5" />
+          <Button variant="ghost" size="icon" className="h-9 w-9 text-[var(--crm-text-secondary)] hover:text-rose-500 rounded-[var(--r-lg)] transition-all">
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-6 relative z-10 no-scrollbar">
-        {/* Profile Card - Enhanced Minimal */}
-        <div className="bg-slate-50/50 dark:bg-slate-900/30 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-5 mb-6">
-            <div className={cn("flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl font-black text-2xl uppercase border border-white dark:border-slate-700 shadow-sm transition-all hover:scale-105", temp.color)}>
-              <temp.icon className="h-8 w-8" />
-            </div>
+      <div className="flex-1 overflow-y-auto relative z-10 no-scrollbar pb-32">
+        {/* Profile Header Area - Edge to Edge */}
+        <div className="px-5 pt-6 pb-8 border-b border-[var(--crm-border)] bg-[var(--crm-bg)]">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-5">
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-black text-slate-900 dark:text-white mb-1.5 truncate">{lead.name}</h2>
-              <div className="flex flex-wrap gap-2 items-center">
-                <Badge variant="secondary" className={cn("px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border-none", stage.color)}>
+              <h2 className="text-2xl font-black text-[var(--crm-text-primary)] mb-3 truncate tracking-tight">{lead.name}</h2>
+              <div className="flex flex-wrap gap-2.5 items-center">
+                <Badge variant="secondary" className={cn("px-3 py-1 rounded-[var(--r-pill)] text-[11px] font-bold uppercase tracking-wider border-none shadow-none", stage.color)}>
                   {lead.stage}
                 </Badge>
-                <div className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider", temp.color)}>
+                <div className={cn("inline-flex items-center px-3 py-1 rounded-[var(--r-pill)] text-[11px] font-bold uppercase tracking-wider", temp.color)}>
                    {lead.status}
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 rounded-3xl bg-white dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800 shadow-sm">
-              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-1.5 flex items-center gap-1.5">
-                <Wallet className="h-3 w-3" /> Deal Value
-              </p>
-              <div className="flex items-center gap-1 text-xl font-black text-slate-900 dark:text-white">
-                <IndianRupee className="h-4 w-4 text-emerald-500/80" />
-                {lead.deal_value || 0}
-              </div>
+        {/* Core Info Grid */}
+        <div className="p-0 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-0 sm:gap-6">
+          {/* Quick Stats Section */}
+          <div className="bg-[var(--crm-surface-1)] sm:rounded-[var(--r-2xl)] border-b sm:border border-[var(--crm-border)]">
+            <div className="px-5 py-4 border-b border-[var(--crm-border)]">
+              <h3 className="text-[11px] font-black uppercase tracking-widest text-[var(--crm-text-secondary)]">Overview</h3>
             </div>
-            <div className="p-4 rounded-3xl bg-white dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800 shadow-sm">
-              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-1.5 flex items-center gap-1.5">
-                <CheckCircle className="h-3 w-3" /> Paid Amount
-              </p>
-              <div className="flex items-center gap-1 text-xl font-black text-emerald-600 dark:text-emerald-400">
-                <IndianRupee className="h-4 w-4 opacity-60" />
-                {lead.paid_amount || 0}
+            <div className="divide-y divide-[var(--crm-border)]">
+              <div className="p-4 flex items-center justify-between hover:bg-[var(--crm-surface-2)] transition-colors">
+                <div className="flex items-center gap-3 text-[var(--crm-text-secondary)]">
+                  <Wallet className="h-4 w-4" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Deal Value</span>
+                </div>
+                <div className="flex items-center gap-1 text-lg font-black text-[var(--crm-text-primary)]">
+                  <IndianRupee className="h-4 w-4 text-emerald-500/80" />
+                  {lead.deal_value || 0}
+                </div>
               </div>
-            </div>
-            <div className="p-4 rounded-3xl bg-white dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between">
-              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-1.5 flex items-center gap-1.5">
-                <User className="h-3 w-3 text-purple-500" /> Representative
-              </p>
-              <div className="flex items-center gap-2 mt-0.5">
-                <Select 
-                  value={lead.user_id?.toString() || lead.agent?.id?.toString() || 'unassigned'} 
-                  onValueChange={handleAssignAgent}
-                  disabled={isAssigning}
-                >
-                  <SelectTrigger className="h-8 text-xs border-none bg-slate-50 dark:bg-slate-900 rounded-xl px-2.5 font-bold focus:ring-0 w-full justify-between">
-                    <SelectValue placeholder="Assign Representative" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-100 dark:border-slate-850">
-                    <SelectItem value="unassigned" className="text-slate-400 font-bold text-xs rounded-lg">
-                      Unassigned
-                    </SelectItem>
-                    {teamMembers.map((member) => (
-                      <SelectItem key={member.id} value={member.id.toString()} className="rounded-lg text-xs">
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="h-5 w-5 rounded-full flex items-center justify-center text-white text-[9px] font-black"
-                            style={{ backgroundColor: getAgentColor(member.id).bg }}
-                          >
-                            {member.name.split(' ').filter(Boolean).map((n: string) => n[0].toUpperCase()).join('')}
-                          </div>
-                          <span className="font-bold">{member.name}</span>
-                        </div>
+              <div className="p-4 flex items-center justify-between hover:bg-[var(--crm-surface-2)] transition-colors">
+                <div className="flex items-center gap-3 text-[var(--crm-text-secondary)]">
+                  <CheckCircle className="h-4 w-4" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Paid Amount</span>
+                </div>
+                <div className="flex items-center gap-1 text-lg font-black text-emerald-600 dark:text-emerald-400">
+                  <IndianRupee className="h-4 w-4 opacity-60" />
+                  {lead.paid_amount || 0}
+                </div>
+              </div>
+              <div className="p-4 flex items-center justify-between hover:bg-[var(--crm-surface-2)] transition-colors">
+                <div className="flex items-center gap-3 text-[var(--crm-text-secondary)]">
+                  <User className="h-4 w-4 text-purple-500" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Representative</span>
+                </div>
+                <div className="w-[160px]">
+                  <Select 
+                    value={lead.user_id?.toString() || lead.agent?.id?.toString() || 'unassigned'} 
+                    onValueChange={handleAssignAgent}
+                    disabled={isAssigning}
+                  >
+                    <SelectTrigger className="h-8 text-xs border-[var(--crm-border)] bg-[var(--crm-surface-1)] rounded-[var(--r-lg)] px-2.5 font-bold focus:ring-1 focus:ring-indigo-500 w-full">
+                      <SelectValue placeholder="Assign" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-[var(--crm-border)]">
+                      <SelectItem value="unassigned" className="text-[var(--crm-text-secondary)] font-bold text-xs rounded-lg">
+                        Unassigned
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      {teamMembers.map((member) => (
+                        <SelectItem key={member.id} value={member.id.toString()} className="rounded-lg text-xs">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="h-5 w-5 rounded-full flex items-center justify-center text-white text-[9px] font-black"
+                              style={{ backgroundColor: getAgentColor(member.id).bg }}
+                            >
+                              {member.name.split(' ').filter(Boolean).map((n: string) => n[0].toUpperCase()).join('')}
+                            </div>
+                            <span className="font-bold">{member.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Details Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Contact Details */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 space-y-6">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Contact Details</h3>
-              <Globe className="h-4 w-4 text-slate-200" />
+          <div className="bg-[var(--crm-surface-1)] sm:rounded-[var(--r-2xl)] border-b sm:border border-[var(--crm-border)]">
+            <div className="px-5 py-4 border-b border-[var(--crm-border)] flex items-center justify-between">
+              <h3 className="text-[11px] font-black uppercase tracking-widest text-[var(--crm-text-secondary)]">Contact Details</h3>
+              <Globe className="h-4 w-4 text-[var(--crm-text-secondary)] opacity-50" />
             </div>
             
-            <div className="space-y-5">
-              <div className="flex items-center gap-4 group cursor-pointer" onClick={() => window.open(`tel:${lead.phone}`, '_self')}>
-                <div className="h-11 w-11 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500 transition-all group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:scale-110">
-                  <Phone className="h-5 w-5" />
-                </div>
+            <div className="divide-y divide-[var(--crm-border)]">
+              <div className="p-4 flex items-center gap-3 group cursor-pointer hover:bg-[var(--crm-surface-2)] transition-colors" onClick={() => window.open(`tel:${lead.phone}`, '_self')}>
+                <Phone className="h-5 w-5 text-[var(--crm-text-secondary)] group-hover:text-indigo-600 transition-all shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mb-0.5">Personal Phone</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{lead.phone || 'N/A'}</p>
+                  <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tight mb-0.5">Personal Phone</p>
+                  <p className="text-sm font-bold text-[var(--crm-text-primary)]">{lead.phone || 'N/A'}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 group cursor-pointer" onClick={() => window.open(`mailto:${lead.email}`, '_blank')}>
-                <div className="h-11 w-11 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500 transition-all group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:scale-110">
-                  <Mail className="h-5 w-5" />
-                </div>
+              <div className="p-4 flex items-center gap-3 group cursor-pointer hover:bg-[var(--crm-surface-2)] transition-colors" onClick={() => window.open(`mailto:${lead.email}`, '_blank')}>
+                <Mail className="h-5 w-5 text-[var(--crm-text-secondary)] group-hover:text-indigo-600 transition-all shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mb-0.5">Email Address</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{lead.email || 'N/A'}</p>
+                  <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tight mb-0.5">Email Address</p>
+                  <p className="text-sm font-bold text-[var(--crm-text-primary)] truncate">{lead.email || 'N/A'}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="h-11 w-11 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-                  <Building2 className="h-5 w-5" />
-                </div>
+              <div className="p-4 flex items-center gap-3 hover:bg-[var(--crm-surface-2)] transition-colors">
+                <Building2 className="h-5 w-5 text-[var(--crm-text-secondary)] shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mb-0.5">Organization</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{lead.company || 'N/A'}</p>
+                  <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tight mb-0.5">Organization</p>
+                  <p className="text-sm font-bold text-[var(--crm-text-primary)]">{lead.company || 'N/A'}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Background Info */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 space-y-6">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Background</h3>
-              <Briefcase className="h-4 w-4 text-slate-200" />
+          <div className="bg-[var(--crm-surface-1)] sm:rounded-[var(--r-2xl)] border-b sm:border border-[var(--crm-border)]">
+            <div className="px-5 py-4 border-b border-[var(--crm-border)] flex items-center justify-between">
+              <h3 className="text-[11px] font-black uppercase tracking-widest text-[var(--crm-text-secondary)]">Background</h3>
+              <Briefcase className="h-4 w-4 text-[var(--crm-text-secondary)] opacity-50" />
             </div>
             
-            <div className="space-y-5">
-              <div className="flex items-center gap-4">
-                <div className="h-11 w-11 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-                  <Briefcase className="h-5 w-5" />
-                </div>
+            <div className="divide-y divide-[var(--crm-border)]">
+              <div className="p-4 flex items-center gap-3 hover:bg-[var(--crm-surface-2)] transition-colors">
+                <Briefcase className="h-5 w-5 text-[var(--crm-text-secondary)] shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mb-0.5">Professional Role</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{lead.profession || 'N/A'}</p>
+                  <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tight mb-0.5">Professional Role</p>
+                  <p className="text-sm font-bold text-[var(--crm-text-primary)]">{lead.profession || 'N/A'}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="h-11 w-11 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-                  <MapPin className="h-5 w-5" />
-                </div>
+              <div className="p-4 flex items-center gap-3 hover:bg-[var(--crm-surface-2)] transition-colors">
+                <MapPin className="h-5 w-5 text-[var(--crm-text-secondary)] shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mb-0.5">Current City</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{lead.city || 'N/A'}</p>
+                  <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tight mb-0.5">Current City</p>
+                  <p className="text-sm font-bold text-[var(--crm-text-primary)]">{lead.city || 'N/A'}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="h-11 w-11 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-                  <Calendar className="h-5 w-5" />
-                </div>
+              <div className="p-4 flex items-center gap-3 hover:bg-[var(--crm-surface-2)] transition-colors">
+                <Calendar className="h-5 w-5 text-[var(--crm-text-secondary)] shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mb-0.5">Acquisition Date</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{format(new Date(lead.created_at), 'PPP')}</p>
+                  <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tight mb-0.5">Acquisition Date</p>
+                  <p className="text-sm font-bold text-[var(--crm-text-primary)]">{format(new Date(lead.created_at), 'PPP')}</p>
                 </div>
               </div>
             </div>
@@ -313,19 +307,41 @@ export default function LeadDetailsPage() {
 
         {/* Notes Section */}
         {lead.notes && (
-          <div className="bg-slate-50/50 dark:bg-slate-900/10 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <MessageSquare className="h-16 w-16" />
+          <div className="bg-[var(--crm-surface-1)] sm:rounded-[var(--r-2xl)] border-b sm:border border-[var(--crm-border)] mt-0 sm:mt-6">
+            <div className="px-5 py-4 border-b border-[var(--crm-border)] flex items-center justify-between">
+              <h3 className="text-[11px] font-black uppercase tracking-widest text-[var(--crm-text-secondary)]">Internal Notes</h3>
+              <MessageSquare className="h-4 w-4 text-[var(--crm-text-secondary)] opacity-50" />
             </div>
-            <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-4 px-1">Internal Notes</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line relative z-10 italic font-medium">
-              "{lead.notes}"
-            </p>
+            <div className="p-6">
+              {(() => {
+                try {
+                  const parsed = JSON.parse(lead.notes);
+                  if (typeof parsed === 'object' && parsed !== null) {
+                    return (
+                      <div className="flex flex-col gap-3">
+                        {Object.entries(parsed).map(([key, value]) => (
+                          <div key={key}>
+                            <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--crm-text-secondary)] block mb-1">{key}</span>
+                            <span className="text-sm font-medium text-[var(--crm-text-primary)]">{String(value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }
+                } catch (e) {}
+                
+                return (
+                  <p className="text-sm text-[var(--crm-text-secondary)] leading-relaxed whitespace-pre-line italic font-medium">
+                    "{lead.notes}"
+                  </p>
+                );
+              })()}
+            </div>
           </div>
         )}
 
         {/* Footer info */}
-        <div className="flex items-center justify-center gap-4 pt-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-300 dark:text-slate-700">
+        <div className="flex items-center justify-center gap-4 pt-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--crm-text-secondary)] opacity-50">
           <div className="flex items-center gap-2">
             <Clock className="h-3 w-3" />
             Updated {format(new Date(lead.updated_at), 'MMM dd, p')}
@@ -336,24 +352,28 @@ export default function LeadDetailsPage() {
       </div>
 
       {/* Floating Action Bar - Ultra Clean */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 p-2.5 rounded-[2rem] border border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl shadow-2xl shadow-slate-200/50 dark:shadow-none w-[calc(100%-2.5rem)] max-w-sm border-t-2 border-t-slate-50/50">
-        <Button 
-          className="flex-1 h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-[1.5rem] font-black text-base gap-3 transition-all active:scale-95 shadow-lg shadow-emerald-500/25"
-          onClick={() => {
-            const phone = lead.phone.replace(/\D/g, '');
-            window.open(`https://wa.me/${phone}`, '_blank');
-          }}
-        >
-          <MessageSquare className="h-5 w-5 fill-white/20" />
-          WhatsApp
-        </Button>
-        <Button 
-          variant="outline"
-          className="h-14 w-14 border-slate-100 dark:border-slate-800 text-indigo-600 dark:text-indigo-400 rounded-[1.5rem] hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all active:scale-95 flex items-center justify-center"
-          onClick={() => window.open(`tel:${lead.phone}`, '_self')}
-        >
-          <Phone className="h-5 w-5" />
-        </Button>
+      <div className="fixed bottom-0 left-0 right-0 z-50 px-5 pb-6 pt-4 bg-gradient-to-t from-[var(--crm-bg)] via-[var(--crm-bg)] to-transparent pointer-events-none">
+        <div className="flex items-center justify-center gap-4 w-full max-w-sm mx-auto pointer-events-auto">
+          <Button 
+            className="h-14 w-14 p-0 text-white rounded-full flex items-center justify-center transition-all active:scale-95 shrink-0 border-none"
+            style={{ backgroundColor: '#25D366', boxShadow: '0 10px 15px -3px rgba(37, 211, 102, 0.3)' }}
+            onClick={() => {
+              const phone = lead.phone.replace(/\D/g, '');
+              window.open(`https://wa.me/${phone}`, '_blank');
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7 text-white">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+          </Button>
+          <Button 
+            variant="outline"
+            className="h-14 w-14 p-0 border-[var(--crm-border)] text-[var(--crm-text-primary)] rounded-full hover:bg-[var(--crm-surface-2)] transition-all active:scale-95 flex items-center justify-center bg-[var(--crm-surface-1)] shadow-lg shadow-slate-200/20 shrink-0"
+            onClick={() => window.open(`tel:${lead.phone}`, '_self')}
+          >
+            <Phone className="h-6 w-6" />
+          </Button>
+        </div>
       </div>
     </div>
     </RoleGuard>

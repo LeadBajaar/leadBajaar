@@ -42,9 +42,9 @@ interface LeadsMobileViewProps {
 }
 
 export const LeadsMobileSkeleton = () => (
-  <div className="grid grid-cols-1 gap-2 p-3">
+  <div className="grid grid-cols-1 gap-0">
     {Array.from({ length: 6 }).map((_, i) => (
-      <div key={i} className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-800 space-y-3">
+      <div key={i} className="bg-white dark:bg-slate-900 p-4 border-b border-slate-100 dark:border-slate-800 space-y-3">
         <div className="flex items-center gap-3">
           <Skeleton className="h-4 w-4 rounded" />
           <Skeleton className="h-4 w-32 rounded" />
@@ -94,7 +94,7 @@ export const LeadsMobileView: React.FC<LeadsMobileViewProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-2 p-3 pb-24">
+    <div className="grid grid-cols-1 gap-0 pb-24">
       {leads.map((lead) => {
         const temp = (temperatureConfig as any)[lead.status] || temperatureConfig.Cold;
         const stage = stages[lead.stage] || { color: 'bg-slate-100 text-slate-500', icon: User };
@@ -105,8 +105,8 @@ export const LeadsMobileView: React.FC<LeadsMobileViewProps> = ({
             key={lead.id}
             onClick={() => handleCardClick(lead.id)}
             className={cn(
-              "group relative bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 transition-all active:scale-[0.99] cursor-pointer",
-              isSelected ? "border-indigo-400 ring-1 ring-indigo-400/30" : "hover:border-slate-200"
+              "group relative bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 transition-all active:scale-[0.99] cursor-pointer",
+              isSelected ? "bg-indigo-50 dark:bg-indigo-900/20" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
             )}
           >
             <div className="p-2.5">
@@ -151,7 +151,6 @@ export const LeadsMobileView: React.FC<LeadsMobileViewProps> = ({
                     <Badge variant="outline" className={cn("px-1.5 py-0 h-4 text-[9px] font-bold uppercase tracking-tight border-none shadow-none", stage.color)}>
                       {lead.stage}
                     </Badge>
-                    <span className="text-[10px] text-slate-400 font-medium opacity-70">{lead.source}</span>
                   </div>
                   {(lead.city || lead.profession) && (
                     <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 opacity-60">

@@ -879,24 +879,24 @@ export default function LeadsPage() {
 
   // Pagination controls with per-page selector
   const PaginationControls = () => (
-    <div className="flex items-center justify-between px-2 gap-4 flex-wrap">
+    <div className="flex items-center justify-between px-0 sm:px-2 gap-2 flex-wrap sm:flex-nowrap">
 
       {/* Left: results summary + per-page */}
-      <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-        <span>
+      <div className="flex items-center gap-2 text-[10px] sm:text-xs text-slate-500 dark:text-slate-400">
+        <span className="hidden sm:inline">
           {totalItems > 0
-            ? `${(currentPage - 1) * itemsPerPage + 1}–${Math.min(currentPage * itemsPerPage, totalItems)} of ${totalItems} leads`
-            : '0 leads'}
+            ? `${(currentPage - 1) * itemsPerPage + 1}–${Math.min(currentPage * itemsPerPage, totalItems)} of ${totalItems}`
+            : '0'} leads
         </span>
-        <div className="flex items-center gap-1.5">
-          <span className="text-slate-400">Rows:</span>
+        <div className="flex items-center gap-1">
+          <span className="text-slate-400 hidden sm:inline">Rows:</span>
           <select
             value={itemsPerPage}
             onChange={e => {
               setItemsPerPage(Number(e.target.value));
               setCurrentPage(1);
             }}
-            className="h-7 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-700 dark:text-slate-300 px-2 focus:outline-none focus:ring-1 focus:ring-indigo-400 cursor-pointer"
+            className="h-6 sm:h-7 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-[10px] sm:text-xs text-slate-700 dark:text-slate-300 px-1 sm:px-2 focus:outline-none focus:ring-1 focus:ring-indigo-400 cursor-pointer"
           >
             {[10, 25, 50, 100].map(n => (
               <option key={n} value={n}>{n}</option>
@@ -906,14 +906,14 @@ export default function LeadsPage() {
       </div>
 
       {/* Right: page navigation */}
-      <div className="flex items-center gap-1">
-        <span className="text-xs text-slate-500 dark:text-slate-400 mr-2">
-          Page {currentPage} of {totalPages}
+      <div className="flex items-center gap-0.5 sm:gap-1">
+        <span className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mr-1 sm:mr-2">
+          {currentPage}/{totalPages}
         </span>
         <Button
           variant="outline"
           size="sm"
-          className="h-7 w-7 p-0"
+          className="h-6 w-6 sm:h-7 sm:w-7 p-0"
           onClick={() => setCurrentPage(1)}
           disabled={currentPage === 1}
         >
@@ -922,7 +922,7 @@ export default function LeadsPage() {
         <Button
           variant="outline"
           size="sm"
-          className="h-7 w-7 p-0"
+          className="h-6 w-6 sm:h-7 sm:w-7 p-0"
           onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
           disabled={currentPage === 1}
         >
@@ -931,7 +931,7 @@ export default function LeadsPage() {
         <Button
           variant="outline"
           size="sm"
-          className="h-7 w-7 p-0"
+          className="h-6 w-6 sm:h-7 sm:w-7 p-0"
           onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
           disabled={currentPage === totalPages || totalPages === 0}
         >
@@ -940,7 +940,7 @@ export default function LeadsPage() {
         <Button
           variant="outline"
           size="sm"
-          className="h-7 w-7 p-0"
+          className="h-6 w-6 sm:h-7 sm:w-7 p-0"
           onClick={() => setCurrentPage(totalPages)}
           disabled={currentPage === totalPages || totalPages === 0}
         >

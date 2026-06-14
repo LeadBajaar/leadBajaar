@@ -118,36 +118,43 @@ export default function EventTypesPage() {
   }
 
   return (
-    <div className="flex flex-col p-6 gap-6 h-full bg-[var(--crm-bg)] overflow-y-auto">
+    <div className="flex flex-col p-4 sm:p-6 gap-4 sm:gap-6 absolute inset-0 sm:relative sm:inset-auto sm:h-full bg-[var(--crm-bg)] overflow-y-auto z-10">
 
       {/* ── Header ───────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between shrink-0 gap-4 sm:gap-0">
+        <div className="flex items-center gap-3 sm:gap-4">
           <Button 
             variant="outline" 
             size="icon" 
             onClick={() => router.push('/meetings')} 
-            className="h-9 w-9 border-[var(--crm-border)] bg-[var(--crm-surface-2)] rounded-xl hover:bg-[var(--crm-surface-3)] transition-all active:scale-95 text-[var(--crm-text-secondary)]"
+            className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 border-[var(--crm-border)] bg-[var(--crm-surface-2)] rounded-xl hover:bg-[var(--crm-surface-3)] transition-all active:scale-95 text-[var(--crm-text-secondary)]"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--crm-text-primary)] flex items-center gap-3">
+          <div className="hidden sm:block">
+            <h1 className="text-xl sm:text-2xl font-bold text-[var(--crm-text-primary)] flex items-center gap-2 sm:gap-3">
               Event Types
-              <Zap className="h-5 w-5 text-[var(--crm-primary)] fill-[var(--crm-primary)]" />
+              <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--crm-primary)] fill-[var(--crm-primary)]" />
             </h1>
-            <p className="text-sm text-[var(--crm-text-secondary)] mt-1">Configure your availability and booking page settings</p>
+            <p className="text-xs sm:text-sm text-[var(--crm-text-secondary)] mt-1">Configure your availability and booking page settings</p>
+          </div>
+          <div className="sm:hidden flex-1">
+            <h1 className="text-lg font-bold text-[var(--crm-text-primary)] flex items-center gap-2">
+              Event Types
+              <Zap className="h-4 w-4 text-[var(--crm-primary)] fill-[var(--crm-primary)]" />
+            </h1>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
             onClick={() => window.location.href = '/api/auth/google'}
-            className="h-9 border-[var(--crm-border)] bg-[var(--crm-surface-2)] text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-3)] gap-1.5"
+            className="flex-1 sm:flex-none h-9 border-[var(--crm-border)] bg-[var(--crm-surface-2)] text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-3)] gap-1.5 px-2 sm:px-4"
           >
             <Calendar className="h-4 w-4 text-[var(--crm-text-secondary)]" />
-            Connect Google Calendar
+            <span className="hidden sm:inline">Connect Google Calendar</span>
+            <span className="sm:hidden">Calendar</span>
           </Button>
           <Button 
             onClick={() => {
@@ -158,10 +165,11 @@ export default function EventTypesPage() {
               router.push('/meetings/event-types/new')
             }}
             size="sm" 
-            className="h-9 bg-[var(--crm-primary)] hover:opacity-90 text-white gap-1.5 shadow-sm"
+            className="flex-1 sm:flex-none h-9 bg-[var(--crm-primary)] hover:opacity-90 text-white gap-1.5 shadow-sm px-2 sm:px-4"
           >
             <Plus className="h-4 w-4" />
-            New Event Type
+            <span className="hidden sm:inline">New Event Type</span>
+            <span className="sm:hidden">New Event</span>
           </Button>
         </div>
       </div>

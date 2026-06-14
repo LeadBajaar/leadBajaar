@@ -65,7 +65,7 @@ export default function FacebookLeadFormsPage() {
     if (!config.leadFormName.trim()) newErrors.leadFormName = "Lead Form Name is required";
     if (!config.pageId.trim()) newErrors.pageId = "Page ID is required";
     if (!config.formId.trim()) newErrors.formId = "Form ID is required";
-    if (!config.accessToken.trim()) newErrors.accessToken = "Access Token is required";
+    if (!selectedFormId && !config.accessToken.trim()) newErrors.accessToken = "Access Token is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -78,10 +78,10 @@ export default function FacebookLeadFormsPage() {
       const payload = {
         type: "leadform",
         config: {
-          project_name: config.leadFormName,
-          page_id: config.pageId,
-          form_id: config.formId,
-          page_access_token: config.accessToken,
+          leadFormName: config.leadFormName,
+          pageId: config.pageId,
+          formId: config.formId,
+          accessToken: config.accessToken,
         },
         isActive: true,
         environment: "production" as "sandbox" | "production",

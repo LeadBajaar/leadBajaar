@@ -489,8 +489,7 @@ export const integrationApi = {
         const message = error.response.data.message || 'Validation failed';
         throw new Error(message);
       }
-      const message = error.response?.data?.message || 'Failed to save integration configuration';
-      throw new Error(message);
+      throw error;
     }
   },
 
@@ -507,7 +506,7 @@ export const integrationApi = {
           : error.response.data.message || 'Validation failed';
         throw new Error(message);
       }
-      throw new Error(error.response?.data?.message || 'Failed to update integration');
+      throw error;
     }
   },
 

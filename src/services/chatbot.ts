@@ -1,5 +1,6 @@
 import { ChatbotNode, ChatbotEdge } from '@/types/nodes'
 import { logger } from '@/utils/logger'
+import { API_BASE_URL } from '@/lib/api'
 
 export interface SaveFlowPayload {
   id?: string
@@ -24,7 +25,7 @@ export interface ChatbotFlow {
 }
 
 class ChatbotService {
-  private baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+  private baseUrl = API_BASE_URL
 
   private async fetchApi(url: string, options: RequestInit = {}) {
     const token = localStorage.getItem('token') // or get from your auth system

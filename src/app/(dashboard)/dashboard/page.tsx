@@ -145,7 +145,7 @@ const demoDashboardData: DashboardData = {
 // ─────────────────────────────────────────────────────────────
 function StatCardSkeleton() {
   return (
-    <div className="bg-[var(--crm-surface-1)] rounded-[var(--r-lg)] border border-[var(--crm-border)]">
+    <div className="bg-[var(--crm-surface-1)] border-y sm:border border-[var(--crm-border)] border-x-0 sm:border-x rounded-none sm:rounded-[var(--r-lg)]">
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">
           <Skeleton className="h-3 w-20" />
@@ -163,7 +163,7 @@ const SKELETON_BAR_HEIGHTS = [55, 72, 40, 85, 62, 90, 48, 78, 65, 88, 70, 95];
 
 function ChartSkeleton() {
   return (
-    <div className="bg-[var(--crm-surface-1)] rounded-[var(--r-lg)] border border-[var(--crm-border)]">
+    <div className="bg-[var(--crm-surface-1)] border-y sm:border border-[var(--crm-border)] border-x-0 sm:border-x rounded-none sm:rounded-[var(--r-lg)]">
       <div className="p-3 border-b border-[var(--crm-border)]">
         <Skeleton className="h-4 w-32" />
         <Skeleton className="h-2 w-48 mt-1.5" />
@@ -185,7 +185,7 @@ function ChartSkeleton() {
 
 function ProfileSkeleton() {
   return (
-    <div className="bg-[var(--crm-surface-1)] rounded-[var(--r-lg)] border border-[var(--crm-border)]">
+    <div className="bg-[var(--crm-surface-1)] border-y sm:border border-[var(--crm-border)] border-x-0 sm:border-x rounded-none sm:rounded-[var(--r-lg)]">
       <div className="p-3 border-b border-[var(--crm-border)]">
         <Skeleton className="h-4 w-24" />
       </div>
@@ -212,7 +212,7 @@ function ProfileSkeleton() {
 
 function ActivitySkeleton() {
   return (
-    <div className="bg-[var(--crm-surface-1)] rounded-[var(--r-lg)] border border-[var(--crm-border)]">
+    <div className="bg-[var(--crm-surface-1)] border-y sm:border border-[var(--crm-border)] border-x-0 sm:border-x rounded-none sm:rounded-[var(--r-lg)]">
       <div className="p-3 border-b border-[var(--crm-border)]">
         <Skeleton className="h-4 w-28" />
       </div>
@@ -391,14 +391,14 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 pt-0 md:pt-0 lg:pt-0">
+    <div className="flex flex-col gap-4 sm:gap-6 px-0 sm:px-4 md:px-6 lg:px-8 pb-4 sm:pb-6 pt-0">
       {/* ── Download Android App ─────────────────────────── */}
       <section
         className={cn(
-          "rounded-[var(--r-xl)] relative flex transition-all duration-500 ease-in-out border border-[var(--crm-border)] overflow-hidden bg-[var(--crm-surface-1)]",
+          "rounded-none sm:rounded-[var(--r-xl)] relative flex transition-all duration-500 ease-in-out border-y sm:border border-[var(--crm-border)] border-x-0 sm:border-x overflow-hidden bg-[var(--crm-surface-1)]",
           isBannerMinimized
-            ? "flex-col sm:flex-row items-center justify-between px-6 py-4 gap-4 sm:gap-0"
-            : "flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16 px-6 sm:px-10 py-8 lg:py-6",
+            ? "flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-3 sm:py-4 gap-3 sm:gap-0"
+            : "flex-col lg:flex-row items-center justify-center gap-6 sm:gap-8 lg:gap-16 px-4 sm:px-10 py-6 sm:py-8 lg:py-6",
         )}
       >
         {/* Minimize/Maximize Toggle - Highlighted Style */}
@@ -459,7 +459,7 @@ export default function DashboardPage() {
                 "text-slate-900 tracking-tight transition-all",
                 isBannerMinimized
                   ? "text-sm sm:text-base font-semibold"
-                  : "text-3xl sm:text-4xl lg:text-5xl font-bold leading-[1.15]",
+                  : "text-2xl sm:text-4xl lg:text-5xl font-bold leading-[1.15]",
               )}
             >
               {isBannerMinimized ? (
@@ -476,7 +476,7 @@ export default function DashboardPage() {
               )}
             </h2>
             {!isBannerMinimized && (
-              <p className="text-sm sm:text-base lg:text-lg text-slate-500 font-medium leading-relaxed max-w-lg mx-auto lg:mx-0">
+              <p className="text-sm sm:text-base lg:text-lg text-slate-500 font-medium leading-relaxed max-w-sm sm:max-w-lg mx-auto lg:mx-0">
                 Manage your leads, set meetings, and track performance with the
                 same power as your desktop — but in your pocket.
               </p>
@@ -486,36 +486,19 @@ export default function DashboardPage() {
           {/* CTA Buttons */}
           <div
             className={cn(
-              "flex flex-wrap items-center gap-3 sm:gap-4 transition-all",
-              !isBannerMinimized && "justify-center lg:justify-start pt-2",
+              "flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-4 transition-all",
+              !isBannerMinimized && "pt-2",
             )}
           >
-            <button
-              onClick={() => setShowTesterModal(true)}
-              className={cn(
-                "inline-flex items-center gap-3 bg-[var(--crm-primary)] text-white rounded-xl font-semibold transition-all shadow-md shadow-[var(--crm-primary)]/20 hover:bg-[var(--crm-primary)]/90 hover:-translate-y-0.5 active:scale-95 whitespace-nowrap",
-                isBannerMinimized
-                  ? "px-4 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm"
-                  : "px-5 py-2.5 sm:px-6 sm:py-3.5 text-sm sm:text-base",
-              )}
-            >
-              <Zap
-                className={
-                  isBannerMinimized
-                    ? "w-3.5 h-3.5 sm:w-4 sm:h-4"
-                    : "w-4 h-4 sm:w-5 sm:h-5"
-                }
-              />
-              Early Access
-            </button>
             <a
-              href="/downloads/Leadbajaar.apk"
-              download="Leadbajaar.apk"
+              href="https://play.google.com/store/apps/details?id=com.leadbajaar"
+              target="_blank"
+              rel="noopener noreferrer"
               className={cn(
-                "inline-flex items-center gap-3 bg-[var(--crm-surface-2)] text-[var(--crm-text-primary)] rounded-xl font-semibold transition-all border border-[var(--crm-border)] shadow-sm hover:bg-[var(--crm-surface-3)] hover:-translate-y-0.5 active:scale-95 whitespace-nowrap",
+                "inline-flex items-center gap-3 bg-[var(--crm-btn-primary-bg)] text-[var(--crm-btn-primary-text)] rounded-xl font-semibold transition-all shadow-md shadow-[var(--crm-btn-primary-bg)]/20 hover:opacity-90 hover:-translate-y-0.5 active:scale-95 whitespace-nowrap",
                 isBannerMinimized
-                  ? "px-4 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm"
-                  : "px-5 py-2.5 sm:px-6 sm:py-3.5 text-sm sm:text-base",
+                  ? "px-3 py-1.5 text-xs sm:px-5 sm:py-2.5 sm:text-sm"
+                  : "px-4 py-2 sm:px-6 sm:py-3.5 text-xs sm:text-base",
               )}
             >
               <Smartphone
@@ -525,15 +508,15 @@ export default function DashboardPage() {
                     : "w-4 h-4 sm:w-5 sm:h-5"
                 }
               />
-              Download APK
+              Get it on Play Store
             </a>
             <button
               onClick={() => setShowQRModal(true)}
               className={cn(
                 "inline-flex items-center gap-3 bg-[var(--crm-surface-2)] text-[var(--crm-text-primary)] rounded-xl font-semibold transition-all border border-[var(--crm-border)] shadow-sm hover:bg-[var(--crm-surface-3)] hover:-translate-y-0.5 active:scale-95 whitespace-nowrap",
                 isBannerMinimized
-                  ? "px-4 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm"
-                  : "px-5 py-2.5 sm:px-6 sm:py-3.5 text-sm sm:text-base",
+                  ? "px-3 py-1.5 text-xs sm:px-5 sm:py-2.5 sm:text-sm"
+                  : "px-4 py-2 sm:px-6 sm:py-3.5 text-xs sm:text-base",
               )}
             >
               <QrCode
@@ -579,8 +562,7 @@ export default function DashboardPage() {
           <DialogHeader>
             <DialogTitle>Scan to Download</DialogTitle>
             <DialogDescription>
-              Scan this QR code with your mobile camera to download the
-              LeadBajaar APK directly to your phone.
+              Scan this QR code with your mobile camera to view LeadBajaar on the Google Play Store.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
@@ -597,7 +579,7 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(typeof window !== "undefined" ? `${window.location.origin}/downloads/Leadbajaar.apk` : "https://app.leadbajaar.com/downloads/Leadbajaar.apk")}`}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent("https://play.google.com/store/apps/details?id=com.leadbajaar")}`}
                 alt="Download QR Code"
                 className="relative z-10 w-[200px] h-[200px]"
                 onLoad={(e) => {
@@ -611,7 +593,7 @@ export default function DashboardPage() {
               />
             </div>
             <p className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] opacity-60">
-              leadbajaar_v2.apk
+              Google Play Store
             </p>
           </div>
         </DialogContent>
@@ -710,7 +692,7 @@ export default function DashboardPage() {
               return (
                 <div
                   key={s.label}
-                  className="bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-[var(--r-lg)] p-4 flex flex-col hover:border-[var(--crm-border-hover)] transition-colors duration-200"
+                  className="bg-[var(--crm-surface-1)] border-y sm:border border-[var(--crm-border)] border-x-0 sm:border-x rounded-none sm:rounded-[var(--r-lg)] p-4 flex flex-col hover:border-[var(--crm-border-hover)] transition-colors duration-200"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-[12px] font-medium text-[var(--crm-text-secondary)]">
@@ -754,7 +736,7 @@ export default function DashboardPage() {
             <ChartSkeleton />
           </div>
         ) : (
-          <div className="bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-[var(--r-lg)] lg:col-span-4">
+          <div className="bg-[var(--crm-surface-1)] border-y sm:border border-[var(--crm-border)] border-x-0 sm:border-x rounded-none sm:rounded-[var(--r-lg)] lg:col-span-4">
             <div className="p-3 border-b border-[var(--crm-border)]">
               <div className="flex items-center justify-between">
                 <div>
@@ -791,7 +773,7 @@ export default function DashboardPage() {
             <ProfileSkeleton />
           ) : (
             user && (
-              <div className="bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-[var(--r-lg)]">
+              <div className="bg-[var(--crm-surface-1)] border-y sm:border border-[var(--crm-border)] border-x-0 sm:border-x rounded-none sm:rounded-[var(--r-lg)]">
                 <div className="p-3 border-b border-[var(--crm-border)]">
                   <h3 className="text-[13px] font-semibold text-[var(--crm-text-primary)]">
                     Account
@@ -865,7 +847,7 @@ export default function DashboardPage() {
         {isLoading ? (
           <ActivitySkeleton />
         ) : (
-          <div className="bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-[var(--r-lg)]">
+          <div className="bg-[var(--crm-surface-1)] border-y sm:border border-[var(--crm-border)] border-x-0 sm:border-x rounded-none sm:rounded-[var(--r-lg)]">
             <div className="p-3 border-b border-[var(--crm-border)]">
               <h3 className="text-[13px] font-semibold text-[var(--crm-text-primary)]">
                 Lead Pipeline
@@ -910,7 +892,7 @@ export default function DashboardPage() {
         {isLoading ? (
           <ActivitySkeleton />
         ) : (
-          <div className="bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-[var(--r-lg)]">
+          <div className="bg-[var(--crm-surface-1)] border-y sm:border border-[var(--crm-border)] border-x-0 sm:border-x rounded-none sm:rounded-[var(--r-lg)]">
             <div className="p-3 border-b border-[var(--crm-border)]">
               <h3 className="text-[13px] font-semibold text-[var(--crm-text-primary)]">
                 Recent Activity

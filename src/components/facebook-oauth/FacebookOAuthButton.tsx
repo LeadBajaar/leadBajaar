@@ -251,28 +251,28 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
 
   if (hasConnectedServices) {
     return (
-      <Card className={cn("flex items-center justify-between p-4 gap-4", className)}>
+      <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-[var(--crm-border)] rounded-xl gap-3 bg-[var(--crm-surface-1)] shadow-sm", className)}>
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-blue-500/10">
+          <div className="p-1.5 rounded-lg bg-blue-500/10">
             <Facebook className="h-5 w-5 text-blue-600" />
           </div>
           <div>
-            <h3 className="text-sm font-bold flex items-center gap-2">
+            <h3 className="text-[13px] font-medium text-[var(--crm-text-primary)] flex items-center gap-1.5">
               Meta Services Connected
               <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
             </h3>
-            <p className="text-[11px] text-[var(--crm-text-secondary)] mt-1">
+            <p className="text-[11px] text-[var(--crm-text-secondary)] mt-0.5">
               {connectedServices.length} {connectedServices.length === 1 ? 'service' : 'services'} synced successfully
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full sm:w-auto items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={handleRefreshToken}
             disabled={isRefreshing}
-            className="h-8 text-xs"
+            className="flex-1 sm:flex-none h-7 text-[11px] px-3"
           >
             {isRefreshing ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : <RefreshCw className="h-3 w-3 mr-1.5" />}
             Refresh
@@ -282,48 +282,50 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
             size="sm"
             onClick={handleConnect}
             disabled={isConnecting}
-            className="h-8 text-xs bg-blue-600 hover:bg-blue-700"
+            className="flex-1 sm:flex-none h-7 text-[11px] px-3 bg-blue-600 hover:bg-blue-700"
           >
             {isConnecting ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : <Facebook className="h-3 w-3 mr-1.5" />}
             Manage
           </Button>
         </div>
-      </Card>
+      </div>
     )
   }
 
   return (
-    <Card className={cn("w-full flex items-center justify-between p-4", className)}>
+    <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-[var(--crm-border)] rounded-xl gap-3 bg-[var(--crm-surface-1)] shadow-sm", className)}>
       <div className="flex items-center gap-3">
-        <div className="p-2 rounded-xl bg-blue-500/10">
+        <div className="p-1.5 rounded-lg bg-blue-500/10">
           <Facebook className="h-5 w-5 text-blue-600" />
         </div>
         <div>
-          <h3 className="text-sm font-bold">Facebook & Meta Services</h3>
-          <p className="text-[11px] text-[var(--crm-text-secondary)] mt-1">
+          <h3 className="text-[13px] font-medium text-[var(--crm-text-primary)]">Facebook & Meta Services</h3>
+          <p className="text-[11px] text-[var(--crm-text-secondary)] mt-0.5">
             Connect pages, WhatsApp accounts, and other Meta services
           </p>
         </div>
       </div>
-      <Button
-        onClick={handleConnect}
-        disabled={isConnecting}
-        size="sm"
-        className="h-8 text-xs bg-blue-600 hover:bg-blue-700"
-      >
-        {isConnecting ? (
-          <>
-            <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
-            Connecting...
-          </>
-        ) : (
-          <>
-            <Facebook className="h-3 w-3 mr-1.5" />
-            Connect Facebook
-          </>
-        )}
-      </Button>
-    </Card>
+      <div className="flex w-full sm:w-auto items-center gap-2">
+        <Button
+          onClick={handleConnect}
+          disabled={isConnecting}
+          size="sm"
+          className="flex-1 sm:flex-none h-7 text-[11px] px-3 bg-blue-600 hover:bg-blue-700"
+        >
+          {isConnecting ? (
+            <>
+              <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
+              Connecting...
+            </>
+          ) : (
+            <>
+              <Facebook className="h-3 w-3 mr-1.5" />
+              Connect Facebook
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
   )
 }
 

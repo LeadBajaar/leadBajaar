@@ -21,83 +21,6 @@ import { cn } from '@/lib/utils'
 import { RoleGuard } from '@/components/RoleGuard'
 import { getAnalyticsData } from '@/lib/api'
 
-// ─── Dummy Data ────────────────────────────────────────────────────────────────
-
-const monthlyLeads = [
-  { month: 'Jan', leads: 42, converted: 18, lost: 8, revenue: 124000 },
-  { month: 'Feb', leads: 58, converted: 24, lost: 12, revenue: 168000 },
-  { month: 'Mar', leads: 75, converted: 31, lost: 14, revenue: 217000 },
-  { month: 'Apr', leads: 63, converted: 28, lost: 10, revenue: 196000 },
-  { month: 'May', leads: 91, converted: 42, lost: 16, revenue: 294000 },
-  { month: 'Jun', leads: 84, converted: 38, lost: 13, revenue: 266000 },
-  { month: 'Jul', leads: 110, converted: 52, lost: 18, revenue: 364000 },
-  { month: 'Aug', leads: 98, converted: 47, lost: 15, revenue: 329000 },
-  { month: 'Sep', leads: 126, converted: 61, lost: 22, revenue: 427000 },
-  { month: 'Oct', leads: 138, converted: 68, lost: 24, revenue: 476000 },
-  { month: 'Nov', leads: 152, converted: 74, lost: 28, revenue: 518000 },
-  { month: 'Dec', leads: 171, converted: 89, lost: 31, revenue: 623000 },
-]
-
-const conversionRateData = [
-  { month: 'Jan', rate: 42.9, target: 45 },
-  { month: 'Feb', rate: 41.4, target: 45 },
-  { month: 'Mar', rate: 41.3, target: 45 },
-  { month: 'Apr', rate: 44.4, target: 45 },
-  { month: 'May', rate: 46.2, target: 45 },
-  { month: 'Jun', rate: 45.2, target: 45 },
-  { month: 'Jul', rate: 47.3, target: 45 },
-  { month: 'Aug', rate: 48.0, target: 45 },
-  { month: 'Sep', rate: 48.4, target: 45 },
-  { month: 'Oct', rate: 49.3, target: 45 },
-  { month: 'Nov', rate: 48.7, target: 45 },
-  { month: 'Dec', rate: 52.0, target: 45 },
-]
-
-const leadSourceData = [
-  { name: 'Facebook', value: 382, color: '#6366f1', fill: '#6366f1' },
-  { name: 'Website', value: 294, color: '#8b5cf6', fill: '#8b5cf6' },
-  { name: 'Referral', value: 218, color: '#06b6d4', fill: '#06b6d4' },
-  { name: 'LinkedIn', value: 163, color: '#10b981', fill: '#10b981' },
-  { name: 'Email', value: 109, color: '#f59e0b', fill: '#f59e0b' },
-  { name: 'Other', value: 74, color: '#94a3b8', fill: '#94a3b8' },
-]
-
-const stageData = [
-  { stage: 'New', count: 312, color: '#6366f1', fill: '#6366f1' },
-  { stage: 'Contacted', count: 248, color: '#8b5cf6', fill: '#8b5cf6' },
-  { stage: 'Qualified', count: 186, color: '#06b6d4', fill: '#06b6d4' },
-  { stage: 'Proposal', count: 124, color: '#10b981', fill: '#10b981' },
-  { stage: 'Negotiation', count: 72, color: '#f59e0b', fill: '#f59e0b' },
-  { stage: 'Closed', count: 58, color: '#22c55e', fill: '#22c55e' },
-]
-
-const weeklyActivity = [
-  { day: 'Mon', calls: 24, emails: 38, meetings: 8 },
-  { day: 'Tue', calls: 31, emails: 42, meetings: 11 },
-  { day: 'Wed', calls: 28, emails: 35, meetings: 14 },
-  { day: 'Thu', calls: 36, emails: 48, meetings: 9 },
-  { day: 'Fri', calls: 22, emails: 29, meetings: 12 },
-  { day: 'Sat', calls: 8, emails: 12, meetings: 3 },
-  { day: 'Sun', calls: 4, emails: 6, meetings: 1 },
-]
-
-const topPerformers = [
-  { name: 'Aryan Sharma', leads: 47, converted: 28, revenue: 196000, avatar: 'AS' },
-  { name: 'Priya Mehta', leads: 39, converted: 22, revenue: 154000, avatar: 'PM' },
-  { name: 'Rahul Gupta', leads: 35, converted: 19, revenue: 133000, avatar: 'RG' },
-  { name: 'Sneha Patel', leads: 31, converted: 17, revenue: 119000, avatar: 'SP' },
-  { name: 'Karan Singh', leads: 28, converted: 14, revenue: 98000, avatar: 'KS' },
-]
-
-const dealValueRanges = [
-  { range: '< ₹10K', count: 218 },
-  { range: '₹10K–25K', count: 187 },
-  { range: '₹25K–50K', count: 142 },
-  { range: '₹50K–1L', count: 96 },
-  { range: '₹1L–5L', count: 54 },
-  { range: '> ₹5L', count: 22 },
-]
-
 // ─── Stat Card ─────────────────────────────────────────────────────────────────
 
 function StatCard({
@@ -171,9 +94,8 @@ const PERIODS = ['This Month', 'Last 6M', 'This Year', 'All Time']
 
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState('This Year')
-  const [useRealData, setUseRealData] = useState(false)
   const [realData, setRealData] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -191,41 +113,39 @@ export default function AnalyticsPage() {
   }, [])
 
   // ── Data selection ──
-  const activeMonthlyLeads = (useRealData && realData) ? realData.monthlyLeads : monthlyLeads
-  const activeConversionRateData = (useRealData && realData) ? realData.conversionRateData : conversionRateData
-  const activeLeadSourceData = (useRealData && realData) ? realData.leadSourceData : leadSourceData
-  const activeStageData = (useRealData && realData) ? realData.stageData : stageData
-  const activeWeeklyActivity = (useRealData && realData) ? realData.weeklyActivity : weeklyActivity
-  const activeDealValueRanges = (useRealData && realData) ? realData.dealValueRanges : dealValueRanges
-  const activeTopPerformers = (useRealData && realData) ? realData.topPerformers : topPerformers
+  const activeMonthlyLeads = realData?.monthlyLeads || []
+  const activeConversionRateData = realData?.conversionRateData || []
+  const activeLeadSourceData = realData?.leadSourceData || []
+  const activeStageData = realData?.stageData || []
+  const activeWeeklyActivity = realData?.weeklyActivity || []
+  const activeDealValueRanges = realData?.dealValueRanges || []
+  const activeTopPerformers = realData?.topPerformers || []
 
   const totalLeads = activeMonthlyLeads.reduce((s: number, m: any) => s + m.leads, 0)
   const totalConverted = activeMonthlyLeads.reduce((s: number, m: any) => s + m.converted, 0)
   const totalRevenue = activeMonthlyLeads.reduce((s: number, m: any) => s + m.revenue, 0)
   const convRate = totalLeads > 0 ? ((totalConverted / totalLeads) * 100).toFixed(1) : '0.0'
 
+  if (isLoading) {
+    return (
+      <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager']} allowedPlans={['pro', 'enterprise']}>
+        <div className="flex h-screen items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      </RoleGuard>
+    )
+  }
+
   return (
     <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager']} allowedPlans={['pro', 'enterprise']}>
-      <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 h-full overflow-y-auto">
+      <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:min-h-screen gap-4 sm:gap-6 p-4 md:p-6 lg:p-8 overflow-y-auto">
 
       {/* ── Header ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white">Analytics</h1>
-            <p className="text-sm text-slate-500 mt-0.5">Track performance across your entire sales pipeline</p>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
-            <Switch 
-              id="data-mode" 
-              checked={useRealData} 
-              onCheckedChange={setUseRealData}
-              disabled={isLoading || !realData}
-            />
-            <Label htmlFor="data-mode" className="text-xs font-bold flex items-center gap-2 cursor-pointer">
-              {useRealData ? <Database className="h-3 w-3 text-indigo-500" /> : <EyeOff className="h-3 w-3 text-slate-400" />}
-              {useRealData ? 'REAL DATA' : 'DEMO MODE'}
-            </Label>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Analytics</h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Track performance across your entire sales pipeline</p>
           </div>
         </div>
         <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 w-full lg:w-auto overflow-x-auto no-scrollbar shrink-0">
