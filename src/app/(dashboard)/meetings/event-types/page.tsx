@@ -156,21 +156,35 @@ export default function EventTypesPage() {
             <span className="hidden sm:inline">Connect Google Calendar</span>
             <span className="sm:hidden">Calendar</span>
           </Button>
-          <Button 
-            onClick={() => {
-              if (!user?.name) {
-                toast.error("User profile name is required to create an event type.")
-                return
-              }
-              router.push('/meetings/event-types/new')
-            }}
-            size="sm" 
-            className="flex-1 sm:flex-none h-9 bg-[var(--crm-primary)] hover:opacity-90 text-white gap-1.5 shadow-sm px-2 sm:px-4"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">New Event Type</span>
-            <span className="sm:hidden">New Event</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                size="sm" 
+                className="flex-1 sm:flex-none h-9 bg-[var(--crm-primary)] hover:opacity-90 text-white gap-1.5 shadow-sm px-2 sm:px-4"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">New Event Type</span>
+                <span className="sm:hidden">New Event</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64 bg-[var(--crm-surface-1)]">
+              <DropdownMenuItem onClick={() => {
+                if (!user?.name) { toast.error("User profile name is required to create an event type."); return; }
+                router.push('/meetings/event-types/new?type=one_on_one')
+              }} className="cursor-pointer flex flex-col items-start py-2.5 gap-0.5">
+                <div className="flex items-center gap-2"><Users className="h-4 w-4" /><span className="font-medium">One-on-One Event</span></div>
+                <span className="text-xs text-[var(--crm-text-secondary)]">Good for coffee chats, 1:1 interviews, etc.</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => {
+                if (!user?.name) { toast.error("User profile name is required to create an event type."); return; }
+                router.push('/meetings/event-types/new?type=group')
+              }} className="cursor-pointer flex flex-col items-start py-2.5 gap-0.5">
+                <div className="flex items-center gap-2"><Video className="h-4 w-4" /><span className="font-medium">Group Event</span></div>
+                <span className="text-xs text-[var(--crm-text-secondary)]">Good for webinars, online classes, etc.</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -204,19 +218,31 @@ export default function EventTypesPage() {
             <p className="text-sm text-[var(--crm-text-secondary)] mt-2 max-w-xs mx-auto mb-8">
               Create your first event type to start scheduling meetings and automating your booking process.
             </p>
-            <Button 
-              onClick={() => {
-                if (!user?.name) {
-                  toast.error("User profile name is required to create an event type.")
-                  return
-                }
-                router.push('/meetings/event-types/new')
-              }}
-              className="bg-[var(--crm-primary)] hover:opacity-90 text-white gap-2 px-6"
-            >
-              <Plus className="h-4 w-4" />
-              Create your first event
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="bg-[var(--crm-primary)] hover:opacity-90 text-white gap-2 px-6">
+                  <Plus className="h-4 w-4" />
+                  Create your first event
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-64 bg-[var(--crm-surface-1)]">
+                <DropdownMenuItem onClick={() => {
+                  if (!user?.name) { toast.error("User profile name is required to create an event type."); return; }
+                  router.push('/meetings/event-types/new?type=one_on_one')
+                }} className="cursor-pointer flex flex-col items-start py-2.5 gap-0.5">
+                  <div className="flex items-center gap-2"><Users className="h-4 w-4" /><span className="font-medium">One-on-One Event</span></div>
+                  <span className="text-xs text-[var(--crm-text-secondary)]">Good for coffee chats, 1:1 interviews, etc.</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => {
+                  if (!user?.name) { toast.error("User profile name is required to create an event type."); return; }
+                  router.push('/meetings/event-types/new?type=group')
+                }} className="cursor-pointer flex flex-col items-start py-2.5 gap-0.5">
+                  <div className="flex items-center gap-2"><Video className="h-4 w-4" /><span className="font-medium">Group Event</span></div>
+                  <span className="text-xs text-[var(--crm-text-secondary)]">Good for webinars, online classes, etc.</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
@@ -225,7 +251,10 @@ export default function EventTypesPage() {
               return (
                 <Card key={eventType.id} className="group relative border-[var(--crm-border)] shadow-sm hover:shadow-md hover:border-[var(--crm-primary)]/50 transition-all duration-300 bg-[var(--crm-surface-1)] flex flex-col rounded-xl overflow-visible">
                   {/* Status Indicator (Top Bar) */}
-                  <div className="h-1 w-full bg-[var(--crm-surface-3)] group-hover:bg-[var(--crm-primary)] transition-colors rounded-t-xl" />
+                  <div 
+                    className="h-1.5 w-full transition-all duration-300 rounded-t-xl opacity-80 group-hover:opacity-100" 
+                    style={{ backgroundColor: eventType.color || 'var(--crm-primary)' }} 
+                  />
 
                   <CardContent className="p-4 flex-1 flex flex-col">
                     <div className="flex items-start justify-between mb-3 relative z-50">
@@ -273,7 +302,7 @@ export default function EventTypesPage() {
                         </div>
                         <div className="flex items-center text-[11px] font-medium text-[var(--crm-text-secondary)] gap-1 px-2 py-0.5 rounded-full bg-[var(--crm-surface-2)]">
                           <Users className="h-3 w-3 text-[var(--crm-text-tertiary)]" />
-                          {(eventType.teamMembers || []).length || 1} Member
+                          {eventType.type === 'group' ? 'Group Event' : '1-on-1'}
                         </div>
                       </div>
                     </div>
@@ -303,24 +332,36 @@ export default function EventTypesPage() {
             })}
 
             {/* Add New Card Slot */}
-            <div 
-              onClick={() => {
-                if (!user?.name) {
-                  toast.error("User profile name is required to create an event type.")
-                  return
-                }
-                router.push('/meetings/event-types/new')
-              }}
-              className="group h-full border-2 border-dashed border-[var(--crm-border)] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 hover:border-[var(--crm-primary)]/50 hover:bg-[var(--crm-surface-2)] transition-all duration-300 cursor-pointer min-h-[160px]"
-            >
-              <div className="h-10 w-10 rounded-full bg-[var(--crm-surface-3)] flex items-center justify-center group-hover:scale-110 group-hover:bg-[var(--crm-primary)] group-hover:text-white transition-all duration-300">
-                <Plus className="h-5 w-5 text-[var(--crm-text-secondary)] group-hover:text-white" />
-              </div>
-              <div className="text-center">
-                <p className="font-bold text-[var(--crm-text-primary)]">Add Event Type</p>
-                <p className="text-xs text-[var(--crm-text-secondary)] mt-1">Create a new scheduling card</p>
-              </div>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="group h-full border-2 border-dashed border-[var(--crm-border)] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 hover:border-[var(--crm-primary)]/50 hover:bg-[var(--crm-surface-2)] transition-all duration-300 cursor-pointer min-h-[160px]">
+                  <div className="h-10 w-10 rounded-full bg-[var(--crm-surface-3)] flex items-center justify-center group-hover:scale-110 group-hover:bg-[var(--crm-primary)] group-hover:text-white transition-all duration-300">
+                    <Plus className="h-5 w-5 text-[var(--crm-text-secondary)] group-hover:text-white" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-bold text-[var(--crm-text-primary)]">Add Event Type</p>
+                    <p className="text-xs text-[var(--crm-text-secondary)] mt-1">Create a new scheduling card</p>
+                  </div>
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-64 bg-[var(--crm-surface-1)]">
+                <DropdownMenuItem onClick={() => {
+                  if (!user?.name) { toast.error("User profile name is required to create an event type."); return; }
+                  router.push('/meetings/event-types/new?type=one_on_one')
+                }} className="cursor-pointer flex flex-col items-start py-2.5 gap-0.5">
+                  <div className="flex items-center gap-2"><Users className="h-4 w-4" /><span className="font-medium">One-on-One Event</span></div>
+                  <span className="text-xs text-[var(--crm-text-secondary)]">Good for coffee chats, 1:1 interviews, etc.</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => {
+                  if (!user?.name) { toast.error("User profile name is required to create an event type."); return; }
+                  router.push('/meetings/event-types/new?type=group')
+                }} className="cursor-pointer flex flex-col items-start py-2.5 gap-0.5">
+                  <div className="flex items-center gap-2"><Video className="h-4 w-4" /><span className="font-medium">Group Event</span></div>
+                  <span className="text-xs text-[var(--crm-text-secondary)]">Good for webinars, online classes, etc.</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
       </div>

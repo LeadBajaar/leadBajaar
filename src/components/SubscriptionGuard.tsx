@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useUser } from '@/contexts/UserContext'
 import { AlertTriangle, CreditCard, Mail, Phone, Info, X, Briefcase, CalendarCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -16,11 +16,16 @@ interface SubscriptionGuardProps {
 export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
   const { user, isLoading } = useUser()
   const pathname = usePathname()
+  const [isAdminBypass, setIsAdminBypass] = useState(false)
+
+  useEffect(() => {
+    setIsAdminBypass(!!localStorage.getItem('admin_token'))
+  }, [])
 
   if (isLoading) return null // Do not render anything (not even children) until we know the sub status
 
   // Super Admins bypass all restrictions
-  if (user?.role === 'Super Admin' || user?.user_type === 'super_admin') {
+  if (user?.role === 'Super Admin' || user?.user_type === 'super_admin' || isAdminBypass) {
     return <>{children}</>
   }
 

@@ -21,6 +21,19 @@ interface Props {
 
 const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 block"
 const inputStyle = "h-10 text-sm bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-800 transition-all rounded-lg no-scrollbar"
+const COLORS = [
+  '#4f46e5', // indigo
+  '#2563eb', // blue
+  '#0ea5e9', // sky
+  '#10b981', // emerald
+  '#84cc16', // lime
+  '#eab308', // yellow
+  '#f97316', // orange
+  '#ef4444', // red
+  '#d946ef', // fuchsia
+  '#8b5cf6', // violet
+  '#64748b', // slate
+]
 
 export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
   return (
@@ -57,6 +70,41 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
                 />
                 {errors?.description && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1 animate-in fade-in slide-in-from-top-1 duration-200">{Array.isArray(errors.description) ? errors.description[0] : errors.description}</p>}
               </div>
+
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label className={labelStyle}>Meeting Type</Label>
+                <Select
+                  value={eventType.type || 'one_on_one'}
+                  onValueChange={(value) => setEventType({ ...eventType, type: value, max_invitees: value === 'one_on_one' ? null : (eventType.max_invitees || 2) })}
+                >
+                  <SelectTrigger className={inputStyle}>
+                    <SelectValue placeholder="Select meeting type" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="one_on_one">One-on-One</SelectItem>
+                    <SelectItem value="group">Group Meeting (Webinar/Class)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {eventType.type === 'group' && (
+                <div className="space-y-1.5 sm:col-span-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <Label htmlFor="max_invitees" className={cn(labelStyle, errors?.max_invitees && "text-red-500")}>Maximum Invitees <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="max_invitees"
+                    type="number"
+                    min="2"
+                    value={eventType.max_invitees || 2}
+                    onChange={(e) => setEventType({ ...eventType, max_invitees: parseInt(e.target.value) || 2 })}
+                    placeholder="e.g., 10"
+                    className={cn(inputStyle, errors?.max_invitees && "border-red-500 bg-red-50/50 focus:bg-white")}
+                  />
+                  <p className="text-[9px] text-slate-400 font-medium italic mt-1.5 leading-tight uppercase tracking-tighter">
+                    Maximum number of people that can book the exact same time slot.
+                  </p>
+                  {errors?.max_invitees && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1 animate-in fade-in slide-in-from-top-1 duration-200">{errors.max_invitees}</p>}
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 <Label className={cn(labelStyle, errors?.duration && "text-red-500")}>Duration <span className="text-red-500">*</span></Label>
@@ -162,6 +210,41 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
                   className={inputStyle}
                 />
                 <p className="text-[9px] text-slate-400 font-medium italic mt-1.5 leading-tight uppercase tracking-tighter">Redirect users to this URL after they successfully book a meeting.</p>
+              </div>
+
+              <div className="space-y-2 sm:col-span-2 mt-2">
+                <Label className={labelStyle}>Event Color</Label>
+                <div className="flex flex-wrap gap-3">
+                  {COLORS.map((color) => {
+                    const isSelected = (eventType.color || '#4f46e5') === color
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setEventType({ ...eventType, color })}
+                        className={cn(
+                          "w-8 h-8 rounded-full transition-all duration-200 flex items-center justify-center",
+                          isSelected 
+                            ? "ring-2 ring-offset-2 scale-110 shadow-md" 
+                            : "hover:scale-110 shadow-sm opacity-80 hover:opacity-100"
+                        )}
+                        style={{ 
+                          backgroundColor: color,
+                          ringColor: color,
+                        }}
+                      >
+                        {isSelected && (
+                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+                <p className="text-[10px] text-slate-400 font-medium italic mt-1.5 leading-tight uppercase tracking-tighter">
+                  This color helps you visually identify this event type on your meetings dashboard.
+                </p>
               </div>
             </div>
           </CardContent>

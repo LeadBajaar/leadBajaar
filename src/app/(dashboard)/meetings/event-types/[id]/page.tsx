@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -84,9 +84,11 @@ const teamMembers = [
 export default function EventTypeForm() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user } = useUser()
   const { toast } = useToast()
   const isNew = params.id === 'new'
+  const defaultType = searchParams.get('type') === 'group' ? 'group' : 'one_on_one'
 
   const [loading, setLoading] = useState(!isNew)
   const [isSaving, setIsSaving] = useState(false)
@@ -101,6 +103,8 @@ export default function EventTypeForm() {
     duration: 30,
     slot_interval: 30,
     location: 'video',
+    type: isNew ? defaultType : 'one_on_one',
+    max_invitees: (isNew && defaultType === 'group') ? 2 : null,
     questions: isNew ? [
       { id: 'q-name', question: 'NAME', type: 'text', required: true, isLocked: true },
       { id: 'q-phone', question: 'PHONE', type: 'text', required: true, isLocked: true },
@@ -182,6 +186,8 @@ export default function EventTypeForm() {
           duration: data.duration || 30,
           slot_interval: data.slot_interval || data.duration || 30,
           location: data.location || 'video',
+          type: data.type || 'one_on_one',
+          max_invitees: data.max_invitees || null,
           questions: data.questions || [],
           scheduling: {
             bufferBefore: data.scheduling?.bufferBefore || 0,
@@ -277,6 +283,9 @@ export default function EventTypeForm() {
     if (!eventType.title?.trim()) errors.title = 'Title is required'
     if (!eventType.duration) errors.duration = 'Duration is required'
     if (!eventType.description?.trim()) errors.description = 'Description is required'
+    if (eventType.type === 'group' && (!eventType.max_invitees || eventType.max_invitees < 2)) {
+      errors.max_invitees = 'Minimum 2 invitees required for a group event'
+    }
     
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors)

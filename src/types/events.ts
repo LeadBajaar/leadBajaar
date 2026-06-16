@@ -7,6 +7,9 @@ export interface EventType {
   slot_interval?: number
   location: string
   redirect_url?: string
+  type?: 'one_on_one' | 'group'
+  max_invitees?: number | null
+  color?: string
   questions: Question[]
   scheduling: {
     bufferBefore: number
@@ -17,7 +20,9 @@ export interface EventType {
     availableDays: string[]
     dateRange: number
     timezone: string
+    availabilityType?: 'recurring' | 'specific_dates'
     timeSlots: any[]
+    specificDates?: any[]
     startTime?: string
     endTime?: string
     recurring?: {

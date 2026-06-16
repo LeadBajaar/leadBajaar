@@ -21,8 +21,8 @@ import {
   CalendarDays, Clock, Video, MapPin, Phone,
   FileText, Edit, Save, X, Users, CheckCircle2,
   CalendarCheck, CircleDot, ExternalLink, Settings2,
-  ChevronRight, Mail, Building2, AlignLeft, Loader2,
-  Trash2, CalendarRange,
+  ChevronRight, ChevronDown, Mail, Building2, AlignLeft, Loader2,
+  Trash2, CalendarRange, Search
 } from 'lucide-react'
 import Link from 'next/link'
 import { formatInTimeZone } from 'date-fns-tz'
@@ -48,6 +48,15 @@ interface TeamMember {
   id: number; name: string; email: string; avatar: string; role: string; status: string
 }
 interface QuestionnaireItem { question: string; answer: string }
+
+export interface Attendee {
+  id: number;
+  lead: Lead;
+  questionnaire: QuestionnaireItem[];
+  status: 'confirmed' | 'pending' | 'completed' | 'cancelled' | 'rescheduled';
+  notes?: string;
+  outcome?: string;
+}
 interface Meeting {
   id: number; title: string; date: string; time: string; duration: string
   lead: Lead; assignedTo: TeamMember; agent?: { id: number; name: string }
@@ -59,6 +68,8 @@ interface Meeting {
   start_time?: string; timezone: string
   event_type_id: number
   duration_minutes: number
+  eventType?: { id: number; title: string; color: string; type: string }
+  attendees?: Attendee[]
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -222,6 +233,18 @@ function MeetingDetailDialog({
                   <TypeIcon className="h-3.5 w-3.5" />
                   {typeInfo.label}
                 </span>
+                {meeting.eventType && (
+                  <span 
+                    className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border"
+                    style={{ 
+                      color: meeting.eventType.color || '#e0e7ff', 
+                      backgroundColor: `${meeting.eventType.color || '#4f46e5'}40`,
+                      borderColor: `${meeting.eventType.color || '#4f46e5'}80`
+                    }}
+                  >
+                    {meeting.eventType.type === 'group' ? 'Group Event' : '1-on-1'}
+                  </span>
+                )}
                 <span className="text-xs text-white/70">{meeting.date} · {meeting.time}</span>
               </div>
             </div>
@@ -235,53 +258,6 @@ function MeetingDetailDialog({
 
         {/* Body */}
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 max-h-[60vh] sm:max-h-[50vh] overflow-y-auto border-b border-slate-100 dark:border-slate-800">
-
-          {/* Lead Info */}
-          <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-            <div className="h-11 w-11 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
-              {initials(meeting.lead.name)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-slate-900 dark:text-white">{meeting.lead.name}</p>
-              <p className="text-xs text-slate-500 mt-0.5">{meeting.lead.profession} {meeting.lead.company ? `· ${meeting.lead.company}` : ''}</p>
-              <div className="flex flex-wrap items-center gap-y-2 gap-x-3 mt-2">
-                {meeting.lead.email && (
-                  <a href={`mailto:${meeting.lead.email}`} className="flex items-center gap-1 text-xs text-indigo-600 hover:underline">
-                    <Mail className="h-3 w-3" />{meeting.lead.email}
-                  </a>
-                )}
-                {meeting.lead.phone && (
-                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                    <Phone className="h-3 w-3" />
-                    <span>{meeting.lead.phone}</span>
-                    <a
-                      href={`tel:${meeting.lead.phone}`}
-                      className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 transition-colors shadow-sm ml-1"
-                      title={`Call ${meeting.lead.name}`}
-                    >
-                      <Phone className="h-2.5 w-2.5" />
-                    </a>
-                    <a
-                      href={`https://wa.me/${meeting.lead.phone.replace(/\D/g, '').length === 10 ? '91' + meeting.lead.phone.replace(/\D/g, '') : meeting.lead.phone.replace(/\D/g, '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 transition-colors shadow-sm"
-                      title={`WhatsApp ${meeting.lead.name}`}
-                    >
-                      <svg className="h-2.5 w-2.5 fill-current" viewBox="0 0 24 24">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.455 5.703 1.458h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                      </svg>
-                    </a>
-                  </div>
-                )}
-                {meeting.lead.state && (
-                  <span className="flex items-center gap-1 text-xs text-slate-500">
-                    <MapPin className="h-3 w-3" />{meeting.lead.state}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
 
           {/* Meeting details row */}
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -387,19 +363,103 @@ function MeetingDetailDialog({
             )}
           </div>
 
-          {/* Questionnaire */}
-          {meeting.questionnaire && meeting.questionnaire.length > 0 && (
+          {meeting.attendees && meeting.attendees.length > 0 ? (
             <div>
-              <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-2">Questionnaire</p>
-              <div className="space-y-2">
-                {meeting.questionnaire.map((qa, i) => (
-                  <div key={i} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400">{qa.question}</p>
-                    <p className="text-sm text-slate-800 dark:text-white mt-0.5">{qa.answer}</p>
-                  </div>
+              <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-2">Attendees ({meeting.attendees.length})</p>
+              <div className="space-y-3">
+                {meeting.attendees.map((attendee, i) => (
+                  <details key={i} className="group p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/50 [&_summary::-webkit-details-marker]:hidden open:pb-4 transition-all">
+                    <summary className="flex items-start gap-3 list-none cursor-pointer outline-none">
+                      <div className="h-9 w-9 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm" style={{ backgroundColor: meeting.eventType?.color || '#4f46e5' }}>
+                        {initials(attendee.lead.name)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="font-semibold text-sm text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">{attendee.lead.name}</p>
+                          <ChevronDown className="h-4 w-4 text-slate-400 group-open:rotate-180 transition-transform duration-200" />
+                        </div>
+                        <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                           <a href={`mailto:${attendee.lead.email}`} onClick={e => e.stopPropagation()} className="text-xs text-indigo-600 hover:underline flex items-center gap-1">
+                             <Mail className="h-3 w-3" />{attendee.lead.email}
+                           </a>
+                           {attendee.lead.phone && (
+                             <span className="flex items-center gap-1 text-xs text-slate-500">
+                               <Phone className="h-3 w-3" />{attendee.lead.phone}
+                             </span>
+                           )}
+                        </div>
+                      </div>
+                    </summary>
+                    {attendee.questionnaire && attendee.questionnaire.length > 0 && (
+                      <div className="mt-4 space-y-2 border-t border-slate-200 dark:border-slate-700 pt-3 opacity-0 group-open:opacity-100 transition-opacity duration-200 delay-100">
+                        {attendee.questionnaire.map((qa, j) => (
+                          <div key={j}>
+                            <p className="text-[10px] font-medium text-slate-500 uppercase">{qa.question}</p>
+                            <p className="text-xs text-slate-800 dark:text-white mt-0.5">{qa.answer}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </details>
                 ))}
               </div>
             </div>
+          ) : (
+            <>
+              {/* Lead Info */}
+              <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                <div 
+                  className="h-11 w-11 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm"
+                  style={{ backgroundColor: meeting.eventType?.color || '#4f46e5' }}
+                >
+                  {initials(meeting.lead.name)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-slate-900 dark:text-white">{meeting.lead.name}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{meeting.lead.profession} {meeting.lead.company ? `· ${meeting.lead.company}` : ''}</p>
+                  <div className="flex flex-wrap items-center gap-y-2 gap-x-3 mt-2">
+                    {meeting.lead.email && (
+                      <a href={`mailto:${meeting.lead.email}`} className="flex items-center gap-1 text-xs text-indigo-600 hover:underline">
+                        <Mail className="h-3 w-3" />{meeting.lead.email}
+                      </a>
+                    )}
+                    {meeting.lead.phone && (
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                        <Phone className="h-3 w-3" />
+                        <span>{meeting.lead.phone}</span>
+                        <a
+                          href={`tel:${meeting.lead.phone}`}
+                          className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 transition-colors shadow-sm ml-1"
+                          title={`Call ${meeting.lead.name}`}
+                        >
+                          <Phone className="h-2.5 w-2.5" />
+                        </a>
+                      </div>
+                    )}
+                    {meeting.lead.state && (
+                      <span className="flex items-center gap-1 text-xs text-slate-500">
+                        <MapPin className="h-3 w-3" />{meeting.lead.state}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Questionnaire */}
+              {meeting.questionnaire && meeting.questionnaire.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-2">Questionnaire</p>
+                  <div className="space-y-2">
+                    {meeting.questionnaire.map((qa, i) => (
+                      <div key={i} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                        <p className="text-xs font-medium text-slate-600 dark:text-slate-400">{qa.question}</p>
+                        <p className="text-sm text-slate-800 dark:text-white mt-0.5">{qa.answer}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {/* Notes */}
@@ -530,7 +590,7 @@ function MeetingDetailDialog({
           )}
 
           {/* Actions Footer */}
-          {!isEditing && !isRescheduling && !isDeleting && (
+          {!isEditing && !isRescheduling && !isDeleting && (!meeting.attendees || meeting.attendees.length === 0) && (
             <div className="flex items-center justify-between">
               <Button 
                 variant="ghost" 
@@ -608,22 +668,54 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
   return (
     <div
       onClick={() => onSelect(meeting)}
-      className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 rounded-xl border border-[var(--crm-border)] bg-[var(--crm-surface-1)] hover:border-[var(--crm-primary)] hover:shadow-sm transition-all duration-200 cursor-pointer"
+      className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 rounded-xl border border-[var(--crm-border)] bg-[var(--crm-surface-1)] hover:border-[var(--crm-primary)] hover:shadow-sm transition-all duration-200 cursor-pointer overflow-hidden relative"
     >
+      {/* Dynamic left border for event type */}
+      <div 
+        className="absolute left-0 top-0 bottom-0 w-1.5 opacity-80 group-hover:opacity-100 transition-opacity" 
+        style={{ backgroundColor: meeting.eventType?.color || '#4f46e5' }}
+      />
       {/* Left: Avatar & Info */}
       <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
         {/* Avatar */}
-        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
-          {initials(meeting.lead.name)}
+        <div 
+          className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm"
+          style={{ backgroundColor: meeting.eventType?.color || '#4f46e5' }}
+        >
+          {meeting.attendees && meeting.attendees.length > 0 ? (
+            <Users className="h-5 w-5" />
+          ) : (
+            initials(meeting.lead.name)
+          )}
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm text-[var(--crm-text-primary)] truncate">{meeting.title}</p>
+          <div className="flex items-center gap-2 mb-0.5">
+            <p className="font-semibold text-sm text-[var(--crm-text-primary)] truncate">{meeting.title}</p>
+            {meeting.eventType && (
+              <span 
+                className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
+                style={{ 
+                  color: meeting.eventType.color || '#4f46e5', 
+                  backgroundColor: `${meeting.eventType.color || '#4f46e5'}15`,
+                  border: `1px solid ${meeting.eventType.color || '#4f46e5'}40`
+                }}
+              >
+                {meeting.eventType.type === 'group' ? 'Group' : '1-on-1'}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-3 mt-0.5 flex-wrap">
             <span className="flex items-center gap-1 text-xs text-[var(--crm-text-secondary)]">
               <Clock className="h-3 w-3" />{meeting.time} · {meeting.duration}
             </span>
+            {meeting.attendees && meeting.attendees.length > 0 && (
+              <span className="flex items-center gap-1 text-xs font-medium text-[var(--crm-text-primary)]">
+                <Users className="h-3 w-3 text-[var(--crm-text-tertiary)]" />
+                {meeting.attendees.length} Attendee{meeting.attendees.length !== 1 ? 's' : ''}
+              </span>
+            )}
             {meeting.lead.company && (
               <span className="flex items-center gap-1 text-xs text-[var(--crm-text-secondary)]">
                 <Building2 className="h-3 w-3" />{meeting.lead.company}
@@ -729,63 +821,116 @@ function useInfiniteScroll(onLoadMore: () => void, hasMore: boolean, debugName: 
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
-const mapBooking = (booking: any, defaultStatus: string): Meeting => {
-  const getAnswer = (key: string) => {
-    if (Array.isArray(booking.answers)) {
-      return booking.answers.find((a: any) => a.question?.toUpperCase() === key.toUpperCase())?.answer
+const groupRawBookings = (rawBookings: any[]) => {
+  const grouped = new Map<string, any>()
+  const results: any[] = []
+
+  for (const b of rawBookings) {
+    if (b.eventType?.type === 'group') {
+      const key = `${b.event_type_id}_${b.start_time}`
+      if (grouped.has(key)) {
+        grouped.get(key).grouped_bookings.push(b)
+      } else {
+        const parent = { ...b, grouped_bookings: [b] }
+        grouped.set(key, parent)
+        results.push(parent)
+      }
+    } else {
+      results.push(b)
     }
-    if (typeof booking.answers === 'object' && booking.answers !== null) {
-      // Try q-key, then key, then case-insensitive match
+  }
+  return results
+}
+
+const mapBooking = (booking: any, defaultStatus: string): Meeting => {
+  const isGrouped = booking.grouped_bookings && booking.grouped_bookings.length > 0;
+  // Use the first booking as the representative for generic fields
+  const repBooking = isGrouped ? booking.grouped_bookings[0] : booking;
+
+  const getAnswer = (answersToSearch: any, key: string) => {
+    if (Array.isArray(answersToSearch)) {
+      return answersToSearch.find((a: any) => a.question?.toUpperCase() === key.toUpperCase())?.answer
+    }
+    if (typeof answersToSearch === 'object' && answersToSearch !== null) {
       const k = key.toLowerCase()
-      return booking.answers[`q-${k}`] || booking.answers[k] || booking.answers[key] || 
-             Object.entries(booking.answers).find(([ak]) => ak.toLowerCase().includes(k))?.[1]
+      return answersToSearch[`q-${k}`] || answersToSearch[k] || answersToSearch[key] || 
+             Object.entries(answersToSearch).find(([ak]) => ak.toLowerCase().includes(k))?.[1]
     }
     return null
   }
 
-  const name = booking.lead?.name || getAnswer('NAME') || getAnswer('name') || 'Guest'
-  const email = booking.lead?.email || getAnswer('EMAIL') || getAnswer('email') || ''
-  const phone = booking.lead?.phone || getAnswer('phone') || getAnswer('MOBILE NUMBER') || ''
-  const startTime = new Date(booking.start_time)
+  const name = repBooking.lead?.name || getAnswer(repBooking.answers, 'NAME') || getAnswer(repBooking.answers, 'name') || 'Guest'
+  const email = repBooking.lead?.email || getAnswer(repBooking.answers, 'EMAIL') || getAnswer(repBooking.answers, 'email') || ''
+  const phone = repBooking.lead?.phone || getAnswer(repBooking.answers, 'phone') || getAnswer(repBooking.answers, 'MOBILE NUMBER') || ''
+  const startTime = new Date(repBooking.start_time)
+
+  const parseQuestionnaire = (answersObj: any): QuestionnaireItem[] => {
+    if (Array.isArray(answersObj)) {
+      return answersObj.map((a: any) => ({ question: a.question, answer: a.answer }))
+    }
+    if (typeof answersObj === 'object' && answersObj !== null) {
+      return Object.entries(answersObj).map(([k, v]) => ({ 
+        question: k.replace(/^q-/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), 
+        answer: String(v) 
+      }))
+    }
+    return []
+  }
+
+  const attendees: Attendee[] | undefined = isGrouped 
+    ? booking.grouped_bookings.map((b: any) => ({
+        id: b.id,
+        lead: {
+          name: b.lead?.name || getAnswer(b.answers, 'NAME') || getAnswer(b.answers, 'name') || 'Guest',
+          email: b.lead?.email || getAnswer(b.answers, 'EMAIL') || getAnswer(b.answers, 'email') || '',
+          phone: b.lead?.phone || getAnswer(b.answers, 'phone') || getAnswer(b.answers, 'MOBILE NUMBER') || '',
+          profession: '', company: b.lead?.company || '', state: '', requirements: '', avatar: ''
+        },
+        questionnaire: parseQuestionnaire(b.answers),
+        status: b.status || defaultStatus,
+        notes: b.notes,
+        outcome: b.outcome
+      }))
+    : undefined;
 
   return {
-    id: booking.id,
-    title: `Meeting with ${name}`,
+    id: repBooking.id, // For grouped, this is just the first booking's ID
+    title: isGrouped ? `${repBooking.eventType?.title || 'Group Event'}` : `Meeting with ${name}`,
     date: formatInTimeZone(startTime, 'UTC', 'EEE, MMM d, yyyy'),
     time: formatInTimeZone(startTime, 'UTC', 'h:mm a'),
-    duration: `${booking.eventType?.duration || 30} minutes`,
-    type: (booking.eventType?.location as Meeting['type']) || 'video',
-    status: (booking.status || defaultStatus) as Meeting['status'],
+    duration: `${repBooking.eventType?.duration || 30} minutes`,
+    type: (repBooking.eventType?.location as Meeting['type']) || 'video',
+    status: (repBooking.status || defaultStatus) as Meeting['status'],
     lead: {
-      name, email, phone, profession: '', company: booking.lead?.company || '',
+      name, email, phone, profession: '', company: repBooking.lead?.company || '',
       state: '', requirements: '', avatar: '',
     },
+    attendees,
     assignedTo: { 
-      id: booking.user_id || 0, 
-      name: booking.user?.name || 'Host', 
-      email: booking.user?.email || '', 
+      id: repBooking.user_id || 0, 
+      name: repBooking.user?.name || 'Host', 
+      email: repBooking.user?.email || '', 
       role: 'Host', 
       avatar: '',
-      status: booking.user?.status || 'Active'
+      status: repBooking.user?.status || 'Active'
     },
-    agent: booking.user ? {
-      id: booking.user.id,
-      name: booking.user.name
+    agent: repBooking.user ? {
+      id: repBooking.user.id,
+      name: repBooking.user.name
     } : undefined,
-    meetingLink: booking.meeting_link || '',
-    source: booking.lead?.source || 'Website',
-    questionnaire: Array.isArray(booking.answers) 
-      ? booking.answers.map((a: any) => ({ question: a.question, answer: a.answer }))
-      : typeof booking.answers === 'object' && booking.answers !== null
-        ? Object.entries(booking.answers).map(([k, v]) => ({ 
-            question: k.replace(/^q-/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), 
-            answer: String(v) 
-          }))
-        : [],
-    start_time: booking.start_time,
-    timezone: booking.timezone || 'UTC',
-    event_type_id: booking.event_type_id,
-    duration_minutes: booking.eventType?.duration || 30
+    meetingLink: repBooking.meeting_link || '',
+    source: repBooking.lead?.source || 'Website',
+    questionnaire: parseQuestionnaire(repBooking.answers),
+    start_time: repBooking.start_time,
+    timezone: repBooking.timezone || 'UTC',
+    event_type_id: repBooking.event_type_id,
+    duration_minutes: repBooking.eventType?.duration || 30,
+    eventType: repBooking.eventType ? {
+      id: repBooking.eventType.id,
+      title: repBooking.eventType.title,
+      color: repBooking.eventType.color,
+      type: repBooking.eventType.type
+    } : undefined
   }
 }
 
@@ -798,6 +943,13 @@ export default function MeetingsPage() {
   const [isFetchingMore, setIsFetchingMore] = useState({ upcoming: false, history: false })
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 500)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
   const [pagination, setPagination] = useState({
     upcoming: { page: 1, hasMore: true },
@@ -827,12 +979,13 @@ export default function MeetingsPage() {
     try {
       setIsFetchingMore(prev => ({ ...prev, upcoming: true }))
       const nextPage = pagination.upcoming.page + 1
-      const response = await getBookings({ type: 'upcoming', page: nextPage, per_page: 15 })
+      const response = await getBookings({ type: 'upcoming', page: nextPage, per_page: 15, search: debouncedSearch })
       const body = response.data
       const data = Array.isArray(body) ? body : (Array.isArray(body?.data) ? body.data : [])
 
       if (data.length > 0) {
-        const mapped = data.map((b: any) => mapBooking(b, 'confirmed'))
+        const groupedData = groupRawBookings(data)
+        const mapped = groupedData.map((b: any) => mapBooking(b, 'confirmed'))
         setMeetings(prev => ({ ...prev, upcoming: [...prev.upcoming, ...mapped] }))
         setPagination(prev => ({ ...prev, upcoming: { page: nextPage, hasMore: data.length >= 15 } }))
       } else {
@@ -843,7 +996,7 @@ export default function MeetingsPage() {
     } finally {
       setIsFetchingMore(prev => ({ ...prev, upcoming: false }))
     }
-  }, [pagination.upcoming, isFetchingMore.upcoming])
+  }, [pagination.upcoming, isFetchingMore.upcoming, debouncedSearch])
 
   const loadMoreHistory = useCallback(async () => {
     if (isFetchingMore.history || !pagination.history.hasMore) {
@@ -855,14 +1008,15 @@ export default function MeetingsPage() {
       console.log(`[MeetingsPage] Loading more history... Page: ${pagination.history.page + 1}`)
       setIsFetchingMore(prev => ({ ...prev, history: true }))
       const nextPage = pagination.history.page + 1
-      const response = await getBookings({ type: 'history', page: nextPage, per_page: 15 })
+      const response = await getBookings({ type: 'history', page: nextPage, per_page: 15, search: debouncedSearch })
 
       const body = response.data
       const data = Array.isArray(body) ? body : (Array.isArray(body?.data) ? body.data : [])
       console.log(`[MeetingsPage] Loaded ${data.length} more history items.`)
 
       if (data.length > 0) {
-        const mapped = data.map((b: any) => mapBooking(b, 'completed'))
+        const groupedData = groupRawBookings(data)
+        const mapped = groupedData.map((b: any) => mapBooking(b, 'completed'))
         setMeetings(prev => ({ ...prev, history: [...prev.history, ...mapped] }))
         setPagination(prev => ({ ...prev, history: { page: nextPage, hasMore: data.length >= 15 } }))
       } else {
@@ -873,7 +1027,7 @@ export default function MeetingsPage() {
     } finally {
       setIsFetchingMore(prev => ({ ...prev, history: false }))
     }
-  }, [pagination.history, isFetchingMore.history])
+  }, [pagination.history, isFetchingMore.history, debouncedSearch])
 
   const upcomingSentinel = useInfiniteScroll(loadMoreUpcoming, pagination.upcoming.hasMore, 'Upcoming')
   const historySentinel = useInfiniteScroll(loadMoreHistory, pagination.history.hasMore, 'History')
@@ -884,8 +1038,8 @@ export default function MeetingsPage() {
         console.log('[MeetingsPage] Fetching initial data...')
         setIsLoading(true)
         const [upRes, histRes] = await Promise.all([
-          getBookings({ type: 'upcoming', page: 1, per_page: 15 }),
-          getBookings({ type: 'history', page: 1, per_page: 15 })
+          getBookings({ type: 'upcoming', page: 1, per_page: 15, search: debouncedSearch }),
+          getBookings({ type: 'history', page: 1, per_page: 15, search: debouncedSearch })
         ])
 
         const extractData = (res: any) => {
@@ -896,11 +1050,14 @@ export default function MeetingsPage() {
         const upData = extractData(upRes)
         const histData = extractData(histRes)
 
+        const groupedUpData = groupRawBookings(upData)
+        const groupedHistData = groupRawBookings(histData)
+
         console.log('[MeetingsPage] Initial loaded history count:', histData.length)
 
         setMeetings({
-          upcoming: upData.map((b: any) => mapBooking(b, 'confirmed')),
-          history: histData.map((b: any) => mapBooking(b, 'completed'))
+          upcoming: groupedUpData.map((b: any) => mapBooking(b, 'confirmed')),
+          history: groupedHistData.map((b: any) => mapBooking(b, 'completed'))
         })
 
         setPagination({
@@ -914,7 +1071,7 @@ export default function MeetingsPage() {
       }
     }
     fetchInitialData()
-  }, [])
+  }, [debouncedSearch])
 
   const handleMeetingUpdate = async (updated: Meeting) => {
     try {
@@ -997,6 +1154,15 @@ export default function MeetingsPage() {
             <p className="text-sm text-[var(--crm-text-secondary)] mt-1">Manage your scheduled meetings</p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-[var(--crm-text-tertiary)]" />
+              <Input
+                placeholder="Search by name, phone..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 bg-[var(--crm-surface-2)] border-[var(--crm-border)]"
+              />
+            </div>
             <Link href="/meetings/event-types" className="flex-1 sm:flex-none">
               <Button variant="outline" size="sm" className="w-full sm:w-auto bg-[var(--crm-surface-2)] border-[var(--crm-border)] text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-3)]">
                 <Settings2 className="h-4 w-4 mr-2" />

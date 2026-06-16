@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select"
 import { validateQuestionResponse } from '@/lib/validations/questions'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from "@/components/ui/dialog"
-import { ErrorDialog } from "@/components/ui/ErrorDialog"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { formatInTimeZone } from 'date-fns-tz'
 import { API_BASE_URL } from '@/lib/api'
@@ -124,10 +124,6 @@ export default function BookingPage() {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [bookingDetails, setBookingDetails] = useState<any>(null)
-  const [errorDialog, setErrorDialog] = useState({
-    isOpen: false,
-    message: ''
-  });
   const slotsRef = useRef<HTMLDivElement | null>(null)
   const nextButtonRef = useRef<HTMLButtonElement | null>(null)
 
@@ -228,11 +224,14 @@ export default function BookingPage() {
       });
       
       const response = await fetch(
-        `${API_BASE_URL}/event-types/${eventType?.id}/availability?${queryParams.toString()}`,
+        `${API_BASE_URL}/event-types/${eventType?.id}/availability?${queryParams.toString()}&_t=${Date.now()}`,
         {
+          cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
           }
         }
       );
@@ -444,6 +443,7 @@ export default function BookingPage() {
         date: format(selectedDate!, 'yyyy-MM-dd'),
         time: format(new Date(selectedTime!), 'HH:mm:ss'),
         duration: eventType?.duration,
+        timezone: eventType?.scheduling.timezone || 'UTC',
         answers
       };
 
@@ -464,11 +464,18 @@ export default function BookingPage() {
       const data = await response.json();
       
       if (!response.ok) {
-        if (data.message === "This time slot is no longer available") {
-          setErrorDialog({
-            isOpen: true,
-            message: data.message
-          });
+        if (data.message === "This time slot is no longer available" || data.message === "This group slot is already full" || response.status === 422) {
+          toast.error("This slot was just taken. Please choose another.");
+          setStep(1);
+          
+          // Eagerly remove the slot from the UI so it hides instantly
+          setAvailableSlots(prev => prev.filter(slot => slot.startTime !== selectedTime));
+          
+          setSelectedTime(null);
+          
+          if (selectedDate) {
+             fetchAvailableSlots(selectedDate);
+          }
           return;
         }
         throw new Error(data.message || 'Failed to create booking');
@@ -495,10 +502,7 @@ export default function BookingPage() {
       
     } catch (error) {
       console.error('Error creating booking:', error);
-      setErrorDialog({
-        isOpen: true,
-        message: error instanceof Error ? error.message : 'Failed to create booking'
-      });
+      toast.error(error instanceof Error ? error.message : 'Failed to create booking');
     } finally {
       setIsSubmitting(false)
     }
@@ -958,13 +962,6 @@ export default function BookingPage() {
         </div>
       )}
       </div>
-      <ErrorDialog 
-        isOpen={errorDialog.isOpen}
-        onOpenChange={(open) => setErrorDialog(prev => ({ ...prev, isOpen: open }))}
-        title="Booking Error"
-        description={errorDialog.message}
-        action={errorDialog.message.includes('slot') ? "Please select a different time or date, as this one was just taken." : "Please check your information and try again."}
-      />
     </div>
   )
 } 

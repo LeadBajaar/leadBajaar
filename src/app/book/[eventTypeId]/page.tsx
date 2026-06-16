@@ -46,6 +46,8 @@ interface TimeSlot {
   startTime: string
   endTime: string
   available: boolean
+  spotsRemaining?: number
+  maxInvitees?: number
 }
 
 const isDateAvailable = (date: Date, eventType: EventType) => {
@@ -248,7 +250,9 @@ export default function BookingPage() {
       const formattedSlots = (data.slots || []).map((slot: any) => ({
         startTime: slot.startTime,
         endTime: slot.endTime,
-        available: slot.available !== false // default to true if not specified
+        available: slot.available !== false, // default to true if not specified
+        spotsRemaining: slot.spotsRemaining,
+        maxInvitees: slot.maxInvitees
       }));
 
       setAvailableSlots(formattedSlots);
@@ -806,7 +810,7 @@ export default function BookingPage() {
                               <button
                                 key={slot.startTime}
                                 className={cn(
-                                  "w-full transition-all duration-200 border-[0.5px] rounded-xl font-medium text-[13px] p-[10px]",
+                                  "w-full transition-all duration-200 border-[0.5px] rounded-xl font-medium text-[13px] p-[10px] flex flex-col items-center justify-center gap-1",
                                   !slot.available && "opacity-50 cursor-not-allowed bg-[var(--lb-s2)] border-[var(--lb-border)] text-[var(--lb-t3)]",
                                   selectedTime !== slot.startTime && slot.available && "bg-[var(--lb-s2)] border-[var(--lb-border)] text-[var(--lb-t1)] hover:border-[var(--lb-navy)]",
                                   selectedTime === slot.startTime && "bg-[var(--lb-navy)] text-white border-[var(--lb-navy)]"
@@ -814,7 +818,12 @@ export default function BookingPage() {
                                 onClick={() => slot.available && setSelectedTime(slot.startTime)}
                                 disabled={!slot.available}
                               >
-                                {format(new Date(slot.startTime), 'h:mm a')}
+                                <span>{format(new Date(slot.startTime), 'h:mm a')}</span>
+                                {slot.maxInvitees && slot.maxInvitees > 1 && (
+                                  <span className={cn("text-[9px] font-bold uppercase tracking-widest", selectedTime === slot.startTime ? "text-white/80" : "text-emerald-600 dark:text-emerald-400")}>
+                                    {slot.spotsRemaining} spot{slot.spotsRemaining !== 1 ? 's' : ''} left
+                                  </span>
+                                )}
                               </button>
                             ))}
                           </div>

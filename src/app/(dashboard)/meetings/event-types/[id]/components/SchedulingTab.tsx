@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { TimeSlotManager } from './TimeSlotManager'
+import { SpecificDateManager } from './SpecificDateManager'
 import { cn } from "@/lib/utils"
 
 interface Props {
@@ -36,10 +37,46 @@ export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
 
           <Card className="border-slate-200/60 dark:border-slate-800/60 shadow-sm rounded-xl overflow-hidden bg-white dark:bg-slate-900">
             <CardContent className="p-4 space-y-6">
-              <TimeSlotManager
-                slots={eventType.scheduling.timeSlots || []}
-                onSlotsChange={(slots) => updateScheduling('timeSlots', slots)}
-              />
+              <div className="flex items-center space-x-2 border border-slate-200 dark:border-slate-800 p-1 rounded-lg w-fit mb-4 bg-slate-50 dark:bg-slate-900/50">
+                <Button
+                  variant={eventType.scheduling.availabilityType !== 'specific_dates' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => updateScheduling('availabilityType', 'recurring')}
+                  className={cn(
+                    "text-xs h-8 px-4",
+                    eventType.scheduling.availabilityType !== 'specific_dates' 
+                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm hover:bg-white dark:hover:bg-slate-800" 
+                      : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                  )}
+                >
+                  Weekly Recurring
+                </Button>
+                <Button
+                  variant={eventType.scheduling.availabilityType === 'specific_dates' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => updateScheduling('availabilityType', 'specific_dates')}
+                  className={cn(
+                    "text-xs h-8 px-4",
+                    eventType.scheduling.availabilityType === 'specific_dates' 
+                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm hover:bg-white dark:hover:bg-slate-800" 
+                      : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                  )}
+                >
+                  Specific Dates
+                </Button>
+              </div>
+
+              {eventType.scheduling.availabilityType !== 'specific_dates' ? (
+                <TimeSlotManager
+                  slots={eventType.scheduling.timeSlots || []}
+                  onSlotsChange={(slots) => updateScheduling('timeSlots', slots)}
+                />
+              ) : (
+                <SpecificDateManager
+                  slots={eventType.scheduling.specificDates || []}
+                  onSlotsChange={(slots) => updateScheduling('specificDates', slots)}
+                />
+              )}
 
               <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center justify-between gap-4 mb-3.5">
