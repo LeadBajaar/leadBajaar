@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select"
 import { validateQuestionResponse } from '@/lib/validations/questions'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from "@/components/ui/dialog"
-import { ErrorDialog } from "@/components/ui/ErrorDialog"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { formatInTimeZone } from 'date-fns-tz'
 import { API_BASE_URL } from '@/lib/api'
@@ -111,6 +111,7 @@ export default function BookingPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isEmbed = searchParams.get('embed') === 'true'
+  const eventTypeId = params.eventTypeId as string
   const [step, setStep] = useState(1)
   const [answers, setAnswers] = useState<Record<string, any>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -124,10 +125,6 @@ export default function BookingPage() {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [bookingDetails, setBookingDetails] = useState<any>(null)
-  const [errorDialog, setErrorDialog] = useState({
-    isOpen: false,
-    message: ''
-  });
   const slotsRef = useRef<HTMLDivElement | null>(null)
   const nextButtonRef = useRef<HTMLButtonElement | null>(null)
 
@@ -135,7 +132,7 @@ export default function BookingPage() {
     const fetchEventType = async () => {
       try {
         const response = await fetch(
-          `${API_BASE_URL}/event-types/${params.eventTypeId}`,
+          `${API_BASE_URL}/event-types/${eventTypeId}`,
           {
             headers: {
               'Content-Type': 'application/json',
@@ -188,10 +185,10 @@ export default function BookingPage() {
       }
     };
 
-    if (params.eventTypeId) {
+    if (eventTypeId) {
       fetchEventType();
     }
-  }, [params.eventTypeId]);
+  }, [eventTypeId]);
 
   useEffect(() => {
     // Fetch available time slots when date is selected
@@ -228,11 +225,14 @@ export default function BookingPage() {
       });
       
       const response = await fetch(
-        `${API_BASE_URL}/event-types/${params.eventTypeId}/availability?${queryParams.toString()}`,
+        `${API_BASE_URL}/event-types/${eventType?.id}/availability?${queryParams.toString()}&_t=${Date.now()}`,
         {
+          cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
           }
         }
       );
@@ -442,10 +442,11 @@ export default function BookingPage() {
     
     try {
       const bookingData = {
-        eventTypeId: params.eventTypeId,
+        eventTypeId: eventType?.id,
         date: format(selectedDate!, 'yyyy-MM-dd'),
         time: format(new Date(selectedTime!), 'HH:mm:ss'),
         duration: eventType?.duration,
+        timezone: eventType?.scheduling.timezone || 'UTC',
         answers
       };
 
@@ -466,11 +467,18 @@ export default function BookingPage() {
       const data = await response.json();
       
       if (!response.ok) {
-        if (data.message === "This time slot is no longer available") {
-          setErrorDialog({
-            isOpen: true,
-            message: data.message
-          });
+        if (data.message === "This time slot is no longer available" || data.message === "This group slot is already full" || response.status === 422) {
+          toast.error("This slot was just taken. Please choose another.");
+          setStep(1);
+          
+          // Eagerly remove the slot from the UI so it hides instantly
+          setAvailableSlots(prev => prev.filter(slot => slot.startTime !== selectedTime));
+          
+          setSelectedTime(null);
+          
+          if (selectedDate) {
+             fetchAvailableSlots(selectedDate);
+          }
           return;
         }
         throw new Error(data.message || 'Failed to create booking');
@@ -497,12 +505,9 @@ export default function BookingPage() {
       
     } catch (error) {
       console.error('Error creating booking:', error);
-      setErrorDialog({
-        isOpen: true,
-        message: error instanceof Error ? error.message : 'Failed to create booking'
-      });
+      toast.error(error instanceof Error ? error.message : 'Failed to create booking');
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
   }
 
@@ -592,18 +597,18 @@ export default function BookingPage() {
             </div>
           </div>
         </CardContent>
-      </Card>
+        </Card>
       </div>
     </div>
   );
 
   return (
-    <div className={cn(isEmbed ? "p-0 bg-transparent w-full" : "min-h-screen flex flex-col items-center justify-center bg-[var(--lb-bg)] py-6 px-4")}>
-      <div className="w-full max-w-[820px] mx-auto">
-        <Card className="border-[0.5px] border-[var(--lb-border)] bg-white shadow-sm rounded-[16px] overflow-hidden w-full">
-          <CardContent className="p-0 relative overflow-hidden">
-          <div className="grid sm:grid-cols-[220px,1fr]">
-            <div className={cn("p-4 sm:p-[24px_20px] border-b sm:border-b-0 sm:border-r border-[var(--lb-border)] bg-white flex flex-row sm:flex-col items-center sm:items-center text-left sm:text-center gap-4 sm:gap-0")}>
+    <div className={cn(isEmbed ? "p-0 bg-transparent w-full" : "min-h-[100dvh] flex flex-col items-center sm:justify-center bg-[var(--lb-s1)] sm:bg-[var(--lb-bg)] sm:py-6 sm:px-4")}>
+      <div className="w-full h-full sm:h-auto max-w-[820px] mx-auto flex flex-col flex-1">
+        <Card className="border-0 sm:border-[0.5px] border-[var(--lb-border)] bg-[var(--lb-s1)] shadow-none sm:shadow-sm rounded-none sm:rounded-[16px] overflow-hidden w-full flex-1 flex flex-col">
+          <CardContent className="p-0 relative flex-1 flex flex-col">
+          <div className="grid sm:grid-cols-[220px,1fr] flex-1">
+            <div className={cn("p-4 sm:p-[24px_20px] border-b sm:border-b-0 sm:border-r border-[var(--lb-border)] bg-[var(--lb-s1)] flex flex-row sm:flex-col items-center sm:items-center text-left sm:text-center gap-4 sm:gap-0")}>
               <div className="mb-0 sm:mb-[16px] shrink-0">
                 <Avatar className="w-[48px] h-[48px] sm:w-[64px] sm:h-[64px] rounded-2xl border-[0.5px] border-[var(--lb-border)] shadow-sm">
                   <AvatarImage src={eventType?.owner?.avatar_url || eventType?.teamMembers?.[0]?.avatar} className="object-cover" />
@@ -647,12 +652,10 @@ export default function BookingPage() {
                   </div>
                 </div>
               )}
-
-              {/* Powered by Badge moved to bottom of container */}
             </div>
 
             {/* Right Section - Calendar & Questions */}
-            <div className="p-6 min-h-[500px] relative flex flex-col">
+            <div className="p-4 sm:p-6 min-h-[500px] relative flex flex-col w-full max-w-[100vw] sm:max-w-none overflow-x-hidden sm:overflow-x-visible">
               {showSuccess && bookingDetails ? (
                 <div className="flex flex-col py-2 animate-in fade-in slide-in-from-bottom-4 duration-300 w-full">
                   <div className="w-14 h-14 rounded-full bg-[var(--lb-green-soft)] border-[0.5px] border-[var(--lb-green-border)] flex items-center justify-center mx-auto mb-3.5">
@@ -861,15 +864,15 @@ export default function BookingPage() {
                   {eventType?.questions && eventType.questions.length > 0 ? (
                     <>
                       <div className="mb-6 flex flex-col items-center w-full">
-                        <div className="flex items-center justify-start sm:justify-center mb-2 w-full overflow-x-auto px-2 py-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                        <div className="flex items-center justify-center mb-2 w-full px-1 py-1">
                           {eventType.questions.map((_, index) => {
                             const isCompleted = index < currentQuestionIndex;
                             const isCurrent = index === currentQuestionIndex;
                             return (
-                              <div key={index} className="flex items-center shrink-0">
+                              <React.Fragment key={index}>
                                 <div
                                   className={cn(
-                                    "flex items-center justify-center w-7 h-7 rounded-full text-[12px] font-medium transition-all duration-300 shrink-0",
+                                    "flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full text-[10px] sm:text-[12px] font-medium transition-all duration-300 shrink-0",
                                     isCompleted
                                       ? "bg-[var(--lb-green)] text-white border border-[var(--lb-green)]"
                                       : isCurrent
@@ -882,12 +885,12 @@ export default function BookingPage() {
                                 {index < eventType.questions.length - 1 && (
                                   <div
                                     className={cn(
-                                      "w-8 h-[2px] mx-1 rounded-full transition-colors duration-300 shrink-0",
+                                      "flex-1 h-[2px] mx-0.5 sm:mx-1.5 rounded-full transition-colors duration-300 min-w-[2px] max-w-[24px] sm:max-w-[32px]",
                                       isCompleted ? "bg-[var(--lb-green)]" : "bg-[var(--lb-s3)]"
                                     )}
                                   />
                                 )}
-                              </div>
+                              </React.Fragment>
                             );
                           })}
                         </div>
@@ -931,16 +934,16 @@ export default function BookingPage() {
                     </div>
                   )}
 
-                  <div className="flex justify-between mt-6">
+                  <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 mt-6">
                       <button 
                         onClick={handlePreviousQuestion}
-                        className="bg-[var(--lb-s2)] text-[var(--lb-t1)] border-[0.5px] border-[var(--lb-border)] rounded-xl px-5 py-2.5 text-[13px] font-medium cursor-pointer hover:bg-[var(--lb-s3)] transition-colors"
+                        className="w-full sm:w-auto bg-[var(--lb-s2)] text-[var(--lb-t1)] border-[0.5px] border-[var(--lb-border)] rounded-xl px-5 py-2.5 text-[13px] font-medium cursor-pointer hover:bg-[var(--lb-s3)] transition-colors"
                       >
                         Previous
                       </button>
                       <button 
                         onClick={currentQuestionIndex === eventType.questions.length - 1 ? handleSubmit : handleNextQuestion}
-                        className="bg-[var(--lb-navy)] text-white border-none rounded-xl px-7 py-2.5 text-[13px] font-medium cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full sm:w-auto bg-[var(--lb-navy)] text-white border-none rounded-xl px-7 py-2.5 text-[13px] font-medium cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                         disabled={isSubmitting || !isCurrentQuestionValid()}
                       >
                         {isSubmitting ? (
@@ -967,13 +970,6 @@ export default function BookingPage() {
         </div>
       )}
       </div>
-      <ErrorDialog 
-        isOpen={errorDialog.isOpen}
-        onOpenChange={(open) => setErrorDialog(prev => ({ ...prev, isOpen: open }))}
-        title="Booking Error"
-        description={errorDialog.message}
-        action={errorDialog.message.includes('slot') ? "Please select a different time or date, as this one was just taken." : "Please check your information and try again."}
-      />
     </div>
   )
 } 

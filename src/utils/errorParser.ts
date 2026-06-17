@@ -5,6 +5,14 @@ export type AppError = {
   raw?: any;
 };
 
+function sanitizeMessage(msg: string): string {
+  if (!msg) return msg;
+  if (msg.includes('SQLSTATE') || msg.includes('SQL:') || msg.includes('Connection: mysql')) {
+    return "A database error occurred while processing your request. Please try again later.";
+  }
+  return msg;
+}
+
 export function parseError(error: any): AppError {
   if (error?.response) {
     const data = error.response.data;
@@ -23,8 +31,9 @@ export function parseError(error: any): AppError {
       };
     }
 
+    const rawMessage = data?.message || mapStatus(error.response.status);
     return {
-      message: data?.message || mapStatus(error.response.status),
+      message: sanitizeMessage(rawMessage),
       status: error.response.status,
       raw: error
     };
@@ -39,8 +48,9 @@ export function parseError(error: any): AppError {
   }
 
   if (error?.message) {
+    const rawMsg = error.message === 'API Error' ? 'Something went wrong' : error.message;
     return { 
-      message: error.message === 'API Error' ? 'Something went wrong' : error.message, 
+      message: sanitizeMessage(rawMsg), 
       raw: error 
     };
   }
