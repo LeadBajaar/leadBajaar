@@ -124,7 +124,7 @@ export default function LeadDetailsPage() {
   const stage = (defaultStages as any)[lead.stage] || { color: 'bg-slate-100 text-slate-600', icon: User };
 
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
+    <RoleGuard allowedFeatures={['leads']}>
       <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:h-full bg-[var(--crm-bg)] overflow-hidden z-10">
       {/* Subtle Header */}
       <div className="relative z-20 shrink-0 px-4 py-3 flex items-center justify-between border-b border-[var(--crm-border)] bg-[var(--crm-bg)]/80 backdrop-blur-md">

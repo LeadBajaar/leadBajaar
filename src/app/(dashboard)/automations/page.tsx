@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import GlobalAutomationsSettings from "@/components/automations/GlobalAutomationsSettings"
+import { RoleGuard } from '@/components/RoleGuard'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -170,7 +171,8 @@ export default function AutomationsPage() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-50/50 dark:bg-slate-950/20 overflow-hidden">
+    <RoleGuard allowedTypes={['agency', 'super_admin', 'individual']} allowedFeatures={['automations']}>
+      <div className="flex flex-col h-full bg-slate-50/50 dark:bg-slate-950/20 overflow-hidden">
       {/* Authentic LeadBajaar Header */}
       <div className="shrink-0">
         <CardHeader className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 space-y-0 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
@@ -516,6 +518,7 @@ export default function AutomationsPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </RoleGuard>
   )
 }

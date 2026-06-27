@@ -128,7 +128,7 @@ export default function AnalyticsPage() {
 
   if (isLoading) {
     return (
-      <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager']} allowedPlans={['pro', 'enterprise']}>
+      <RoleGuard allowedFeatures={['analytics']}>
         <div className="flex h-screen items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
         </div>
@@ -137,7 +137,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager']} allowedPlans={['pro', 'enterprise']}>
+    <RoleGuard allowedFeatures={['analytics']}>
       <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:min-h-screen gap-4 sm:gap-6 p-4 md:p-6 lg:p-8 overflow-y-auto">
 
       {/* ── Header ── */}

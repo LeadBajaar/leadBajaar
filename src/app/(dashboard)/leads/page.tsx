@@ -1421,7 +1421,7 @@ export default function LeadsPage() {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
+    <RoleGuard allowedFeatures={['leads']}>
       <div className="flex flex-col h-full bg-[var(--crm-bg)] overflow-hidden">
       <div className="shrink-0">
         <LeadsFilters

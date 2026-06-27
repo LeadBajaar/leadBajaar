@@ -89,7 +89,7 @@ export default function ErrorMonitoringPage() {
   };
 
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin']}>
+    <RoleGuard allowedFeatures={['error_logs']}>
       <div className="p-6 md:p-10 space-y-8 bg-slate-50/50 dark:bg-slate-950/50 min-h-screen">
         {/* Header section with glass effect */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-8">

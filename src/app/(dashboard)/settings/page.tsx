@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { cn } from '@/lib/utils'
 import { useUser } from '@/contexts/UserContext'
-import { api } from '@/lib/api'
+import { api, subscriptionApi } from '@/lib/api'
 import { toast } from 'sonner'
 import { RoleGuard } from '@/components/RoleGuard'
 import {
@@ -54,6 +54,19 @@ export default function SettingsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
 
+  const [paymentAmount, setPaymentAmount] = useState<string>('1000')
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false)
+  const [minPaymentAmount, setMinPaymentAmount] = useState<number>(999)
+  
+  const [couponCode, setCouponCode] = useState('')
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false)
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    original_amount: number;
+    discount_amount: number;
+    final_amount: number;
+  } | null>(null)
+
   const [localNotificationSettings, setLocalNotificationSettings] = useState<any>({
     email_notifications: {
       new_lead: false,
@@ -83,6 +96,64 @@ export default function SettingsPage() {
       setLocalNotificationSettings(user.notification_settings || {})
     }
   }, [user])
+
+  useEffect(() => {
+    // Fetch global subscription settings
+    const fetchSubSettings = async () => {
+      try {
+        const res = await subscriptionApi.getSettings()
+        if (res?.min_payment_amount) {
+          setMinPaymentAmount(res.min_payment_amount)
+          setPaymentAmount(res.min_payment_amount.toString())
+        }
+      } catch (err) {
+        console.error('Failed to load minimum payment limit')
+      }
+    }
+    fetchSubSettings()
+  }, [])
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode) {
+      toast.error('Please enter a coupon code')
+      return
+    }
+    if (!paymentAmount || isNaN(Number(paymentAmount)) || Number(paymentAmount) <= 0) {
+      toast.error('Please enter a valid amount first')
+      return
+    }
+
+    try {
+      setIsApplyingCoupon(true)
+      const res = await api.post('/subscription/validate-coupon', {
+        coupon_code: couponCode,
+        amount: Number(paymentAmount)
+      })
+      if (res.data.success) {
+        setAppliedCoupon({
+          code: couponCode,
+          original_amount: Number(paymentAmount),
+          discount_amount: res.data.discount,
+          final_amount: res.data.final_amount
+        })
+        toast.success(`Coupon applied! You saved ₹${res.data.discount}`)
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || error.message || 'Failed to apply coupon')
+      setAppliedCoupon(null)
+    } finally {
+      setIsApplyingCoupon(false)
+    }
+  }
+
+  // Recalculate or clear coupon if base amount changes
+  useEffect(() => {
+    if (appliedCoupon && paymentAmount) {
+      // For simplicity, just clear the coupon so they re-apply on the new amount
+      setAppliedCoupon(null)
+      setCouponCode('')
+    }
+  }, [paymentAmount])
 
   const handleToggleSetting = async (category: string, setting: string, value: boolean) => {
     if (!user) return
@@ -185,8 +256,93 @@ export default function SettingsPage() {
     }
   }
 
+  const handleCustomPayment = async () => {
+    const finalAmount = appliedCoupon ? appliedCoupon.final_amount : Number(paymentAmount)
+    
+    if (isNaN(finalAmount) || finalAmount < minPaymentAmount) {
+      toast.error(`Amount must be at least ₹${minPaymentAmount}`)
+      return
+    }
+
+    try {
+      setIsProcessingPayment(true)
+
+      const res = await api.post('/subscription/create-order', { 
+        amount: Number(paymentAmount),
+        coupon_code: appliedCoupon ? appliedCoupon.code : null
+      })
+      const order = res.data
+
+      if (!order.success || !order.order_id) {
+        throw new Error(order.message || 'Failed to create order')
+      }
+
+      if (!(window as any).Razorpay) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+          script.onload = resolve
+          script.onerror = reject
+          document.body.appendChild(script)
+        })
+      }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
+        amount: order.amount,
+        currency: order.currency,
+        name: 'LeadBajaar',
+        description: 'Custom Subscription Payment',
+        order_id: order.order_id,
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await api.post('/subscription/verify', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              amount: Number(paymentAmount),
+              coupon_code: appliedCoupon ? appliedCoupon.code : null
+            })
+
+            if (verifyRes.data.success) {
+              toast.success('Payment successful! Your account has been activated.')
+              setTimeout(() => {
+                window.location.reload()
+              }, 1500)
+            } else {
+              throw new Error(verifyRes.data.message || 'Verification failed')
+            }
+          } catch (err: any) {
+            console.error(err)
+            toast.error(err.message || 'Payment verification failed.')
+          }
+        },
+        prefill: {
+          name: user?.name || '',
+          email: user?.email || '',
+          contact: user?.phone || ''
+        },
+        theme: {
+          color: '#4F46E5'
+        }
+      }
+
+      const rzp = new (window as any).Razorpay(options)
+      rzp.on('payment.failed', function (response: any) {
+        toast.error('Payment failed: ' + response.error.description)
+      })
+      rzp.open()
+
+    } catch (error: any) {
+      console.error(error)
+      toast.error(error.message || 'Failed to initiate payment')
+    } finally {
+      setIsProcessingPayment(false)
+    }
+  }
+
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
+    <RoleGuard allowedFeatures={['account_settings']}>
       <div className="flex flex-col lg:flex-row h-full p-4 md:p-6 lg:p-8 gap-6 lg:gap-8 overflow-hidden bg-[var(--crm-bg)]">
 
       {/* ── Sidebar Navigation ── */}
@@ -466,16 +622,87 @@ export default function SettingsPage() {
 
               <Card className="border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] p-8 rounded-3xl ring-1 ring-[var(--crm-border)]">
                 <div className="space-y-6">
-                  {/* Current Plan */}
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-[var(--crm-border)]">
-                    <div>
-                      <p className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider mb-1">Current Plan</p>
-                      <h3 className="text-2xl font-bold text-[var(--crm-text-primary)] capitalize flex items-center gap-2">
-                        {user?.company?.plan || 'Free'} Plan
-                        <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20">Active</Badge>
-                      </h3>
+                  {/* Current Plan & Custom Payment */}
+                  <div className="flex flex-col gap-6 pb-6 border-b border-[var(--crm-border)]">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div>
+                        <p className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider mb-1">Current Plan</p>
+                        <h3 className="text-2xl font-bold text-[var(--crm-text-primary)] capitalize flex items-center gap-2">
+                          {user?.company?.plan || 'Free'} Plan
+                          <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20">
+                            {user?.company?.status || 'Active'}
+                          </Badge>
+                        </h3>
+                        {user?.company?.expires_at && (
+                          <p className="text-sm font-medium text-[var(--crm-text-secondary)] mt-1">
+                            Expires on: {new Date(user.company.expires_at).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <Button className="rounded-xl font-bold bg-[var(--crm-blue)] hover:opacity-90">Upgrade Plan</Button>
+                    
+                    {/* Custom Payment Section */}
+                    <div className="bg-[var(--crm-surface-2)] p-4 rounded-xl border border-[var(--crm-border)] flex flex-col gap-4">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                        <div className="flex-1">
+                          <p className="font-bold text-[var(--crm-text-primary)]">Custom Payment</p>
+                          <p className="text-xs text-[var(--crm-text-secondary)] leading-relaxed">
+                            Enter the amount to pay (Min: ₹{minPaymentAmount}). Your account will automatically activate with a Pro plan pending admin review.
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[var(--crm-text-tertiary)]">₹</span>
+                            <Input 
+                              type="number" 
+                              min={minPaymentAmount}
+                              value={paymentAmount} 
+                              onChange={(e) => setPaymentAmount(e.target.value)}
+                              className="pl-7 w-28 h-10 bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-xl font-bold"
+                            />
+                          </div>
+                          <div className="relative flex gap-2">
+                            <Input 
+                              type="text" 
+                              placeholder="Coupon code"
+                              value={couponCode} 
+                              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                              className="w-32 h-10 bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-xl uppercase"
+                            />
+                            <Button 
+                              variant="outline"
+                              onClick={handleApplyCoupon}
+                              disabled={isApplyingCoupon || !couponCode}
+                              className="rounded-xl h-10"
+                            >
+                              Apply
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {appliedCoupon && (
+                        <div className="flex justify-end pt-2 border-t border-[var(--crm-border)]">
+                          <div className="text-right text-sm">
+                            <p className="text-[var(--crm-text-secondary)] line-through">Subtotal: ₹{appliedCoupon.original_amount}</p>
+                            <p className="text-emerald-600 dark:text-emerald-400 font-semibold text-xs mb-1">
+                              Coupon {appliedCoupon.code} applied (-₹{appliedCoupon.discount_amount})
+                            </p>
+                            <p className="font-bold text-lg text-[var(--crm-text-primary)]">Total: ₹{appliedCoupon.final_amount}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex justify-end">
+                        <Button 
+                          onClick={handleCustomPayment} 
+                          disabled={isProcessingPayment}
+                          className="rounded-xl font-bold bg-[var(--crm-blue)] hover:opacity-90 h-10 px-8"
+                        >
+                          {isProcessingPayment ? 'Processing...' : `Pay ₹${appliedCoupon ? appliedCoupon.final_amount : paymentAmount}`}
+                        </Button>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Email Usage limit */}

@@ -44,7 +44,7 @@ export default function FacebookAuthPage() {
   }, [searchParams]);
 
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin']} allowedPlans={['pro', 'enterprise']}>
+    <RoleGuard allowedFeatures={['integrations']}>
       <div className="absolute inset-0 flex flex-col bg-[var(--crm-bg)] z-10 overflow-hidden">
         {/* ── Header ────────────────────────────────────────────────────────────── */}
         <div className="shrink-0 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)] px-6 py-3">

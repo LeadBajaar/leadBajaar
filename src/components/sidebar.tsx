@@ -61,6 +61,7 @@ const sidebarSections: NavSection[] = [
       { name: 'Emails', href: '/admin/emails', iconClass: 'ti ti-mail', roles: ['Super Admin'], types: ['super_admin'], feature: 'email_logs' },
       { name: 'Error Logs', href: '/admin/errors', iconClass: 'ti ti-activity', roles: ['Super Admin'], types: ['super_admin'], feature: 'error_logs' },
       { name: 'Finance', href: '/admin/finance/dashboard', iconClass: 'ti ti-currency-dollar', roles: ['Super Admin'], types: ['super_admin'], feature: 'finance_module' },
+      { name: 'Payments', href: '/admin/payments', iconClass: 'ti ti-cash', roles: ['Super Admin'], types: ['super_admin'], feature: 'system_admin' },
       { name: 'Dev Hub', href: '/developer', iconClass: 'ti ti-code', roles: ['Super Admin', 'Admin'], feature: 'developer_tools' },
     ],
   },

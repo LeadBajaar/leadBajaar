@@ -731,6 +731,13 @@ export default function SuperAdminPage() {
         // Also fetch tags for company editing
         const tagsRes = await adminApi.getTags()
         if (tagsRes) setGlobalTags(tagsRes)
+        
+        // Also fetch plans for company filtering and editing
+        const plansRes = await adminApi.getPlans()
+        const plansList = plansRes.plans || (Array.isArray(plansRes) ? plansRes : [])
+        if (plansList && plansList.length > 0) {
+          setPlans(plansList.map(transformPlan))
+        }
       } 
       else if (activeTab === 'users') {
         const usersRes = await adminApi.getUsers(usersPage, 10, searchQuery, filterTag, filterRole, filterUserStatus, filterUserType)
@@ -1057,7 +1064,7 @@ export default function SuperAdminPage() {
   }
 
   return (
-    <RoleGuard allowedRoles={['Super Admin']}>
+    <RoleGuard allowedFeatures={['system_admin']}>
       <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950/20">
         <div className="px-4 lg:px-6 py-6 space-y-6 w-full">
           {/* Header */}
@@ -2706,7 +2713,7 @@ export default function SuperAdminPage() {
                       <p className="text-[10px] text-slate-500 font-medium">Enable/Disable platform email sending for this company.</p>
                     </div>
                     <Switch 
-                      checked={editingCompany?.is_email_enabled ?? true} 
+                      checked={editingCompany?.is_email_enabled ?? false} 
                       onCheckedChange={(checked) => setEditingCompany(prev => prev ? { ...prev, is_email_enabled: checked } : null)}
                       className="data-[state=checked]:bg-indigo-600"
                     />

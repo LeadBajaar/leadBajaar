@@ -86,7 +86,7 @@ const features = [
 
 export default function DeveloperHubPage() {
     return (
-        <RoleGuard allowedRoles={['Super Admin', 'Admin']}>
+        <RoleGuard allowedFeatures={['developer_tools']}>
             <div className="h-full overflow-y-auto p-6 lg:p-10 space-y-12 bg-slate-50 dark:bg-slate-950 selection:bg-indigo-100 dark:selection:bg-indigo-900/30">
                 {/* Hero Header */}
                 <div className="relative overflow-hidden rounded-[2.5rem] bg-indigo-600 p-8 lg:p-16 border border-indigo-500 shadow-2xl shadow-indigo-200 dark:shadow-indigo-950/50">

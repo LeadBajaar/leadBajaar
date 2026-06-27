@@ -1802,6 +1802,25 @@ export const adminApi = {
     }
   },
 
+  getPendingPayments: async (page = 1, limit = 10) => {
+    try {
+      const url = `/admin/payments/pending?page=${page}&limit=${limit}`;
+      const response = await api.get(url);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch pending payments');
+    }
+  },
+
+  approvePayment: async (id: number) => {
+    try {
+      const response = await api.post(`/admin/payments/${id}/approve`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to approve payment');
+    }
+  },
+
   getPlans: async () => {
     try {
       const response = await api.get('/admin/plans');
@@ -1866,6 +1885,62 @@ export const adminApi = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch broadcast history');
+    }
+  },
+
+  // Coupons
+  getCoupons: async () => {
+    try {
+      const response = await api.get('/admin/payments/coupons');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch coupons');
+    }
+  },
+
+  createCoupon: async (data: any) => {
+    try {
+      const response = await api.post('/admin/payments/coupons', data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to create coupon');
+    }
+  },
+
+  updateCoupon: async (id: number, data: any) => {
+    try {
+      const response = await api.patch(`/admin/payments/coupons/${id}`, data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to update coupon');
+    }
+  },
+
+  deleteCoupon: async (id: number) => {
+    try {
+      const response = await api.delete(`/admin/payments/coupons/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to delete coupon');
+    }
+  },
+
+  // Settings
+  getSettings: async () => {
+    try {
+      const response = await api.get('/admin/payments/settings');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch settings');
+    }
+  },
+
+  updateSettings: async (data: any) => {
+    try {
+      const response = await api.post('/admin/payments/settings', data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to update settings');
     }
   }
 };
@@ -2104,6 +2179,27 @@ export const googleIntegrationApi = {
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to get connection URL';
       throw new Error(message);
+    }
+  }
+};
+
+// Subscription API
+export const subscriptionApi = {
+  getSettings: async () => {
+    try {
+      const response = await api.get('/subscription/settings');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch subscription settings');
+    }
+  },
+
+  validateCoupon: async (couponCode: string) => {
+    try {
+      const response = await api.post('/subscription/validate-coupon', { coupon_code: couponCode });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to validate coupon');
     }
   }
 };

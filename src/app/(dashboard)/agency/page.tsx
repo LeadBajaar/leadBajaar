@@ -220,7 +220,7 @@ export default function AgencyPortalPage() {
   )
 
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin']} allowedTypes={['agency', 'super_admin']}>
+    <RoleGuard allowedTypes={['agency', 'super_admin']} allowedFeatures={['agency_management']}>
       <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:min-h-screen bg-slate-50/50 dark:bg-slate-950/20 p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto z-10">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">

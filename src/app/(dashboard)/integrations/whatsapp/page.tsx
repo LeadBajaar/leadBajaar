@@ -803,7 +803,7 @@ export default function WhatsAppManagementPage() {
   const currentTemplates = templates.slice(indexOfFirstTemplate, indexOfLastTemplate)
   const totalPages = Math.ceil(templates.length / itemsPerPage)
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin']}>
+    <RoleGuard allowedFeatures={['integrations']}>
       <div className="p-6 space-y-6 h-full overflow-y-auto">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">

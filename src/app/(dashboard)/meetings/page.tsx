@@ -1146,7 +1146,7 @@ export default function MeetingsPage() {
   const totalCompleted = meetings.history.filter(m => m.status === 'completed').length
 
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
+    <RoleGuard allowedFeatures={['meetings']}>
       <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:h-full bg-[var(--crm-bg)] overflow-hidden z-10">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-3 sm:py-5 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)] shrink-0 gap-3 sm:gap-0">
           <div className="hidden sm:block">

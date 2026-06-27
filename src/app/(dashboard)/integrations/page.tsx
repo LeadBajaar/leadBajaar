@@ -1013,7 +1013,7 @@ export default function IntegrationsPage() {
   };
 
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin']} allowedPlans={['pro', 'enterprise']}>
+    <RoleGuard allowedFeatures={['integrations']}>
       <div className="w-full h-full overflow-y-auto p-6 pt-2">
         {/* Fix 10: Meta reconnect banner — appears when token is expired or connection lost */}
         {metaConnectionStatus && metaConnectionStatus.connected === false &&

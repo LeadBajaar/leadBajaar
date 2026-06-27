@@ -98,7 +98,7 @@ export default function ChatbotPage() {
   }
 
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager']} allowedPlans={['pro', 'enterprise']}>
+    <RoleGuard allowedFeatures={['chatbot']}>
       <div className="h-full overflow-y-auto bg-[var(--crm-bg)]">
         <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
           

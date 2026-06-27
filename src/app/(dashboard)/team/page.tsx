@@ -164,7 +164,7 @@ export default function TeamManagementPage() {
   }
 
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin']}>
+    <RoleGuard allowedFeatures={['team_management']}>
       <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:min-h-screen space-y-4 sm:space-y-6 p-4 sm:p-6 overflow-y-auto z-10 bg-slate-50/50 dark:bg-slate-950/20">
         <div className="w-full">
           {/* Header Actions */}

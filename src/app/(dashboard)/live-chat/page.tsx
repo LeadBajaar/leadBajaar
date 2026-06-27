@@ -305,7 +305,7 @@ export default function LiveChatPage() {
   }
 
   return (
-    <RoleGuard allowedRoles={['Super Admin', 'Admin', 'Manager', 'Agent']}>
+    <RoleGuard allowedFeatures={['live_chat']}>
       <div className="h-full overflow-hidden flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-[var(--crm-surface-1)]">
 
