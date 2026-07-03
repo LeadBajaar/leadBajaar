@@ -203,6 +203,20 @@ const integrations: Integration[] = [
     plans: ["pro", "enterprise"],
   },
   {
+    id: "evolution",
+    name: "WhatsApp (Evolution)",
+    icon: MessageCircle,
+    category: "messaging",
+    color: "#25D366",
+    description: "Connect personal WhatsApp numbers via Evolution API",
+    features: [
+      "QR Code Connection",
+      "Personal Number Support",
+      "Automated Messaging"
+    ],
+    allowMultiple: true,
+  },
+  {
     id: "leadform",
     name: "Facebook Lead Forms",
     icon: Facebook,
@@ -784,6 +798,9 @@ export default function IntegrationsPage() {
       if (integration.id === "whatsapp") {
         router.push("/integrations/whatsapp");
         return;
+      } else if (integration.id === "evolution") {
+        router.push("/integrations/evolution");
+        return;
       } else if (integration.id === "facebook_conversion_api") {
         router.push("/integrations/meta-capi");
         return;
@@ -829,7 +846,8 @@ export default function IntegrationsPage() {
       
       // Route to page
       const routeMap: Record<string, string> = {
-        whatsapp: "/integrations/whatsapp",
+        facebook: "/integrations/facebook",
+        evolution: "/integrations/evolution",
         facebook_conversion_api: "/integrations/meta-capi",
         leadform: "/integrations/facebook-lead-forms",
         email: "/integrations/email-marketing",

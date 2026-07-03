@@ -50,6 +50,8 @@ interface AutomationStep {
   action_type: 'send_email' | 'send_whatsapp' | 'update_stage' | 'wait';
   template_id?: number;
   whatsapp_template_name?: string;
+  whatsapp_provider?: 'personal' | 'cloud_api' | 'evolution';
+  whatsapp_message?: string;
   action_value?: string;
 }
 
@@ -488,7 +490,24 @@ export default function AutomationsPage() {
                                 </>
                               )}
                               {step.action_type === 'wait' && <div className="h-10 flex items-center text-xs text-slate-400 italic">No action at this step</div>}
-                              {step.action_type === 'send_whatsapp' && <Input placeholder="Template Name" className="h-10 rounded-xl" />}
+                              {step.action_type === 'send_whatsapp' && (
+                                <div className="space-y-2">
+                                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">WA Provider</Label>
+                                  <Select
+                                    value={step.whatsapp_provider || 'personal'}
+                                    onValueChange={(v: any) => updateStep(idx, 'whatsapp_provider', v)}
+                                  >
+                                    <SelectTrigger className="h-10 rounded-xl bg-white dark:bg-slate-950 border-none ring-1 ring-slate-100 dark:ring-slate-800">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="personal">📱 Personal WA</SelectItem>
+                                      <SelectItem value="cloud_api">☁️ Cloud API</SelectItem>
+                                      <SelectItem value="evolution">⚡ Evolution WA</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
                             </div>
 
                             <div className="sm:col-span-1 pb-1">
@@ -502,6 +521,37 @@ export default function AutomationsPage() {
                               </Button>
                             </div>
                           </div>
+
+                          {/* WhatsApp provider-specific detail row */}
+                          {step.action_type === 'send_whatsapp' && (
+                            <div className="px-4 pb-4">
+                              {(step.whatsapp_provider === 'personal' || step.whatsapp_provider === 'cloud_api' || !step.whatsapp_provider) && (
+                                <div className="space-y-1.5">
+                                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Template Name</Label>
+                                  <Input
+                                    placeholder="e.g., welcome_message"
+                                    className="h-10 rounded-xl bg-white dark:bg-slate-950 border-none ring-1 ring-slate-100 dark:ring-slate-800 focus:ring-indigo-500"
+                                    value={step.whatsapp_template_name || ''}
+                                    onChange={e => updateStep(idx, 'whatsapp_template_name', e.target.value)}
+                                  />
+                                </div>
+                              )}
+                              {step.whatsapp_provider === 'evolution' && (
+                                <div className="space-y-1.5">
+                                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                                    Message <span className="normal-case text-indigo-500">(sent via your linked Evolution device)</span>
+                                  </Label>
+                                  <textarea
+                                    rows={3}
+                                    placeholder="Type the WhatsApp message to send..."
+                                    className="w-full resize-none rounded-xl bg-white dark:bg-slate-950 border-none ring-1 ring-slate-100 dark:ring-slate-800 focus:ring-indigo-500 px-3 py-2 text-sm"
+                                    value={step.whatsapp_message || ''}
+                                    onChange={e => updateStep(idx, 'whatsapp_message', e.target.value)}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </Card>
                       </div>
                    ))}

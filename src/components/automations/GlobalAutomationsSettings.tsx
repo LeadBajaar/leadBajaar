@@ -106,7 +106,7 @@ export default function GlobalAutomationsSettings() {
                 <SelectTrigger className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium transition-all">
                   <SelectValue placeholder="Select Provider" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800">
+                 <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800">
                   <SelectItem value="cloud" className="focus:bg-indigo-50 dark:focus:bg-indigo-500/10 rounded-lg py-3">
                     <div className="flex flex-col">
                       <span className="font-bold">WhatsApp Cloud API</span>
@@ -119,17 +119,25 @@ export default function GlobalAutomationsSettings() {
                       <span className="text-[10px] text-slate-400 mt-0.5">Your connected WhatsApp account</span>
                     </div>
                   </SelectItem>
+                  <SelectItem value="evolution" className="focus:bg-indigo-50 dark:focus:bg-indigo-500/10 rounded-lg py-3">
+                    <div className="flex flex-col">
+                      <span className="font-bold">⚡ Evolution WhatsApp</span>
+                      <span className="text-[10px] text-slate-400 mt-0.5">Send via your linked Evolution device</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
-              </Select>
-            </div>
+               </Select>
+             </div>
 
             <div className="flex items-center gap-4 p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-500/5 border border-indigo-100/50 dark:border-indigo-500/10">
               <div className="h-10 w-10 shrink-0 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm">
                 <AlertCircle className="h-5 w-5 text-indigo-500" />
               </div>
               <p className="text-xs text-indigo-900/70 dark:text-indigo-300 leading-relaxed font-medium">
-                {welcomeSettings.whatsapp_mode === 'cloud' 
-                  ? 'This mode uses your official Meta Business Account. Ensure you have an active WhatsApp integration configured.' 
+                {welcomeSettings.whatsapp_mode === 'cloud'
+                  ? 'This mode uses your official Meta Business Account. Ensure you have an active WhatsApp integration configured.'
+                  : welcomeSettings.whatsapp_mode === 'evolution'
+                  ? 'This mode sends via your Evolution-linked WhatsApp device. Ensure it is connected under Integrations > Evolution WhatsApp.'
                   : 'This mode uses your personal WhatsApp. Ensure your device is connected via QR code in the WhatsApp Bot page.'}
               </p>
             </div>
@@ -145,8 +153,8 @@ export default function GlobalAutomationsSettings() {
               </Badge>
             </div>
             {welcomeSettings.whatsapp_mode === 'cloud' ? (
-              <Select 
-                value={welcomeSettings.whatsapp_welcome_template_id?.toString()} 
+              <Select
+                value={welcomeSettings.whatsapp_welcome_template_id?.toString()}
                 onValueChange={(val: any) => setWelcomeSettings(prev => ({ ...prev, whatsapp_welcome_template_id: val }))}
               >
                 <SelectTrigger className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800/50 border-none ring-1 ring-slate-200 dark:ring-slate-700">
@@ -167,7 +175,9 @@ export default function GlobalAutomationsSettings() {
             ) : (
               <div className="relative group">
                 <Textarea
-                  placeholder="Hi {{name}}, thank you for reaching out! We will contact you soon."
+                  placeholder={welcomeSettings.whatsapp_mode === 'evolution'
+                    ? 'Hi {{name}}, thank you for reaching out! We will contact you shortly via WhatsApp.'
+                    : 'Hi {{name}}, thank you for reaching out! We will contact you soon.'}
                   className="min-h-[160px] rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all resize-none p-6 font-medium text-slate-700 dark:text-slate-200"
                   value={welcomeSettings.whatsapp_welcome_message}
                   onChange={(e) => setWelcomeSettings(prev => ({ ...prev, whatsapp_welcome_message: e.target.value }))}
@@ -226,7 +236,7 @@ export default function GlobalAutomationsSettings() {
                 <SelectTrigger className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium transition-all">
                   <SelectValue placeholder="Select Provider" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800">
+                 <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800">
                   <SelectItem value="cloud" className="focus:bg-emerald-50 dark:focus:bg-emerald-500/10 rounded-lg py-3">
                     <div className="flex flex-col">
                       <span className="font-bold">WhatsApp Cloud API</span>
@@ -239,17 +249,25 @@ export default function GlobalAutomationsSettings() {
                       <span className="text-[10px] text-slate-400 mt-0.5">Your connected WhatsApp account</span>
                     </div>
                   </SelectItem>
+                  <SelectItem value="evolution" className="focus:bg-emerald-50 dark:focus:bg-emerald-500/10 rounded-lg py-3">
+                    <div className="flex flex-col">
+                      <span className="font-bold">⚡ Evolution WhatsApp</span>
+                      <span className="text-[10px] text-slate-400 mt-0.5">Send via your linked Evolution device</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
-              </Select>
-            </div>
+               </Select>
+             </div>
 
             <div className="flex items-center gap-4 p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-100/50 dark:border-emerald-500/10">
               <div className="h-10 w-10 shrink-0 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm">
                 <AlertCircle className="h-5 w-5 text-emerald-500" />
               </div>
               <p className="text-xs text-emerald-900/70 dark:text-emerald-300 leading-relaxed font-medium">
-                {welcomeSettings.whatsapp_meeting_mode === 'cloud' 
-                  ? 'This mode uses your official Meta Business Account. Ensure you have an active WhatsApp integration configured.' 
+                {welcomeSettings.whatsapp_meeting_mode === 'cloud'
+                  ? 'This mode uses your official Meta Business Account. Ensure you have an active WhatsApp integration configured.'
+                  : welcomeSettings.whatsapp_meeting_mode === 'evolution'
+                  ? 'This mode sends via your Evolution-linked WhatsApp device. Ensure it is connected under Integrations > Evolution WhatsApp.'
                   : 'This mode uses your personal WhatsApp. Ensure your device is connected via QR code in the WhatsApp Bot page.'}
               </p>
             </div>
@@ -265,8 +283,8 @@ export default function GlobalAutomationsSettings() {
               </Badge>
             </div>
             {welcomeSettings.whatsapp_meeting_mode === 'cloud' ? (
-              <Select 
-                value={welcomeSettings.whatsapp_meeting_template_id?.toString()} 
+              <Select
+                value={welcomeSettings.whatsapp_meeting_template_id?.toString()}
                 onValueChange={(val: any) => setWelcomeSettings(prev => ({ ...prev, whatsapp_meeting_template_id: val }))}
               >
                 <SelectTrigger className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800/50 border-none ring-1 ring-slate-200 dark:ring-slate-700">
@@ -287,7 +305,9 @@ export default function GlobalAutomationsSettings() {
             ) : (
               <div className="relative group">
                 <Textarea
-                  placeholder="Hi {{name}}, your meeting is confirmed for {{time}}."
+                  placeholder={welcomeSettings.whatsapp_meeting_mode === 'evolution'
+                    ? 'Hi {{name}}, your meeting is confirmed for {{time}}. We will reach you on WhatsApp shortly.'
+                    : 'Hi {{name}}, your meeting is confirmed for {{time}}.'}
                   className="min-h-[160px] rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all resize-none p-6 font-medium text-slate-700 dark:text-slate-200"
                   value={welcomeSettings.whatsapp_meeting_message}
                   onChange={(e) => setWelcomeSettings(prev => ({ ...prev, whatsapp_meeting_message: e.target.value }))}

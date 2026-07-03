@@ -7,6 +7,8 @@ export interface SaveFlowPayload {
   name: string
   description: string
   trigger: string
+  channel_type?: string
+  channel_id?: string
   is_active?: boolean
   nodes: ChatbotNode[]
   edges: ChatbotEdge[]
@@ -17,6 +19,8 @@ export interface ChatbotFlow {
   name: string
   description: string
   trigger: string
+  channel_type?: string
+  channel_id?: string
   is_active: boolean
   updatedAt: string
   createdAt: string
@@ -50,9 +54,9 @@ class ChatbotService {
     return data
   }
 
-  async getFlows(): Promise<ChatbotFlow[]> {
+  async getFlows(channelType: string = 'meta'): Promise<ChatbotFlow[]> {
     try {
-      const response = await this.fetchApi(`${this.baseUrl}/chatbot/flows`)
+      const response = await this.fetchApi(`${this.baseUrl}/chatbot/flows?channel_type=${channelType}`)
       const data = await response.data || response
 
       return (Array.isArray(data) ? data : []).map(flow => ({
@@ -60,6 +64,8 @@ class ChatbotService {
         name: flow.name || '',
         description: flow.description || '',
         trigger: flow.trigger || 'message',
+        channel_type: flow.channel_type || 'meta',
+        channel_id: flow.channel_id || null,
         is_active: flow.is_active !== undefined ? Boolean(flow.is_active) : true,
         updatedAt: flow.updatedAt || flow.updated_at || new Date().toISOString(),
         createdAt: flow.createdAt || flow.created_at || new Date().toISOString(),
@@ -82,6 +88,8 @@ class ChatbotService {
         name: data.name || '',
         description: data.description || '',
         trigger: data.trigger || 'message',
+        channel_type: data.channel_type || 'meta',
+        channel_id: data.channel_id || null,
         is_active: data.is_active !== undefined ? Boolean(data.is_active) : true,
         updatedAt: data.updatedAt || data.updated_at || new Date().toISOString(),
         createdAt: data.createdAt || data.created_at || new Date().toISOString(),
@@ -105,6 +113,8 @@ class ChatbotService {
           name: flow.name,
           description: flow.description,
           trigger: flow.trigger,
+          channel_type: flow.channel_type,
+          channel_id: flow.channel_id,
           nodes: flow.nodes,
           edges: flow.edges,
         }),

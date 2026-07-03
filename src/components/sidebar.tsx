@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { LogOut } from 'lucide-react'
-import { logout, integrationApi } from '@/lib/api'
+import { logout, integrationApi, evolutionApi } from '@/lib/api'
 import { clearSession, setSession } from '@/lib/auth'
 import { useUser, UserRole, UserType } from '@/contexts/UserContext'
 
@@ -29,8 +29,10 @@ type NavSection = {
 const mainNav: NavItemDef[] = [
   { name: 'Dashboard', href: '/dashboard', iconClass: 'ti ti-layout-dashboard', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'], feature: 'dashboard' },
   { name: 'Leads', href: '/leads', iconClass: 'ti ti-users', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'], feature: 'leads' },
-  { name: 'Live Chat', href: '/live-chat', iconClass: 'ti ti-message-circle', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'], feature: 'live_chat' },
+  { name: 'Live Chat', href: '/live-chat', iconClass: 'ti ti-brand-whatsapp', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'], feature: 'live_chat' },
+  { name: 'Evolution Inbox', href: '/evolution/inbox', iconClass: 'ti ti-message-circle', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'], feature: 'live_chat' },
   { name: 'Chatbot', href: '/chatbot', iconClass: 'ti ti-robot', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], feature: 'chatbot' },
+  { name: 'Evolution Chatbot', href: '/evolution/chatbot', iconClass: 'ti ti-robot-face', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], feature: 'chatbot' },
   { name: 'Meetings', href: '/meetings', iconClass: 'ti ti-calendar-event', roles: ['Super Admin', 'Admin', 'Manager', 'Agent'], feature: 'meetings' },
 ]
 
@@ -70,6 +72,7 @@ const sidebarSections: NavSection[] = [
     items: [
       { name: 'LB Forms', href: '/lb-forms', iconClass: 'ti ti-file-description', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], feature: 'integrations' },
       { name: 'WhatsApp Cloud API', href: '/integrations/whatsapp', iconClass: 'ti ti-brand-whatsapp', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], feature: 'integrations' },
+      { name: 'WhatsApp (Evolution)', href: '/integrations/evolution', iconClass: 'ti ti-brand-whatsapp', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], feature: 'integrations' },
       { name: 'Facebook Lead Forms', href: '/integrations/facebook-lead-forms', iconClass: 'ti ti-brand-facebook', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], feature: 'integrations' },
       { name: 'Meta Conversion API', href: '/integrations/meta-capi', iconClass: 'ti ti-brand-meta', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], feature: 'integrations' },
       { name: 'Webhooks', href: '/integrations/webhooks', iconClass: 'ti ti-webhook', roles: ['Super Admin', 'Admin', 'Manager'], types: ['agency', 'super_admin', 'individual'], feature: 'integrations' },
@@ -106,6 +109,7 @@ export function Sidebar({ mobileOpen, setMobileOpen, isCollapsed = false, setIsC
   const [webhooksEnabled, setWebhooksEnabled] = useState(false)
   const [emailEnabled, setEmailEnabled] = useState(false)
   const [fbAuthEnabled, setFbAuthEnabled] = useState(false)
+  const [evolutionEnabled, setEvolutionEnabled] = useState(false)
 
   useEffect(() => {
     setIsAdminImpersonating(!!localStorage.getItem('admin_token'))
@@ -122,6 +126,7 @@ export function Sidebar({ mobileOpen, setMobileOpen, isCollapsed = false, setIsC
         setEmailEnabled(integrations.some((i: any) => i.type === 'email' && i.is_active))
         // Note: facebook_auth might have a different type in DB, checking for 'facebook_auth'
         setFbAuthEnabled(integrations.some((i: any) => i.type === 'facebook_auth' && i.is_active))
+        setEvolutionEnabled(integrations.some((i: any) => i.type === 'evolution' && i.is_active))
       } catch (e) {
         // ignore
       }
@@ -164,6 +169,12 @@ export function Sidebar({ mobileOpen, setMobileOpen, isCollapsed = false, setIsC
     if (item.name === 'Webhooks' && !webhooksEnabled) return false
     if (item.name === 'Email Marketing' && !emailEnabled) return false
     if (item.name === 'Facebook Auth' && !fbAuthEnabled) return false
+    
+    // Filter evolution features based on enabled status
+    if ((item.href.startsWith('/evolution/inbox') || item.href.startsWith('/evolution/chatbot')) && !evolutionEnabled) {
+      return false
+    }
+    if (item.name === 'WhatsApp (Evolution)' && !evolutionEnabled) return false
     
     const roleMatch = hasRole(item.roles)
     const typeMatch = !item.types || hasType(item.types)
