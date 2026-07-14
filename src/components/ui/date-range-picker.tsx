@@ -287,7 +287,7 @@ export function DateRangePicker({
                 "w-10 h-10 flex-shrink-0 flex items-center justify-center icon-trigger peer/icon",
                 isIconTriggerOnly && "icon-trigger"
               )}>
-                {icon ? icon : <CalendarIcon className="h-3.5 w-3.5 text-indigo-500" />}
+                {icon ? icon : <CalendarIcon className="h-3.5 w-3.5 text-primary" />}
               </div>
               <span className={cn(
                 "transition-all duration-300 whitespace-nowrap overflow-hidden",
@@ -310,7 +310,7 @@ export function DateRangePicker({
                 key={p.label}
                 variant="ghost"
                 size="sm"
-                className="justify-start text-[10px] font-bold h-8 px-2 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950"
+                className="justify-start text-[10px] font-bold h-8 px-2 hover:bg-primary/10 hover:text-primary dark:hover:bg-indigo-950"
                 onClick={() => {
                   setSelectedRange(p.range)
                   onChange?.(p.range)

@@ -124,7 +124,7 @@ export function WhatsAppConnectModal() {
                   className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
                   placeholder="e.g. support_desk or phone"
                 />
-                <Button onClick={handleConnectRequest} disabled={isConnecting} className="h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black shadow-lg shadow-indigo-500/20 transition-all">
+                <Button onClick={handleConnectRequest} disabled={isConnecting} className="h-12 rounded-xl bg-primary hover:bg-primary/90 text-white font-black shadow-lg shadow-primary/20 transition-all">
                   {isConnecting ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Starting Engine...</>
                   ) : 'Initialize Session'}
@@ -141,8 +141,8 @@ export function WhatsAppConnectModal() {
                   <div className="p-4 bg-white rounded-xl shadow-xl ring-1 ring-slate-200">
                     <img src={qrCode} alt="WhatsApp QR Code" className="w-full h-full" />
                   </div>
-                  <div className="mt-4 bg-indigo-50 dark:bg-indigo-900/30 px-4 py-1.5 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm">
-                    <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest flex items-center gap-2">
+                  <div className="mt-4 bg-primary/10 dark:bg-indigo-900/30 px-4 py-1.5 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm">
+                    <span className="text-[10px] font-black text-primary dark:text-indigo-400 uppercase tracking-widest flex items-center gap-2">
                       <Bot className="h-3 w-3" /> ID: {newUserId}
                     </span>
                   </div>
@@ -150,7 +150,7 @@ export function WhatsAppConnectModal() {
               ) : (
                 <div className="flex flex-col items-center">
                   <div className="relative">
-                    <Loader2 className="h-12 w-12 text-indigo-500 animate-spin mb-6" />
+                    <Loader2 className="h-12 w-12 text-primary animate-spin mb-6" />
                     <Bot className="h-5 w-5 text-indigo-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                   </div>
                   <p className="text-slate-900 dark:text-white text-xs font-black uppercase tracking-widest animate-pulse">Generating Secure QR...</p>

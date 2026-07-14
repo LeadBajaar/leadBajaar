@@ -188,7 +188,7 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
 
           {msg.media_type === 'audio' && (
             <div className="rounded-xl p-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200/30 flex items-center gap-2">
-              <Music className="h-5 w-5 text-indigo-500 shrink-0" />
+              <Music className="h-5 w-5 text-primary shrink-0" />
               <audio src={msg.media_url} controls className="w-[180px] sm:w-[220px] h-8" />
             </div>
           )}
@@ -201,7 +201,7 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
               className={cn(
                 "flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
                 isOutgoing 
-                  ? "bg-indigo-700/50 hover:bg-indigo-700 border-indigo-500 text-white" 
+                  ? "bg-indigo-700/50 hover:bg-primary/90 border-primary text-white" 
                   : "bg-slate-50 hover:bg-slate-100 border-slate-200 dark:bg-slate-900 dark:border-slate-800 text-slate-800 dark:text-slate-200"
               )}
             >
@@ -246,7 +246,7 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
     }
     if (cleanMsgText === '[Document]') {
       return (
-        <div className="flex items-center gap-2.5 py-1 px-0.5 text-blue-500 dark:text-blue-400">
+        <div className="flex items-center gap-2.5 py-1 px-0.5 text-primary dark:text-blue-400">
           <FileText className="h-4 w-4 shrink-0" />
           <span className="text-xs sm:text-sm font-bold uppercase tracking-wide">📁 Document received</span>
         </div>
@@ -262,7 +262,7 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
     }
     if (cleanMsgText === '[Sticker]') {
       return (
-        <div className="flex items-center gap-2.5 py-1 px-0.5 text-indigo-500 dark:text-indigo-400">
+        <div className="flex items-center gap-2.5 py-1 px-0.5 text-primary dark:text-indigo-400">
           <Smile className="h-4 w-4 shrink-0" />
           <span className="text-xs sm:text-sm font-bold uppercase tracking-wide">✨ Sticker received</span>
         </div>
@@ -309,11 +309,11 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
                   onClick={() => setSelectedContact(chat.phone)}
                   className={cn(
                     "flex items-center gap-3 p-4 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800/40 group relative",
-                    selectedContact === chat.phone && "bg-indigo-50/50 dark:bg-indigo-500/10 border-r-2 border-indigo-500"
+                    selectedContact === chat.phone && "bg-primary/5 dark:bg-primary/10 border-r-2 border-primary"
                   )}
                 >
                   <Avatar className="h-12 w-12 border-2 border-white dark:border-slate-800 shadow-sm">
-                    <AvatarFallback className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-black">
+                    <AvatarFallback className="bg-primary/20 dark:bg-indigo-900/30 text-primary dark:text-indigo-400 font-black">
                       {chat.name ? chat.name.substring(0, 2).toUpperCase() : <Phone className="h-4 w-4" />}
                     </AvatarFallback>
                   </Avatar>
@@ -373,7 +373,7 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
                 </Button>
                 
                 <Avatar className="h-9 w-9 sm:h-10 sm:w-10 ring-2 ring-indigo-500/10">
-                  <AvatarFallback className="bg-indigo-600 text-white font-black text-xs sm:text-sm">
+                  <AvatarFallback className="bg-primary text-white font-black text-xs sm:text-sm">
                     {selectedContact.substring(0, 2)}
                   </AvatarFallback>
                 </Avatar>
@@ -430,7 +430,7 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
               <div className="space-y-4">
                 {messagesLoading && messages.length === 0 ? (
                   <div className="flex items-center justify-center py-20">
-                    <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
+                    <Loader2 className="h-8 w-8 text-primary animate-spin" />
                   </div>
                 ) : messages.map((msg, idx) => {
                   const isOutgoing = msg.direction === 'outgoing';
@@ -452,7 +452,7 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
                         <div className={cn(
                           "px-4 py-3 rounded-2xl text-sm font-medium shadow-sm",
                           isOutgoing 
-                            ? "bg-indigo-600 text-white rounded-tr-none shadow-indigo-500/10" 
+                            ? "bg-primary text-white rounded-tr-none shadow-primary/10" 
                             : "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-none border border-slate-100 dark:border-slate-700"
                         )}>
                           {renderMessageBubbleContent(msg, isOutgoing)}
@@ -467,7 +467,7 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
                             ) : msg.status === 'pending' ? (
                               <Loader2 className="h-3 w-3 text-slate-400 animate-spin" />
                             ) : msg.status === 'read' ? (
-                              <CheckCheck className="h-3 w-3 text-indigo-500" />
+                              <CheckCheck className="h-3 w-3 text-primary" />
                             ) : msg.status === 'delivered' ? (
                               <CheckCheck className="h-3 w-3 text-slate-400" />
                             ) : (
@@ -487,9 +487,9 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
             <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
               {/* Media Attachment Preview Bar */}
               {attachedMediaUrl && (
-                <div className="flex items-center justify-between p-2 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40 text-xs text-indigo-700 dark:text-indigo-300 font-bold animate-in slide-in-from-bottom-2 duration-200">
+                <div className="flex items-center justify-between p-2 rounded-xl bg-primary/5 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40 text-xs text-primary dark:text-indigo-300 font-bold animate-in slide-in-from-bottom-2 duration-200">
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <Paperclip className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+                    <Paperclip className="h-3.5 w-3.5 text-primary shrink-0" />
                     <span className="truncate">Media attached ({attachedMediaType}): {attachedMediaUrl.substring(attachedMediaUrl.lastIndexOf('/') + 1)}</span>
                   </div>
                   <Button 
@@ -544,7 +544,7 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
                   onClick={() => document.getElementById('chat-media-attachment-upload')?.click()}
                 >
                   {isUploadingMedia ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
                   ) : (
                     <Paperclip className="h-4 w-4" />
                   )}
@@ -561,7 +561,7 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
                 <Button 
                   type="submit" 
                   size="icon" 
-                  className="h-12 w-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 shrink-0"
+                  className="h-12 w-12 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 shrink-0"
                   disabled={isUploadingMedia || (!newMessage.trim() && !attachedMediaUrl)}
                 >
                   <Send className="h-5 w-5" />
@@ -571,8 +571,8 @@ export function WhatsAppBotChat({ userId }: WhatsAppBotChatProps) {
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-            <div className="h-24 w-24 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mb-6 border border-indigo-100 dark:border-indigo-800 shadow-inner">
-              <MessageSquare className="h-10 w-10 text-indigo-500" />
+            <div className="h-24 w-24 bg-primary/10 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mb-6 border border-indigo-100 dark:border-indigo-800 shadow-inner">
+              <MessageSquare className="h-10 w-10 text-primary" />
             </div>
             <h3 className="text-xl font-black text-slate-900 dark:text-white">Select a conversation</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mt-2 font-medium">

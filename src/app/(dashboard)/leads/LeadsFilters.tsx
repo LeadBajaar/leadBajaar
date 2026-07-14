@@ -7,9 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from "@/components/ui/separator"
 import {
   Search, Loader2, Thermometer, Tag, Globe, RefreshCcw, Plus,
-  Settings2, FileDown, FileUp, Facebook
+  Settings2, FileDown, FileUp, Facebook, Filter, ChevronDown, X
 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { TableColumnToggle } from '@/components/ui/table-column-toggle'
 import { DateRangePicker } from "@/components/ui/date-range-picker"
 import { cn } from "@/lib/utils"
@@ -19,9 +21,9 @@ import { DateRange } from "react-day-picker"
 interface LeadsFiltersProps {
   filters: {
     search: string;
-    status: string;
-    stage: string;
-    source: string;
+    status: string[];
+    stage: string[];
+    source: string[];
     dateRange: DateRange | undefined;
     createdAt: DateRange | undefined;
   };
@@ -73,7 +75,7 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
                 placeholder="Search leads..."
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="crm-input !pl-8 h-7 text-[12px]"
+                className="crm-input !pl-8 h-8 text-[12px]"
               />
             </div>
 
@@ -106,29 +108,254 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
               </button>
             )}
 
-            <button
-              onClick={() => setShowExportDialog?.(true)}
-              className="btn btn-secondary h-8 px-3 text-[12px]"
-            >
-              <i className="ti ti-download" />
-              <span className="hidden lg:inline">Export</span>
-            </button>
+            {(() => {
+              const activeFiltersCount = 
+                (filters.status.length > 0 ? 1 : 0) +
+                (filters.stage.length > 0 ? 1 : 0) +
+                (filters.source.length > 0 ? 1 : 0) +
+                (filters.dateRange ? 1 : 0) +
+                (filters.createdAt ? 1 : 0);
 
-            <button
-              onClick={() => handleImportClick?.()}
-              className="btn btn-secondary h-8 px-3 text-[12px]"
-            >
-              <i className="ti ti-upload" />
-              <span className="hidden lg:inline">Import</span>
-            </button>
+              return (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className={cn(
+                      "btn h-8 px-3 text-[12px] flex items-center gap-1.5 transition-all duration-200",
+                      activeFiltersCount > 0 
+                        ? "bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400" 
+                        : "btn-secondary"
+                    )}>
+                      <i className="ti ti-filter" />
+                      <span>Filters</span>
+                      {activeFiltersCount > 0 && (
+                        <div 
+                          role="button"
+                          tabIndex={0}
+                          className="ml-0.5 h-4 w-4 rounded-full flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800 text-primary transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            clearFilters();
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </div>
+                      )}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-80 p-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-[var(--crm-border)] pb-2">
+                    <h4 className="font-semibold text-sm">Filters</h4>
+                    <button
+                      onClick={clearFilters}
+                      className="text-xs text-primary hover:text-primary font-medium"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-[var(--crm-text-secondary)]">Temperature</label>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            className={cn(
+                              "w-full justify-between h-8 text-xs font-normal transition-all duration-200",
+                              filters.status.length > 0 
+                                ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400" 
+                                : "bg-[var(--crm-surface-1)] hover:bg-gray-50 dark:hover:bg-gray-800"
+                            )}
+                          >
+                            <span className="truncate">{filters.status.length > 0 ? `${filters.status.length} selected` : 'All Temps'}</span>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {filters.status.length > 0 && (
+                                <div 
+                                  role="button"
+                                  tabIndex={0}
+                                  className="h-4 w-4 rounded-full flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800 text-primary transition-colors"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleFilterChange('status', []);
+                                  }}
+                                >
+                                  <X className="h-3 w-3" />
+                                </div>
+                              )}
+                              <ChevronDown className="h-4 w-4 opacity-50" />
+                            </div>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[250px] overflow-y-auto">
+                          {['Hot', 'Warm', 'Cold'].map(temp => (
+                            <DropdownMenuCheckboxItem
+                              key={temp}
+                              checked={filters.status.includes(temp)}
+                              onCheckedChange={(checked) => {
+                                const next = checked 
+                                  ? [...filters.status, temp]
+                                  : filters.status.filter(t => t !== temp);
+                                handleFilterChange('status', next);
+                              }}
+                            >
+                              {temp}
+                            </DropdownMenuCheckboxItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
 
-            <button
-              onClick={() => openFacebookRetrieval?.()}
-              className="btn btn-secondary h-8 px-3 text-[12px]"
-            >
-              <i className="ti ti-brand-facebook" />
-              <span className="hidden lg:inline">Sync Leads</span>
-            </button>
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-[var(--crm-text-secondary)]">Stage</label>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            className={cn(
+                              "w-full justify-between h-8 text-xs font-normal transition-all duration-200",
+                              filters.stage.length > 0 
+                                ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400" 
+                                : "bg-[var(--crm-surface-1)] hover:bg-gray-50 dark:hover:bg-gray-800"
+                            )}
+                          >
+                            <span className="truncate">{filters.stage.length > 0 ? `${filters.stage.length} selected` : 'All Stages'}</span>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {filters.stage.length > 0 && (
+                                <div 
+                                  role="button"
+                                  tabIndex={0}
+                                  className="h-4 w-4 rounded-full flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800 text-primary transition-colors"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleFilterChange('stage', []);
+                                  }}
+                                >
+                                  <X className="h-3 w-3" />
+                                </div>
+                              )}
+                              <ChevronDown className="h-4 w-4 opacity-50" />
+                            </div>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[250px] overflow-y-auto">
+                          {Object.keys(stages).map(stage => (
+                            <DropdownMenuCheckboxItem
+                              key={stage}
+                              checked={filters.stage.includes(stage)}
+                              onCheckedChange={(checked) => {
+                                const next = checked 
+                                  ? [...filters.stage, stage]
+                                  : filters.stage.filter(s => s !== stage);
+                                handleFilterChange('stage', next);
+                              }}
+                            >
+                              {stage}
+                            </DropdownMenuCheckboxItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-[var(--crm-text-secondary)]">Source</label>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            className={cn(
+                              "w-full justify-between h-8 text-xs font-normal transition-all duration-200",
+                              filters.source.length > 0 
+                                ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400" 
+                                : "bg-[var(--crm-surface-1)] hover:bg-gray-50 dark:hover:bg-gray-800"
+                            )}
+                          >
+                            <span className="truncate">{filters.source.length > 0 ? `${filters.source.length} selected` : 'All Sources'}</span>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {filters.source.length > 0 && (
+                                <div 
+                                  role="button"
+                                  tabIndex={0}
+                                  className="h-4 w-4 rounded-full flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800 text-primary transition-colors"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleFilterChange('source', []);
+                                  }}
+                                >
+                                  <X className="h-3 w-3" />
+                                </div>
+                              )}
+                              <ChevronDown className="h-4 w-4 opacity-50" />
+                            </div>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[250px] overflow-y-auto">
+                          {Object.keys(sourceConfig).map(source => (
+                            <DropdownMenuCheckboxItem
+                              key={source}
+                              checked={filters.source.includes(source)}
+                              onCheckedChange={(checked) => {
+                                const next = checked 
+                                  ? [...filters.source, source]
+                                  : filters.source.filter(s => s !== source);
+                                handleFilterChange('source', next);
+                              }}
+                            >
+                              {source}
+                            </DropdownMenuCheckboxItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-[var(--crm-text-secondary)]">Last Contact</label>
+                      <DateRangePicker
+                        value={filters.dateRange}
+                        onChange={(range) => handleFilterChange('dateRange', range)}
+                        placeholder="Select date range"
+                        className="w-full h-8 text-xs border border-input rounded-md"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-[var(--crm-text-secondary)]">Created Date</label>
+                      <DateRangePicker
+                        value={filters.createdAt}
+                        onChange={(range) => handleFilterChange('createdAt', range)}
+                        placeholder="Select date range"
+                        className="w-full h-8 text-xs border border-input rounded-md"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+            );
+          })()}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="btn btn-secondary h-8 px-3 text-[12px]">
+                  More Actions <i className="ti ti-chevron-down ml-1" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40 rounded-lg p-1 text-xs">
+                <DropdownMenuItem onClick={() => setShowExportDialog?.(true)} className="gap-2 cursor-pointer">
+                  <i className="ti ti-download text-[14px] text-slate-500" /> Export Leads
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleImportClick?.()} className="gap-2 cursor-pointer">
+                  <i className="ti ti-upload text-[14px] text-slate-500" /> Import Leads
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openFacebookRetrieval?.()} className="gap-2 cursor-pointer">
+                  <i className="ti ti-brand-facebook text-[14px] text-primary" /> Sync Facebook
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <button
               onClick={() => setShowNewLead?.(true)}
@@ -166,81 +393,6 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
         </div>
       </div>
 
-      {/* Row 2: Filters - Hidden on mobile */}
-      <div className="hidden sm:block overflow-x-auto px-4 pt-1 pb-2.5 no-scrollbar">
-        <div className="flex items-center gap-2 min-w-max">
-          {/* Status Group */}
-          <div className="flex items-center gap-1.5 p-1 rounded-[var(--r-md)] bg-[var(--crm-surface-2)]">
-            <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
-              <SelectTrigger className="h-7 w-[90px] border-none bg-transparent text-[11px] font-medium focus:ring-0 shadow-none text-[var(--crm-text-primary)]">
-                <i className="ti ti-temperature text-[13px] mr-1 text-[var(--crm-text-secondary)] shrink-0" />
-                <SelectValue placeholder="Temp" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Temp</SelectItem>
-                <SelectItem value="Hot">Hot</SelectItem>
-                <SelectItem value="Warm">Warm</SelectItem>
-                <SelectItem value="Cold">Cold</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <div className="w-[1px] h-4 bg-[var(--crm-border)]" />
-
-            <Select value={filters.stage} onValueChange={(value) => handleFilterChange('stage', value)}>
-              <SelectTrigger className="h-7 w-[100px] border-none bg-transparent text-[11px] font-medium focus:ring-0 shadow-none text-[var(--crm-text-primary)]">
-                <i className="ti ti-tag text-[13px] mr-1 text-[var(--crm-text-secondary)] shrink-0" />
-                <SelectValue placeholder="Stage" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Stages</SelectItem>
-                {Object.keys(stages).map((stage) => (
-                  <SelectItem key={stage} value={stage}>{stage}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center gap-1.5 p-1 rounded-[var(--r-md)] bg-[var(--crm-surface-2)]">
-            <Select value={filters.source} onValueChange={(value) => handleFilterChange('source', value)}>
-              <SelectTrigger className="h-7 w-[100px] border-none bg-transparent text-[11px] font-medium focus:ring-0 shadow-none text-[var(--crm-text-primary)]">
-                <i className="ti ti-world text-[13px] mr-1 text-[var(--crm-text-secondary)] shrink-0" />
-                <SelectValue placeholder="Source" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sources</SelectItem>
-                {Object.keys(sourceConfig).map((source) => (
-                  <SelectItem key={source} value={source}>{source}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Date Group */}
-          <div className="flex items-center gap-1.5 p-1 rounded-[var(--r-md)] bg-[var(--crm-surface-2)]">
-            <DateRangePicker
-              value={filters.dateRange}
-              onChange={(range) => handleFilterChange('dateRange', range)}
-              placeholder="Last Contact"
-              className="h-7 w-[160px] border-none bg-transparent text-[11px] font-medium shadow-none text-[var(--crm-text-primary)]"
-            />
-            <div className="w-[1px] h-4 bg-[var(--crm-border)]" />
-            <DateRangePicker
-              value={filters.createdAt}
-              onChange={(range) => handleFilterChange('createdAt', range)}
-              placeholder="Created Date"
-              className="h-7 w-[160px] border-none bg-transparent text-[11px] font-medium shadow-none text-[var(--crm-text-primary)]"
-            />
-          </div>
-
-          <button
-            onClick={clearFilters}
-            className="filter-pill"
-          >
-            <i className="ti ti-refresh" />
-            Clear
-          </button>
-        </div>
-      </div>
     </div>
   )
 }

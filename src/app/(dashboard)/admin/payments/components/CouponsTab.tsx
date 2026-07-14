@@ -115,7 +115,7 @@ export function CouponsTab() {
   }
 
   return (
-    <Card>
+    <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Discount Coupons</CardTitle>
@@ -127,9 +127,9 @@ export function CouponsTab() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-gray-400" /></div>
+          <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-[var(--crm-text-secondary)]" /></div>
         ) : coupons.length === 0 ? (
-          <div className="text-center p-8 text-gray-500">No coupons found.</div>
+          <div className="text-center p-8 text-[var(--crm-text-secondary)]">No coupons found.</div>
         ) : (
           <div className="border border-[var(--crm-border)] rounded-md overflow-hidden">
             <Table>
@@ -161,10 +161,10 @@ export function CouponsTab() {
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => handleOpenModal(c)}>
-                        <Edit className="w-4 h-4 text-blue-500" />
+                        <Edit className="w-4 h-4 text-primary hover:text-primary transition-colors" />
                       </Button>
                       <Button variant="ghost" size="icon" onClick={() => handleDelete(c.id)}>
-                        <Trash2 className="w-4 h-4 text-red-500" />
+                        <Trash2 className="w-4 h-4 text-red-500 hover:text-red-600 transition-colors" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -178,7 +178,7 @@ export function CouponsTab() {
       {/* Basic Modal implementation */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-md border border-[var(--crm-border)]">
+          <div className="bg-[var(--crm-surface-1)] rounded-lg shadow-xl w-full max-w-md border border-[var(--crm-border)]">
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-4">{editingId ? 'Edit Coupon' : 'Create Coupon'}</h2>
               <div className="space-y-4">

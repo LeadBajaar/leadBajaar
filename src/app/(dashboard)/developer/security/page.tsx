@@ -45,7 +45,7 @@ public function hashData($data) {
 
     return (
         <div className="h-full overflow-y-auto p-6 lg:p-10 space-y-8 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400">
-            <Link href="/developer" className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 transition-colors font-bold text-sm">
+            <Link href="/developer" className="inline-flex items-center gap-2 text-primary hover:text-primary transition-colors font-bold text-sm">
                 <ArrowLeft className="w-4 h-4" /> Back to Console
             </Link>
 
@@ -65,9 +65,9 @@ public function hashData($data) {
                 <div className="lg:col-span-2 space-y-8">
                     <Tabs defaultValue="privacy" className="w-full">
                         <TabsList className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 rounded-xl w-full justify-start overflow-x-auto shadow-sm">
-                            <TabsTrigger value="privacy" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-6 font-bold">PII Hashing</TabsTrigger>
-                            <TabsTrigger value="tokens" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-6 font-bold">Token Security</TabsTrigger>
-                            <TabsTrigger value="gdpr" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-6 font-bold">GDPR/CCPA</TabsTrigger>
+                            <TabsTrigger value="privacy" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-6 font-bold">PII Hashing</TabsTrigger>
+                            <TabsTrigger value="tokens" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-6 font-bold">Token Security</TabsTrigger>
+                            <TabsTrigger value="gdpr" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-6 font-bold">GDPR/CCPA</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="privacy" className="mt-8 space-y-6">

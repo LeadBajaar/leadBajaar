@@ -113,7 +113,7 @@ export default function LeadDetailsPage() {
           <User className="h-10 w-10 text-slate-300" />
         </div>
         <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Lead not found</h2>
-        <Button onClick={() => router.back()} variant="ghost" className="mt-2 text-sm text-indigo-600">
+        <Button onClick={() => router.back()} variant="ghost" className="mt-2 text-sm text-primary">
           <ChevronLeft className="mr-1 h-4 w-4" /> Go back
         </Button>
       </div>
@@ -143,7 +143,7 @@ export default function LeadDetailsPage() {
           </div>
         </div>
         <div className="flex items-center gap-1.5">
-          <Button variant="ghost" size="icon" className="h-9 w-9 text-[var(--crm-text-secondary)] hover:text-indigo-600 rounded-[var(--r-lg)] transition-all">
+          <Button variant="ghost" size="icon" className="h-9 w-9 text-[var(--crm-text-secondary)] hover:text-primary rounded-[var(--r-lg)] transition-all">
             <Edit2 className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon" className="h-9 w-9 text-[var(--crm-text-secondary)] hover:text-rose-500 rounded-[var(--r-lg)] transition-all">
@@ -245,7 +245,7 @@ export default function LeadDetailsPage() {
             
             <div className="divide-y divide-[var(--crm-border)]">
               <div className="p-4 flex items-center gap-3 group cursor-pointer hover:bg-[var(--crm-surface-2)] transition-colors" onClick={() => window.open(`tel:${lead.phone}`, '_self')}>
-                <Phone className="h-5 w-5 text-[var(--crm-text-secondary)] group-hover:text-indigo-600 transition-all shrink-0" />
+                <Phone className="h-5 w-5 text-[var(--crm-text-secondary)] group-hover:text-primary transition-all shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tight mb-0.5">Personal Phone</p>
                   <p className="text-sm font-bold text-[var(--crm-text-primary)]">{lead.phone || 'N/A'}</p>
@@ -253,7 +253,7 @@ export default function LeadDetailsPage() {
               </div>
 
               <div className="p-4 flex items-center gap-3 group cursor-pointer hover:bg-[var(--crm-surface-2)] transition-colors" onClick={() => window.open(`mailto:${lead.email}`, '_blank')}>
-                <Mail className="h-5 w-5 text-[var(--crm-text-secondary)] group-hover:text-indigo-600 transition-all shrink-0" />
+                <Mail className="h-5 w-5 text-[var(--crm-text-secondary)] group-hover:text-primary transition-all shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tight mb-0.5">Email Address</p>
                   <p className="text-sm font-bold text-[var(--crm-text-primary)] truncate">{lead.email || 'N/A'}</p>

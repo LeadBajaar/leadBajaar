@@ -137,7 +137,7 @@ export function RoiDashboard() {
                             <CardContent className="p-6">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="h-10 w-10 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center">
-                                        <Zap className="h-5 w-5 text-blue-600" />
+                                        <Zap className="h-5 w-5 text-primary" />
                                     </div>
                                     <Badge variant="outline" className="text-[10px] font-bold border-slate-200">
                                         {days}d
@@ -272,7 +272,7 @@ export function RoiDashboard() {
                         <Card className="border-2 border-dashed border-blue-100 dark:border-blue-900/30 bg-blue-50/30 dark:bg-blue-900/10">
                             <CardContent className="py-8 flex flex-col items-center text-center gap-3">
                                 <div className="h-14 w-14 bg-blue-100 dark:bg-blue-900/40 rounded-2xl flex items-center justify-center">
-                                    <Zap className="h-7 w-7 text-blue-500" />
+                                    <Zap className="h-7 w-7 text-primary" />
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-lg text-slate-700 dark:text-slate-200">No Conversions Yet</h4>

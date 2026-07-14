@@ -192,12 +192,12 @@ export function NotificationBell() {
         return { icon: Calendar, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-100 dark:border-emerald-800/30' };
       case 'facebook_lead_activity':
       case 'old_lead_facebook_reactivation':
-        return { icon: Facebook, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-100 dark:border-blue-800/30' };
+        return { icon: Facebook, color: 'text-primary', bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-100 dark:border-blue-800/30' };
       case 'new_lead_created':
-        return { icon: UserPlus, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20', border: 'border-indigo-100 dark:border-indigo-800/30' };
+        return { icon: UserPlus, color: 'text-primary', bg: 'bg-primary/10 dark:bg-indigo-900/20', border: 'border-indigo-100 dark:border-indigo-800/30' };
       case 'platform_modal':
       case 'platform_broadcast':
-        return { icon: Megaphone, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20', border: 'border-indigo-100 dark:border-indigo-800/30' };
+        return { icon: Megaphone, color: 'text-primary', bg: 'bg-primary/10 dark:bg-indigo-900/20', border: 'border-indigo-100 dark:border-indigo-800/30' };
       default:
         return { icon: Bell, color: 'text-slate-600', bg: 'bg-slate-50 dark:bg-slate-900/20', border: 'border-slate-100 dark:border-slate-800/30' };
     }
@@ -205,8 +205,8 @@ export function NotificationBell() {
 
   if (!isMounted) {
     return (
-      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl">
-        <Bell className="h-4 w-4" />
+      <Button variant="outline" size="icon" className="h-9 w-9 rounded-full border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)]">
+        <Bell className="h-4 w-4 text-[var(--crm-text-secondary)]" />
       </Button>
     );
   }
@@ -215,15 +215,15 @@ export function NotificationBell() {
     <>
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-xl transition-all active:scale-90 group">
+        <Button variant="outline" size="icon" className="relative h-9 w-9 rounded-full border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)] transition-all active:scale-90 group">
           {unreadCount > 0 ? (
-            <BellRing className="h-4 w-4 text-indigo-500 animate-pulse group-hover:scale-110 transition-transform" />
+            <BellRing className="h-4 w-4 text-primary animate-pulse group-hover:scale-110 transition-transform" />
           ) : (
-            <Bell className="h-4 w-4 text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white transition-all" />
+            <Bell className="h-4 w-4 text-[var(--crm-text-secondary)] group-hover:text-[var(--crm-text-primary)] transition-all" />
           )}
           {unreadCount > 0 && (
             <Badge
-              className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] flex items-center justify-center p-0.5 text-[8px] font-black bg-indigo-600 hover:bg-indigo-600 text-white border-2 border-white dark:border-slate-900 shadow-sm"
+              className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] flex items-center justify-center p-0.5 text-[8px] font-black bg-primary hover:bg-primary text-white border-2 border-white dark:border-slate-900 shadow-sm"
             >
               {unreadCount > 99 ? '99+' : unreadCount}
             </Badge>
@@ -243,7 +243,7 @@ export function NotificationBell() {
                 variant="ghost"
                 size="sm"
                 onClick={markAllAsRead}
-                className="h-7 px-2 text-[10px] font-bold uppercase tracking-tight text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg"
+                className="h-7 px-2 text-[10px] font-bold uppercase tracking-tight text-primary hover:text-primary hover:bg-primary/10 dark:hover:bg-indigo-900/20 rounded-lg"
               >
                 Mark all read
               </Button>
@@ -265,7 +265,7 @@ export function NotificationBell() {
         <ScrollArea className="h-[420px] no-scrollbar">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-40 text-center space-y-3">
-              <div className="h-6 w-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+              <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               <p className="text-xs text-slate-500 font-medium italic">Scanning for updates...</p>
             </div>
           ) : notifications.length === 0 ? (
@@ -287,7 +287,7 @@ export function NotificationBell() {
                       "group relative p-3 rounded-xl transition-all duration-200 border border-transparent",
                       n.is_read
                         ? "hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:border-slate-100 dark:hover:border-slate-800"
-                        : "bg-indigo-50/40 dark:bg-indigo-900/10 border-indigo-100/50 dark:border-indigo-800/30 shadow-[0_2px_10px_-4px_rgba(99,102,241,0.1)]"
+                        : "bg-primary/5 dark:bg-indigo-900/10 border-indigo-100/50 dark:border-indigo-800/30 shadow-[0_2px_10px_-4px_rgba(99,102,241,0.1)]"
                     )}
                   >
                     <div className="flex items-start gap-3">
@@ -323,7 +323,7 @@ export function NotificationBell() {
                         <div className="mt-3 flex items-center gap-2">
                           {n.lead && (
                             <Link href={`/leads?id=${n.lead.id}`}>
-                              <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 hover:text-indigo-600 transition-all rounded-lg gap-1.5">
+                              <Button variant="outline" className="h-7 px-2.5 text-[10px] font-bold bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 hover:text-primary transition-all rounded-lg gap-1.5">
                                 View Lead <ChevronRight className="h-3 w-3" />
                               </Button>
                             </Link>
@@ -332,7 +332,7 @@ export function NotificationBell() {
                             <Button
                               variant="ghost"
                               onClick={() => markAsRead([n.id])}
-                              className="h-7 px-2 text-[10px] font-bold text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg gap-1.5"
+                              className="h-7 px-2 text-[10px] font-bold text-primary hover:bg-primary/10 dark:hover:bg-indigo-900/20 rounded-lg gap-1.5"
                             >
                               <Check className="h-3 w-3" /> Mark Read
                             </Button>
@@ -352,7 +352,7 @@ export function NotificationBell() {
                     
                     {/* Unread dot */}
                     {!n.is_read && (
-                      <div className="absolute top-3 right-3 h-1.5 w-1.5 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+                      <div className="absolute top-3 right-3 h-1.5 w-1.5 bg-primary/100 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
                     )}
                   </div>
                 );

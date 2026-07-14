@@ -45,19 +45,12 @@ export default function FacebookAuthPage() {
 
   return (
     <RoleGuard allowedFeatures={['integrations']}>
-      <div className="absolute inset-0 flex flex-col bg-[var(--crm-bg)] z-10 overflow-hidden">
+      <div className="flex flex-col flex-1 gap-4 sm:gap-5">
         {/* ── Header ────────────────────────────────────────────────────────────── */}
-        <div className="shrink-0 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)] px-6 py-3">
+        <div className="shrink-0">
           <div>
             <h1 className="text-[18px] font-medium text-[var(--crm-text-primary)] flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-7 w-7 rounded-[6px] text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-3)]"
-                onClick={() => router.push('/integrations')}
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
+              
               Facebook Integration
             </h1>
             <p className="text-[12px] text-[var(--crm-text-secondary)] mt-0.5 ml-9">

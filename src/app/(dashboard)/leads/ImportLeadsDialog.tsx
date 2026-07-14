@@ -44,7 +44,7 @@ export const ImportLeadsDialog: React.FC<ImportLeadsDialogProps> = ({
       <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden sm:rounded-2xl border-slate-200 dark:border-slate-800 shadow-2xl">
         <DialogHeader className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 shrink-0">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 dark:bg-indigo-900/30 text-primary dark:text-indigo-400 shrink-0">
               <FileSpreadsheet className="h-6 w-6" />
             </div>
             <div>
@@ -69,9 +69,9 @@ export const ImportLeadsDialog: React.FC<ImportLeadsDialogProps> = ({
             {/* Mapping Section - Only show if not importing and no stats yet */}
             {!isImporting && !importStats && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {columnMapping.map((mapping) => (
+                {columnMapping.map((mapping, index) => (
                   <div
-                    key={mapping.csvHeader}
+                    key={`${mapping.csvHeader}-${index}`}
                     className="flex flex-col space-y-2 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-all hover:shadow-sm"
                   >
                     <div className="flex items-center justify-between">
@@ -118,7 +118,7 @@ export const ImportLeadsDialog: React.FC<ImportLeadsDialogProps> = ({
                 <div className="relative mb-8">
                   <div className="h-24 w-24 rounded-full border-4 border-indigo-100 dark:border-slate-800 border-t-indigo-600 animate-spin" />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Loader2 className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
+                    <Loader2 className="h-10 w-10 text-primary dark:text-indigo-400" />
                   </div>
                 </div>
                 <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Processing Data</h3>
@@ -183,7 +183,7 @@ export const ImportLeadsDialog: React.FC<ImportLeadsDialogProps> = ({
             <Button
               onClick={handleImport}
               disabled={isImporting || columnMapping.length === 0}
-              className="min-w-[140px] bg-indigo-600 hover:bg-indigo-700 h-10 rounded-xl shadow-lg shadow-indigo-200 dark:shadow-none font-bold text-sm transition-all active:scale-95"
+              className="min-w-[140px] bg-primary hover:bg-primary/90 h-10 rounded-xl shadow-lg shadow-primary/20 dark:shadow-none font-bold text-sm transition-all active:scale-95"
             >
               {isImporting ? (
                 <>

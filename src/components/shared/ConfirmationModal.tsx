@@ -49,15 +49,15 @@ export function ConfirmationModal({
       btnVariant: "default" as const
     },
     primary: {
-      bg: "bg-indigo-50 dark:bg-indigo-900/10",
-      icon: <Info className="h-5 w-5 text-indigo-600" />,
-      button: "bg-indigo-600 hover:bg-indigo-700",
+      bg: "bg-primary/10 dark:bg-indigo-900/10",
+      icon: <Info className="h-5 w-5 text-primary" />,
+      button: "bg-primary hover:bg-primary/90",
       btnVariant: "default" as const
     },
     info: {
       bg: "bg-blue-50 dark:bg-blue-900/10",
-      icon: <Info className="h-5 w-5 text-blue-600" />,
-      button: "bg-blue-600 hover:bg-blue-700",
+      icon: <Info className="h-5 w-5 text-primary" />,
+      button: "bg-primary hover:bg-primary/90",
       btnVariant: "default" as const
     }
   };

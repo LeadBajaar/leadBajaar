@@ -39,6 +39,7 @@ export default function FacebookLeadFormsPage() {
     pageId: "",
     formId: "",
     accessToken: "",
+    routingOnly: false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -64,8 +65,10 @@ export default function FacebookLeadFormsPage() {
     const newErrors: Record<string, string> = {};
     if (!config.leadFormName.trim()) newErrors.leadFormName = "Lead Form Name is required";
     if (!config.pageId.trim()) newErrors.pageId = "Page ID is required";
-    if (!config.formId.trim()) newErrors.formId = "Form ID is required";
-    if (!selectedFormId && !config.accessToken.trim()) newErrors.accessToken = "Access Token is required";
+    if (!config.routingOnly) {
+      if (!config.formId.trim()) newErrors.formId = "Form ID is required";
+      if (!selectedFormId && !config.accessToken.trim()) newErrors.accessToken = "Access Token is required";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -82,6 +85,7 @@ export default function FacebookLeadFormsPage() {
           pageId: config.pageId,
           formId: config.formId,
           accessToken: config.accessToken,
+          routingOnly: config.routingOnly,
         },
         isActive: true,
         environment: "production" as "sandbox" | "production",
@@ -98,7 +102,7 @@ export default function FacebookLeadFormsPage() {
       window.dispatchEvent(new Event('integrationsUpdated'));
       setIsCreatingNew(false);
       setSelectedFormId(null);
-      setConfig({ leadFormName: "", pageId: "", formId: "", accessToken: "" });
+      setConfig({ leadFormName: "", pageId: "", formId: "", accessToken: "", routingOnly: false });
       fetchForms();
     } catch (error: any) {
       handleError(error, { title: "Failed to save configuration" });
@@ -138,18 +142,11 @@ export default function FacebookLeadFormsPage() {
   }
 
   return (
-    <div className="absolute inset-0 flex flex-col bg-[var(--crm-bg)] z-10 overflow-hidden">
+    <div className="flex flex-col flex-1 gap-4 sm:gap-5">
       {/* ── Header ────────────────────────────────────────────────────────────── */}
-      <div className="shrink-0 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
-        <div className="flex items-center gap-4 p-6">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-8 w-8 rounded-[8px] text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-3)]"
-            onClick={() => router.push('/integrations')}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+      <div className="shrink-0">
+        <div className="flex items-center gap-4">
+          
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-[var(--crm-text-primary)]">Facebook Lead Forms</h1>
             <p className="text-sm text-[var(--crm-text-secondary)] mt-1">
@@ -157,9 +154,9 @@ export default function FacebookLeadFormsPage() {
             </p>
           </div>
           <Button
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-md font-semibold h-9 px-4 shadow-sm"
+            className="bg-primary hover:bg-primary/90 text-white rounded-md font-semibold h-9 px-4 shadow-sm"
             onClick={() => {
-              setConfig({ leadFormName: "", pageId: "", formId: "", accessToken: "" });
+              setConfig({ leadFormName: "", pageId: "", formId: "", accessToken: "", routingOnly: false });
               setErrors({});
               setSelectedFormId(null);
               setIsCreatingNew(true);
@@ -171,8 +168,8 @@ export default function FacebookLeadFormsPage() {
       </div>
 
       {/* ── Content ──────────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="w-full">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* ── Main Column: Connected Forms ───────────────────────────────────── */}
           <div className="lg:col-span-2 space-y-4">
@@ -187,7 +184,7 @@ export default function FacebookLeadFormsPage() {
                   <div key={form.id} className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 hover:bg-[var(--crm-surface-2)] transition-colors gap-4">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                       <div className="h-10 w-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0 border border-blue-100 dark:border-blue-900/50">
-                        <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        <Globe className="h-5 w-5 text-primary dark:text-blue-400" />
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col gap-1">
                         <div className="flex items-center gap-2">
@@ -199,9 +196,15 @@ export default function FacebookLeadFormsPage() {
                           <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-[var(--crm-bg)] border border-[var(--crm-border)] text-[var(--crm-text-secondary)] truncate max-w-[200px]">
                             PAGE: {form.config?.page_id || form.config?.pageId}
                           </span>
-                          <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-[var(--crm-bg)] border border-[var(--crm-border)] text-[var(--crm-text-secondary)] truncate max-w-[200px]">
-                            FORM: {form.config?.form_id || form.config?.formId}
-                          </span>
+                          {form.config?.routingOnly ? (
+                            <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 truncate max-w-[200px]">
+                              ROUTING ONLY
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-[var(--crm-bg)] border border-[var(--crm-border)] text-[var(--crm-text-secondary)] truncate max-w-[200px]">
+                              FORM: {form.config?.form_id || form.config?.formId}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -228,6 +231,7 @@ export default function FacebookLeadFormsPage() {
                               pageId: form.config?.page_id || form.config?.pageId || "",
                               formId: form.config?.form_id || form.config?.formId || "",
                               accessToken: form.config?.page_access_token || form.config?.accessToken || "",
+                              routingOnly: form.config?.routingOnly || false,
                             });
                             setErrors({});
                             setSelectedFormId(form.id);
@@ -256,12 +260,12 @@ export default function FacebookLeadFormsPage() {
           {/* ── Side Column: Meta Config ───────────────────────────────────────── */}
           <div className="lg:col-span-1 space-y-4">
             <h2 className="text-sm font-semibold text-[var(--crm-text-primary)] px-1">Meta Configuration</h2>
-            <div className="p-5 bg-blue-500/5 rounded-2xl border border-blue-500/10 space-y-5">
+            <div className="p-5 bg-blue-500/5 rounded-2xl border border-primary/10 space-y-5">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-bold uppercase text-blue-600 dark:text-blue-400 flex items-center gap-2 tracking-wider">
+                <Label className="text-sm font-bold uppercase text-primary dark:text-blue-400 flex items-center gap-2 tracking-wider">
                   <Globe className="h-4 w-4" /> Webhook Info
                 </Label>
-                <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">
+                <Badge className="bg-blue-500/10 text-primary border-primary/20">
                   Dashboard Setup
                 </Badge>
               </div>
@@ -314,7 +318,7 @@ export default function FacebookLeadFormsPage() {
 
               <div className="flex items-start gap-3 pt-2">
                 <div className="h-6 w-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                  <ShieldCheck className="h-3.5 w-3.5 text-primary dark:text-blue-400" />
                 </div>
                 <p className="text-[13px] text-[var(--crm-text-secondary)] leading-relaxed pt-0.5">
                   Copy these values into your Meta Developer Dashboard under{" "}
@@ -371,37 +375,52 @@ export default function FacebookLeadFormsPage() {
               {errors.pageId && <p className="text-[10px] text-red-500 font-medium">{errors.pageId}</p>}
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-[var(--crm-text-primary)] text-xs font-semibold">Form ID</Label>
-              <Input
-                placeholder="Enter your Lead Form ID"
-                value={config.formId}
-                onChange={(e) => setConfig({ ...config, formId: e.target.value })}
-                className={errors.formId ? "border-red-500 bg-[var(--crm-surface-1)] text-[var(--crm-text-primary)] h-9 font-mono text-sm" : "bg-[var(--crm-surface-1)] text-[var(--crm-text-primary)] border-[var(--crm-border)] h-9 font-mono text-sm"}
+            <div className="flex items-center justify-between border border-[var(--crm-border)] rounded-md p-3 bg-[var(--crm-surface-1)]">
+              <div className="space-y-0.5">
+                <Label className="text-[var(--crm-text-primary)] text-xs font-semibold">HubSpot Routing Only</Label>
+                <p className="text-[10px] text-[var(--crm-text-secondary)]">Use this only for routing HubSpot webhook leads (No Access Token or Form ID required).</p>
+              </div>
+              <Switch
+                checked={config.routingOnly}
+                onCheckedChange={(checked) => setConfig({ ...config, routingOnly: checked, formId: "", accessToken: "" })}
               />
-              {errors.formId && <p className="text-[10px] text-red-500 font-medium">{errors.formId}</p>}
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-[var(--crm-text-primary)] text-xs font-semibold">Page Access Token</Label>
-              <div className="relative">
-                <Input
-                  type={showToken ? "text" : "password"}
-                  placeholder="Enter Long-lived Page Access Token"
-                  value={config.accessToken}
-                  onChange={(e) => setConfig({ ...config, accessToken: e.target.value })}
-                  className={errors.accessToken ? "border-red-500 bg-[var(--crm-surface-1)] text-[var(--crm-text-primary)] h-9 font-mono text-sm pr-10" : "bg-[var(--crm-surface-1)] text-[var(--crm-text-primary)] border-[var(--crm-border)] h-9 font-mono text-sm pr-10"}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowToken(!showToken)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]"
-                >
-                  {showToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-              {errors.accessToken && <p className="text-[10px] text-red-500 font-medium">{errors.accessToken}</p>}
-            </div>
+            {!config.routingOnly && (
+              <>
+                <div className="space-y-2">
+                  <Label className="text-[var(--crm-text-primary)] text-xs font-semibold">Form ID</Label>
+                  <Input
+                    placeholder="Enter your Lead Form ID"
+                    value={config.formId}
+                    onChange={(e) => setConfig({ ...config, formId: e.target.value })}
+                    className={errors.formId ? "border-red-500 bg-[var(--crm-surface-1)] text-[var(--crm-text-primary)] h-9 font-mono text-sm" : "bg-[var(--crm-surface-1)] text-[var(--crm-text-primary)] border-[var(--crm-border)] h-9 font-mono text-sm"}
+                  />
+                  {errors.formId && <p className="text-[10px] text-red-500 font-medium">{errors.formId}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[var(--crm-text-primary)] text-xs font-semibold">Page Access Token</Label>
+                  <div className="relative">
+                    <Input
+                      type={showToken ? "text" : "password"}
+                      placeholder="Enter Long-lived Page Access Token"
+                      value={config.accessToken}
+                      onChange={(e) => setConfig({ ...config, accessToken: e.target.value })}
+                      className={errors.accessToken ? "border-red-500 bg-[var(--crm-surface-1)] text-[var(--crm-text-primary)] h-9 font-mono text-sm pr-10" : "bg-[var(--crm-surface-1)] text-[var(--crm-text-primary)] border-[var(--crm-border)] h-9 font-mono text-sm pr-10"}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowToken(!showToken)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]"
+                    >
+                      {showToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {errors.accessToken && <p className="text-[10px] text-red-500 font-medium">{errors.accessToken}</p>}
+                </div>
+              </>
+            )}
           </div>
 
           <DialogFooter className="border-t border-[var(--crm-border)] pt-4 mt-2">
@@ -418,7 +437,7 @@ export default function FacebookLeadFormsPage() {
             <Button 
               onClick={handleSave} 
               disabled={isSaving}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+              className="bg-primary hover:bg-primary/90 text-white font-semibold"
             >
               {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               {selectedFormId ? "Update Configuration" : "Save Configuration"}

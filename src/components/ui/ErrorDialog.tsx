@@ -42,7 +42,7 @@ export function ErrorDialog({
             href={part}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline break-all font-semibold inline-flex items-center group"
+            className="text-primary dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline break-all font-semibold inline-flex items-center group"
           >
             {part}
             <ExternalLink className="h-3 w-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />

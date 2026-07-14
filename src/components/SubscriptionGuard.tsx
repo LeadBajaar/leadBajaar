@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import Loading from '@/app/loading'
 
 interface SubscriptionGuardProps {
   children: React.ReactNode
@@ -22,7 +23,9 @@ export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
     setIsAdminBypass(!!localStorage.getItem('admin_token'))
   }, [])
 
-  if (isLoading) return null // Do not render anything (not even children) until we know the sub status
+  // Show the brand loader (same one streamed by app/loading.tsx) instead of a
+  // blank screen while the user/subscription status is being fetched.
+  if (isLoading) return <Loading />
 
   // Super Admins bypass all restrictions
   if (user?.role === 'Super Admin' || user?.user_type === 'super_admin' || isAdminBypass) {
@@ -51,7 +54,7 @@ export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 bg-slate-100/40 dark:bg-slate-950/60 backdrop-blur-xl" />
-        <div className="absolute top-1/4 left-1/4 w-48 sm:w-96 h-48 sm:h-96 bg-indigo-500/10 rounded-full blur-[60px] sm:blur-[120px] animate-pulse" />
+        <div className="absolute top-1/4 left-1/4 w-48 sm:w-96 h-48 sm:h-96 bg-primary/10 rounded-full blur-[60px] sm:blur-[120px] animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-48 sm:w-96 h-48 sm:h-96 bg-red-500/10 rounded-full blur-[60px] sm:blur-[120px] animate-pulse delay-700" />
 
         <Card className="relative w-full max-w-[480px] border-none shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl animate-in zoom-in-95 duration-500 my-auto">
@@ -129,11 +132,11 @@ export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
 
             {/* Quick Warning */}
             {!isSuspended && (
-              <div className="flex items-start gap-3 p-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/10">
-                <div className="mt-0.5 text-indigo-500 shrink-0">
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-primary/5 dark:bg-primary/5 border border-indigo-100 dark:border-primary/10">
+                <div className="mt-0.5 text-primary shrink-0">
                   <Info className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <p className="text-[10px] sm:text-xs text-indigo-700 dark:text-indigo-400 font-medium leading-relaxed">
+                <p className="text-[10px] sm:text-xs text-primary dark:text-indigo-400 font-medium leading-relaxed">
                   Your data is safe, but active lead sync and automations are currently paused.
                 </p>
               </div>
@@ -143,7 +146,7 @@ export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
           <CardFooter className="flex flex-col gap-2.5 sm:gap-3 p-5 sm:p-8 pt-2 sm:pt-4">
             <Button 
               onClick={() => window.location.href = '/settings?tab=billing'}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl sm:rounded-2xl h-11 sm:h-12 text-xs sm:text-sm shadow-xl shadow-indigo-500/30 transition-all hover:scale-[1.02] active:scale-[0.98] group"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-black rounded-xl sm:rounded-2xl h-11 sm:h-12 text-xs sm:text-sm shadow-xl shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98] group"
             >
               <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2.5 sm:mr-3 transition-transform group-hover:rotate-12" /> 
               Renew Subscription

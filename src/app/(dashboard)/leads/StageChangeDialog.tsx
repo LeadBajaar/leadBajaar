@@ -53,7 +53,7 @@ export const StageChangeDialog: React.FC<StageChangeDialogProps> = ({
                 variant="outline"
                 className={cn(
                   "justify-start h-12 rounded-xl transition-all border-slate-200 dark:border-slate-800",
-                  selectedStage === name && "border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/10 text-indigo-700 dark:text-indigo-400 ring-1 ring-indigo-600"
+                  selectedStage === name && "border-primary bg-primary/5 dark:bg-indigo-900/10 text-primary dark:text-indigo-400 ring-1 ring-primary"
                 )}
                 onClick={() => setSelectedStage(name)}
               >
@@ -64,7 +64,7 @@ export const StageChangeDialog: React.FC<StageChangeDialogProps> = ({
                   <span className="text-sm font-semibold">{name}</span>
                 </div>
                 {selectedStage === name && (
-                  <CheckCircle2 className="ml-auto h-4 w-4 text-indigo-600 dark:text-indigo-400 animate-in zoom-in duration-200" />
+                  <CheckCircle2 className="ml-auto h-4 w-4 text-primary dark:text-indigo-400 animate-in zoom-in duration-200" />
                 )}
               </Button>
             ))}
@@ -78,7 +78,7 @@ export const StageChangeDialog: React.FC<StageChangeDialogProps> = ({
             size="sm"
             disabled={!selectedStage}
             onClick={onConfirm}
-            className="bg-indigo-600 hover:bg-indigo-700 font-bold"
+            className="bg-primary hover:bg-primary/90 font-bold"
           >
             Save Changes
           </Button>

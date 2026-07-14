@@ -174,18 +174,18 @@ export default function AutomationsPage() {
 
   return (
     <RoleGuard allowedTypes={['agency', 'super_admin', 'individual']} allowedFeatures={['automations']}>
-      <div className="flex flex-col h-full bg-slate-50/50 dark:bg-slate-950/20 overflow-hidden">
+      <div className="flex flex-col flex-1 gap-4 sm:gap-5">
       {/* Authentic LeadBajaar Header */}
       <div className="shrink-0">
-        <CardHeader className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 space-y-0 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <CardHeader className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 space-y-0 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
           <div>
-            <CardTitle className="text-lg font-bold text-slate-900 dark:text-white">Automations</CardTitle>
-            <p className="text-xs text-slate-500 mt-0.5">Manage automated workflows, drip sequences, and instant triggers</p>
+            <CardTitle className="text-lg font-bold text-[var(--crm-text-primary)]">Automations</CardTitle>
+            <p className="text-xs text-[var(--crm-text-secondary)] mt-0.5">Manage automated workflows, drip sequences, and instant triggers</p>
           </div>
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
             <Button 
               onClick={handleCreateNew}
-              className="h-9 bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5 shadow-sm text-sm font-semibold"
+              className="h-9 bg-[var(--crm-accent)] hover:opacity-90 text-white gap-1.5 shadow-sm text-sm font-semibold"
             >
               <Plus className="h-4 w-4" />
               Create Sequence
@@ -196,17 +196,17 @@ export default function AutomationsPage() {
 
       <div className="flex-1 overflow-auto">
         <Tabs defaultValue="sequences" className="w-full flex flex-col min-h-full">
-          <div className="px-6 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+          <div className="px-6 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
             <TabsList className="bg-transparent border-0 w-full justify-start rounded-none p-0 h-11 space-x-6">
               <TabsTrigger 
                 value="sequences" 
-                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none border-b-2 border-transparent px-1 pb-3 pt-2 font-semibold text-sm text-slate-500 data-[state=active]:text-indigo-600 transition-none"
+                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[var(--crm-accent)] rounded-none border-b-2 border-transparent px-1 pb-3 pt-2 font-semibold text-sm text-[var(--crm-text-secondary)] data-[state=active]:text-[var(--crm-accent)] transition-none"
               >
                 Drip Sequences
               </TabsTrigger>
               <TabsTrigger 
                 value="global" 
-                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none border-b-2 border-transparent px-1 pb-3 pt-2 font-semibold text-sm text-slate-500 data-[state=active]:text-indigo-600 transition-none"
+                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[var(--crm-accent)] rounded-none border-b-2 border-transparent px-1 pb-3 pt-2 font-semibold text-sm text-[var(--crm-text-secondary)] data-[state=active]:text-[var(--crm-accent)] transition-none"
               >
                 Global Triggers
               </TabsTrigger>
@@ -215,30 +215,30 @@ export default function AutomationsPage() {
 
           <TabsContent value="sequences" className="flex-1 p-6 m-0 outline-none space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="border border-slate-100 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 rounded-xl overflow-hidden">
+              <Card className="border border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] rounded-xl overflow-hidden">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
-                      <CheckCircle2 className="h-5 w-5 text-indigo-600" />
+                    <div className="h-10 w-10 rounded-lg bg-[var(--crm-accent-soft)] flex items-center justify-center">
+                      <CheckCircle2 className="h-5 w-5 text-[var(--crm-accent)]" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Sequences</p>
-                      <p className="text-xl font-bold text-slate-900 dark:text-white">
+                      <p className="text-xs font-semibold text-[var(--crm-text-secondary)] uppercase tracking-wider">Active Sequences</p>
+                      <p className="text-xl font-bold text-[var(--crm-text-primary)]">
                         {sequences.filter(s => s.is_active).length}
                       </p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border border-slate-100 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 rounded-xl overflow-hidden">
+              <Card className="border border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] rounded-xl overflow-hidden">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center">
                       <Play className="h-5 w-5 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Enrollments</p>
-                      <p className="text-xl font-bold text-slate-900 dark:text-white">
+                      <p className="text-xs font-semibold text-[var(--crm-text-secondary)] uppercase tracking-wider">Total Enrollments</p>
+                      <p className="text-xl font-bold text-[var(--crm-text-primary)]">
                         {sequences.reduce((acc, s) => acc + (s.enrollments_count || 0), 0)}
                       </p>
                     </div>
@@ -250,13 +250,13 @@ export default function AutomationsPage() {
             <div className="space-y-4">
               {isLoading ? (
                 Array(3).fill(0).map((_, i) => (
-                  <Card key={i} className="animate-pulse h-24 bg-slate-100 dark:bg-slate-800 border-none rounded-xl" />
+                  <Card key={i} className="animate-pulse h-24 bg-[var(--crm-surface-3)] border-none rounded-xl" />
                 ))
               ) : sequences.length === 0 ? (
-                <div className="py-20 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl bg-white/50 dark:bg-slate-900/50">
-                  <Zap className="h-8 w-8 text-slate-400 mx-auto mb-3" />
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">No sequences found</h3>
-                  <p className="text-xs text-slate-500 mt-1 mb-4">Create a sequence to automate your lead follow-ups.</p>
+                <div className="py-20 text-center border-2 border-dashed border-[var(--crm-border)] rounded-xl bg-[var(--crm-surface-1)]/50">
+                  <Zap className="h-8 w-8 text-[var(--crm-text-secondary)] mx-auto mb-3" />
+                  <h3 className="text-sm font-semibold text-[var(--crm-text-primary)]">No sequences found</h3>
+                  <p className="text-xs text-[var(--crm-text-secondary)] mt-1 mb-4">Create a sequence to automate your lead follow-ups.</p>
                   <Button onClick={handleCreateNew} size="sm" variant="outline" className="h-8">Create Sequence</Button>
                 </div>
               ) : (
@@ -264,25 +264,25 @@ export default function AutomationsPage() {
                   {sequences.map(sequence => (
                     <Card 
                       key={sequence.id} 
-                      className="border border-slate-100 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 rounded-xl overflow-hidden group hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors"
+                      className="border border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] rounded-xl overflow-hidden group hover:border-primary/20:border-indigo-800 transition-colors"
                     >
                       <CardContent className="p-0">
                         <div className="flex items-start justify-between p-5">
                           <div className="space-y-1.5 flex-1">
                             <div className="flex items-center gap-2">
-                              <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">
+                              <h3 className="text-base font-bold text-[var(--crm-text-primary)] group-hover:text-[var(--crm-accent)] transition-colors">
                                 {sequence.name}
                               </h3>
-                              <Badge variant="outline" className={sequence.is_active ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-500 border-slate-200"}>
+                              <Badge variant="outline" className={sequence.is_active ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] border-[var(--crm-border)]"}>
                                 {sequence.is_active ? 'Active' : 'Paused'}
                               </Badge>
                             </div>
-                            <p className="text-xs text-slate-500 line-clamp-1 pr-4">{sequence.description || 'No description provided.'}</p>
+                            <p className="text-xs text-[var(--crm-text-secondary)] line-clamp-1 pr-4">{sequence.description || 'No description provided.'}</p>
                           </div>
                           
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]">
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -302,31 +302,31 @@ export default function AutomationsPage() {
                           </DropdownMenu>
                         </div>
                         
-                        <div className="bg-slate-50 dark:bg-slate-800/50 px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div className="bg-[var(--crm-surface-2)] px-5 py-3 border-t border-[var(--crm-border)] flex items-center justify-between">
                           <div className="flex items-center gap-6">
                             <div className="flex flex-col">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Trigger</span>
+                              <span className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Trigger</span>
                               <div className="flex items-center gap-1.5 mt-0.5">
-                                <Filter className="h-3.5 w-3.5 text-indigo-500" />
-                                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                <Filter className="h-3.5 w-3.5 text-primary" />
+                                <span className="text-xs font-semibold text-[var(--crm-text-primary)]">
                                   {sequence.trigger_type.replace('_', ' ')}
                                 </span>
                               </div>
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Enrollments</span>
-                              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-0.5">{sequence.enrollments_count || 0}</span>
+                              <span className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Enrollments</span>
+                              <span className="text-xs font-semibold text-[var(--crm-text-primary)] mt-0.5">{sequence.enrollments_count || 0}</span>
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Actions</span>
+                              <span className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Actions</span>
                               <div className="flex -space-x-1.5 mt-0.5">
                                 {sequence.steps?.slice(0, 4).map((step, idx) => (
-                                  <div key={idx} className="h-5 w-5 rounded-full border border-white dark:border-slate-900 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 shadow-sm">
-                                    {step.action_type === 'send_email' ? <Mail className="h-2.5 w-2.5 text-blue-500" /> : step.action_type === 'send_whatsapp' ? <MessageSquare className="h-2.5 w-2.5 text-emerald-500" /> : <Settings2 className="h-2.5 w-2.5 text-slate-500" />}
+                                  <div key={idx} className="h-5 w-5 rounded-full border border-white bg-[var(--crm-surface-1)] flex items-center justify-center text-[var(--crm-text-secondary)] shadow-sm">
+                                    {step.action_type === 'send_email' ? <Mail className="h-2.5 w-2.5 text-primary" /> : step.action_type === 'send_whatsapp' ? <MessageSquare className="h-2.5 w-2.5 text-emerald-500" /> : <Settings2 className="h-2.5 w-2.5 text-[var(--crm-text-secondary)]" />}
                                   </div>
                                 ))}
                                 {(sequence.steps?.length || 0) > 4 && (
-                                  <div className="h-5 w-5 rounded-full border border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[9px] font-bold text-slate-500">
+                                  <div className="h-5 w-5 rounded-full border border-white bg-[var(--crm-surface-3)] flex items-center justify-center text-[9px] font-bold text-[var(--crm-text-secondary)]">
                                     +{(sequence.steps?.length || 0) - 4}
                                   </div>
                                 )}
@@ -342,7 +342,7 @@ export default function AutomationsPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="global" className="flex-1 p-6 m-0 outline-none h-full bg-white dark:bg-slate-900/50 rounded-tl-xl border-t border-l border-slate-100 dark:border-slate-800">
+          <TabsContent value="global" className="flex-1 p-6 m-0 outline-none h-full bg-[var(--crm-surface-1)] rounded-tl-xl border-t border-l border-[var(--crm-border)]">
             <div className="max-w-4xl">
               <GlobalAutomationsSettings />
             </div>
@@ -351,12 +351,12 @@ export default function AutomationsPage() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl bg-white dark:bg-slate-950 p-0 overflow-hidden border-none rounded-[2rem] shadow-2xl">
+        <DialogContent className="max-w-2xl bg-[var(--crm-surface-1)] p-0 overflow-hidden border-none rounded-[2rem] shadow-2xl">
           <div className="p-8 max-h-[90vh] overflow-y-auto">
             <DialogHeader className="mb-8">
               <DialogTitle className="text-2xl font-bold flex items-center gap-2">
                 {currentSequence?.id ? 'Edit Sequence' : 'Visual Sequence Builder'}
-                <Sparkles className="h-5 w-5 text-indigo-500" />
+                <Sparkles className="h-5 w-5 text-primary" />
               </DialogTitle>
               <DialogDescription>
                 Design an automated flow that converts leads into customers.
@@ -369,7 +369,7 @@ export default function AutomationsPage() {
                   <Label className="text-sm font-bold ml-1">Sequence Name</Label>
                   <Input 
                     placeholder="e.g., Free Trial Welcome Series" 
-                    className="h-12 rounded-xl bg-slate-50 dark:bg-slate-900 border-none ring-1 ring-slate-200 dark:ring-slate-800"
+                    className="h-12 rounded-xl bg-[var(--crm-surface-2)] border-none ring-1 ring-slate-200"
                     value={currentSequence?.name || ''}
                     onChange={e => setCurrentSequence({ ...currentSequence, name: e.target.value })}
                   />
@@ -380,7 +380,7 @@ export default function AutomationsPage() {
                     value={currentSequence?.trigger_type} 
                     onValueChange={(v: any) => setCurrentSequence({ ...currentSequence, trigger_type: v })}
                   >
-                    <SelectTrigger className="h-12 rounded-xl bg-slate-50 dark:bg-slate-900 border-none ring-1 ring-slate-200 dark:ring-slate-800">
+                    <SelectTrigger className="h-12 rounded-xl bg-[var(--crm-surface-2)] border-none ring-1 ring-slate-200">
                       <SelectValue placeholder="When should this start?" />
                     </SelectTrigger>
                     <SelectContent>
@@ -399,7 +399,7 @@ export default function AutomationsPage() {
                     value={currentSequence?.trigger_value} 
                     onValueChange={(v: any) => setCurrentSequence({ ...currentSequence, trigger_value: v })}
                   >
-                    <SelectTrigger className="h-12 rounded-xl bg-slate-50 dark:bg-slate-900 border-none ring-1 ring-slate-200 dark:ring-slate-800">
+                    <SelectTrigger className="h-12 rounded-xl bg-[var(--crm-surface-2)] border-none ring-1 ring-slate-200">
                       <SelectValue placeholder="Which stage?" />
                     </SelectTrigger>
                     <SelectContent>
@@ -409,38 +409,38 @@ export default function AutomationsPage() {
                 </div>
               )}
 
-              <Separator className="bg-slate-100 dark:bg-slate-800" />
+              <Separator className="bg-[var(--crm-surface-3)]" />
 
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <h4 className="text-lg font-bold flex items-center gap-2">
                     Sequence Steps
-                    <Badge variant="outline" className="rounded-full bg-slate-50 dark:bg-slate-900">{newSteps.length}</Badge>
+                    <Badge variant="outline" className="rounded-full bg-[var(--crm-surface-2)]">{newSteps.length}</Badge>
                   </h4>
-                  <Button variant="ghost" className="text-indigo-600 font-bold hover:bg-indigo-50" onClick={addStep}>
+                  <Button variant="ghost" className="text-[var(--crm-accent)] font-bold hover:bg-[var(--crm-accent-soft)]" onClick={addStep}>
                     <Plus className="h-4 w-4 mr-1" /> Add Action Item
                   </Button>
                 </div>
 
                 <div className="space-y-4 relative">
                    {/* Vertical line connector */}
-                   <div className="absolute left-[20px] top-6 bottom-6 w-0.5 bg-slate-100 dark:bg-slate-800 z-0" />
+                   <div className="absolute left-[20px] top-6 bottom-6 w-0.5 bg-[var(--crm-surface-3)] z-0" />
 
                    {newSteps.map((step, idx) => (
                       <div key={idx} className="relative z-10 flex gap-6 items-start animate-in slide-in-from-left-2 duration-300" style={{ animationDelay: `${idx * 50}ms` }}>
-                        <div className="h-10 w-10 rounded-full bg-white dark:bg-slate-900 shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 flex items-center justify-center font-bold text-slate-400 text-sm flex-shrink-0 mt-2">
+                        <div className="h-10 w-10 rounded-full bg-[var(--crm-surface-1)] shadow-sm ring-1 ring-slate-200 flex items-center justify-center font-bold text-[var(--crm-text-secondary)] text-sm flex-shrink-0 mt-2">
                           {idx + 1}
                         </div>
                         
-                        <Card className="flex-1 border-none shadow-none ring-1 ring-slate-200 dark:ring-slate-800 dark:bg-slate-900/50 rounded-2xl overflow-hidden">
+                        <Card className="flex-1 border-none shadow-none ring-1 ring-slate-200 rounded-2xl overflow-hidden">
                           <div className="p-4 grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
                             <div className="sm:col-span-3 space-y-1.5">
-                              <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Delay (hrs)</Label>
+                              <Label className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest ml-1">Delay (hrs)</Label>
                               <div className="relative">
-                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-secondary)]" />
                                 <Input 
                                   type="number" 
-                                  className="h-10 pl-9 rounded-xl bg-white dark:bg-slate-950 border-none ring-1 ring-slate-100 dark:ring-slate-800 focus:ring-indigo-500" 
+                                  className="h-10 pl-9 rounded-xl bg-[var(--crm-surface-1)] border-none ring-1 ring-slate-100 focus:ring-[var(--crm-accent)]" 
                                   value={step.delay_hours}
                                   onChange={e => updateStep(idx, 'delay_hours', parseInt(e.target.value))}
                                 />
@@ -448,9 +448,9 @@ export default function AutomationsPage() {
                             </div>
 
                             <div className="sm:col-span-4 space-y-1.5">
-                              <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Action Type</Label>
+                              <Label className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest ml-1">Action Type</Label>
                               <Select value={step.action_type} onValueChange={(v: any) => updateStep(idx, 'action_type', v)}>
-                                <SelectTrigger className="h-10 rounded-xl bg-white dark:bg-slate-950 border-none ring-1 ring-slate-100 dark:ring-slate-800 focus:ring-indigo-500">
+                                <SelectTrigger className="h-10 rounded-xl bg-[var(--crm-surface-1)] border-none ring-1 ring-slate-100 focus:ring-[var(--crm-accent)]">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -465,9 +465,9 @@ export default function AutomationsPage() {
                             <div className="sm:col-span-4 space-y-1.5">
                               {step.action_type === 'send_email' && (
                                 <>
-                                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Template</Label>
+                                  <Label className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest ml-1">Email Template</Label>
                                   <Select value={step.template_id?.toString()} onValueChange={(v) => updateStep(idx, 'template_id', parseInt(v))}>
-                                    <SelectTrigger className="h-10 rounded-xl bg-white dark:bg-slate-950 border-none ring-1 ring-slate-100 dark:ring-slate-800 focus:ring-indigo-500">
+                                    <SelectTrigger className="h-10 rounded-xl bg-[var(--crm-surface-1)] border-none ring-1 ring-slate-100 focus:ring-[var(--crm-accent)]">
                                       <SelectValue placeholder="Choose Template" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -478,9 +478,9 @@ export default function AutomationsPage() {
                               )}
                               {step.action_type === 'update_stage' && (
                                 <>
-                                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Target Stage</Label>
+                                  <Label className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest ml-1">Target Stage</Label>
                                   <Select value={step.action_value} onValueChange={(v) => updateStep(idx, 'action_value', v)}>
-                                    <SelectTrigger className="h-10 rounded-xl bg-white dark:bg-slate-950 border-none ring-1 ring-slate-100 dark:ring-slate-800 focus:ring-indigo-500">
+                                    <SelectTrigger className="h-10 rounded-xl bg-[var(--crm-surface-1)] border-none ring-1 ring-slate-100 focus:ring-[var(--crm-accent)]">
                                       <SelectValue placeholder="Choose Stage" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -489,15 +489,15 @@ export default function AutomationsPage() {
                                   </Select>
                                 </>
                               )}
-                              {step.action_type === 'wait' && <div className="h-10 flex items-center text-xs text-slate-400 italic">No action at this step</div>}
+                              {step.action_type === 'wait' && <div className="h-10 flex items-center text-xs text-[var(--crm-text-secondary)] italic">No action at this step</div>}
                               {step.action_type === 'send_whatsapp' && (
                                 <div className="space-y-2">
-                                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">WA Provider</Label>
+                                  <Label className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest ml-1">WA Provider</Label>
                                   <Select
                                     value={step.whatsapp_provider || 'personal'}
                                     onValueChange={(v: any) => updateStep(idx, 'whatsapp_provider', v)}
                                   >
-                                    <SelectTrigger className="h-10 rounded-xl bg-white dark:bg-slate-950 border-none ring-1 ring-slate-100 dark:ring-slate-800">
+                                    <SelectTrigger className="h-10 rounded-xl bg-[var(--crm-surface-1)] border-none ring-1 ring-slate-100">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -514,7 +514,7 @@ export default function AutomationsPage() {
                                <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg"
+                                className="h-8 w-8 text-[var(--crm-text-secondary)] hover:text-red-500 hover:bg-red-50 rounded-lg"
                                 onClick={() => removeStep(idx)}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -527,10 +527,10 @@ export default function AutomationsPage() {
                             <div className="px-4 pb-4">
                               {(step.whatsapp_provider === 'personal' || step.whatsapp_provider === 'cloud_api' || !step.whatsapp_provider) && (
                                 <div className="space-y-1.5">
-                                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Template Name</Label>
+                                  <Label className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest ml-1">Template Name</Label>
                                   <Input
                                     placeholder="e.g., welcome_message"
-                                    className="h-10 rounded-xl bg-white dark:bg-slate-950 border-none ring-1 ring-slate-100 dark:ring-slate-800 focus:ring-indigo-500"
+                                    className="h-10 rounded-xl bg-[var(--crm-surface-1)] border-none ring-1 ring-slate-100 focus:ring-[var(--crm-accent)]"
                                     value={step.whatsapp_template_name || ''}
                                     onChange={e => updateStep(idx, 'whatsapp_template_name', e.target.value)}
                                   />
@@ -538,13 +538,13 @@ export default function AutomationsPage() {
                               )}
                               {step.whatsapp_provider === 'evolution' && (
                                 <div className="space-y-1.5">
-                                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                                    Message <span className="normal-case text-indigo-500">(sent via your linked Evolution device)</span>
+                                  <Label className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest ml-1">
+                                    Message <span className="normal-case text-primary">(sent via your linked Evolution device)</span>
                                   </Label>
                                   <textarea
                                     rows={3}
                                     placeholder="Type the WhatsApp message to send..."
-                                    className="w-full resize-none rounded-xl bg-white dark:bg-slate-950 border-none ring-1 ring-slate-100 dark:ring-slate-800 focus:ring-indigo-500 px-3 py-2 text-sm"
+                                    className="w-full resize-none rounded-xl bg-[var(--crm-surface-1)] border-none ring-1 ring-slate-100 focus:ring-[var(--crm-accent)] px-3 py-2 text-sm"
                                     value={step.whatsapp_message || ''}
                                     onChange={e => updateStep(idx, 'whatsapp_message', e.target.value)}
                                   />
@@ -559,9 +559,9 @@ export default function AutomationsPage() {
               </div>
             </div>
 
-            <DialogFooter className="mt-12 sticky bottom-0 bg-white dark:bg-slate-950 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <DialogFooter className="mt-12 sticky bottom-0 bg-[var(--crm-surface-1)] pt-4 border-t border-[var(--crm-border)]">
               <Button variant="ghost" className="rounded-xl h-12 px-6 font-bold" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-              <Button className="rounded-xl h-12 px-8 font-bold bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100" onClick={saveSequence}>
+              <Button className="rounded-xl h-12 px-8 font-bold bg-[var(--crm-accent)] hover:opacity-90 shadow-lg shadow-indigo-100" onClick={saveSequence}>
                 <ArrowRight className="h-5 w-5 mr-1.5" /> Launch Sequence
               </Button>
             </DialogFooter>

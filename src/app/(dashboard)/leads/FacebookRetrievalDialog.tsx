@@ -63,7 +63,7 @@ export const FacebookRetrievalDialog: React.FC<FacebookRetrievalDialogProps> = (
       <Dialog open={showFacebookRetrieval} onOpenChange={setShowFacebookRetrieval}>
         <DialogContent className="max-w-[500px]">
           <DialogHeader>
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mb-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-900/30 text-primary dark:text-blue-400 mb-4">
               <Facebook className="h-6 w-6" />
             </div>
             <DialogTitle className="text-xl font-bold">Sync Facebook Leads</DialogTitle>
@@ -117,14 +117,14 @@ export const FacebookRetrievalDialog: React.FC<FacebookRetrievalDialogProps> = (
             </div>
 
             {showProgress && (
-              <div className="space-y-3 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/30 dark:bg-indigo-900/10">
+              <div className="space-y-3 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/30 bg-primary/5 dark:bg-indigo-900/10">
                 <div className="flex justify-between text-xs font-medium">
-                  <span className="text-indigo-600 dark:text-indigo-400">{progressMessage}</span>
-                  <span className="text-indigo-600 dark:text-indigo-400">{progress}%</span>
+                  <span className="text-primary dark:text-indigo-400">{progressMessage}</span>
+                  <span className="text-primary dark:text-indigo-400">{progress}%</span>
                 </div>
                 <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-indigo-600 transition-all duration-300"
+                    className="h-full bg-primary transition-all duration-300"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
@@ -137,7 +137,7 @@ export const FacebookRetrievalDialog: React.FC<FacebookRetrievalDialogProps> = (
               Cancel
             </Button>
             <Button
-              className="min-w-[140px] bg-blue-600 hover:bg-blue-700 h-10 shadow-lg shadow-blue-200 dark:shadow-none font-bold"
+              className="min-w-[140px] bg-primary hover:bg-primary/90 h-10 shadow-lg shadow-blue-200 dark:shadow-none font-bold"
               onClick={handleRetrieveLeads}
               disabled={isRetrievingLeads || !selectedForm}
             >
@@ -180,8 +180,8 @@ export const FacebookRetrievalDialog: React.FC<FacebookRetrievalDialogProps> = (
                    <div className="text-2xl font-black text-emerald-600">{retrievalResults?.new_leads || 0}</div>
                 </div>
                 <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-blue-100 dark:border-blue-900/30 shadow-sm transition-all hover:scale-105">
-                   <div className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-1">Existing</div>
-                   <div className="text-2xl font-black text-blue-600">{retrievalResults?.existing_leads || 0}</div>
+                   <div className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Existing</div>
+                   <div className="text-2xl font-black text-primary">{retrievalResults?.existing_leads || 0}</div>
                 </div>
              </div>
 
@@ -204,7 +204,7 @@ export const FacebookRetrievalDialog: React.FC<FacebookRetrievalDialogProps> = (
                             </div>
                             <Badge variant="secondary" className={cn(
                                "text-[10px] sm:text-[11px] font-bold border-none px-2 rounded-full",
-                               log.status === 'created' ? "bg-green-50 text-green-600" : "bg-blue-50 text-blue-600"
+                               log.status === 'created' ? "bg-green-50 text-green-600" : "bg-blue-50 text-primary"
                             )}>
                                {log.status === 'created' ? 'NEW LEAD' : 'EXISTING'}
                             </Badge>

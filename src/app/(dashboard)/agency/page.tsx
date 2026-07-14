@@ -11,6 +11,13 @@ import {
   CardFooter
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
@@ -221,15 +228,15 @@ export default function AgencyPortalPage() {
 
   return (
     <RoleGuard allowedTypes={['agency', 'super_admin']} allowedFeatures={['agency_management']}>
-      <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:min-h-screen bg-slate-50/50 dark:bg-slate-950/20 p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto z-10">
+      <div className="flex flex-col flex-1 gap-4 sm:gap-5">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
+            <h1 className="text-xl sm:text-2xl font-black text-[var(--crm-text-primary)] tracking-tight flex items-center gap-2">
+              <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-[var(--crm-accent)]" />
               Agency Management
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">Oversee your client portfolio and performance metrics</p>
+            <p className="text-xs sm:text-sm text-[var(--crm-text-secondary)] font-medium mt-1">Oversee your client portfolio and performance metrics</p>
           </div>
 
           <Dialog open={isOnboardingOpen} onOpenChange={(open) => {
@@ -237,36 +244,36 @@ export default function AgencyPortalPage() {
             if (!open) setOnboardingResult(null);
           }}>
             <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]">
+              <Button className="w-full sm:w-auto bg-[var(--crm-accent)] hover:opacity-90 text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]">
                 <UserPlus2 className="h-4 w-4 mr-2 shrink-0" /> Onboard New Client
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[450px] rounded-3xl p-6 border-none shadow-2xl">
+            <DialogContent className="sm:max-w-[450px] rounded-3xl p-6 border border-[var(--crm-border)] bg-[var(--crm-surface-1)] shadow-2xl">
               <DialogHeader>
                 <DialogTitle className="text-xl font-black tracking-tight">Onboard Individual Client</DialogTitle>
-                <DialogDescription className="text-slate-500 font-medium italic">
+                <DialogDescription className="text-[var(--crm-text-secondary)] font-medium italic">
                   Create a dedicated workspace for your new customer.
                 </DialogDescription>
               </DialogHeader>
 
               {onboardingResult ? (
                 <div className="space-y-4 py-4 animate-in fade-in slide-in-from-bottom-2">
-                  <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl border border-emerald-100 dark:border-emerald-900/50 text-center space-y-2">
-                     <p className="text-emerald-700 dark:text-emerald-400 font-bold text-sm">Success! Client Onboarded.</p>
-                     <p className="text-xs text-slate-500 uppercase font-black">Share this setup link with {onboardingResult.email}</p>
+                  <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 text-center space-y-2">
+                     <p className="text-emerald-600 font-bold text-sm">Success! Client Onboarded.</p>
+                     <p className="text-xs text-[var(--crm-text-secondary)] uppercase font-black">Share this setup link with {onboardingResult.email}</p>
                   </div>
                   <div className="space-y-2">
                     <Input 
                       readOnly 
                       value={onboardingResult.link || ''}
-                      className="h-11 rounded-xl bg-slate-50 border-slate-200 font-mono text-[10px]"
+                      className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] font-mono text-[10px]"
                     />
                     <Button 
                       onClick={() => {
                         navigator.clipboard.writeText(onboardingResult.link || '');
                         toast({ title: "Copied!", description: "Invitation link copied to clipboard." });
                       }}
-                      className="w-full bg-slate-900 text-white rounded-xl h-11 font-bold"
+                      className="w-full bg-[var(--crm-accent)] hover:opacity-90 text-white rounded-xl h-11 font-bold"
                     >
                       Copy Link & Close
                     </Button>
@@ -276,47 +283,54 @@ export default function AgencyPortalPage() {
                 <>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase text-slate-500">Business Name</Label>
+                      <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">Business Name</Label>
                       <Input 
                         placeholder="e.g. Realty Hub Chennai" 
                         value={newClient.company_name}
                         onChange={(e) => setNewClient({...newClient, company_name: e.target.value})}
-                        className="h-11 rounded-xl bg-slate-50 border-slate-200"
+                        className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)]"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase text-slate-500">Owner Name</Label>
+                        <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">Owner Name</Label>
                         <Input 
                           placeholder="Full Name" 
                           value={newClient.owner_name}
                           onChange={(e) => setNewClient({...newClient, owner_name: e.target.value})}
-                          className="h-11 rounded-xl bg-slate-50 border-slate-200"
+                          className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)]"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase text-slate-500">Tier</Label>
-                        <Input 
-                          placeholder="Pro / Starter" 
-                          value={newClient.plan}
-                          onChange={(e) => setNewClient({...newClient, plan: e.target.value})}
-                          className="h-11 rounded-xl bg-slate-50 border-slate-200"
-                        />
+                        <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">Tier</Label>
+                        <Select 
+                          value={newClient.plan} 
+                          onValueChange={(value) => setNewClient({...newClient, plan: value})}
+                        >
+                          <SelectTrigger className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] text-sm">
+                            <SelectValue placeholder="Select Tier" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-[var(--crm-surface-1)] border-[var(--crm-border)]">
+                            <SelectItem value="Starter">Starter</SelectItem>
+                            <SelectItem value="Pro">Pro</SelectItem>
+                            <SelectItem value="Enterprise">Enterprise</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase text-slate-500">Email Address</Label>
+                      <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">Email Address</Label>
                       <Input 
                         placeholder="client@email.com" 
                         value={newClient.owner_email}
                         onChange={(e) => setNewClient({...newClient, owner_email: e.target.value})}
-                        className="h-11 rounded-xl bg-slate-50 border-slate-200"
+                        className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)]"
                       />
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <Label className="text-xs font-bold uppercase text-slate-500">Password (Optional)</Label>
-                        <span className="text-[10px] text-slate-400 font-medium">Leave empty for setup link</span>
+                        <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">Password (Optional)</Label>
+                        <span className="text-[10px] text-[var(--crm-text-secondary)] font-medium">Leave empty for setup link</span>
                       </div>
                       <div className="relative group/pass">
                         <Input 
@@ -324,12 +338,12 @@ export default function AgencyPortalPage() {
                           placeholder="Assign a password directly" 
                           value={newClient.password}
                           onChange={(e) => setNewClient({...newClient, password: e.target.value})}
-                          className="h-11 rounded-xl bg-slate-50 border-slate-200 pr-10"
+                          className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] pr-10"
                         />
                         <button 
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-secondary)] transition-colors"
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -337,8 +351,8 @@ export default function AgencyPortalPage() {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="ghost" className="rounded-xl h-11 font-bold text-slate-400" onClick={() => setIsOnboardingOpen(false)}>Cancel</Button>
-                    <Button onClick={handleOnboard} className="bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-black rounded-xl h-11 px-8 shadow-xl">Complete Onboarding</Button>
+                    <Button variant="ghost" className="rounded-xl h-11 font-bold text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)]" onClick={() => setIsOnboardingOpen(false)}>Cancel</Button>
+                    <Button onClick={handleOnboard} className="bg-[var(--crm-accent)] hover:opacity-90 text-white font-black rounded-xl h-11 px-8 shadow-xl">Complete Onboarding</Button>
                   </DialogFooter>
                 </>
               )}
@@ -353,18 +367,18 @@ export default function AgencyPortalPage() {
             { label: 'Total Leads Managed', value: stats?.total_leads_managed || '0', icon: TrendingUp, color: 'emerald', sub: 'Aggregate across all clients' },
             { label: 'Portfolio Engagement', value: stats?.active_chats || '0', icon: PieChart, color: 'blue', sub: 'Live chat sessions active' }
           ].map((stat, i) => (
-            <Card key={i} className="border-none shadow-sm rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden group">
-              <CardContent className="p-6 relative">
-                <div className={cn("absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full blur-3xl opacity-10", `bg-${stat.color}-500 group-hover:opacity-20 transition-opacity`)} />
-                <div className="flex justify-between items-start mb-4">
-                  <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center", `bg-${stat.color}-50 text-${stat.color}-600 dark:bg-${stat.color}-950/30 dark:text-${stat.color}-400`)}>
-                    <stat.icon className="h-6 w-6" />
-                  </div>
+            <Card key={i} className="border-none shadow-sm rounded-2xl ring-1 ring-[var(--crm-border)] overflow-hidden group bg-[var(--crm-surface-1)]">
+              <CardContent className="p-4 relative flex items-center gap-4">
+                <div className={cn("absolute top-0 right-0 -mt-4 -mr-4 h-16 w-16 rounded-full blur-2xl opacity-10", `bg-${stat.color}-500 group-hover:opacity-20 transition-opacity`)} />
+                <div className={cn("h-10 w-10 shrink-0 rounded-xl flex items-center justify-center", `bg-${stat.color}-50 text-${stat.color}-600`)}>
+                  <stat.icon className="h-5 w-5" />
                 </div>
-                <div className="space-y-1">
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">{stat.label}</p>
-                  <p className="text-3xl font-black text-slate-900 dark:text-white leading-tight">{stat.value}</p>
-                  <p className="text-[10px] text-slate-400 font-medium italic">{stat.sub}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest truncate mb-0.5">{stat.label}</p>
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-xl sm:text-2xl font-black text-[var(--crm-text-primary)] leading-none">{stat.value}</p>
+                    <p className="hidden xl:block text-[9px] text-[var(--crm-text-secondary)] font-medium italic truncate">{stat.sub}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -372,38 +386,38 @@ export default function AgencyPortalPage() {
         </div>
 
         {/* Clients Table */}
-        <Card className="border-none shadow-sm rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden shrink-0">
-          <CardHeader className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 pb-4 sm:pb-6">
+        <Card className="border-none shadow-sm rounded-2xl ring-1 ring-slate-200 overflow-hidden shrink-0">
+          <CardHeader className="bg-[var(--crm-surface-1)] border-b border-[var(--crm-border)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 pb-4 sm:pb-6">
             <div>
               <CardTitle className="text-lg font-bold">Client Portfolio</CardTitle>
               <CardDescription>Direct management of Individual accounts</CardDescription>
             </div>
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-secondary)]" />
               <Input 
                 placeholder="Search clients..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 pl-10 w-full rounded-xl bg-slate-50 border-slate-200 text-sm shadow-inner"
+                className="h-10 pl-10 w-full rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] text-sm shadow-inner"
               />
             </div>
           </CardHeader>
           <CardContent className="p-0 overflow-x-auto no-scrollbar">
             <Table className="min-w-[800px]">
-              <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
+              <TableHeader className="bg-[var(--crm-surface-2)]">
                 <TableRow>
-                  <TableHead className="font-bold py-5 pl-6 text-xs uppercase text-slate-500">Client / Owner</TableHead>
-                  <TableHead className="font-bold py-5 text-xs uppercase text-slate-500">Plan & Expiry</TableHead>
-                  <TableHead className="font-bold py-5 text-xs uppercase text-slate-500 text-center">Managed Leads</TableHead>
-                  <TableHead className="font-bold py-5 text-xs uppercase text-slate-500">Status</TableHead>
-                  <TableHead className="text-right py-5 pr-6 font-bold text-xs uppercase text-slate-500">Quick Access</TableHead>
+                  <TableHead className="font-bold py-5 pl-6 text-xs uppercase text-[var(--crm-text-secondary)]">Client / Owner</TableHead>
+                  <TableHead className="font-bold py-5 text-xs uppercase text-[var(--crm-text-secondary)]">Plan & Expiry</TableHead>
+                  <TableHead className="font-bold py-5 text-xs uppercase text-[var(--crm-text-secondary)] text-center">Managed Leads</TableHead>
+                  <TableHead className="font-bold py-5 text-xs uppercase text-[var(--crm-text-secondary)]">Status</TableHead>
+                  <TableHead className="text-right py-5 pr-6 font-bold text-xs uppercase text-[var(--crm-text-secondary)]">Quick Access</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   [1,2,3].map(i => (
                     <TableRow key={i}>
-                      <TableCell colSpan={5} className="h-16 animate-pulse bg-slate-50/50" />
+                      <TableCell colSpan={5} className="h-16 animate-pulse bg-[var(--crm-surface-2)]" />
                     </TableRow>
                   ))
                 ) : filteredClients.length === 0 ? (
@@ -416,31 +430,31 @@ export default function AgencyPortalPage() {
                     </TableCell>
                   </TableRow>
                 ) : filteredClients.map((client) => (
-                  <TableRow key={client.id} className="hover:bg-indigo-50/30 dark:hover:bg-slate-800/30 transition-colors">
+                  <TableRow key={client.id} className="hover:bg-[var(--crm-accent-soft)]/30:bg-slate-800/30 transition-colors">
                     <TableCell className="py-5 pl-6">
                       <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-black text-slate-600 dark:text-slate-400 text-xs">
+                        <div className="h-9 w-9 rounded-full bg-[var(--crm-surface-3)] flex items-center justify-center font-black text-[var(--crm-text-secondary)] text-xs">
                           {client.name.charAt(0)}
                         </div>
                         <div>
-                          <p className="font-bold text-sm text-slate-900 dark:text-white">{client.name}</p>
-                          <p className="text-[11px] text-slate-500">{client.owner?.name || 'Unassigned'}</p>
+                          <p className="font-bold text-sm text-[var(--crm-text-primary)]">{client.name}</p>
+                          <p className="text-[11px] text-[var(--crm-text-secondary)]">{client.owner?.name || 'Unassigned'}</p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <Badge variant="outline" className="text-[10px] font-black uppercase text-indigo-600 bg-indigo-50 border-indigo-100">
+                        <Badge variant="outline" className="text-[10px] font-black uppercase text-[var(--crm-accent)] bg-[var(--crm-accent-soft)] border-indigo-100">
                           {client.plan}
                         </Badge>
-                        <p className="text-[10px] text-slate-400 flex items-center gap-1 font-medium">
+                        <p className="text-[10px] text-[var(--crm-text-secondary)] flex items-center gap-1 font-medium">
                           <Calendar className="h-3 w-3" />
                           {client.expires_at ? new Date(client.expires_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'}
                         </p>
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className="font-bold text-slate-800 dark:text-white tabular-nums">
+                      <span className="font-bold text-slate-800 tabular-nums">
                         {client.leads_count || 0}
                       </span>
                     </TableCell>
@@ -455,7 +469,7 @@ export default function AgencyPortalPage() {
                           onClick={() => handleOpenPanel(client.id)}
                           variant="ghost" 
                           size="sm" 
-                          className="h-9 rounded-xl text-xs font-black hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-100 text-indigo-600 dark:text-indigo-400"
+                          className="h-9 rounded-xl text-xs font-black hover:bg-[var(--crm-surface-1)] hover:shadow-sm border border-transparent hover:border-[var(--crm-border)] text-[var(--crm-accent)]"
                         >
                           <ExternalLink className="h-3.5 w-3.5 mr-2" /> Open
                         </Button>
@@ -466,7 +480,7 @@ export default function AgencyPortalPage() {
                                 onClick={() => handleViewHistory(client.id, client.name)}
                                 variant="ghost" 
                                 size="sm" 
-                                className="h-9 w-9 rounded-xl text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 transition-colors"
+                                className="h-9 w-9 rounded-xl text-[var(--crm-text-secondary)] hover:text-primary hover:bg-[var(--crm-accent-soft)] transition-colors"
                               >
                                 <History className="h-4 w-4" />
                               </Button>
@@ -482,7 +496,7 @@ export default function AgencyPortalPage() {
                                 onClick={() => setRenewModal({ isOpen: true, clientId: client.id, clientName: client.name })}
                                 variant="ghost" 
                                 size="sm" 
-                                className="h-9 w-9 rounded-xl text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-colors"
+                                className="h-9 w-9 rounded-xl text-[var(--crm-text-secondary)] hover:text-emerald-500 hover:bg-emerald-50 transition-colors"
                               >
                                 <RefreshCw className="h-4 w-4" />
                               </Button>
@@ -494,7 +508,7 @@ export default function AgencyPortalPage() {
                           onClick={() => setDeleteModal({ isOpen: true, clientId: client.id, clientName: client.name })}
                           variant="ghost" 
                           size="sm" 
-                          className="h-9 w-9 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          className="h-9 w-9 rounded-xl text-[var(--crm-text-secondary)] hover:text-red-500 hover:bg-red-50 transition-colors"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -505,8 +519,8 @@ export default function AgencyPortalPage() {
               </TableBody>
             </Table>
           </CardContent>
-          <CardFooter className="bg-slate-50/80 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 py-4 px-6">
-            <p className="text-[10px] text-slate-400 font-medium">Data is isolated to your agency and sub-companies. Only you can access client dashboards.</p>
+          <CardFooter className="bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)] py-4 px-6">
+            <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium">Data is isolated to your agency and sub-companies. Only you can access client dashboards.</p>
           </CardFooter>
         </Card>
 
@@ -534,18 +548,18 @@ export default function AgencyPortalPage() {
 
         {/* History Modal */}
         <Dialog open={historyModal.isOpen} onOpenChange={(open) => setHistoryModal({ ...historyModal, isOpen: open })}>
-          <DialogContent className="sm:max-w-[600px] border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden p-0">
-            <div className="p-6 bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
-              <DialogTitle className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-                <History className="h-5 w-5 text-indigo-500" />
+          <DialogContent className="sm:max-w-[600px] border-[var(--crm-border)] rounded-3xl overflow-hidden p-0">
+            <div className="p-6 bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)]">
+              <DialogTitle className="text-xl font-black text-slate-800 flex items-center gap-2">
+                <History className="h-5 w-5 text-primary" />
                 Subscription History
               </DialogTitle>
-              <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">{historyModal.clientName}</p>
+              <p className="text-xs text-[var(--crm-text-secondary)] font-bold uppercase tracking-wider mt-1">{historyModal.clientName}</p>
             </div>
             
             <div className="max-h-[400px] overflow-y-auto">
               <Table>
-                <TableHeader className="bg-slate-50 dark:bg-slate-900 sticky top-0 z-10">
+                <TableHeader className="bg-[var(--crm-surface-2)] sticky top-0 z-10">
                   <TableRow>
                     <TableHead className="text-[10px] uppercase font-black">Date</TableHead>
                     <TableHead className="text-[10px] uppercase font-black">Event</TableHead>
@@ -556,12 +570,12 @@ export default function AgencyPortalPage() {
                 <TableBody>
                   {historyModal.logs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-12 text-slate-400 font-bold text-sm">No transactions found.</TableCell>
+                      <TableCell colSpan={4} className="text-center py-12 text-[var(--crm-text-secondary)] font-bold text-sm">No transactions found.</TableCell>
                     </TableRow>
                   ) : (
                     historyModal.logs.map((log) => (
-                      <TableRow key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                        <TableCell className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                      <TableRow key={log.id} className="hover:bg-[var(--crm-surface-2)]:bg-slate-800/30">
+                        <TableCell className="text-xs font-bold text-[var(--crm-text-secondary)]">
                           {new Date(log.created_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
@@ -569,8 +583,8 @@ export default function AgencyPortalPage() {
                             {log.type}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-xs font-black text-slate-800 dark:text-white">{log.plan_name}</TableCell>
-                        <TableCell className="text-xs font-bold text-slate-500">
+                        <TableCell className="text-xs font-black text-slate-800">{log.plan_name}</TableCell>
+                        <TableCell className="text-xs font-bold text-[var(--crm-text-secondary)]">
                           {log.new_expiry ? new Date(log.new_expiry).toLocaleDateString() : 'N/A'}
                         </TableCell>
                       </TableRow>
@@ -579,8 +593,8 @@ export default function AgencyPortalPage() {
                 </TableBody>
               </Table>
             </div>
-            <div className="p-4 bg-slate-50 dark:bg-slate-900/50 text-right">
-              <Button onClick={() => setHistoryModal({ ...historyModal, isOpen: false })} className="rounded-xl font-black uppercase text-[10px] tracking-widest px-6 h-10 shadow-indigo-200">Close history</Button>
+            <div className="p-4 bg-[var(--crm-surface-2)] text-right">
+              <Button onClick={() => setHistoryModal({ ...historyModal, isOpen: false })} className="rounded-xl font-black uppercase text-[10px] tracking-widest px-6 h-10 shadow-primary/20">Close history</Button>
             </div>
           </DialogContent>
         </Dialog>

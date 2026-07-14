@@ -496,7 +496,7 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
         <div className="text-center animate-in fade-in zoom-in duration-500">
           <div className="relative h-16 w-16 mx-auto mb-4">
             <div className="absolute inset-0 rounded-full border-4 border-slate-200 dark:border-slate-800 opacity-20"></div>
-            <div className="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
           </div>
           <p className="text-slate-500 dark:text-slate-400 font-medium">Initializing builder...</p>
         </div>
@@ -555,7 +555,7 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
             />
           </div>
         </div>
-        <Button onClick={saveFlow} disabled={isSaving} className="w-full sm:w-auto mt-2 sm:mt-0 shadow-lg shadow-indigo-500/20 bg-indigo-600 hover:bg-indigo-700">
+        <Button onClick={saveFlow} disabled={isSaving} className="w-full sm:w-auto mt-2 sm:mt-0 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90">
           {isSaving ? 'Saving...' : 'Save Flow'}
         </Button>
       </div>
@@ -608,18 +608,18 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
                 </CardHeader>
                 <CardContent className="p-0 overflow-y-auto custom-scrollbar pr-2 flex-1">
                   <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 mb-6">
-                    <Button onClick={() => addNode('flow')} variant="outline" size="sm" className="justify-start"><Tag className="w-4 h-4 mr-2 text-indigo-500" /> Flow</Button>
+                    <Button onClick={() => addNode('flow')} variant="outline" size="sm" className="justify-start"><Tag className="w-4 h-4 mr-2 text-primary" /> Flow</Button>
                     <Button onClick={() => addNode('message')} variant="outline" size="sm" className="justify-start"><PlusCircle className="w-4 h-4 mr-2 text-emerald-500" /> Message</Button>
                     <Button onClick={() => addNode('input')} variant="outline" size="sm" className="justify-start"><PlusCircle className="w-4 h-4 mr-2 text-violet-500" /> Input</Button>
                     <Button onClick={() => addNode('condition')} variant="outline" size="sm" className="justify-start"><PlusCircle className="w-4 h-4 mr-2 text-amber-500" /> Condition</Button>
-                    <Button onClick={() => addNode('api')} variant="outline" size="sm" className="justify-start"><PlusCircle className="w-4 h-4 mr-2 text-blue-500" /> API</Button>
+                    <Button onClick={() => addNode('api')} variant="outline" size="sm" className="justify-start"><PlusCircle className="w-4 h-4 mr-2 text-primary" /> API</Button>
                     <Button onClick={() => addNode('function')} variant="outline" size="sm" className="justify-start"><PlusCircle className="w-4 h-4 mr-2 text-rose-500" /> Function</Button>
                   </div>
 
                   {selectedNode && (
                     <div className="space-y-4 border-t pt-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="h-2 w-2 rounded-full bg-indigo-500" />
+                        <div className="h-2 w-2 rounded-full bg-primary/100" />
                         <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase">Editing {selectedNode.type} Node</h3>
                       </div>
 

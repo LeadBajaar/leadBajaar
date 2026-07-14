@@ -68,7 +68,7 @@ export const StageManagerDialog: React.FC<StageManagerDialogProps> = ({
                 variant="outline" 
                 size="sm" 
                 onClick={onSyncDefault}
-                className="h-7 text-[10px] gap-1 border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                className="h-7 text-[10px] gap-1 border-primary/20 text-primary hover:bg-primary/10"
               >
                 <RefreshCcw className="h-3 w-3" />
                 Sync Defaults
@@ -115,7 +115,7 @@ export const StageManagerDialog: React.FC<StageManagerDialogProps> = ({
                     key={name}
                     className={cn(
                       "flex items-center justify-between p-3.5 transition-colors",
-                      editingStage === name ? "bg-indigo-50/50 dark:bg-indigo-900/10" : "hover:bg-slate-50/50 dark:hover:bg-slate-800/20"
+                      editingStage === name ? "bg-primary/5 dark:bg-indigo-900/10" : "hover:bg-slate-50/50 dark:hover:bg-slate-800/20"
                     )}
                   >
                     {editingStage === name ? (
@@ -175,7 +175,7 @@ export const StageManagerDialog: React.FC<StageManagerDialogProps> = ({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            className="h-8 w-8 p-0 text-slate-400 hover:text-primary hover:bg-blue-50 dark:hover:bg-blue-900/20"
                             onClick={() => handleEditStage(name)}
                           >
                             <Pencil className="h-3.5 w-3.5" />

@@ -67,7 +67,7 @@ export function UnifiedIntegrationDialog({
         <div className="bg-slate-900 dark:bg-slate-950 p-6 text-white flex-none">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
                 <Settings className="h-4 w-4 text-indigo-400" />
               </div>
               {selectedIntegration?.name} Configuration
@@ -88,7 +88,7 @@ export function UnifiedIntegrationDialog({
                       <Globe className="h-3.5 w-3.5" /> WhatsApp Webhook
                       Configuration
                     </Label>
-                    <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[10px]">
+                    <Badge className="bg-blue-500/10 text-primary border-primary/20 text-[10px]">
                       Meta Dashboard Setup
                     </Badge>
                   </div>
@@ -143,7 +143,7 @@ export function UnifiedIntegrationDialog({
 
                   <div className="flex items-start gap-2 pt-1">
                     <div className="h-5 w-5 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
-                      <ShieldCheck className="h-3 w-3 text-blue-600" />
+                      <ShieldCheck className="h-3 w-3 text-primary" />
                     </div>
                     <p className="text-[10px] text-muted-foreground leading-relaxed">
                       Copy these values into your Meta Developer Dashboard under{" "}
@@ -236,7 +236,7 @@ export function UnifiedIntegrationDialog({
                       <Globe className="h-3.5 w-3.5" /> Facebook Lead Form
                       Webhook
                     </Label>
-                    <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[10px]">
+                    <Badge className="bg-blue-500/10 text-primary border-primary/20 text-[10px]">
                       Meta Dashboard Setup
                     </Badge>
                   </div>
@@ -291,7 +291,7 @@ export function UnifiedIntegrationDialog({
 
                   <div className="flex items-start gap-2 pt-1">
                     <div className="h-5 w-5 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
-                      <ShieldCheck className="h-3 w-3 text-blue-600" />
+                      <ShieldCheck className="h-3 w-3 text-primary" />
                     </div>
                     <p className="text-[10px] text-muted-foreground leading-relaxed">
                       Copy these values into your Meta Developer Dashboard under{" "}
@@ -432,7 +432,7 @@ export function UnifiedIntegrationDialog({
             Cancel
           </Button>
           <Button
-            className="rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold px-8 shadow-lg shadow-indigo-200 dark:shadow-none"
+            className="rounded-xl bg-primary hover:bg-primary/90 font-bold px-8 shadow-lg shadow-primary/20 dark:shadow-none"
             onClick={onSave}
             disabled={isConnecting}
           >

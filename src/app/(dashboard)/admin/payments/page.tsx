@@ -143,7 +143,7 @@ export default function PaymentsPage() {
 
   return (
     <RoleGuard allowedTypes={['super_admin']} allowedFeatures={['system_admin']}>
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="flex flex-col flex-1 gap-4 sm:gap-5">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-[var(--crm-text-primary)]">Payments & Billing</h1>
@@ -158,28 +158,28 @@ export default function PaymentsPage() {
           <TabsList className="mb-6 bg-[var(--crm-surface-1)] border border-[var(--crm-border)] w-full justify-start h-auto p-1 overflow-x-auto no-scrollbar">
             <TabsTrigger 
               value="pending"
-              className="flex items-center gap-2 px-4 py-2 text-sm data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-600 data-[state=active]:font-semibold dark:data-[state=active]:bg-indigo-500/10 dark:data-[state=active]:text-indigo-400"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] data-[state=active]:bg-[var(--crm-surface-active)] data-[state=active]:text-[var(--crm-text-primary)] data-[state=active]:font-bold data-[state=active]:shadow-sm transition-all"
             >
               <Clock className="w-4 h-4" />
               Pending Approvals
             </TabsTrigger>
             <TabsTrigger 
               value="all"
-              className="flex items-center gap-2 px-4 py-2 text-sm data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-600 data-[state=active]:font-semibold dark:data-[state=active]:bg-indigo-500/10 dark:data-[state=active]:text-indigo-400"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] data-[state=active]:bg-[var(--crm-surface-active)] data-[state=active]:text-[var(--crm-text-primary)] data-[state=active]:font-bold data-[state=active]:shadow-sm transition-all"
             >
               <CreditCard className="w-4 h-4" />
               All Payments
             </TabsTrigger>
             <TabsTrigger 
               value="coupons"
-              className="flex items-center gap-2 px-4 py-2 text-sm data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-600 data-[state=active]:font-semibold dark:data-[state=active]:bg-indigo-500/10 dark:data-[state=active]:text-indigo-400"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] data-[state=active]:bg-[var(--crm-surface-active)] data-[state=active]:text-[var(--crm-text-primary)] data-[state=active]:font-bold data-[state=active]:shadow-sm transition-all"
             >
               <Tag className="w-4 h-4" />
               Coupons
             </TabsTrigger>
             <TabsTrigger 
               value="settings"
-              className="flex items-center gap-2 px-4 py-2 text-sm data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-600 data-[state=active]:font-semibold dark:data-[state=active]:bg-indigo-500/10 dark:data-[state=active]:text-indigo-400"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] data-[state=active]:bg-[var(--crm-surface-active)] data-[state=active]:text-[var(--crm-text-primary)] data-[state=active]:font-bold data-[state=active]:shadow-sm transition-all"
             >
               <Settings className="w-4 h-4" />
               Settings
@@ -187,7 +187,7 @@ export default function PaymentsPage() {
           </TabsList>
 
           <TabsContent value="pending" className="mt-0 outline-none">
-            <Card>
+            <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden">
               <CardHeader>
                 <CardTitle>Payments Awaiting Approval</CardTitle>
                 <CardDescription>Accounts will be fully activated upon your approval.</CardDescription>
@@ -199,7 +199,7 @@ export default function PaymentsPage() {
                   </div>
                 ) : pendingPayments.length === 0 ? (
                   <div className="flex flex-col items-center justify-center p-8 text-center text-[var(--crm-text-secondary)]">
-                    <CheckCircle className="h-12 w-12 mb-4 text-green-500 opacity-50" />
+                    <CheckCircle className="h-12 w-12 mb-4 text-emerald-500 opacity-50" />
                     <p>No pending payments right now.</p>
                     <p className="text-sm">All caught up!</p>
                   </div>
@@ -240,7 +240,7 @@ export default function PaymentsPage() {
                                 size="sm"
                                 onClick={() => confirmApprove(p.id, p.company?.name || 'Unknown', p.amount)}
                                 disabled={isApproving === p.id}
-                                className="bg-green-600 hover:bg-green-700 text-white"
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white"
                               >
                                 {isApproving === p.id ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -316,7 +316,7 @@ export default function PaymentsPage() {
           </TabsContent>
 
           <TabsContent value="all" className="mt-0 outline-none">
-            <Card>
+            <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden">
               <CardHeader>
                 <CardTitle>Billing History</CardTitle>
                 <CardDescription>A comprehensive log of all payment transactions.</CardDescription>
@@ -328,7 +328,7 @@ export default function PaymentsPage() {
                   </div>
                 ) : allPayments.length === 0 ? (
                   <div className="flex flex-col items-center justify-center p-8 text-center text-[var(--crm-text-secondary)]">
-                    <CheckCircle className="h-12 w-12 mb-4 text-slate-300 opacity-50" />
+                    <CheckCircle className="h-12 w-12 mb-4 text-[var(--crm-text-secondary)] opacity-50" />
                     <p>No billing history found.</p>
                   </div>
                 ) : (
@@ -365,7 +365,7 @@ export default function PaymentsPage() {
                               {p.status === 'pending' ? (
                                 <Badge variant="outline" className="text-amber-500 border-amber-500/20 bg-amber-50">Pending</Badge>
                               ) : p.status === 'approved' ? (
-                                <Badge variant="outline" className="text-green-500 border-green-500/20 bg-green-50">Approved</Badge>
+                                <Badge variant="outline" className="text-emerald-500 border-green-500/20 bg-green-50">Approved</Badge>
                               ) : (
                                 <Badge variant="outline">{p.status || 'Success'}</Badge>
                               )}

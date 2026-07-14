@@ -76,7 +76,7 @@ export function WebhookVerificationDialog({ pageId, pageName }: WebhookVerificat
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="h-7 text-[11px] font-black uppercase text-blue-600 tracking-tight border-blue-200 bg-blue-50/50 hover:bg-blue-100">
+        <Button variant="outline" size="sm" className="h-7 text-[11px] font-black uppercase text-primary tracking-tight border-blue-200 bg-blue-50/50 hover:bg-blue-100">
           <ShieldCheck className="h-3 w-3 mr-1" />
           Verify Setup
         </Button>
@@ -84,7 +84,7 @@ export function WebhookVerificationDialog({ pageId, pageName }: WebhookVerificat
       <DialogContent className="max-w-2xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-blue-600" />
+            <Zap className="h-5 w-5 text-primary" />
             Webhook Troubleshooting & Verification
           </DialogTitle>
           <DialogDescription>
@@ -230,7 +230,7 @@ export function WebhookVerificationDialog({ pageId, pageName }: WebhookVerificat
                 The most direct way to test is to submit a lead via Meta's <strong>Ad Preview</strong> system.
                 Submit a lead from a preview and check "Managed Leads" in 2-3 minutes.
               </p>
-              <Button variant="link" className="h-auto p-0 text-[11px] font-bold text-blue-600" asChild>
+              <Button variant="link" className="h-auto p-0 text-[11px] font-bold text-primary" asChild>
                 <a href="https://developers.facebook.com/tools/lead-ads-testing" target="_blank" rel="noopener noreferrer">
                   Open Meta Lead Ads Testing Tool
                 </a>

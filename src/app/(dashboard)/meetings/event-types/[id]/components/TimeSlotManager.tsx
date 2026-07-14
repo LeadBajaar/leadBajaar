@@ -34,8 +34,8 @@ interface Props {
   onSlotsChange: (slots: TimeSlot[]) => void
 }
 
-const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 block"
-const inputStyle = "h-10 text-sm bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-800 transition-all rounded-lg no-scrollbar text-slate-900 dark:text-slate-100"
+const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-[var(--crm-text-secondary)] mb-1.5 block"
+const inputStyle = "h-10 text-sm bg-[var(--crm-surface-2)]  border-[var(--crm-border)]  focus:bg-[var(--crm-surface-1)] transition-all rounded-lg no-scrollbar text-[var(--crm-text-primary)] "
 
 export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
   const formatTo12Hour = (time: string) => {
@@ -144,19 +144,19 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 bg-slate-50/50 dark:bg-slate-800/30 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 bg-[var(--crm-surface-2)] p-3.5 rounded-xl border border-[var(--crm-border)]">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 shrink-0 bg-white dark:bg-slate-900 rounded-lg flex items-center justify-center shadow-sm border border-slate-200/50 dark:border-slate-800">
-            <Calendar className="h-4 w-4 text-indigo-500" />
+          <div className="h-8 w-8 shrink-0 bg-[var(--crm-surface-1)] rounded-lg flex items-center justify-center shadow-sm border border-[var(--crm-border)]">
+            <Calendar className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <Label className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white mb-0 leading-none">Availability Windows</Label>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mt-1">Set your working hours</p>
+            <Label className="text-[11px] font-black uppercase tracking-widest text-[var(--crm-text-primary)] mb-0 leading-none">Availability Windows</Label>
+            <p className="text-[9px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-tighter mt-1">Set your working hours</p>
           </div>
         </div>
         <Button 
           onClick={addSlot} 
-          className="w-full sm:w-auto h-9 sm:h-8 px-4 sm:px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-[10px] sm:text-[9px] uppercase tracking-widest gap-2 transition-all shadow-sm shrink-0"
+          className="w-full sm:w-auto h-9 sm:h-8 px-4 sm:px-3.5 bg-[var(--crm-accent)] hover:opacity-90 text-white rounded-lg font-bold text-[10px] sm:text-[9px] uppercase tracking-widest gap-2 transition-all shadow-sm shrink-0"
         >
           <Plus className="h-3 w-3" />
           Add Window
@@ -166,11 +166,11 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
       <div className="space-y-4">
         {slots.map((slot) => (
           <div key={slot.id} className="relative group/slot">
-            <Card className="border-slate-200/60 dark:border-slate-800/60 shadow-sm rounded-xl overflow-hidden bg-white dark:bg-slate-900 transition-all hover:border-indigo-200/50 dark:hover:border-indigo-900/50">
+            <Card className="border-[var(--crm-border)] shadow-sm rounded-xl overflow-hidden bg-[var(--crm-surface-1)] transition-all hover:border-primary/10">
               <CardContent className="p-0">
                 <div className="grid lg:grid-cols-12">
                   {/* Time Range */}
-                  <div className="lg:col-span-4 p-4 sm:p-5 border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-slate-800 space-y-4">
+                  <div className="lg:col-span-4 p-4 sm:p-5 border-b lg:border-b-0 lg:border-r border-[var(--crm-border)] space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
                         <Label className={labelStyle}>Start</Label>
@@ -196,7 +196,7 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                       variant="ghost"
                       size="sm"
                       onClick={() => removeSlot(slot.id)}
-                      className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 font-bold text-[10px] sm:text-[9px] uppercase tracking-[0.1em] gap-1.5 rounded-lg h-9 sm:h-8 transition-all"
+                      className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 font-bold text-[10px] sm:text-[9px] uppercase tracking-[0.1em] gap-1.5 rounded-lg h-9 sm:h-8 transition-all"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       Discard Window
@@ -204,7 +204,7 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                   </div>
 
                   {/* Days and Breaks */}
-                  <div className="lg:col-span-8 p-4 sm:p-5 space-y-6 bg-slate-50/20 dark:bg-slate-900/40">
+                  <div className="lg:col-span-8 p-4 sm:p-5 space-y-6 bg-[var(--crm-surface-2)]">
                     <div className="space-y-2.5">
                       <Label className={labelStyle}>Active Days</Label>
                       <div className="grid grid-cols-7 gap-1 sm:gap-1.5 w-full">
@@ -218,8 +218,8 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                               className={cn(
                                 "h-10 sm:h-8 w-full rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-tight transition-all duration-200 border shadow-sm",
                                 isActive 
-                                  ? "bg-indigo-600 border-indigo-600 text-white shadow-sm" 
-                                  : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400 hover:border-indigo-300 hover:text-indigo-600"
+                                  ? "bg-[var(--crm-accent)] border-[var(--crm-accent)] text-white shadow-sm" 
+                                  : "bg-[var(--crm-surface-1)]  border-[var(--crm-border)]  text-[var(--crm-text-secondary)] hover:border-indigo-300 hover:text-[var(--crm-accent)]"
                               )}
                             >
                               {day.charAt(0)}
@@ -231,16 +231,16 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                     </div>
 
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center bg-slate-100/50 dark:bg-slate-800/40 p-2.5 rounded-lg border border-slate-200/50 dark:border-slate-800/60 shadow-sm">
+                      <div className="flex justify-between items-center bg-[var(--crm-surface-3)] p-2.5 rounded-lg border border-[var(--crm-border)] shadow-sm">
                         <div className="flex items-center gap-2">
-                          <Clock className="h-3 w-3 text-slate-400" />
-                          <Label className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-500 mb-0">Break Sequences</Label>
+                          <Clock className="h-3 w-3 text-[var(--crm-text-secondary)]" />
+                          <Label className="text-[10px] font-black uppercase tracking-[0.1em] text-[var(--crm-text-secondary)] mb-0">Break Sequences</Label>
                         </div>
                         <Button 
                           onClick={() => addBreak(slot.id)} 
                           size="sm" 
                           variant="ghost"
-                          className="h-6 px-2.5 text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md gap-1.5"
+                          className="h-6 px-2.5 text-[9px] font-black uppercase tracking-widest text-[var(--crm-accent)] hover:opacity-90 hover:bg-[var(--crm-accent-soft)] rounded-md gap-1.5"
                         >
                           <Plus className="h-2.5 w-2.5" />
                           Add Break
@@ -251,14 +251,14 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                         {slot.breaks?.map((breakItem) => (
                           <Dialog key={breakItem.id}>
                             <DialogTrigger asChild>
-                              <div className="group/break flex items-center justify-between p-3 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-lg cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-500 transition-all shadow-sm">
+                              <div className="group/break flex items-center justify-between p-3 bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-lg cursor-pointer hover:border-indigo-400 :border-[var(--crm-accent)] transition-all shadow-sm">
                                 <div className="flex items-center gap-3">
-                                  <div className="h-7 w-7 bg-slate-50 dark:bg-slate-800 rounded-md flex items-center justify-center border border-slate-100 dark:border-slate-700">
-                                    <Clock className="h-3 w-3 text-slate-400" />
+                                  <div className="h-7 w-7 bg-[var(--crm-surface-2)] rounded-md flex items-center justify-center border border-[var(--crm-border)]">
+                                    <Clock className="h-3 w-3 text-[var(--crm-text-secondary)]" />
                                   </div>
                                   <div>
-                                    <p className="text-[11px] font-bold text-slate-900 dark:text-white uppercase tracking-tight leading-none">{breakItem.label}</p>
-                                    <p className="text-[9px] font-bold text-indigo-500 uppercase tracking-widest mt-1">
+                                    <p className="text-[11px] font-bold text-[var(--crm-text-primary)] uppercase tracking-tight leading-none">{breakItem.label}</p>
+                                    <p className="text-[9px] font-bold text-primary uppercase tracking-widest mt-1">
                                       {formatTo12Hour(breakItem.startTime)} — {formatTo12Hour(breakItem.endTime)}
                                     </p>
                                   </div>
@@ -266,7 +266,7 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                                 <Button 
                                   variant="ghost" 
                                   size="icon"
-                                  className="h-7 w-7 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-all sm:opacity-0 sm:group-hover/break:opacity-100"
+                                  className="h-7 w-7 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-all sm:opacity-0 sm:group-hover/break:opacity-100"
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     removeBreak(slot.id, breakItem.id)
@@ -277,8 +277,8 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                               </div>
                             </DialogTrigger>
                             <DialogContent className="rounded-xl border-none shadow-2xl p-0 overflow-hidden max-w-sm">
-                              <DialogHeader className="p-5 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700">
-                                <DialogTitle className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white">Edit {breakItem.label} ({formatTo12Hour(breakItem.startTime)} — {formatTo12Hour(breakItem.endTime)})</DialogTitle>
+                              <DialogHeader className="p-5 bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)]">
+                                <DialogTitle className="text-[11px] font-black uppercase tracking-widest text-[var(--crm-text-primary)]">Edit {breakItem.label} ({formatTo12Hour(breakItem.startTime)} — {formatTo12Hour(breakItem.endTime)})</DialogTitle>
                               </DialogHeader>
                               <div className="p-6 space-y-6">
                                 <div className="space-y-1.5">
@@ -319,17 +319,17 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                                   </div>
                                 </div>
                               </div>
-                              <DialogFooter className="p-5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700">
-                                <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-10 rounded-lg text-xs uppercase tracking-widest">Save Sequence</Button>
+                              <DialogFooter className="p-5 bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)]">
+                                <Button className="w-full bg-[var(--crm-accent)] hover:opacity-90 text-white font-bold h-10 rounded-lg text-xs uppercase tracking-widest">Save Sequence</Button>
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
                         ))}
 
                         {(!slot.breaks || slot.breaks.length === 0) && (
-                          <div className="flex flex-col items-center justify-center py-4 border-2 border-dashed border-slate-200/60 dark:border-slate-800 rounded-lg bg-slate-100/20 dark:bg-slate-900/40">
-                            <Clock className="h-5 w-5 text-slate-200 dark:text-slate-800 mb-1" />
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-300 dark:text-slate-700">No Breaks Active</p>
+                          <div className="flex flex-col items-center justify-center py-4 border-2 border-dashed border-[var(--crm-border)] rounded-lg bg-[var(--crm-surface-3)]">
+                            <Clock className="h-5 w-5 text-slate-200 mb-1" />
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-300">No Breaks Active</p>
                           </div>
                         )}
                       </div>
@@ -342,15 +342,15 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
         ))}
 
         {slots.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-200/60 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-900/30">
-            <div className="h-12 w-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-md border border-slate-100 dark:border-slate-700 mb-4">
-              <Calendar className="h-6 w-6 text-slate-200 dark:text-slate-700" />
+          <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-[var(--crm-border)] rounded-2xl bg-[var(--crm-surface-2)]">
+            <div className="h-12 w-12 bg-[var(--crm-surface-1)] rounded-2xl flex items-center justify-center shadow-md border border-[var(--crm-border)] mb-4">
+              <Calendar className="h-6 w-6 text-slate-200" />
             </div>
-            <p className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-widest mb-1">No Availability Windows</p>
-            <p className="text-[11px] text-slate-400 font-medium max-w-[200px] text-center mb-6">Define your first working window.</p>
+            <p className="text-sm font-bold text-[var(--crm-text-primary)] uppercase tracking-widest mb-1">No Availability Windows</p>
+            <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium max-w-[200px] text-center mb-6">Define your first working window.</p>
             <Button 
               onClick={addSlot} 
-              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-6 font-bold uppercase tracking-widest h-10 text-xs"
+              className="bg-[var(--crm-accent)] hover:opacity-90 text-white rounded-lg px-6 font-bold uppercase tracking-widest h-10 text-xs"
             >
               Initialize Window
             </Button>
@@ -359,4 +359,4 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
       </div>
     </div>
   )
-}
+}

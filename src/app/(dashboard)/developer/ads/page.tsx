@@ -51,7 +51,7 @@ export default function AdsDocsPage() {
 
     return (
         <div className="h-full overflow-y-auto p-6 lg:p-10 space-y-8 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400">
-            <Link href="/developer" className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 transition-colors font-bold text-sm">
+            <Link href="/developer" className="inline-flex items-center gap-2 text-primary hover:text-primary transition-colors font-bold text-sm">
                 <ArrowLeft className="w-4 h-4" /> Back to Console
             </Link>
 
@@ -71,10 +71,10 @@ export default function AdsDocsPage() {
                 <div className="lg:col-span-2 space-y-8">
                     <Tabs defaultValue="duplication" className="w-full">
                         <TabsList className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 rounded-xl w-full justify-start overflow-x-auto shadow-sm">
-                            <TabsTrigger value="duplication" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-6 font-bold">Duplication</TabsTrigger>
-                            <TabsTrigger value="rules" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-6 font-bold">Auto-Rules</TabsTrigger>
-                            <TabsTrigger value="creatives" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-6 font-bold">Creatives</TabsTrigger>
-                            <TabsTrigger value="estimates" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-6 font-bold">Intelligence</TabsTrigger>
+                            <TabsTrigger value="duplication" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-6 font-bold">Duplication</TabsTrigger>
+                            <TabsTrigger value="rules" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-6 font-bold">Auto-Rules</TabsTrigger>
+                            <TabsTrigger value="creatives" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-6 font-bold">Creatives</TabsTrigger>
+                            <TabsTrigger value="estimates" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-6 font-bold">Intelligence</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="duplication" className="mt-8 space-y-6">
@@ -97,15 +97,15 @@ export default function AdsDocsPage() {
                                 <p className="text-slate-500 dark:text-slate-400 font-medium">Configure bid triggers and safety nets to protect your budget during off-hours.</p>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 shadow-sm">
-                                        <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900 font-black text-xs">1</div>
+                                        <div className="w-8 h-8 rounded-lg bg-primary/10 dark:bg-indigo-950/30 text-primary dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900 font-black text-xs">1</div>
                                         <span className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest leading-none">Identify Metric</span>
                                     </div>
                                     <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 shadow-sm">
-                                        <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900 font-black text-xs">2</div>
+                                        <div className="w-8 h-8 rounded-lg bg-primary/10 dark:bg-indigo-950/30 text-primary dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900 font-black text-xs">2</div>
                                         <span className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest leading-none">Set Trigger</span>
                                     </div>
                                     <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 shadow-sm">
-                                        <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900 font-black text-xs">3</div>
+                                        <div className="w-8 h-8 rounded-lg bg-primary/10 dark:bg-indigo-950/30 text-primary dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900 font-black text-xs">3</div>
                                         <span className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest leading-none">Specify Action</span>
                                     </div>
                                 </div>
@@ -120,7 +120,7 @@ export default function AdsDocsPage() {
 
                         <TabsContent value="creatives" className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                             <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 p-8 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all shadow-sm">
-                                <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-100 dark:border-blue-900 mb-4 shadow-sm">
+                                <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/30 text-primary dark:text-blue-400 flex items-center justify-center border border-blue-100 dark:border-blue-900 mb-4 shadow-sm">
                                     <Monitor className="w-6 h-6" />
                                 </div>
                                 <h4 className="font-bold text-slate-900 dark:text-slate-100 uppercase text-xs tracking-[0.2em] mb-2 leading-none">Ad Preview API</h4>
@@ -136,7 +136,7 @@ export default function AdsDocsPage() {
                         </TabsContent>
 
                         <TabsContent value="estimates" className="mt-8 space-y-6">
-                            <div className="p-10 rounded-[2.5rem] bg-indigo-600 text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
+                            <div className="p-10 rounded-[2.5rem] bg-primary text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-8 opacity-10">
                                     <ZapIcon className="w-40 h-40" />
                                 </div>

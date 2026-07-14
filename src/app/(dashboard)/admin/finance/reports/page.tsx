@@ -175,7 +175,7 @@ export default function ReportsPage() {
             <SelectTrigger className="w-24 h-9 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>{[2024,2025,2026,2027].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
           </Select>
-          <Button onClick={handleFetch} disabled={loading} size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white h-9 gap-1">
+          <Button onClick={handleFetch} disabled={loading} size="sm" className="bg-primary hover:bg-primary/90 text-white h-9 gap-1">
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} /> Generate
           </Button>
           {report && (
@@ -222,7 +222,7 @@ export default function ReportsPage() {
           {activeTab === 'pl' && (
             <Card className="border-none shadow-none print:shadow-none">
               <CardHeader className="text-center border-b pb-6">
-                <div className="flex justify-center mb-2"><TrendingUp className="h-8 w-8 text-indigo-600" /></div>
+                <div className="flex justify-center mb-2"><TrendingUp className="h-8 w-8 text-primary" /></div>
                 <CardTitle className="text-xl">Profit &amp; Loss Statement</CardTitle>
                 <p className="text-sm text-muted-foreground">{MONTHS[month-1]} {year}</p>
               </CardHeader>
@@ -338,7 +338,7 @@ export default function ReportsPage() {
           {activeTab === 'payroll' && (
             <Card className="border-none shadow-none">
               <CardHeader className="text-center border-b pb-6">
-                <div className="flex justify-center mb-2"><ShieldCheck className="h-8 w-8 text-indigo-600" /></div>
+                <div className="flex justify-center mb-2"><ShieldCheck className="h-8 w-8 text-primary" /></div>
                 <CardTitle className="text-xl">Consolidated Payroll Report (TDS Compliance)</CardTitle>
                 <p className="text-sm text-muted-foreground">Financial Year {year}</p>
               </CardHeader>
@@ -356,9 +356,9 @@ export default function ReportsPage() {
                     <p className="text-[10px] uppercase font-bold text-muted-foreground">Total Bonus</p>
                     <p className="text-lg font-bold text-emerald-600">{fmt(report.totals?.bonus)}</p>
                   </div>
-                  <div className="p-4 border rounded-xl text-center bg-indigo-50/20 border-indigo-200">
-                    <p className="text-[10px] uppercase font-bold text-indigo-600">Net Disbursed</p>
-                    <p className="text-lg font-bold text-indigo-600">{fmt(report.totals?.net)}</p>
+                  <div className="p-4 border rounded-xl text-center bg-primary/0 border-primary/20">
+                    <p className="text-[10px] uppercase font-bold text-primary">Net Disbursed</p>
+                    <p className="text-lg font-bold text-primary">{fmt(report.totals?.net)}</p>
                   </div>
                 </div>
 
@@ -410,7 +410,7 @@ export default function ReportsPage() {
                     <Receipt className="h-8 w-8 text-muted-foreground" />
                     <div>
                       <p className="text-xs font-bold text-muted-foreground uppercase">Eligible Input Tax Credit (ITC)</p>
-                      <p className="text-2xl font-black text-indigo-600">{fmt(report.total_gst)}</p>
+                      <p className="text-2xl font-black text-primary">{fmt(report.total_gst)}</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -439,7 +439,7 @@ export default function ReportsPage() {
                         <td className="p-2">{exp.gstin_vendor}</td>
                         <td className="p-2">{exp.category?.name}</td>
                         <td className="p-2 text-right">{fmt(exp.amount)}</td>
-                        <td className="p-2 text-right font-bold text-indigo-600">{fmt(exp.gst_amount)}</td>
+                        <td className="p-2 text-right font-bold text-primary">{fmt(exp.gst_amount)}</td>
                         <td className="p-2 text-right">{fmt(exp.amount + exp.gst_amount)}</td>
                       </tr>
                     ))}

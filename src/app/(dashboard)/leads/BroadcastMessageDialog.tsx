@@ -346,7 +346,7 @@ export const BroadcastMessageDialog: React.FC<BroadcastMessageDialogProps> = ({
                 size="sm"
                 onClick={onBroadcast}
                 disabled={!selectedTemplate || selectedCount === 0 || isSendingBroadcast}
-                className="bg-indigo-600 hover:bg-indigo-700 shadow-sm"
+                className="bg-primary hover:bg-primary/90 shadow-sm"
               >
                 {isSendingBroadcast ? (
                   <>

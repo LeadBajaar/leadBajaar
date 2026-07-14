@@ -133,25 +133,25 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                               {...provided.dragHandleProps}
                               onClick={() => handleCardClick?.(lead.id)}
                               className={cn(
-                                "bg-[var(--crm-surface-2)] p-3 rounded-[var(--r-lg)] border cursor-pointer hover:shadow-md transition-all duration-200",
-                                snapshot.isDragging ? "shadow-lg scale-[1.02] border-[var(--crm-blue-border)] z-50" : "shadow-sm border-[var(--crm-border)]"
+                                "bg-card p-4 rounded-xl border cursor-pointer transition-all duration-200",
+                                snapshot.isDragging ? "shadow-xl scale-[1.02] border-primary z-50 ring-1 ring-primary/20" : "shadow-sm border-border hover:shadow-md hover:border-primary/40"
                               )}
                             >
-                              <div className="flex items-start justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--r-md)] bg-[var(--crm-surface-3)] text-[11px] text-[var(--crm-text-primary)] font-bold">
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary font-black shadow-sm">
                                     {lead.name.charAt(0).toUpperCase()}
                                   </div>
                                   <div className="flex flex-col min-w-0">
-                                    <span className="font-semibold text-[13px] text-[var(--crm-text-primary)] truncate">{lead.name}</span>
-                                    <span className="text-[11px] text-[var(--crm-text-tertiary)] truncate">{lead.company || lead.phone || lead.email}</span>
+                                    <span className="font-bold text-sm text-foreground truncate">{lead.name}</span>
+                                    <span className="text-[11px] text-muted-foreground truncate font-medium mt-0.5">{lead.phone || lead.company || lead.email}</span>
                                   </div>
                                 </div>
                               </div>
                               
-                              <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--crm-border)]">
-                                <span className="text-[11px] text-[var(--crm-text-tertiary)] font-medium">
-                                  {lead.deal_value ? `₹${lead.deal_value}` : 'No value'}
+                              <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
+                                <span className="text-xs font-bold text-foreground">
+                                  {lead.deal_value ? `₹${lead.deal_value.toLocaleString()}` : <span className="text-muted-foreground font-normal">No value</span>}
                                 </span>
                                 
                                 <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
@@ -166,7 +166,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                     </Tooltip>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <button onClick={(e) => { e.stopPropagation(); handleCallClick(lead); }} className="btn-icon w-6 h-6 hover:text-blue-500">
+                                        <button onClick={(e) => { e.stopPropagation(); handleCallClick(lead); }} className="btn-icon w-6 h-6 hover:text-primary">
                                           <i className="ti ti-phone text-[13px]" />
                                         </button>
                                       </TooltipTrigger>
@@ -176,17 +176,20 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                       <TooltipTrigger asChild>
                                         <button 
                                           onClick={(e) => { e.stopPropagation(); handleAssignAgentClick(lead); }} 
-                                          className={cn("btn-icon w-6 h-6 hover:text-purple-500", lead.agent && "ring-1")}
+                                          className={cn("h-7 w-7 rounded-md bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-colors", lead.agent && "ring-2 ring-primary/20 bg-primary/5 text-primary")}
                                           style={lead.agent ? {
-                                            backgroundColor: getAgentColor(lead.agent.id).bg,
-                                            color: getAgentColor(lead.agent.id).text,
-                                            borderColor: getAgentColor(lead.agent.id).border,
+                                            backgroundColor: lead.agent.color ? `${lead.agent.color}20` : undefined,
+                                            color: lead.agent.color || undefined
                                           } : {}}
                                         >
-                                          <i className="ti ti-user-check text-[13px]" />
+                                          {lead.agent ? (
+                                            <span className="text-[10px] font-black">{lead.agent.name.charAt(0)}</span>
+                                          ) : (
+                                            <i className="ti ti-user-plus text-[13px]" />
+                                          )}
                                         </button>
                                       </TooltipTrigger>
-                                      <TooltipContent className="text-[10px]">{lead.agent ? lead.agent.name : 'Assign'}</TooltipContent>
+                                      <TooltipContent className="text-[10px]">{lead.agent ? `Assigned to ${lead.agent.name}` : 'Assign Agent'}</TooltipContent>
                                     </Tooltip>
                                   </TooltipProvider>
                                 </div>

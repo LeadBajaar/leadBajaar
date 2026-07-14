@@ -17,7 +17,7 @@ export default function AutomationsGuidePage() {
       
       {/* Header */}
       <div className="space-y-4">
-        <Badge className="bg-indigo-600 text-white font-bold h-7 px-4 rounded-full">Developer Documentation</Badge>
+        <Badge className="bg-primary text-white font-bold h-7 px-4 rounded-full">Developer Documentation</Badge>
         <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">
           Email & Marketing Automation Guide
         </h1>
@@ -28,10 +28,10 @@ export default function AutomationsGuidePage() {
 
       <Tabs defaultValue="admin" className="space-y-8">
         <TabsList className="bg-slate-100 dark:bg-slate-900 p-1 rounded-2xl h-14 w-full sm:w-auto">
-          <TabsTrigger value="admin" className="rounded-xl px-8 h-12 font-bold data-[state=active]:bg-white data-[state=active]:text-indigo-600 dark:data-[state=active]:bg-slate-800">
+          <TabsTrigger value="admin" className="rounded-xl px-8 h-12 font-bold data-[state=active]:bg-white data-[state=active]:text-primary dark:data-[state=active]:bg-slate-800">
             <Shield className="w-4 h-4 mr-2" /> Admin & Infrastructure
           </TabsTrigger>
-          <TabsTrigger value="user" className="rounded-xl px-8 h-12 font-bold data-[state=active]:bg-white data-[state=active]:text-indigo-600 dark:data-[state=active]:bg-slate-800">
+          <TabsTrigger value="user" className="rounded-xl px-8 h-12 font-bold data-[state=active]:bg-white data-[state=active]:text-primary dark:data-[state=active]:bg-slate-800">
             <Users className="w-4 h-4 mr-2" /> End-User Guide
           </TabsTrigger>
         </TabsList>
@@ -41,7 +41,7 @@ export default function AutomationsGuidePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card className="border-none shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 dark:bg-slate-900 overflow-hidden">
               <CardHeader className="bg-slate-50 dark:bg-slate-800/50">
-                <div className="h-10 w-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white mb-2">
+                <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-white mb-2">
                   <Mail className="w-5 h-5" />
                 </div>
                 <CardTitle>Global Email Infrastructure</CardTitle>
@@ -51,7 +51,7 @@ export default function AutomationsGuidePage() {
                  <div className="space-y-2">
                     <h4 className="text-sm font-bold text-slate-900 dark:text-white">Connecting Providers</h4>
                     <p className="text-sm text-slate-500 leading-relaxed">
-                      Admins can now connect custom email providers directly via the <Link href="/integrations?tab=marketing" className="text-indigo-600 font-bold hover:underline underline-offset-4">Integrations Hub</Link>. We support Amazon SES, Direct SMTP (Gmail/Outlook), and Mailgun.
+                      Admins can now connect custom email providers directly via the <Link href="/integrations?tab=marketing" className="text-primary font-bold hover:underline underline-offset-4">Integrations Hub</Link>. We support Amazon SES, Direct SMTP (Gmail/Outlook), and Mailgun.
                     </p>
                  </div>
                  <div className="space-y-2">
@@ -125,7 +125,7 @@ export default function AutomationsGuidePage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
                  <h3 className="text-2xl font-bold flex items-center gap-3">
-                   <Zap className="w-6 h-6 text-indigo-500" />
+                   <Zap className="w-6 h-6 text-primary" />
                    Designing Your First Automation
                  </h3>
                  <p className="text-slate-500">Master the Visual Sequence Builder located in your CRM dashboard.</p>
@@ -138,7 +138,7 @@ export default function AutomationsGuidePage() {
                       { t: 'Step 4: Auto-Stages', d: 'Use the "Update Stage" action to automatically move leads through your pipeline as they progress in the sequence.' },
                     ].map((s, i) => (
                       <div key={i} className="flex gap-4 p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm group hover:ring-2 hover:ring-indigo-500/20 transition-all">
-                        <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-sm font-black text-indigo-600 shrink-0 border border-slate-200 dark:border-slate-800">{i+1}</div>
+                        <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-sm font-black text-primary shrink-0 border border-slate-200 dark:border-slate-800">{i+1}</div>
                         <div>
                           <p className="font-bold text-slate-900 dark:text-white">{s.t}</p>
                           <p className="text-sm text-slate-500 leading-relaxed mt-1">{s.d}</p>
@@ -148,7 +148,7 @@ export default function AutomationsGuidePage() {
                  </div>
               </div>
               <div className="space-y-6">
-                 <Card className="bg-indigo-600 text-white border-none shadow-xl shadow-indigo-200 dark:shadow-none p-6 rounded-[2rem] h-full">
+                 <Card className="bg-primary text-white border-none shadow-xl shadow-primary/20 dark:shadow-none p-6 rounded-[2rem] h-full">
                     <h4 className="text-lg font-bold flex items-center gap-2 mb-4">
                       <Target className="w-5 h-5" />
                       Conversion Magic
@@ -170,13 +170,13 @@ export default function AutomationsGuidePage() {
 
             <div className="space-y-6">
                <h3 className="text-2xl font-bold flex items-center gap-3">
-                 <BookOpen className="w-6 h-6 text-indigo-500" />
+                 <BookOpen className="w-6 h-6 text-primary" />
                  Ready-to-Use Blueprints
                </h3>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 group hover:border-indigo-500 transition-all">
+                  <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 group hover:border-primary transition-all">
                      <div className="flex justify-between items-start mb-4">
-                        <Badge className="bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border-none">Real Estate</Badge>
+                        <Badge className="bg-blue-100 text-primary dark:bg-blue-500/10 dark:text-blue-400 border-none">Real Estate</Badge>
                         <Mail className="w-5 h-5 text-slate-400" />
                      </div>
                      <h4 className="font-bold text-lg mb-2">The "Hot Lead" Express</h4>
@@ -186,7 +186,7 @@ export default function AutomationsGuidePage() {
                      </div>
                   </div>
 
-                  <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 group hover:border-indigo-500 transition-all">
+                  <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 group hover:border-primary transition-all">
                      <div className="flex justify-between items-start mb-4">
                         <Badge className="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border-none">B2B SaaS</Badge>
                         <MessageSquare className="w-5 h-5 text-slate-400" />

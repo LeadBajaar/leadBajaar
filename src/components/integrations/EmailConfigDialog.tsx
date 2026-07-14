@@ -43,7 +43,7 @@ export function EmailConfigDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px] rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl dark:bg-slate-900">
-        <div className="bg-indigo-600 dark:bg-indigo-700 p-6 text-white relative">
+        <div className="bg-primary dark:bg-indigo-700 p-6 text-white relative">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
           <DialogHeader>
             <DialogTitle className="text-2xl font-black flex items-center gap-3">
@@ -259,7 +259,7 @@ export function EmailConfigDialog({
               Cancel
             </Button>
             <Button
-              className="w-full sm:w-44 h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-black text-white shadow-xl shadow-indigo-200 dark:shadow-none transition-all"
+              className="w-full sm:w-44 h-11 rounded-xl bg-primary hover:bg-primary/90 font-black text-white shadow-xl shadow-primary/20 dark:shadow-none transition-all"
               onClick={onSave}
               disabled={isConnecting}
             >

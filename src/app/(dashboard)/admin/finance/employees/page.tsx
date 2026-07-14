@@ -127,7 +127,7 @@ export default function EmployeesPage() {
           <h2 className="text-2xl font-bold">Employees</h2>
           <p className="text-sm text-muted-foreground">Manage team profiles and employment details</p>
         </div>
-        <Button onClick={() => { resetForm(); setShowAdd(true) }} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
+        <Button onClick={() => { resetForm(); setShowAdd(true) }} className="bg-primary hover:bg-primary/90 text-white gap-2">
           <Plus className="h-4 w-4" /> Add Employee
         </Button>
       </div>
@@ -136,8 +136,8 @@ export default function EmployeesPage() {
       <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/20 flex items-center justify-center">
-              <Users className="h-5 w-5 text-indigo-600" />
+            <div className="h-10 w-10 rounded-xl bg-primary/20 dark:bg-indigo-900/20 flex items-center justify-center">
+              <Users className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Active Headcount</p>
@@ -328,7 +328,7 @@ export default function EmployeesPage() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => { resetForm(); setShowAdd(false) }}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90 text-white">
               {saving ? 'Saving...' : editEmp ? 'Update' : 'Add Employee'}
             </Button>
           </DialogFooter>
@@ -343,7 +343,7 @@ export default function EmployeesPage() {
               <DialogTitle className="text-xl font-bold">{viewEmp?.name}</DialogTitle>
               <p className="text-xs text-muted-foreground">{viewEmp?.role} • {viewEmp?.department}</p>
             </div>
-            <Button size="sm" className="bg-indigo-600 text-white h-8" onClick={() => setShowRevModal(true)}>
+            <Button size="sm" className="bg-primary text-white h-8" onClick={() => setShowRevModal(true)}>
               <ArrowUpRight className="h-3.5 w-3.5 mr-1" /> Log Salary Hike
             </Button>
           </DialogHeader>
@@ -378,7 +378,7 @@ export default function EmployeesPage() {
                           <td className="p-3 font-medium">{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][p.month-1]} {p.year}</td>
                           <td className="p-3 text-right">{fmt(p.gross_salary)}</td>
                           <td className="p-3 text-right text-red-500">{fmt(p.tds_deducted)}</td>
-                          <td className="p-3 text-right font-bold text-indigo-600">{fmt(p.net_salary)}</td>
+                          <td className="p-3 text-right font-bold text-primary">{fmt(p.net_salary)}</td>
                           <td className="p-3 text-center">
                             <Badge variant="outline" className={`text-[10px] capitalize ${p.status === 'paid' ? 'text-emerald-600 border-emerald-200 bg-emerald-50' : 'text-amber-600 border-amber-200 bg-amber-50'}`}>
                               {p.status}

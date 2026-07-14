@@ -20,7 +20,7 @@ interface Props {
   toggleTeamMember: (member: TeamMember) => void
 }
 
-const labelStyle = "text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-0"
+const labelStyle = "text-[10px] font-black uppercase tracking-[0.2em] text-[var(--crm-text-secondary)] mb-0"
 
 export const TeamTab = ({ eventType, toggleTeamMember }: Props) => {
   return (
@@ -28,12 +28,12 @@ export const TeamTab = ({ eventType, toggleTeamMember }: Props) => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1">Squad Assignment</h3>
-            <p className="text-xs text-slate-500 font-medium tracking-tight">Select members to manage bookings for this event.</p>
+            <h3 className="text-sm font-bold text-[var(--crm-text-primary)] uppercase tracking-wider mb-1">Squad Assignment</h3>
+            <p className="text-xs text-[var(--crm-text-secondary)] font-medium tracking-tight">Select members to manage bookings for this event.</p>
           </div>
-          <div className="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-700 flex items-center gap-2">
-            <Users className="h-3.5 w-3.5 text-slate-500" />
-            <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">
+          <div className="bg-[var(--crm-surface-3)] px-3 py-1.5 rounded-xl border border-[var(--crm-border)] flex items-center gap-2">
+            <Users className="h-3.5 w-3.5 text-[var(--crm-text-secondary)]" />
+            <span className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest">
               {eventType.teamMembers.length} Assigned
             </span>
           </div>
@@ -49,37 +49,37 @@ export const TeamTab = ({ eventType, toggleTeamMember }: Props) => {
                 className={cn(
                   "group relative p-4 rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden",
                   isSelected 
-                    ? "bg-white dark:bg-slate-900 border-indigo-500 shadow-lg shadow-indigo-100 dark:shadow-none ring-1 ring-indigo-500" 
-                    : "bg-white dark:bg-slate-900 border-slate-200 hover:border-indigo-300 dark:border-slate-800 dark:hover:border-indigo-700 shadow-sm"
+                    ? "bg-[var(--crm-surface-1)]  border-[var(--crm-accent)] shadow-lg shadow-indigo-100  ring-1 ring-[var(--crm-accent)]" 
+                    : "bg-[var(--crm-surface-1)]  border-[var(--crm-border)] hover:border-indigo-300 shadow-sm"
                 )}
               >
                 {isSelected && (
                   <div className="absolute top-3 right-3 animate-in zoom-in duration-300">
-                    <CheckCircle2 className="h-4 w-4 text-indigo-500 fill-indigo-50" />
+                    <CheckCircle2 className="h-4 w-4 text-primary fill-indigo-50" />
                   </div>
                 )}
                 
                 <div className="flex flex-col items-center text-center space-y-3">
                   <div className="relative">
-                    <Avatar className="h-14 w-14 border-2 border-white dark:border-slate-800 shadow-md">
+                    <Avatar className="h-14 w-14 border-2 border-white shadow-md">
                       <AvatarImage src={member.avatar} alt={member.name} />
-                      <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-lg">
+                      <AvatarFallback className="bg-[var(--crm-surface-3)] text-[var(--crm-text-secondary)] font-bold text-lg">
                         {member.name.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>
                     </Avatar>
                     <div className={cn(
-                      "absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-md border-2 border-white dark:border-slate-900 flex items-center justify-center shadow-sm",
-                      isSelected ? "bg-indigo-600" : "bg-slate-200 dark:bg-slate-700"
+                      "absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-md border-2 border-white  flex items-center justify-center shadow-sm",
+                      isSelected ? "bg-[var(--crm-accent)]" : "bg-[var(--crm-surface-3)] "
                     )}>
-                      <UserPlus className={cn("h-2.5 w-2.5", isSelected ? "text-white" : "text-slate-500")} />
+                      <UserPlus className={cn("h-2.5 w-2.5", isSelected ? "text-white" : "text-[var(--crm-text-secondary)]")} />
                     </div>
                   </div>
 
                   <div className="space-y-0.5">
-                    <h4 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-tight truncate w-full max-w-[120px]">
+                    <h4 className="text-[13px] font-bold text-[var(--crm-text-primary)] uppercase tracking-tight truncate w-full max-w-[120px]">
                       {member.name}
                     </h4>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate w-full max-w-[120px]">
+                    <p className="text-[9px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest truncate w-full max-w-[120px]">
                       {member.email}
                     </p>
                   </div>
@@ -90,8 +90,8 @@ export const TeamTab = ({ eventType, toggleTeamMember }: Props) => {
                       className={cn(
                         "rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.1em]",
                         isSelected 
-                          ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400" 
-                          : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                          ? "bg-[var(--crm-accent-soft)] text-[var(--crm-accent)]  " 
+                          : "bg-[var(--crm-surface-3)]  text-[var(--crm-text-secondary)]"
                       )}
                     >
                       {member.role}
@@ -106,12 +106,12 @@ export const TeamTab = ({ eventType, toggleTeamMember }: Props) => {
 
         {/* Empty state if no team members are available to select */}
         {eventType.teamMembers.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-slate-200/60 dark:border-slate-800 rounded-[2rem] bg-slate-50/50 dark:bg-slate-900/30">
-            <div className="h-16 w-16 bg-white dark:bg-slate-800 rounded-3xl flex items-center justify-center shadow-xl border border-slate-100 dark:border-slate-700 mb-6">
-              <Users className="h-8 w-8 text-slate-200 dark:text-slate-700" />
+          <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-[var(--crm-border)] rounded-[2rem] bg-[var(--crm-surface-2)]">
+            <div className="h-16 w-16 bg-[var(--crm-surface-1)] rounded-3xl flex items-center justify-center shadow-xl border border-[var(--crm-border)] mb-6">
+              <Users className="h-8 w-8 text-slate-200" />
             </div>
-            <p className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-widest mb-2">No Team Members Found</p>
-            <p className="text-xs text-slate-400 font-medium max-w-[280px] text-center">Add members to your workspace first to assign them here.</p>
+            <p className="text-sm font-bold text-[var(--crm-text-primary)] uppercase tracking-widest mb-2">No Team Members Found</p>
+            <p className="text-xs text-[var(--crm-text-secondary)] font-medium max-w-[280px] text-center">Add members to your workspace first to assign them here.</p>
           </div>
         )}
       </div>

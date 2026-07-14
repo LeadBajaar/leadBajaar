@@ -82,30 +82,30 @@ export const DealValueDialog: React.FC<DealValueDialogProps> = ({
               onChange={(e) => setRecordInitialPayment(e.target.checked)}
             />
             <Label htmlFor="recordPayment" className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700 dark:text-slate-300">
-              <Wallet className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <Wallet className="h-4 w-4 text-primary dark:text-indigo-400" />
               Record an initial payment now
             </Label>
           </div>
 
           {recordInitialPayment && (
-            <div className="grid gap-4 p-5 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/30 animate-in slide-in-from-top-2 duration-300">
+            <div className="grid gap-4 p-5 bg-primary/5 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/30 animate-in slide-in-from-top-2 duration-300">
               <div className="grid gap-2">
-                <Label className="text-xs font-bold text-indigo-700 dark:text-indigo-400">Initial Paid Amount</Label>
+                <Label className="text-xs font-bold text-primary dark:text-indigo-400">Initial Paid Amount</Label>
                 <div className="relative">
                   <IndianRupee className="absolute left-3 top-2.5 h-4 w-4 text-indigo-400" />
                   <Input
                     type="number"
                     placeholder="0.00"
-                    className="pl-9 h-10 bg-white dark:bg-slate-900 border-indigo-200 dark:border-indigo-800 focus:bg-white dark:focus:bg-slate-900 text-sm"
+                    className="pl-9 h-10 bg-white dark:bg-slate-900 border-primary/20 dark:border-indigo-800 focus:bg-white dark:focus:bg-slate-900 text-sm"
                     value={initialPaymentAmount}
                     onChange={(e) => setInitialPaymentAmount(e.target.value)}
                   />
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label className="text-xs font-bold text-indigo-700 dark:text-indigo-400">Payment Method</Label>
+                <Label className="text-xs font-bold text-primary dark:text-indigo-400">Payment Method</Label>
                 <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <SelectTrigger className="bg-white dark:bg-slate-900 border-indigo-200 dark:border-indigo-800 h-10 text-sm">
+                  <SelectTrigger className="bg-white dark:bg-slate-900 border-primary/20 dark:border-indigo-800 h-10 text-sm">
                     <SelectValue placeholder="Select method" />
                   </SelectTrigger>
                   <SelectContent>
@@ -125,7 +125,7 @@ export const DealValueDialog: React.FC<DealValueDialogProps> = ({
           <Button
             onClick={onSave}
             disabled={!dealValueAmount || isSaving}
-            className="bg-indigo-600 hover:bg-indigo-700 font-bold"
+            className="bg-primary hover:bg-primary/90 font-bold"
           >
             {isSaving ? (
               <>

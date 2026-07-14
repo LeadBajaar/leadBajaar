@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/table"
 import {
   CalendarDays, Clock, Video, MapPin, Phone,
-  FileText, Edit, Save, X, Users, CheckCircle2,
-  CalendarCheck, CircleDot, ExternalLink, Settings2,
+  FileText, Edit, Save, X, Users, User, UserCircle, CheckCircle2,
+  CalendarCheck, CircleDot, Settings2,
   ChevronRight, ChevronDown, Mail, Building2, AlignLeft, Loader2,
   Trash2, CalendarRange, Search
 } from 'lucide-react'
@@ -31,6 +31,7 @@ import { getBookings, deleteBooking, rescheduleBooking, updateBooking, teamApi }
 import { toast } from 'sonner'
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Input } from "@/components/ui/input"
 import { cn } from '@/lib/utils'
 import { RoleGuard } from '@/components/RoleGuard'
@@ -77,7 +78,7 @@ interface Meeting {
 // Mock team members removed - using real team data from API
 
 const meetingTypeConfig = {
-  video: { icon: Video, label: 'Video Call', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+  video: { icon: Video, label: 'Video Call', color: 'text-primary', bg: 'bg-primary/10 dark:bg-indigo-900/20' },
   phone: { icon: Phone, label: 'Phone Call', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
   'in-person': { icon: MapPin, label: 'In Person', color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20' },
 }
@@ -85,7 +86,7 @@ const meetingTypeConfig = {
 const statusConfig: Record<string, { label: string; className: string }> = {
   confirmed: { label: 'Confirmed', className: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400' },
   pending: { label: 'Pending', className: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400' },
-  completed: { label: 'Completed', className: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-400' },
+  completed: { label: 'Completed', className: 'bg-primary/10 text-primary border-primary/20 dark:bg-indigo-900/20 dark:text-indigo-400' },
   cancelled: { label: 'Cancelled', className: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400' },
   rescheduled: { label: 'Rescheduled', className: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/20 dark:text-violet-400' },
 }
@@ -127,6 +128,36 @@ function MeetingsSkeleton() {
   )
 }
 
+// ─── Time Slot Picker ──────────────────────────────────────────────────────────
+
+const TIME_SLOTS = Array.from({ length: 96 }, (_, i) => {
+  const h = Math.floor(i / 4)
+  const m = (i % 4) * 15
+  const value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+  const h12 = h % 12 === 0 ? 12 : h % 12
+  return { value, label: `${h12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}` }
+})
+
+function TimeSlotPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-sm font-medium">
+        <div className="flex items-center gap-2">
+          <Clock className="h-4 w-4 text-primary shrink-0" />
+          <SelectValue placeholder="Select time" />
+        </div>
+      </SelectTrigger>
+      <SelectContent className="rounded-xl border-[var(--crm-border)] z-[110] max-h-[240px]">
+        {TIME_SLOTS.map(slot => (
+          <SelectItem key={slot.value} value={slot.value} className="rounded-lg text-sm">
+            {slot.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+}
+
 // ─── Detail Dialog ─────────────────────────────────────────────────────────────
 
 function MeetingDetailDialog({
@@ -135,9 +166,9 @@ function MeetingDetailDialog({
   meeting: Meeting | null
   open: boolean
   onOpenChange: (v: boolean) => void
-  onUpdate?: (m: Meeting) => void
-  onDelete?: (id: number) => void
-  onReschedule?: (id: number, date: string, time: string) => void
+  onUpdate?: (m: Meeting) => void | Promise<void>
+  onDelete?: (id: number) => void | Promise<void>
+  onReschedule?: (id: number, date: string, time: string) => void | Promise<void>
   team: TeamMember[]
 }) {
   const { theme, resolvedTheme } = useTheme()
@@ -155,13 +186,15 @@ function MeetingDetailDialog({
   const [newTime, setNewTime] = useState('')
   const [popoverOpen, setPopoverOpen] = useState(false)
 
-  // Sync state when meeting changes
   const resetReschedule = () => {
     if (meeting?.start_time) {
       const date = new Date(meeting.start_time)
       setNewDate(date)
-      const hours = date.getHours().toString().padStart(2, '0')
-      const minutes = date.getMinutes().toString().padStart(2, '0')
+      // Snap to the nearest 15-minute slot so the value matches the picker's options
+      const total = Math.round((date.getHours() * 60 + date.getMinutes()) / 15) * 15
+      const snapped = total >= 24 * 60 ? 0 : total
+      const hours = String(Math.floor(snapped / 60)).padStart(2, '0')
+      const minutes = String(snapped % 60).padStart(2, '0')
       setNewTime(`${hours}:${minutes}`)
     }
   }
@@ -185,10 +218,15 @@ function MeetingDetailDialog({
   const TypeIcon = typeInfo.icon
   const statusInfo = statusConfig[meeting.status] ?? statusConfig.confirmed
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!meeting) return
-    onUpdate?.({ ...meeting, notes, outcome, assignedTo: assignedTo as TeamMember })
-    setIsEditing(false)
+    setIsSubmitting(true)
+    try {
+      await onUpdate?.({ ...meeting, notes, outcome, assignedTo: assignedTo as TeamMember })
+      setIsEditing(false)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleDeleteClick = () => {
@@ -222,433 +260,355 @@ function MeetingDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-0 overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 [&>button]:text-white/90 [&>button]:hover:text-white [&>button]:bg-black/25 [&>button]:hover:bg-black/40 [&>button]:rounded-full [&>button]:p-1.5 [&>button]:transition-all [&>button]:duration-200 [&>button]:right-5 [&>button]:top-5 [&>button]:focus:ring-white/20 [&>button]:focus:ring-offset-0">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-violet-600 p-5 sm:p-6 text-white">
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <DialogTitle className="text-lg font-bold text-white break-words">{meeting.title}</DialogTitle>
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                <span className={cn('flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium bg-white/20 text-white shrink-0')}>
-                  <TypeIcon className="h-3.5 w-3.5" />
-                  {typeInfo.label}
-                </span>
-                {meeting.eventType && (
-                  <span 
-                    className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border"
-                    style={{ 
-                      color: meeting.eventType.color || '#e0e7ff', 
-                      backgroundColor: `${meeting.eventType.color || '#4f46e5'}40`,
-                      borderColor: `${meeting.eventType.color || '#4f46e5'}80`
-                    }}
-                  >
-                    {meeting.eventType.type === 'group' ? 'Group Event' : '1-on-1'}
-                  </span>
-                )}
-                <span className="text-xs text-white/70">{meeting.date} · {meeting.time}</span>
+      <DialogContent className="max-w-4xl p-0 overflow-hidden bg-white dark:bg-slate-900 border-none shadow-[0_24px_80px_-16px_rgba(30,45,107,0.35)] rounded-[24px] gap-0 [&>button]:hidden">
+
+        {/* Tinted Gradient Header */}
+        <div className="relative p-6 pb-7 bg-gradient-to-br from-primary/10 via-primary/[0.04] to-transparent dark:from-primary/20 dark:via-primary/[0.06] border-b border-[var(--crm-border)]">
+          <div className="flex items-start gap-4">
+            <div className="relative shrink-0">
+              <div className="flex items-center justify-center h-14 w-14 rounded-2xl bg-white dark:bg-slate-900 shadow-[0_8px_24px_-8px_rgba(30,45,107,0.4)] ring-1 ring-primary/15 text-primary">
+                <TypeIcon className="h-6 w-6" />
               </div>
+              <span
+                className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full ring-[3px] ring-white dark:ring-slate-900"
+                style={{ backgroundColor: meeting.eventType?.color || 'var(--lb-navy, #1e2d6b)' }}
+              />
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Badge className={cn('text-xs font-semibold border', statusInfo.className)}>
-                {statusInfo.label}
-              </Badge>
-            </div>
-          </div>
-        </div>
-
-        {/* Body */}
-        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 max-h-[60vh] sm:max-h-[50vh] overflow-y-auto border-b border-slate-100 dark:border-slate-800">
-
-          {/* Meeting details row */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <div className="p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-center">
-              <CalendarDays className="h-4 w-4 text-indigo-500 mx-auto mb-1" />
-              <p className="text-[10px] sm:text-xs text-slate-500">Date</p>
-              <p className="text-[10px] sm:text-xs font-semibold text-slate-800 dark:text-white mt-0.5 truncate">{meeting.date}</p>
-            </div>
-            <div className="p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-center">
-              <Clock className="h-4 w-4 text-indigo-500 mx-auto mb-1" />
-              <p className="text-[10px] sm:text-xs text-slate-500">Time</p>
-              <p className="text-[10px] sm:text-xs font-semibold text-slate-800 dark:text-white mt-0.5 truncate">{meeting.time}</p>
-            </div>
-            <div className="p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-center">
-              <CircleDot className="h-4 w-4 text-indigo-500 mx-auto mb-1" />
-              <p className="text-[10px] sm:text-xs text-slate-500">Duration</p>
-              <p className="text-[10px] sm:text-xs font-semibold text-slate-800 dark:text-white mt-0.5 truncate">{meeting.duration}</p>
-            </div>
-          </div>
-
-          {/* Assigned Rep */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">Assigned To</p>
-              {onUpdate && (
-                <button onClick={() => setIsEditing(e => !e)}
-                  className="text-xs text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                  {isEditing ? <Save className="h-3 w-3" /> : <Edit className="h-3 w-3" />}
-                  {isEditing ? 'Save' : 'Change'}
-                </button>
-              )}
-            </div>
-            {isEditing ? (
-              <Select value={assignedTo?.email || ''} onValueChange={(v) => {
-                const m = team.find(t => t.email === v)
-                if (m) setAssignedTo(m)
-              }}>
-                <SelectTrigger className="h-10 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-                  <SelectValue placeholder="Select Host" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800 z-[200]" position="popper" sideOffset={4}>
-                  {team.filter(m => !m.status || m.status.toLowerCase() !== 'invited').length === 0 ? (
-                    <div className="px-3 py-4 text-center">
-                      <p className="text-sm font-semibold text-slate-500">No team members available</p>
-                      <p className="text-[11px] text-slate-400 mt-1">Invite members from the Team page</p>
-                    </div>
-                  ) : (
-                    team.filter(m => !m.status || m.status.toLowerCase() !== 'invited').map(m => (
-                      <SelectItem key={m.id} value={m.email} className="rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div 
-                            className="h-6 w-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-sm"
-                            style={{ backgroundColor: getAgentColor(m.id).bg }}
-                          >
-                            {initials(m.name)}
-                          </div>
-                          <div className="text-left">
-                            <p className="text-sm font-bold">{m.name || m.email}</p>
-                            <p className="text-[10px] text-slate-500 font-medium italic">{m.role} {m.status ? `· ${m.status}` : ''}</p>
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            ) : (
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/50">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-black shadow-md ring-2 ring-white dark:ring-slate-900"
-                    style={{ 
-                      backgroundColor: assignedTo && assignedTo.id !== 0 
-                        ? getAgentColor(assignedTo.id).bg 
-                        : '#94a3b8' 
-                    }}
-                  >
-                    {assignedTo ? initials(assignedTo.name) : '?'}
-                  </div>
-                  <div>
-                    <p className="text-sm font-black text-slate-900 dark:text-white">
-                      {assignedTo && assignedTo.id !== 0 ? assignedTo.name : 'Not Assigned'}
-                    </p>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider italic">
-                      {assignedTo && assignedTo.id !== 0 ? assignedTo.role : 'Waiting for host'}
-                    </p>
-                  </div>
-                </div>
-                {assignedTo && assignedTo.id !== 0 && (
-                   <Badge 
-                    variant="outline" 
-                    className="text-[10px] font-bold uppercase tracking-tighter"
-                    style={{
-                      backgroundColor: isDark ? getAgentColor(assignedTo.id).bgDark : getAgentColor(assignedTo.id).bg,
-                      color: isDark ? getAgentColor(assignedTo.id).textDark : getAgentColor(assignedTo.id).text,
-                      borderColor: isDark ? getAgentColor(assignedTo.id).borderDark : getAgentColor(assignedTo.id).border,
-                    }}
-                   >
-                    Active Host
-                   </Badge>
-                )}
-              </div>
-            )}
-          </div>
-
-          {meeting.attendees && meeting.attendees.length > 0 ? (
-            <div>
-              <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-2">Attendees ({meeting.attendees.length})</p>
-              <div className="space-y-3">
-                {meeting.attendees.map((attendee, i) => (
-                  <details key={i} className="group p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/50 [&_summary::-webkit-details-marker]:hidden open:pb-4 transition-all">
-                    <summary className="flex items-start gap-3 list-none cursor-pointer outline-none">
-                      <div className="h-9 w-9 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm" style={{ backgroundColor: meeting.eventType?.color || '#4f46e5' }}>
-                        {initials(attendee.lead.name)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className="font-semibold text-sm text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">{attendee.lead.name}</p>
-                          <ChevronDown className="h-4 w-4 text-slate-400 group-open:rotate-180 transition-transform duration-200" />
-                        </div>
-                        <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
-                           <a href={`mailto:${attendee.lead.email}`} onClick={e => e.stopPropagation()} className="text-xs text-indigo-600 hover:underline flex items-center gap-1">
-                             <Mail className="h-3 w-3" />{attendee.lead.email}
-                           </a>
-                           {attendee.lead.phone && (
-                             <span className="flex items-center gap-1 text-xs text-slate-500">
-                               <Phone className="h-3 w-3" />{attendee.lead.phone}
-                             </span>
-                           )}
-                        </div>
-                      </div>
-                    </summary>
-                    {attendee.questionnaire && attendee.questionnaire.length > 0 && (
-                      <div className="mt-4 space-y-2 border-t border-slate-200 dark:border-slate-700 pt-3 opacity-0 group-open:opacity-100 transition-opacity duration-200 delay-100">
-                        {attendee.questionnaire.map((qa, j) => (
-                          <div key={j}>
-                            <p className="text-[10px] font-medium text-slate-500 uppercase">{qa.question}</p>
-                            <p className="text-xs text-slate-800 dark:text-white mt-0.5">{qa.answer}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </details>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Lead Info */}
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-                <div 
-                  className="h-11 w-11 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm"
-                  style={{ backgroundColor: meeting.eventType?.color || '#4f46e5' }}
-                >
-                  {initials(meeting.lead.name)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-900 dark:text-white">{meeting.lead.name}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{meeting.lead.profession} {meeting.lead.company ? `· ${meeting.lead.company}` : ''}</p>
-                  <div className="flex flex-wrap items-center gap-y-2 gap-x-3 mt-2">
-                    {meeting.lead.email && (
-                      <a href={`mailto:${meeting.lead.email}`} className="flex items-center gap-1 text-xs text-indigo-600 hover:underline">
-                        <Mail className="h-3 w-3" />{meeting.lead.email}
-                      </a>
-                    )}
-                    {meeting.lead.phone && (
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                        <Phone className="h-3 w-3" />
-                        <span>{meeting.lead.phone}</span>
-                        <a
-                          href={`tel:${meeting.lead.phone}`}
-                          className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 transition-colors shadow-sm ml-1"
-                          title={`Call ${meeting.lead.name}`}
-                        >
-                          <Phone className="h-2.5 w-2.5" />
-                        </a>
-                      </div>
-                    )}
-                    {meeting.lead.state && (
-                      <span className="flex items-center gap-1 text-xs text-slate-500">
-                        <MapPin className="h-3 w-3" />{meeting.lead.state}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Questionnaire */}
-              {meeting.questionnaire && meeting.questionnaire.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-2">Questionnaire</p>
-                  <div className="space-y-2">
-                    {meeting.questionnaire.map((qa, i) => (
-                      <div key={i} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-                        <p className="text-xs font-medium text-slate-600 dark:text-slate-400">{qa.question}</p>
-                        <p className="text-sm text-slate-800 dark:text-white mt-0.5">{qa.answer}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Notes */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">Notes</p>
-              {!isEditing && onUpdate && (
-                <button onClick={() => setIsEditing(true)} className="text-xs text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                  <Edit className="h-3 w-3" />Edit
-                </button>
-              )}
-            </div>
-            {isEditing ? (
-              <Textarea value={notes} onChange={e => setNotes(e.target.value)}
-                placeholder="Add meeting notes..." className="min-h-[80px] text-sm" />
-            ) : (
-              <p className="text-sm text-slate-500 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3">
-                {notes || 'No notes added'}
-              </p>
-            )}
-          </div>
-
-          {/* Outcome */}
-          <div>
-            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-2">Outcome</p>
-            {isEditing ? (
-              <Textarea value={outcome} onChange={e => setOutcome(e.target.value)}
-                placeholder="Add meeting outcome..." className="min-h-[60px] text-sm" />
-            ) : (
-              <p className="text-sm text-slate-500 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3">
-                {outcome || 'No outcome recorded'}
-              </p>
-            )}
-          </div>
-
-          {/* Save button moved inside footer */}
-          {/* Notes and Outcome stay in scrollable body */}
-        </div>
-
-        {/* Footer (Sticky) */}
-        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800">
-          {isEditing && (
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>Cancel</Button>
-              <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white" onClick={handleSave}>
-                <Save className="h-3.5 w-3.5 mr-1.5" />Save Changes
-              </Button>
-            </div>
-          )}
-
-          {/* Reschedule UI */}
-          {isRescheduling && (
-            <div className="bg-white dark:bg-slate-900 border border-violet-100 dark:border-violet-800/50 rounded-xl p-4 shadow-sm space-y-4 ring-1 ring-black/5">
-              <div className="flex items-center justify-between border-b border-slate-50 dark:border-slate-800 pb-3 mb-1">
-                <p className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <CalendarRange className="h-4 w-4 text-violet-500" />
-                  Reschedule Appointment
-                </p>
-                <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 border-violet-200 dark:border-violet-800">
-                  New Slot
+            <div className="min-w-0 pt-0.5">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <DialogTitle className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight truncate">
+                  {meeting.title}
+                </DialogTitle>
+                <Badge className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-bold shadow-none border', statusInfo.className)}>
+                  {statusInfo.label}
                 </Badge>
               </div>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[13px] text-slate-500 dark:text-slate-400">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <TypeIcon className="h-3.5 w-3.5 text-primary" /> {typeInfo.label}
+                </span>
+                <span className="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Clock className="h-3.5 w-3.5 text-primary" /> {meeting.time} · {meeting.duration}
+                </span>
+              </div>
+            </div>
+          </div>
+          <DialogClose className="absolute right-5 top-5 h-8 w-8 rounded-full flex items-center justify-center bg-white/70 dark:bg-slate-800/70 backdrop-blur hover:bg-white dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06] transition-all">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide px-0.5">Pick Date</label>
-                  <Popover modal={true} open={popoverOpen} onOpenChange={setPopoverOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-full justify-start text-xs h-10 border-slate-200 dark:border-slate-700 px-3 bg-slate-50/50 dark:bg-slate-800/50">
-                        <CalendarDays className="h-4 w-4 mr-2.5 text-slate-400" />
-                        {newDate ? format(newDate, 'PPP') : 'Select Date'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 z-[70] shadow-2xl border-slate-200 dark:border-slate-700" align="start" side="top" sideOffset={12}>
-                      <Calendar
-                        mode="single"
-                        selected={newDate}
-                        onSelect={(date) => {
-                          setNewDate(date)
-                          setPopoverOpen(false)
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+        {/* 2-Column Body — fixed height on desktop: left column scrolls, right rail stays put */}
+        <div className="p-5 max-h-[78vh] overflow-y-auto lg:overflow-hidden lg:h-[min(680px,80vh)] lg:max-h-none custom-scrollbar">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:h-full">
+
+            {/* Left Column: Details (scrolls independently on desktop) */}
+            <div className="lg:col-span-7 space-y-4 lg:h-full lg:overflow-y-auto custom-scrollbar lg:pr-1">
+              
+              {/* Participant/Attendees Section */}
+              <div className="border border-[var(--crm-border)] rounded-2xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
+                <div className="px-5 py-3.5 border-b border-[var(--crm-border)] flex items-center gap-2.5">
+                  <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                    {meeting.attendees && meeting.attendees.length > 0
+                      ? <Users className="h-4 w-4 text-primary" />
+                      : <User className="h-4 w-4 text-primary" />}
+                  </div>
+                  <h3 className="text-[13px] font-bold text-slate-900 dark:text-white tracking-tight">
+                    {meeting.attendees && meeting.attendees.length > 0 ? `Attendees (${meeting.attendees.length})` : 'Participant'}
+                  </h3>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide px-0.5">Select Time</label>
-                  <div className="relative">
-                    <Input 
-                      type="time" 
-                      value={newTime} 
-                      onChange={e => setNewTime(e.target.value)}
-                      className="h-10 text-xs border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 focus:ring-violet-500/20" 
-                    />
+                
+                <div className="p-4 space-y-4">
+                  {meeting.attendees && meeting.attendees.length > 0 ? (
+                    <div className="space-y-4">
+                      {meeting.attendees.map((attendee, i) => (
+                        <div key={i} className="flex flex-col gap-3 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: meeting.eventType?.color || '#1e2d6b' }}>
+                              {initials(attendee.lead.name)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-slate-900 dark:text-white">{attendee.lead.name}</p>
+                              <div className="flex flex-wrap gap-x-3 gap-y-1 mt-0.5">
+                                <a href={`mailto:${attendee.lead.email}`} className="text-xs text-slate-500 hover:text-primary transition-colors flex items-center gap-1">
+                                  <Mail className="h-3 w-3" />{attendee.lead.email}
+                                </a>
+                                {attendee.lead.phone && (
+                                  <span className="flex items-center gap-1 text-xs text-slate-500">
+                                    <Phone className="h-3 w-3" />{attendee.lead.phone}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          {attendee.questionnaire && attendee.questionnaire.length > 0 && (
+                            <div className="ml-13 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 space-y-2">
+                              {attendee.questionnaire.map((qa, j) => (
+                                <div key={j}>
+                                  <p className="text-xs font-medium text-slate-500">{qa.question}</p>
+                                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{qa.answer}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: meeting.eventType?.color || '#1e2d6b' }}>
+                          {initials(meeting.lead.name)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{meeting.lead.name}</p>
+                          {(meeting.lead.profession || meeting.lead.company) && (
+                            <p className="text-xs text-slate-500 truncate">{meeting.lead.profession} {meeting.lead.company ? `· ${meeting.lead.company}` : ''}</p>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center justify-end gap-1.5">
+                          {meeting.lead.email && (
+                            <a href={`mailto:${meeting.lead.email}`} className="bg-slate-50 dark:bg-slate-800/50 hover:bg-primary/5 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
+                              <Mail className="h-3.5 w-3.5 text-slate-400" />{meeting.lead.email}
+                            </a>
+                          )}
+                          {meeting.lead.phone && (
+                            <span className="bg-slate-50 dark:bg-slate-800/50 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+                              <Phone className="h-3.5 w-3.5 text-slate-400" />{meeting.lead.phone}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {meeting.questionnaire && meeting.questionnaire.length > 0 && (
+                        <div className="bg-primary/5 border border-primary/10 rounded-xl p-3.5 space-y-2.5">
+                          {meeting.questionnaire.map((qa, i) => (
+                            <div key={i}>
+                              <p className="text-[10px] uppercase tracking-wider font-bold text-primary/70">{qa.question}</p>
+                              <p className="text-[13px] font-semibold text-slate-900 dark:text-white">{qa.answer}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Notes & Outcome */}
+              <div className="border border-[var(--crm-border)] rounded-2xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
+                <div className="p-5 space-y-5">
+                  <div>
+                    <h4 className="text-[11px] uppercase tracking-[0.08em] font-bold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+                      <FileText className="h-3.5 w-3.5 text-primary" /> Meeting Notes
+                    </h4>
+                    {isEditing ? (
+                      <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add meeting notes..." className="min-h-[100px] text-sm rounded-xl" />
+                    ) : (
+                      <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
+                        <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                          {notes || <span className="text-slate-400 italic">No notes added.</span>}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="text-[11px] uppercase tracking-[0.08em] font-bold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-primary" /> Outcome
+                    </h4>
+                    {isEditing ? (
+                      <Textarea value={outcome} onChange={e => setOutcome(e.target.value)} placeholder="Add meeting outcome..." className="min-h-[80px] text-sm rounded-xl" />
+                    ) : (
+                      <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
+                        <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                          {outcome || <span className="text-slate-400 italic">No outcome recorded.</span>}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-2 justify-end pt-1">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-9 px-4 text-xs font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" 
-                  onClick={() => {
-                    resetReschedule()
-                    setIsRescheduling(false)
-                  }} 
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="h-9 bg-violet-600 hover:bg-violet-700 text-white px-5 shadow-lg shadow-violet-500/20 font-semibold" 
-                  onClick={handleRescheduleSubmit} 
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <CalendarCheck className="h-4 w-4 mr-2" />
+            </div>
+
+            {/* Right Column: Information & Actions (fixed — never scrolls) */}
+            <div className="lg:col-span-5 lg:h-full lg:min-h-0">
+              <div className="bg-gradient-to-b from-primary/[0.06] to-primary/[0.02] dark:from-primary/10 dark:to-primary/[0.03] border border-primary/15 rounded-[20px] p-4 flex flex-col h-full overflow-hidden">
+
+                <div className="flex items-center gap-3 mb-3 shrink-0">
+                  <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                    <CalendarDays className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-[14px] font-bold tracking-tight text-slate-900 dark:text-white">Schedule</h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">When and how this meeting happens.</p>
+                  </div>
+                  {!isEditing && !isRescheduling && !isDeleting && (
+                    <TooltipProvider delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            className="h-8 px-3 text-[12px] font-bold rounded-full shrink-0 bg-primary/10 text-primary border border-primary/25 shadow-sm hover:bg-primary hover:text-white hover:border-primary transition-all"
+                            onClick={() => setIsEditing(true)}
+                          >
+                            <Edit className="h-3.5 w-3.5 mr-1.5" /> Edit
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="z-[110] text-xs font-medium">
+                          Change the host or add notes & outcome
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
-                  Confirm New Time
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Actions Footer */}
-          {!isEditing && !isRescheduling && !isDeleting && (!meeting.attendees || meeting.attendees.length === 0) && (
-            <div className="flex items-center justify-between">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-red-500 hover:text-red-600 hover:bg-red-50 h-8"
-                onClick={handleDeleteClick}
-                disabled={isSubmitting}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Cancel Meeting
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="text-indigo-600 border-indigo-200 hover:bg-indigo-50 h-8"
-                onClick={() => setIsRescheduling(true)}
-                disabled={isSubmitting}
-              >
-                <CalendarRange className="h-4 w-4 mr-2" />
-                Reschedule
-              </Button>
-            </div>
-          )}
-
-          {/* Delete confirmation UI */}
-          {isDeleting && (
-            <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/50 rounded-xl p-4 space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
-                  <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                 </div>
-                <div>
-                  <h4 className="text-sm font-bold text-red-950 dark:text-red-100">Cancel Meeting?</h4>
-                  <p className="text-xs text-red-700/80 dark:text-red-300/60 mt-0.5">This action cannot be undone. Are you sure you want to cancel this appointment?</p>
+
+                <div className="space-y-2.5 flex-1 min-h-0 overflow-hidden">
+                  {/* Assigned Host */}
+                  <div className="bg-white dark:bg-slate-900 border border-[var(--crm-border)] rounded-2xl px-3.5 py-2.5 shadow-sm">
+                    {isEditing ? (
+                      <Select value={assignedTo?.email || ''} onValueChange={(v) => {
+                        const m = team.find(t => t.email === v)
+                        if (m) setAssignedTo(m)
+                      }}>
+                        <SelectTrigger className="h-10 rounded-xl border-[var(--crm-border)] bg-white dark:bg-slate-900">
+                          <SelectValue placeholder="Select Host" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-[var(--crm-border)] z-[70]">
+                          {team.filter(m => !m.status || m.status.toLowerCase() !== 'invited').map(m => (
+                            <SelectItem key={m.id} value={m.email} className="rounded-lg py-2">
+                              <div className="flex items-center gap-3">
+                                <div className="h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: getAgentColor(m.id).bg }}>
+                                  {initials(m.name)}
+                                </div>
+                                <div className="text-left">
+                                  <p className="text-sm font-bold text-slate-900 dark:text-white">{m.name || m.email}</p>
+                                  <p className="text-xs text-slate-500">{m.role}</p>
+                                </div>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 shrink-0 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm" style={{ backgroundColor: assignedTo && assignedTo.id !== 0 ? getAgentColor(assignedTo.id).bg : '#94a3b8' }}>
+                          {assignedTo ? initials(assignedTo.name) : '?'}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                            {assignedTo && assignedTo.id !== 0 ? assignedTo.name : 'Unassigned'}
+                          </p>
+                          <p className="text-[11px] text-slate-500 truncate">
+                            {assignedTo && assignedTo.id !== 0 ? assignedTo.role : 'Waiting for host'}
+                          </p>
+                        </div>
+                        <span className="text-[10px] uppercase tracking-[0.08em] font-bold text-slate-400 shrink-0">Host</span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Schedule Card */}
+                  <div className="bg-white dark:bg-slate-900 border border-[var(--crm-border)] rounded-2xl shadow-sm divide-y divide-[var(--crm-border)]">
+                    <div className="flex items-center justify-between px-3.5 py-2.5">
+                      <span className="text-[10px] uppercase tracking-[0.08em] font-bold text-slate-400">Date</span>
+                      <span className="text-[13px] font-bold text-slate-900 dark:text-white">{meeting.date}</span>
+                    </div>
+                    <div className="flex items-center justify-between px-3.5 py-2.5">
+                      <span className="text-[10px] uppercase tracking-[0.08em] font-bold text-slate-400">Time</span>
+                      <span className="text-[13px] font-bold text-slate-900 dark:text-white">{meeting.time}</span>
+                    </div>
+                    <div className="flex items-center justify-between px-3.5 py-2.5">
+                      <span className="text-[10px] uppercase tracking-[0.08em] font-bold text-slate-400">Duration</span>
+                      <span className="text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">{meeting.duration}</span>
+                    </div>
+                    {meeting.eventType && (
+                      <div className="flex items-center justify-between px-3.5 py-2.5">
+                        <span className="text-[10px] uppercase tracking-[0.08em] font-bold text-slate-400">Format</span>
+                        <span className="flex items-center gap-1.5 text-[13px] font-bold text-slate-900 dark:text-white">
+                          {meeting.eventType.type === 'group' ? <Users className="h-3.5 w-3.5 text-primary" /> : <User className="h-3.5 w-3.5 text-primary" />}
+                          {meeting.eventType.type === 'group' ? 'Group Event' : '1-on-1'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
                 </div>
-              </div>
-              <div className="flex gap-2 justify-end pt-1">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-8 text-xs font-semibold text-red-800 dark:text-red-200 hover:bg-red-200/50 dark:hover:bg-red-900/30"
-                  onClick={() => setIsDeleting(false)}
-                  disabled={isSubmitting}
-                >
-                  No, Keep It
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="h-8 bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/20 text-xs font-bold px-4"
-                  onClick={handleConfirmDelete}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
-                  Yes, Cancel Meeting
-                </Button>
+
+                {/* Actions Bottom Area — pinned to rail bottom */}
+                <div className="shrink-0 mt-auto pt-4 border-t border-primary/10">
+                  {isEditing ? (
+                    <div className="space-y-3">
+                      <Button className="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary/25 text-sm" onClick={handleSave} disabled={isSubmitting}>
+                        {isSubmitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</> : <><Save className="h-4 w-4 mr-2" /> Save Details</>}
+                      </Button>
+                      <Button variant="outline" className="w-full h-11 rounded-xl font-bold text-sm bg-white dark:bg-slate-900 border-[var(--crm-border)]" onClick={() => setIsEditing(false)} disabled={isSubmitting}>
+                        Cancel Edit
+                      </Button>
+                    </div>
+                  ) : isRescheduling ? (
+                    <div className="space-y-4 bg-white dark:bg-slate-900 border border-[var(--crm-border)] rounded-2xl p-5 shadow-sm">
+                      <h4 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                        <CalendarRange className="h-4 w-4 text-primary" /> Reschedule Meeting
+                      </h4>
+                      <div className="space-y-3">
+                        <Popover modal={true} open={popoverOpen} onOpenChange={setPopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start h-11 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-sm font-medium">
+                              <CalendarDays className="h-4 w-4 mr-2 text-primary" />
+                              {newDate ? format(newDate, 'PPP') : 'Select Date'}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 z-[110] shadow-xl rounded-2xl" align="center">
+                            <Calendar
+                              mode="single"
+                              selected={newDate}
+                              onSelect={(date) => { setNewDate(date); setPopoverOpen(false) }}
+                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <TimeSlotPicker value={newTime} onChange={setNewTime} />
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <Button variant="ghost" className="flex-1 h-11 rounded-xl font-bold" onClick={() => { resetReschedule(); setIsRescheduling(false) }} disabled={isSubmitting}>Cancel</Button>
+                        <Button className="flex-1 h-11 rounded-xl bg-primary text-white font-bold shadow-md" onClick={handleRescheduleSubmit} disabled={isSubmitting || !newDate || !newTime}>
+                          {isSubmitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</> : 'Confirm'}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : isDeleting ? (
+                    <div className="space-y-4 bg-red-50/70 dark:bg-red-900/10 border border-red-200/60 dark:border-red-900/50 rounded-2xl p-5">
+                      <h4 className="text-sm font-bold text-red-800 dark:text-red-200">Cancel Appointment?</h4>
+                      <p className="text-xs text-red-600/80 dark:text-red-300/80">This action cannot be undone.</p>
+                      <div className="flex gap-2 pt-2">
+                        <Button variant="ghost" className="flex-1 h-11 rounded-xl font-bold text-red-600 hover:bg-red-100" onClick={() => setIsDeleting(false)} disabled={isSubmitting}>Keep It</Button>
+                        <Button variant="destructive" className="flex-1 h-11 rounded-xl font-bold shadow-md bg-red-600 hover:bg-red-700" onClick={handleConfirmDelete} disabled={isSubmitting}>
+                          {isSubmitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Cancelling...</> : 'Yes, Cancel'}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <Button className="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm shadow-lg shadow-primary/25 transition-all hover:shadow-primary/35" onClick={() => setIsRescheduling(true)} disabled={(meeting.attendees?.length ?? 0) > 0}>
+                        <CalendarRange className="h-4 w-4 mr-2" /> Reschedule Meeting
+                      </Button>
+                      <div className="flex items-center gap-3 px-1">
+                        <span className="h-px flex-1 bg-[var(--crm-border)]" />
+                        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">or</span>
+                        <span className="h-px flex-1 bg-[var(--crm-border)]" />
+                      </div>
+                      <Button variant="outline" className="w-full h-11 rounded-xl font-bold text-sm text-red-600 dark:text-red-400 border-red-200/70 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/15 hover:text-red-700 bg-white dark:bg-slate-900" onClick={handleDeleteClick} disabled={(meeting.attendees?.length ?? 0) > 0}>
+                        Cancel Meeting
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
               </div>
             </div>
-          )}
+
+          </div>
         </div>
       </DialogContent>
     </Dialog>
@@ -766,7 +726,7 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
             <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
               <a
                 href={`tel:${meeting.lead.phone}`}
-                className="flex items-center justify-center h-8 w-8 rounded-full border border-indigo-100 dark:border-indigo-800/50 bg-indigo-50/50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-400 transition-all duration-200 shadow-sm"
+                className="flex items-center justify-center h-8 w-8 rounded-full border border-indigo-100 dark:border-indigo-800/50 bg-primary/5 hover:bg-primary/20 text-primary dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-400 transition-all duration-200 shadow-sm"
                 title={`Call ${meeting.lead.name}`}
               >
                 <Phone className="h-3.5 w-3.5" />
@@ -938,13 +898,30 @@ export default function MeetingsPage() {
   const { theme, resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark' || theme === 'dark'
   const [activeTab, setActiveTab] = useState<'all' | 'upcoming' | 'history'>('upcoming')
-  const [meetings, setMeetings] = useState<{ upcoming: Meeting[]; history: Meeting[] }>({ upcoming: [], history: [] })
+  // Raw booking rows from the API, deduped by id. Meetings shown in the UI are
+  // derived from these (grouped + mapped) so that pagination overlaps and group
+  // events split across page boundaries can never render the same meeting twice.
+  const [rawBookings, setRawBookings] = useState<{ upcoming: any[]; history: any[] }>({ upcoming: [], history: [] })
   const [isLoading, setIsLoading] = useState(true)
   const [isFetchingMore, setIsFetchingMore] = useState({ upcoming: false, history: false })
+  // Synchronous in-flight guard: IntersectionObserver can fire again before the
+  // isFetchingMore state update is committed, which double-fetched the same page.
+  const fetchingRef = useRef({ upcoming: false, history: false })
+
+  const meetings = useMemo(() => ({
+    upcoming: groupRawBookings(rawBookings.upcoming).map((b: any) => mapBooking(b, 'confirmed')),
+    history: groupRawBookings(rawBookings.history).map((b: any) => mapBooking(b, 'completed')),
+  }), [rawBookings])
+
+  const mergeRawBookings = (prev: any[], incoming: any[]) => {
+    const seen = new Set(prev.map((b: any) => b.id))
+    return [...prev, ...incoming.filter((b: any) => !seen.has(b.id))]
+  }
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 500)
@@ -952,8 +929,8 @@ export default function MeetingsPage() {
   }, [searchQuery])
 
   const [pagination, setPagination] = useState({
-    upcoming: { page: 1, hasMore: true },
-    history: { page: 1, hasMore: true }
+    upcoming: { page: 1, hasMore: true, total: 0 },
+    history: { page: 1, hasMore: true, total: 0 }
   })
 
   // ─── Team Data ─────────────────────────────────────────────────────────────
@@ -974,9 +951,10 @@ export default function MeetingsPage() {
   }, [])
 
   const loadMoreUpcoming = useCallback(async () => {
-    if (isFetchingMore.upcoming || !pagination.upcoming.hasMore) return
+    if (fetchingRef.current.upcoming || !pagination.upcoming.hasMore) return
 
     try {
+      fetchingRef.current.upcoming = true
       setIsFetchingMore(prev => ({ ...prev, upcoming: true }))
       const nextPage = pagination.upcoming.page + 1
       const response = await getBookings({ type: 'upcoming', page: nextPage, per_page: 15, search: debouncedSearch })
@@ -984,28 +962,28 @@ export default function MeetingsPage() {
       const data = Array.isArray(body) ? body : (Array.isArray(body?.data) ? body.data : [])
 
       if (data.length > 0) {
-        const groupedData = groupRawBookings(data)
-        const mapped = groupedData.map((b: any) => mapBooking(b, 'confirmed'))
-        setMeetings(prev => ({ ...prev, upcoming: [...prev.upcoming, ...mapped] }))
-        setPagination(prev => ({ ...prev, upcoming: { page: nextPage, hasMore: data.length >= 15 } }))
+        setRawBookings(prev => ({ ...prev, upcoming: mergeRawBookings(prev.upcoming, data) }))
+        setPagination(prev => ({ ...prev, upcoming: { page: nextPage, hasMore: data.length >= 15, total: body.total || prev.upcoming.total } }))
       } else {
         setPagination(prev => ({ ...prev, upcoming: { ...prev.upcoming, hasMore: false } }))
       }
     } catch (err) {
       console.error('Error loading more upcoming:', err)
     } finally {
+      fetchingRef.current.upcoming = false
       setIsFetchingMore(prev => ({ ...prev, upcoming: false }))
     }
-  }, [pagination.upcoming, isFetchingMore.upcoming, debouncedSearch])
+  }, [pagination.upcoming, debouncedSearch])
 
   const loadMoreHistory = useCallback(async () => {
-    if (isFetchingMore.history || !pagination.history.hasMore) {
-      console.log('[MeetingsPage] Skipping loadMoreHistory:', { isFetching: isFetchingMore.history, hasMore: pagination.history.hasMore })
+    if (fetchingRef.current.history || !pagination.history.hasMore) {
+      console.log('[MeetingsPage] Skipping loadMoreHistory:', { isFetching: fetchingRef.current.history, hasMore: pagination.history.hasMore })
       return
     }
 
     try {
       console.log(`[MeetingsPage] Loading more history... Page: ${pagination.history.page + 1}`)
+      fetchingRef.current.history = true
       setIsFetchingMore(prev => ({ ...prev, history: true }))
       const nextPage = pagination.history.page + 1
       const response = await getBookings({ type: 'history', page: nextPage, per_page: 15, search: debouncedSearch })
@@ -1015,19 +993,18 @@ export default function MeetingsPage() {
       console.log(`[MeetingsPage] Loaded ${data.length} more history items.`)
 
       if (data.length > 0) {
-        const groupedData = groupRawBookings(data)
-        const mapped = groupedData.map((b: any) => mapBooking(b, 'completed'))
-        setMeetings(prev => ({ ...prev, history: [...prev.history, ...mapped] }))
-        setPagination(prev => ({ ...prev, history: { page: nextPage, hasMore: data.length >= 15 } }))
+        setRawBookings(prev => ({ ...prev, history: mergeRawBookings(prev.history, data) }))
+        setPagination(prev => ({ ...prev, history: { page: nextPage, hasMore: data.length >= 15, total: body.total || prev.history.total } }))
       } else {
         setPagination(prev => ({ ...prev, history: { ...prev.history, hasMore: false } }))
       }
     } catch (err) {
       console.error('[MeetingsPage] Error loading more history:', err)
     } finally {
+      fetchingRef.current.history = false
       setIsFetchingMore(prev => ({ ...prev, history: false }))
     }
-  }, [pagination.history, isFetchingMore.history, debouncedSearch])
+  }, [pagination.history, debouncedSearch])
 
   const upcomingSentinel = useInfiniteScroll(loadMoreUpcoming, pagination.upcoming.hasMore, 'Upcoming')
   const historySentinel = useInfiniteScroll(loadMoreHistory, pagination.history.hasMore, 'History')
@@ -1050,19 +1027,13 @@ export default function MeetingsPage() {
         const upData = extractData(upRes)
         const histData = extractData(histRes)
 
-        const groupedUpData = groupRawBookings(upData)
-        const groupedHistData = groupRawBookings(histData)
-
         console.log('[MeetingsPage] Initial loaded history count:', histData.length)
 
-        setMeetings({
-          upcoming: groupedUpData.map((b: any) => mapBooking(b, 'confirmed')),
-          history: groupedHistData.map((b: any) => mapBooking(b, 'completed'))
-        })
+        setRawBookings({ upcoming: upData, history: histData })
 
         setPagination({
-          upcoming: { page: 1, hasMore: upData.length >= 15 },
-          history: { page: 1, hasMore: histData.length >= 15 }
+          upcoming: { page: 1, hasMore: upData.length >= 15, total: upRes.data.total || upData.length },
+          history: { page: 1, hasMore: histData.length >= 15, total: histRes.data.total || histData.length }
         })
       } catch (err) {
         console.error('[MeetingsPage] Error fetching initial meetings:', err)
@@ -1083,11 +1054,15 @@ export default function MeetingsPage() {
       };
       
       const response = await updateBooking(updated.id, updateData);
-      const freshlyMapped = mapBooking(response.data.booking, updated.status);
+      const freshBooking = response.data.booking;
+      const freshlyMapped = mapBooking(freshBooking, updated.status);
 
-      setMeetings(prev => ({
-        upcoming: prev.upcoming.map(m => m.id === freshlyMapped.id ? freshlyMapped : m),
-        history: prev.history.map(m => m.id === freshlyMapped.id ? freshlyMapped : m),
+      // Merge onto the existing raw row so relations the update response may
+      // omit (eventType, lead) aren't lost; derived meetings recompute from this.
+      const patchRaw = (rows: any[]) => rows.map(b => b.id === freshBooking.id ? { ...b, ...freshBooking } : b)
+      setRawBookings(prev => ({
+        upcoming: patchRaw(prev.upcoming),
+        history: patchRaw(prev.history),
       }))
       setSelectedMeeting(freshlyMapped)
       toast.success('Meeting updated successfully')
@@ -1100,9 +1075,9 @@ export default function MeetingsPage() {
   const handleMeetingDelete = async (id: number) => {
     try {
       await deleteBooking(id)
-      setMeetings(prev => ({
-        upcoming: prev.upcoming.filter(m => m.id !== id),
-        history: prev.history.filter(m => m.id !== id),
+      setRawBookings(prev => ({
+        upcoming: prev.upcoming.filter((b: any) => b.id !== id),
+        history: prev.history.filter((b: any) => b.id !== id),
       }))
       toast.success('Meeting canceled successfully')
     } catch (err) {
@@ -1115,11 +1090,13 @@ export default function MeetingsPage() {
       const meeting = [...meetings.upcoming, ...meetings.history].find(m => m.id === id)
       const duration = meeting?.duration_minutes || 30
       const response = await rescheduleBooking(id, { date, time, duration })
-      const updated = mapBooking(response.data.booking, 'confirmed')
-      
-      setMeetings(prev => ({
-        upcoming: prev.upcoming.map(m => m.id === id ? updated : m),
-        history: prev.history.map(m => m.id === id ? updated : m),
+      const freshBooking = response.data.booking
+      const updated = mapBooking(freshBooking, 'confirmed')
+
+      const patchRaw = (rows: any[]) => rows.map(b => b.id === id ? { ...b, ...freshBooking } : b)
+      setRawBookings(prev => ({
+        upcoming: patchRaw(prev.upcoming),
+        history: patchRaw(prev.history),
       }))
       setSelectedMeeting(updated)
       toast.success('Meeting rescheduled successfully')
@@ -1139,86 +1116,89 @@ export default function MeetingsPage() {
 
   const initials = (name?: string | null) => (name || '').split(' ').filter(Boolean).map(n => n[0].toUpperCase()).join('')
 
+  const filteredUpcoming = meetings.upcoming.filter(m => statusFilter === 'all' || m.status === statusFilter)
+  const filteredHistory = meetings.history.filter(m => statusFilter === 'all' || m.status === statusFilter)
+
   // Stats
-  const totalUpcoming = meetings.upcoming.length
-  const totalHistory = meetings.history.length
+  const totalUpcoming = pagination.upcoming.total || meetings.upcoming.length
+  const totalHistory = pagination.history.total || meetings.history.length
+  
+  // Try to use true API totals for these, but fallback to arrays if unavailable.
+  // Note: If you want exact server-side "confirmed" counts, you'd need backend support,
+  // but this is close enough as a fallback for the KPI row.
   const totalConfirmed = meetings.upcoming.filter(m => m.status === 'confirmed').length
   const totalCompleted = meetings.history.filter(m => m.status === 'completed').length
 
   return (
     <RoleGuard allowedFeatures={['meetings']}>
-      <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:h-full bg-[var(--crm-bg)] overflow-hidden z-10">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-3 sm:py-5 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)] shrink-0 gap-3 sm:gap-0">
-          <div className="hidden sm:block">
-            <h1 className="text-xl font-semibold text-[var(--crm-text-primary)]">Meetings</h1>
-            <p className="text-sm text-[var(--crm-text-secondary)] mt-1">Manage your scheduled meetings</p>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+      <div className="flex flex-col flex-1 h-full overflow-hidden">
+          <div className="shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 sm:pb-4 gap-3 sm:gap-0">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto ml-auto">
             <div className="relative flex-1 sm:w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-[var(--crm-text-tertiary)]" />
               <Input
                 placeholder="Search by name, phone..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 bg-[var(--crm-surface-2)] border-[var(--crm-border)]"
+                className="w-full pl-9 h-8 text-[12px] bg-[var(--crm-surface-2)] border-[var(--crm-border)] focus-visible:ring-[var(--lb-navy)]"
               />
             </div>
             <Link href="/meetings/event-types" className="flex-1 sm:flex-none">
-              <Button variant="outline" size="sm" className="w-full sm:w-auto bg-[var(--crm-surface-2)] border-[var(--crm-border)] text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-3)]">
+              <Button size="sm" className="w-full sm:w-auto h-8 px-3 text-[12px] bg-[var(--lb-navy)] hover:opacity-90 text-white shadow-sm transition-opacity">
                 <Settings2 className="h-4 w-4 mr-2" />
                 Event Types
               </Button>
             </Link>
-            <Button size="sm" className="flex-1 sm:flex-none bg-[var(--crm-primary)] hover:opacity-90 text-white">
-              <FileText className="h-4 w-4 mr-2" />
-              Questions
-            </Button>
           </div>
-        </div>
+            </div>
 
-        {/* ── KPI Text Row ── */}
-        <div className="flex overflow-x-auto gap-5 shrink-0 px-4 sm:px-6 py-2.5 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)] no-scrollbar items-center whitespace-nowrap">
+            {/* ── KPI Row ── */}
+            <div className="flex overflow-x-auto gap-3 shrink-0 py-3 border-y border-[var(--crm-border)] no-scrollbar items-center mb-2">
           {[
-            { label: 'Upcoming', value: totalUpcoming },
-            { label: 'Confirmed', value: totalConfirmed },
-            { label: 'Completed', value: totalCompleted },
-            { label: 'Total', value: totalUpcoming + totalHistory },
-          ].map(({ label, value }) => (
-            <div key={label} className="flex items-center gap-1.5 text-xs">
-              <span className="text-[var(--crm-text-secondary)] font-medium">{label}</span>
-              <span className="font-bold text-[var(--crm-text-primary)]">
-                {isLoading ? <Skeleton className="h-3 w-4 inline-block" /> : value}
+            { label: 'Upcoming', value: totalUpcoming, color: 'text-primary dark:text-indigo-400', bg: 'bg-primary/10 dark:bg-primary/10 border-indigo-100 dark:border-primary/20' },
+            { label: 'Confirmed', value: totalConfirmed, color: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20' },
+            { label: 'Completed', value: totalCompleted, color: 'text-sky-700 dark:text-sky-400', bg: 'bg-sky-50 dark:bg-sky-500/10 border-sky-100 dark:border-sky-500/20' },
+            { label: 'Total', value: totalUpcoming + totalHistory, color: 'text-violet-700 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-500/10 border-violet-100 dark:border-violet-500/20' },
+          ].map(({ label, value, color, bg }) => (
+            <div key={label} className={cn("flex items-center gap-2 px-3.5 py-1.5 rounded-lg border shadow-sm transition-all hover:scale-[1.02]", bg)}>
+              <span className={cn("font-medium text-xs opacity-80", color)}>{label}</span>
+              <span className={cn("font-bold text-sm", color)}>
+                {isLoading ? <Skeleton className="h-4 w-6 inline-block bg-current/20" /> : value}
               </span>
             </div>
           ))}
-        </div>
+            </div>
+          </div>
 
-      <div className="flex-1 flex flex-col min-h-0 bg-[var(--crm-bg)]">
-        <Tabs defaultValue="upcoming" className="flex-1 flex flex-col min-h-0">
-          <div className="flex items-center justify-between px-6 border-b border-[var(--crm-border)] shrink-0 bg-[var(--crm-surface-1)]">
-            <TabsList className="h-12 bg-transparent p-0">
-              <TabsTrigger value="upcoming" className="h-full">
-                Upcoming
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
+          <Tabs defaultValue="upcoming" className="flex-1 flex flex-col min-h-0">
+            <div className="flex items-center justify-between border-b border-[var(--crm-border)] shrink-0 bg-transparent">
+            <TabsList className="h-12 bg-transparent p-0 gap-4">
+              <TabsTrigger value="upcoming" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--lb-navy)] data-[state=active]:text-[var(--lb-navy)] data-[state=active]:shadow-none data-[state=active]:bg-transparent px-2 font-semibold">
+                Upcoming Meetings
                 {totalUpcoming > 0 && (
-                  <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-[10px] bg-[var(--crm-surface-3)] text-[var(--crm-text-primary)] border border-[var(--crm-border)]">
+                  <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-[10px] bg-[var(--crm-accent)] text-white border-transparent">
                     {totalUpcoming}
                   </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="history" className="h-full">
-                History
+              <TabsTrigger value="history" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--lb-navy)] data-[state=active]:text-[var(--lb-navy)] data-[state=active]:shadow-none data-[state=active]:bg-transparent px-2 font-semibold">
+                Past Meetings
               </TabsTrigger>
             </TabsList>
             <div className="py-2">
-              <Select defaultValue="all">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="h-8 w-[140px] border-[var(--crm-border)] bg-[var(--crm-surface-2)]">
-                  <SelectValue placeholder="Filter type" />
+                  <SelectValue placeholder="Filter status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="video">Video Call</SelectItem>
-                  <SelectItem value="phone">Phone Call</SelectItem>
-                  <SelectItem value="in-person">In Person</SelectItem>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="rescheduled">Rescheduled</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1231,7 +1211,7 @@ export default function MeetingsPage() {
                 <div className="space-y-4">
                   <MeetingsSkeleton />
                 </div>
-              ) : meetings.upcoming.length === 0 ? (
+              ) : filteredUpcoming.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 text-center">
                   <div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-6 shadow-inner">
                     <CalendarCheck className="h-8 w-8 text-slate-400" />
@@ -1241,10 +1221,10 @@ export default function MeetingsPage() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {Object.entries(groupMeetingsByDate(meetings.upcoming)).map(([date, dayMeetings]) => (
+                  {Object.entries(groupMeetingsByDate(filteredUpcoming)).map(([date, dayMeetings]) => (
                     <div key={date}>
                       <div className="flex items-center gap-3 mb-4">
-                        <p className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-1 rounded-full whitespace-nowrap">
+                        <p className="text-[10px] font-bold text-primary dark:text-indigo-400 uppercase tracking-widest bg-primary/10 dark:bg-indigo-900/30 px-2.5 py-1 rounded-full whitespace-nowrap">
                           {formatInTimeZone(new Date(date), 'UTC', 'EEE, MMM d, yyyy')}
                         </p>
                         <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
@@ -1262,7 +1242,7 @@ export default function MeetingsPage() {
                   <div ref={upcomingSentinel} className="py-8 flex flex-col items-center justify-center gap-3">
                     {pagination.upcoming.hasMore && (
                       <>
-                        <Loader2 className="h-6 w-6 text-indigo-500 animate-spin" />
+                        <Loader2 className="h-6 w-6 text-primary animate-spin" />
                         <p className="text-xs text-slate-500 font-medium">Loading more meetings...</p>
                       </>
                     )}
@@ -1281,7 +1261,7 @@ export default function MeetingsPage() {
               <div className="p-5 space-y-4">
                 <MeetingsSkeleton />
               </div>
-            ) : meetings.history.length === 0 ? (
+            ) : filteredHistory.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-24 text-center">
                 <div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-6 shadow-inner">
                   <AlignLeft className="h-8 w-8 text-slate-400" />
@@ -1290,7 +1270,7 @@ export default function MeetingsPage() {
                 <p className="text-sm text-slate-500 mt-2 max-w-xs mx-auto">Past meetings will appear here</p>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col min-h-0 bg-[var(--crm-bg)]">
+              <div className="flex-1 flex flex-col min-h-0 bg-transparent">
                 <div className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
                   <Table className="relative border-separate border-spacing-0 min-w-max">
                     <TableHeader className="sticky top-0 z-20">
@@ -1304,7 +1284,7 @@ export default function MeetingsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {meetings.history.map(m => {
+                      {filteredHistory.map(m => {
                         const typeInfo = meetingTypeConfig[m.type] ?? meetingTypeConfig.video
                         const TypeIcon = typeInfo.icon
                         const statusInfo = statusConfig[m.status] ?? statusConfig.completed
@@ -1326,7 +1306,7 @@ export default function MeetingsPage() {
                                       <div className="flex items-center gap-1 inline-flex shrink-0">
                                         <a
                                           href={`tel:${m.lead.phone}`}
-                                          className="flex items-center justify-center p-1 rounded-full text-[var(--crm-text-tertiary)] hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
+                                          className="flex items-center justify-center p-1 rounded-full text-[var(--crm-text-tertiary)] hover:text-primary hover:bg-primary/10 dark:hover:bg-indigo-900/30 transition-colors"
                                           title={`Call ${m.lead.name}`}
                                         >
                                           <Phone className="h-3 w-3" />
@@ -1367,9 +1347,9 @@ export default function MeetingsPage() {
                               {m.outcome || <span className="text-[var(--crm-text-tertiary)] italic">— No outcome recorded —</span>}
                             </TableCell>
                             <TableCell className="whitespace-nowrap">
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/40 rounded-full transition-all"
+                              <Button variant="ghost" size="sm" className="h-8 text-xs font-medium text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)] transition-all"
                                 onClick={() => openMeeting(m)}>
-                                <FileText className="h-3.5 w-3.5" />
+                                View Details
                               </Button>
                             </TableCell>
                           </TableRow>
@@ -1382,7 +1362,7 @@ export default function MeetingsPage() {
                   <div ref={historySentinel} className="py-8 flex flex-col items-center justify-center gap-3 bg-slate-50/30 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800">
                     {pagination.history.hasMore && (
                       <>
-                        <Loader2 className="h-6 w-6 text-indigo-500 animate-spin" />
+                        <Loader2 className="h-6 w-6 text-primary animate-spin" />
                         <p className="text-xs text-slate-500 font-medium">Loading history...</p>
                       </>
                     )}

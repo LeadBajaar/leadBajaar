@@ -107,7 +107,7 @@ export default function PlansPage() {
 
       <div className="pt-6">
         <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-          <History className="h-5 w-5 text-indigo-500" />
+          <History className="h-5 w-5 text-primary" />
           Pricing Change Log
         </h3>
         <Card>
@@ -164,7 +164,7 @@ export default function PlansPage() {
           </div>
           <DialogFooter>
             <Button variant="ghost" size="sm" onClick={() => setShowEdit(false)}>Cancel</Button>
-            <Button size="sm" onClick={handleUpdate} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
+            <Button size="sm" onClick={handleUpdate} className="bg-primary hover:bg-primary/90 text-white gap-2">
               <Save className="h-3.5 w-3.5" /> Save New Price
             </Button>
           </DialogFooter>

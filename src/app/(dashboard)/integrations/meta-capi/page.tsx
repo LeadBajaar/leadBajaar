@@ -38,6 +38,7 @@ import {
   Cell
 } from 'recharts';
 import { PixelTestConsole } from '@/components/meta-capi/PixelTestConsole';
+import { ManualPixelDialog } from '@/components/meta-capi/ManualPixelDialog';
 import { useRouter } from 'next/navigation';
 
 interface CAPIMetrics {
@@ -66,6 +67,7 @@ export default function MetaCapiHubPage() {
   const [loading, setLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [adAccounts, setAdAccounts] = useState<any[]>([]);
+  const [showManualPixelDialog, setShowManualPixelDialog] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -117,20 +119,13 @@ export default function MetaCapiHubPage() {
   const COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
   return (
-    <div className="flex-1 space-y-6 p-8 pt-6 bg-background min-h-screen text-foreground">
+    <div className="flex flex-col flex-1 gap-4 sm:gap-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => router.push('/integrations')}
-            className="hover:bg-accent text-muted-foreground"
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </Button>
+          
           <div>
             <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent flex items-center gap-3">
-              <Zap className="h-8 w-8 text-indigo-500 fill-indigo-500/20" />
+              <Zap className="h-8 w-8 text-primary fill-indigo-500/20" />
               Meta Conversions API Hub
             </h2>
             <p className="text-muted-foreground mt-1">
@@ -153,7 +148,7 @@ export default function MetaCapiHubPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-card border-border shadow-md overflow-hidden relative">
           <div className="absolute top-0 right-0 p-3 opacity-10">
-            <Activity className="h-12 w-12 text-indigo-500" />
+            <Activity className="h-12 w-12 text-primary" />
           </div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Events (30d)</CardTitle>
@@ -210,7 +205,7 @@ export default function MetaCapiHubPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 bg-card border-border shadow-md">
+        <Card className="col-span-4 bg-card border-border shadow-md min-w-0">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <LineChartIcon className="h-5 w-5 text-indigo-400" />
@@ -258,7 +253,7 @@ export default function MetaCapiHubPage() {
           </CardContent>
         </Card>
 
-        <Card className="col-span-3 bg-card border-border shadow-md">
+        <Card className="col-span-3 bg-card border-border shadow-md min-w-0">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-purple-400" />
@@ -328,14 +323,20 @@ export default function MetaCapiHubPage() {
 
         <TabsContent value="pixels" className="mt-6">
           <Card className="bg-card border-border shadow-md">
-            <CardHeader>
-              <CardTitle>Active Meta Pixels</CardTitle>
-              <CardDescription>
-                Toggle pixels to enable or disable server-side tracking for specific lead sources.
-              </CardDescription>
+            <CardHeader className="flex flex-row items-start sm:items-center justify-between">
+              <div>
+                <CardTitle>Active Meta Pixels</CardTitle>
+                <CardDescription className="mt-1">
+                  Toggle pixels to enable or disable server-side tracking for specific lead sources.
+                </CardDescription>
+              </div>
+              <Button onClick={() => setShowManualPixelDialog(true)} className="bg-primary hover:bg-primary/90 text-white shrink-0">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Pixel
+              </Button>
             </CardHeader>
             <CardContent>
-              <div className="rounded-xl border border-border overflow-hidden">
+              <div className="rounded-xl border border-border overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-accent text-muted-foreground font-bold uppercase tracking-wider text-[10px]">
                     <tr>
@@ -350,7 +351,7 @@ export default function MetaCapiHubPage() {
                     {pixels.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground italic">
-                          No pixels found. Sync from Meta to get started.
+                          No pixels found. Click "Add Pixel" to configure one manually.
                         </td>
                       </tr>
                     ) : (
@@ -368,7 +369,7 @@ export default function MetaCapiHubPage() {
                             <Button 
                               variant="ghost" 
                               size="sm"
-                              className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-500/10 dark:text-indigo-400 dark:hover:text-indigo-300"
+                              className="text-primary hover:text-primary hover:bg-primary/10 dark:text-indigo-400 dark:hover:text-indigo-300"
                               onClick={async () => {
                                 try {
                                   await integrationApi.updateMetaPixel(pixel.id, { is_active: !pixel.is_active });
@@ -392,6 +393,12 @@ export default function MetaCapiHubPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <ManualPixelDialog 
+        open={showManualPixelDialog} 
+        onClose={() => setShowManualPixelDialog(false)} 
+        onSuccess={fetchData} 
+      />
     </div>
   );
 }

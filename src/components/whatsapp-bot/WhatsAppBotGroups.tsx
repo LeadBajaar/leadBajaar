@@ -305,7 +305,7 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
         </div>
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl shadow-lg shadow-indigo-500/20">
+            <Button className="bg-primary hover:bg-primary/90 text-white font-black rounded-xl shadow-lg shadow-primary/20">
               <Plus className="mr-2 h-4 w-4" /> New Group
             </Button>
           </DialogTrigger>
@@ -325,7 +325,7 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
               <Button 
                 onClick={handleCreateGroup} 
                 disabled={isCreatingGroup || !groupName}
-                className="w-full bg-indigo-600 h-12 font-black rounded-xl shadow-lg shadow-indigo-500/20"
+                className="w-full bg-primary h-12 font-black rounded-xl shadow-lg shadow-primary/20"
               >
                 {isCreatingGroup ? (
                   <>
@@ -343,7 +343,7 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
+          <Loader2 className="h-8 w-8 text-primary animate-spin" />
         </div>
       ) : groups.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-slate-50/50 dark:bg-slate-900/20 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800">
@@ -357,7 +357,7 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
             <Card key={group.id} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all rounded-2xl group overflow-hidden">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
-                  <div className="p-2.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                  <div className="p-2.5 bg-primary/10 dark:bg-indigo-900/30 text-primary dark:text-indigo-400 rounded-xl">
                     <Users className="h-5 w-5" />
                   </div>
                   <Badge variant="outline" className="bg-slate-50 dark:bg-slate-950 text-[10px] font-black uppercase tracking-widest">{group.contact_count} Contacts</Badge>
@@ -410,8 +410,8 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
           <div className="p-6 pb-2 border-b border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 backdrop-blur-xl sticky top-0 z-10">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl">
-                  <Users className="h-5 w-5 text-indigo-500" />
+                <div className="p-2 bg-primary/10 dark:bg-primary/10 rounded-xl">
+                  <Users className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">Group Management</span>
@@ -497,9 +497,9 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
                 ) : (
                   <div className="grid grid-cols-1 gap-2">
                     {paginatedContacts.map(contact => (
-                      <div key={contact.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800/50 shadow-sm hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors group/item">
+                      <div key={contact.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800/50 shadow-sm hover:border-primary/20 dark:hover:border-indigo-800 transition-colors group/item">
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center font-black text-[10px] text-indigo-600">
+                          <div className="h-8 w-8 rounded-lg bg-primary/10 dark:bg-primary/10 flex items-center justify-center font-black text-[10px] text-primary">
                             {contact.phone.substring(0, 2)}
                           </div>
                           <div className="flex flex-col">
@@ -547,7 +547,7 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
         <DialogContent className="bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl">
           <DialogHeader className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 shrink-0">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 dark:bg-indigo-900/30 text-primary dark:text-indigo-400 shrink-0">
                 <Upload className="h-6 w-6" />
               </div>
               <div>
@@ -661,7 +661,7 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
                       <div className="space-y-2">
                         {csvData.slice(0, 3).map((row, i) => (
                           <div key={i} className="flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-[11px] font-bold text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-800/50">
-                            <div className="w-5 h-5 bg-indigo-500/10 text-indigo-500 flex items-center justify-center rounded-lg text-[9px] shrink-0">{i+1}</div>
+                            <div className="w-5 h-5 bg-primary/10 text-primary flex items-center justify-center rounded-lg text-[9px] shrink-0">{i+1}</div>
                             {columnMapping.map(m => m.contactField !== 'skip' ? (
                               <div key={m.csvHeader} className="flex flex-col min-w-0">
                                 <span className="text-[8px] text-slate-400 uppercase leading-none mb-0.5">{m.contactField}</span>
@@ -681,7 +681,7 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
                     <div className="relative mb-8">
                       <div className="h-24 w-24 rounded-full border-4 border-indigo-100 dark:border-slate-800 border-t-indigo-600 animate-spin" />
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <Loader2 className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
+                        <Loader2 className="h-10 w-10 text-primary dark:text-indigo-400" />
                       </div>
                     </div>
                     <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Importing Contacts</h3>
@@ -744,7 +744,7 @@ export function WhatsAppBotGroups({ userId }: WhatsAppBotGroupsProps) {
               <Button
                 onClick={handleImportContacts}
                 disabled={isImporting || (importMode === 'csv' && csvHeaders.length === 0)}
-                className="min-w-[140px] bg-indigo-600 hover:bg-indigo-700 h-10 rounded-xl shadow-lg shadow-indigo-200 dark:shadow-none font-bold text-sm transition-all active:scale-95"
+                className="min-w-[140px] bg-primary hover:bg-primary/90 h-10 rounded-xl shadow-lg shadow-primary/20 dark:shadow-none font-bold text-sm transition-all active:scale-95"
               >
                 {isImporting ? (
                   <>

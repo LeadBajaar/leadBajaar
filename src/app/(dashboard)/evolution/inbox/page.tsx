@@ -271,15 +271,15 @@ export default function LiveChatPage() {
 
   return (
     <RoleGuard allowedFeatures={['live_chat']}>
-      <div className="h-full overflow-hidden flex flex-col">
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-[var(--crm-surface-1)]">
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-[var(--crm-surface-1)] rounded-[var(--r-sm)] border border-[var(--crm-border)] shadow-sm">
 
         {/* ── Sidebar: Conversations ─────────────────────────────────────── */}
         <div className={cn(
-            "w-full lg:w-[320px] flex flex-col shrink-0 overflow-hidden transition-all duration-300 border-r border-[var(--crm-border)] bg-[var(--crm-bg)]",
+            "w-full lg:w-[320px] flex flex-col shrink-0 overflow-hidden transition-all duration-300 border-r border-[var(--crm-border)] bg-[var(--crm-surface-1)]",
           activeChat ? "hidden lg:flex" : "flex"
         )}>
-          <div className="p-4 border-b border-[var(--crm-border)] shrink-0 flex flex-col gap-4 bg-[var(--crm-bg)] z-10">
+          <div className="p-4 border-b border-[var(--crm-border)] shrink-0 flex flex-col gap-4 bg-[var(--crm-surface-1)] z-10">
             <div className="flex items-center justify-between">
               <h1 className="text-xl font-bold text-[var(--crm-text-primary)] flex items-center gap-2">
                 Conversations
@@ -295,28 +295,28 @@ export default function LiveChatPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-tertiary)] group-focus-within:text-[var(--crm-text-primary)] transition-colors" />
               <Input
                 placeholder="Find customer..."
-                className="pl-9 h-9 bg-[var(--crm-surface-2)] border-[var(--crm-border)] hover:border-[var(--crm-border-hover)] focus:bg-[var(--crm-surface-1)] focus:border-[var(--crm-blue)] transition-all rounded-[var(--r-md)]"
+                className="pl-9 h-9 bg-[var(--crm-surface-2)] border-[var(--crm-border)] hover:border-[var(--crm-border-hover)] focus:bg-[var(--crm-surface-1)] focus:border-[var(--crm-accent)] transition-all rounded-[var(--r-md)]"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
 
-          <ScrollArea className="flex-1 [&>div>div]:!block bg-[var(--crm-bg)]">
+          <ScrollArea className="flex-1 [&>div>div]:!block bg-[var(--crm-surface-1)]">
               <div className="flex flex-col overflow-hidden">
                 {isLoadingChats ? (
                   Array.from({ length: 6 }).map((_, i) => (
                     <div key={i} className="flex items-center gap-3 p-3 animate-pulse">
-                      <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800" />
+                      <div className="h-10 w-10 rounded-full bg-[var(--crm-surface-3)]" />
                       <div className="flex-1 space-y-2">
-                        <div className="h-3 w-2/5 bg-slate-100 dark:bg-slate-800 rounded" />
-                        <div className="h-2 w-3/4 bg-slate-50 dark:bg-slate-800/50 rounded" />
+                        <div className="h-3 w-2/5 bg-[var(--crm-surface-3)] rounded" />
+                        <div className="h-2 w-3/4 bg-[var(--crm-surface-3)] rounded" />
                       </div>
                     </div>
                   ))
                 ) : filteredChats.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center px-4">
-                    <div className="h-12 w-12 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center mb-4">
+                    <div className="h-12 w-12 rounded-2xl bg-[var(--crm-surface-2)] flex items-center justify-center mb-4">
                       <MessageSquare className="h-6 w-6 text-slate-300" />
                     </div>
                     <p className="text-sm font-medium text-slate-500">No active chats found</p>
@@ -352,7 +352,7 @@ export default function LiveChatPage() {
                         <div className="flex items-center gap-2 overflow-hidden">
                           <p className={cn(
                             "text-sm font-bold truncate flex-1 min-w-0",
-                            activeChat?.id === chat.id ? "text-indigo-700 dark:text-indigo-400" : "text-slate-900 dark:text-white"
+                            activeChat?.id === chat.id ? "text-[var(--crm-accent)]" : "text-[var(--crm-text-primary)]"
                           )}>
                             {chat.user.name}
                           </p>
@@ -391,13 +391,13 @@ export default function LiveChatPage() {
                       </div>
 
                       {(chat.user.unread_count ?? 0) > 0 && (
-                        <div className="h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white shadow-lg shadow-indigo-500/40 shrink-0">
+                        <div className="h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full bg-[var(--crm-accent)] text-[10px] font-bold text-white shadow-sm shrink-0">
                           {chat.user.unread_count ?? 0}
                         </div>
                       )}
 
                       {activeChat?.id === chat.id && (
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 bg-indigo-500 rounded-r-full" />
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 bg-[var(--crm-accent)] rounded-r-full" />
                       )}
                     </button>
                   ))
@@ -408,7 +408,7 @@ export default function LiveChatPage() {
 
         {/* ── Main Chat Area ───────────────────────────────────────────── */}
         <div className={cn(
-          "flex-1 flex flex-col min-w-0 bg-[var(--crm-bg)] overflow-hidden transition-all duration-300",
+          "flex-1 flex flex-col min-w-0 bg-[var(--crm-surface-1)] overflow-hidden transition-all duration-300",
           !activeChat ? "hidden lg:flex" : "flex"
         )}>
           {activeChat ? (
@@ -417,16 +417,16 @@ export default function LiveChatPage() {
               <div className="shrink-0 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
                 <div className="px-4 py-3 sm:px-4 sm:py-3 flex items-center justify-between">
                   <div className="flex items-center gap-3 sm:gap-3">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setActiveChat(null)}
-                      className="h-9 w-9 -ml-1 lg:hidden rounded-xl bg-slate-100 dark:bg-slate-800"
-                    >
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setActiveChat(null)}
+                        className="h-9 w-9 -ml-1 lg:hidden rounded-xl bg-[var(--crm-surface-2)]"
+                      >
                       <ChevronLeft className="h-5 w-5" />
                     </Button>
                     <div className="relative">
-                      <Avatar className="h-10 w-10 shadow-sm ring-2 ring-indigo-500/10">
+                      <Avatar className="h-10 w-10 shadow-sm ring-1 ring-[var(--crm-border)]">
                         <AvatarImage src={activeChat.user.avatar} />
                         <AvatarFallback className="font-bold text-xs">{activeChat.user.name.substring(0, 2)}</AvatarFallback>
                       </Avatar>
@@ -461,7 +461,7 @@ export default function LiveChatPage() {
                       onClick={() => setShowUserDetails(!showUserDetails)}
                       className={cn(
                         "h-9 w-9 rounded-[var(--r-md)] transition-all",
-                        showUserDetails ? "bg-[var(--crm-blue-soft)] border-[var(--crm-blue-border)] text-[var(--crm-blue)]" : "border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)]"
+                        showUserDetails ? "bg-[var(--crm-accent-soft)] border-[var(--crm-accent-border)] text-[var(--crm-accent)]" : "border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)]"
                       )}
                     >
                       <Info className="h-4 w-4 text-[var(--crm-text-secondary)]" />
@@ -481,7 +481,7 @@ export default function LiveChatPage() {
                       </div>
                     ) : messages.length === 0 ? (
                       <div className="flex flex-col items-center justify-center h-full text-center space-y-4 max-w-xs mx-auto">
-                        <div className="p-4 rounded-3xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 animate-bounce">
+                        <div className="p-4 rounded-3xl bg-[var(--crm-accent-soft)] text-[var(--crm-accent)] animate-bounce">
                           <Sparkles className="h-8 w-8" />
                         </div>
                         <h3 className="font-bold text-slate-900 dark:text-white">Start the conversation</h3>
@@ -508,7 +508,7 @@ export default function LiveChatPage() {
                                     <div className={cn(
                                       "px-4 py-2.5 rounded-[var(--r-lg)] relative group/msg",
                                       isAgent
-                                        ? "bg-[var(--crm-blue-soft)] text-[var(--crm-text-primary)] border border-[var(--crm-blue-border)] rounded-tr-none shadow-sm"
+                                          ? "bg-[var(--crm-accent-soft)] text-[var(--crm-text-primary)] border border-[var(--crm-accent-border)] rounded-tr-none shadow-sm"
                                         : "bg-[var(--crm-surface-1)] text-[var(--crm-text-primary)] rounded-tl-none border border-[var(--crm-border)] shadow-sm"
                                     )}>
                                       <div className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere [word-break:break-word] min-w-[50px]">
@@ -596,12 +596,12 @@ export default function LiveChatPage() {
                                           return (
                                             <div className={cn(
                                               "mt-3 flex flex-wrap gap-2 pt-3",
-                                              isAgent ? "border-t border-[var(--crm-blue-border)]" : "border-t border-[var(--crm-border)]"
+                                              isAgent ? "border-t border-[var(--crm-accent-border)]" : "border-t border-[var(--crm-border)]"
                                             )}>
                                               {buttons.map((label, i) => (
                                                 <button
                                                   key={i}
-                                                  className="px-3 py-1.5 rounded-[var(--r-lg)] bg-[var(--crm-blue)] text-white hover:opacity-90 active:scale-95 transition-all text-[11px] font-bold uppercase tracking-wider shadow-sm"
+                                                  className="px-3 py-1.5 rounded-[var(--r-lg)] bg-[var(--crm-accent)] text-white hover:opacity-90 active:scale-95 transition-all text-[11px] font-bold uppercase tracking-wider shadow-sm"
                                                 >
                                                   {typeof label === 'string' ? label : 'Action'}
                                                 </button>
@@ -619,13 +619,13 @@ export default function LiveChatPage() {
                                           return (
                                             <div className={cn(
                                               "mt-3 pt-3",
-                                              isAgent ? "border-t border-[var(--crm-blue-border)]" : "border-t border-[var(--crm-border)]"
+                                              isAgent ? "border-t border-[var(--crm-accent-border)]" : "border-t border-[var(--crm-border)]"
                                             )}>
                                               <a
                                                 href={typeof url === 'string' ? url : '#'}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-[var(--r-lg)] bg-[var(--crm-blue)] text-white hover:opacity-90 active:scale-95 transition-all font-bold text-xs shadow-sm"
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-[var(--r-lg)] bg-[var(--crm-accent)] text-white hover:opacity-90 active:scale-95 transition-all font-bold text-xs shadow-sm"
                                               >
                                                 <ExternalLink className="h-3.5 w-3.5" />
                                                 {typeof text === 'string' ? text : 'Visit Link'}
@@ -641,7 +641,7 @@ export default function LiveChatPage() {
 
                                       <div className={cn(
                                         "mt-1.5 flex items-center justify-end gap-1.5",
-                                        isAgent ? "text-[var(--crm-blue)]" : "text-[var(--crm-text-tertiary)]"
+                                        isAgent ? "text-[var(--crm-accent)]" : "text-[var(--crm-text-tertiary)]"
                                       )}>
                                         <span className="text-[10px] font-bold uppercase tracking-tight">{msg.time}</span>
                                         {isAgent && (
@@ -653,7 +653,7 @@ export default function LiveChatPage() {
                                               <AlertCircle className="h-3.5 w-3.5 text-red-200" />
                                             )}
                                             {(msg.status === 'sent' || msg.status === 'delivered' || msg.status === 'read' || !msg.status) && (
-                                              <CheckCheck className={cn("h-4 w-4", msg.status === 'read' ? "text-blue-600" : "text-[var(--crm-blue)]/60")} />
+                                              <CheckCheck className={cn("h-4 w-4", msg.status === 'read' ? "text-[var(--crm-accent)]" : "text-[var(--crm-text-tertiary)]")} />
                                             )}
                                           </div>
                                         )}
@@ -674,10 +674,10 @@ export default function LiveChatPage() {
                   <div className="p-3 bg-[var(--crm-surface-1)] border-t border-[var(--crm-border)]">
                     <div className="relative flex items-end gap-2 p-2 bg-[var(--crm-surface-2)] rounded-[var(--r-md)] border border-transparent focus-within:border-[var(--crm-border-hover)] transition-all">
                       <div className="flex shrink-0 pb-1.5 pl-1.5 gap-1">
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-slate-400 hover:text-indigo-500 hover:bg-white dark:hover:bg-slate-900 transition-all">
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)] hover:bg-[var(--crm-surface-3)] transition-all">
                           <Paperclip className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-slate-400 hover:text-indigo-500 hover:bg-white dark:hover:bg-slate-900 transition-all">
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)] hover:bg-[var(--crm-surface-3)] transition-all">
                           <Smile className="h-4 w-4" />
                         </Button>
                       </div>
@@ -702,7 +702,7 @@ export default function LiveChatPage() {
                         <Button
                           onClick={handleSend}
                           disabled={!message.trim() || isSending}
-                          className="h-9 w-9 p-0 bg-[var(--crm-blue)] hover:opacity-90 text-white rounded-[var(--r-md)] transition-all active:scale-95 disabled:opacity-50"
+                          className="h-9 w-9 p-0 bg-[var(--crm-accent)] hover:opacity-90 text-white rounded-[var(--r-md)] transition-all active:scale-95 disabled:opacity-50"
                         >
                           {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                         </Button>
@@ -743,7 +743,7 @@ export default function LiveChatPage() {
                         <Label className="text-[10px] uppercase tracking-widest text-[var(--crm-text-tertiary)]">Status</Label>
                         <div className="flex flex-wrap gap-1.5">
                           <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 flex items-center gap-1 text-[9px] px-1.5 py-0"><ShieldCheck className="h-2.5 w-2.5" /> VERIFIED</Badge>
-                          <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 text-[9px] px-1.5 py-0">PREMIUM</Badge>
+                          <Badge className="bg-primary/10 text-primary border-indigo-100 text-[9px] px-1.5 py-0">PREMIUM</Badge>
                         </div>
                       </div>
                     </div>
@@ -775,7 +775,7 @@ export default function LiveChatPage() {
                         Clear Chatbot Session
                       </Button>
                       <Button variant="outline" className="w-full h-8 rounded-[var(--r-md)] text-xs font-semibold border-[var(--crm-border)] hover:bg-[var(--crm-surface-1)]">Block Customer</Button>
-                      <Button className="w-full h-8 rounded-[var(--r-md)] text-xs font-semibold bg-[var(--crm-blue)] hover:opacity-90 text-white">Mark as Resolved</Button>
+                      <Button className="w-full h-8 rounded-[var(--r-md)] text-xs font-semibold bg-[var(--crm-accent)] hover:opacity-90 text-white">Mark as Resolved</Button>
                     </div>
                   </div>
                 )}

@@ -37,7 +37,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useUser } from '@/contexts/UserContext'
 
 const locationIcons = {
-  video: { icon: Video, label: 'Video Call', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+  video: { icon: Video, label: 'Video Call', color: 'text-primary', bg: 'bg-primary/10 dark:bg-indigo-900/20' },
   phone: { icon: Phone, label: 'Phone Call', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
   'in-person': { icon: MapPin, label: 'In Person', color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20' }
 }
@@ -118,7 +118,7 @@ export default function EventTypesPage() {
   }
 
   return (
-    <div className="flex flex-col p-4 sm:p-6 gap-4 sm:gap-6 absolute inset-0 sm:relative sm:inset-auto sm:h-full bg-[var(--crm-bg)] overflow-y-auto z-10">
+    <div className="flex flex-col flex-1 h-full overflow-hidden gap-4 sm:gap-5">
 
       {/* ── Header ───────────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between shrink-0 gap-4 sm:gap-0">
@@ -127,21 +127,21 @@ export default function EventTypesPage() {
             variant="outline" 
             size="icon" 
             onClick={() => router.push('/meetings')} 
-            className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 border-[var(--crm-border)] bg-[var(--crm-surface-2)] rounded-xl hover:bg-[var(--crm-surface-3)] transition-all active:scale-95 text-[var(--crm-text-secondary)]"
+            className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 border-[var(--crm-border)] bg-[var(--crm-surface-2)] rounded-full hover:bg-[var(--crm-surface-3)] transition-all active:scale-95 text-[var(--crm-text-secondary)]"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="hidden sm:block">
             <h1 className="text-xl sm:text-2xl font-bold text-[var(--crm-text-primary)] flex items-center gap-2 sm:gap-3">
               Event Types
-              <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--crm-primary)] fill-[var(--crm-primary)]" />
+              <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--crm-accent)] fill-[var(--crm-accent)]" />
             </h1>
             <p className="text-xs sm:text-sm text-[var(--crm-text-secondary)] mt-1">Configure your availability and booking page settings</p>
           </div>
           <div className="sm:hidden flex-1">
             <h1 className="text-lg font-bold text-[var(--crm-text-primary)] flex items-center gap-2">
               Event Types
-              <Zap className="h-4 w-4 text-[var(--crm-primary)] fill-[var(--crm-primary)]" />
+              <Zap className="h-4 w-4 text-[var(--crm-accent)] fill-[var(--crm-accent)]" />
             </h1>
           </div>
         </div>
@@ -160,7 +160,7 @@ export default function EventTypesPage() {
             <DropdownMenuTrigger asChild>
               <Button 
                 size="sm" 
-                className="flex-1 sm:flex-none h-9 bg-[var(--crm-primary)] hover:opacity-90 text-white gap-1.5 shadow-sm px-2 sm:px-4"
+                className="flex-1 sm:flex-none h-9 bg-[var(--lb-navy)] hover:opacity-90 text-white gap-1.5 shadow-sm px-2 sm:px-4"
               >
                 <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">New Event Type</span>
@@ -189,7 +189,7 @@ export default function EventTypesPage() {
       </div>
 
       {/* ── Content ──────────────────────────────────────────────────────────── */}
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-[var(--crm-border)] pb-10 px-1">
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map(i => (
@@ -212,7 +212,7 @@ export default function EventTypesPage() {
         ) : eventTypes.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center bg-[var(--crm-surface-2)] rounded-3xl border-2 border-dashed border-[var(--crm-border)]">
             <div className="h-16 w-16 rounded-2xl bg-[var(--crm-surface-1)] flex items-center justify-center mb-6 shadow-sm border border-[var(--crm-border)] rotate-6">
-              <CalendarCheck className="h-8 w-8 text-[var(--crm-primary)]" />
+              <CalendarCheck className="h-8 w-8 text-[var(--crm-accent)]" />
             </div>
             <h3 className="text-xl font-bold text-[var(--crm-text-primary)]">No event types yet</h3>
             <p className="text-sm text-[var(--crm-text-secondary)] mt-2 max-w-xs mx-auto mb-8">
@@ -220,7 +220,7 @@ export default function EventTypesPage() {
             </p>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button className="bg-[var(--crm-primary)] hover:opacity-90 text-white gap-2 px-6">
+                <Button className="bg-[var(--lb-navy)] hover:opacity-90 text-white gap-2 px-6 shadow-sm">
                   <Plus className="h-4 w-4" />
                   Create your first event
                 </Button>
@@ -249,11 +249,11 @@ export default function EventTypesPage() {
             {eventTypes.map((eventType) => {
               const loc = locationIcons[eventType.location as keyof typeof locationIcons] || locationIcons.video
               return (
-                <Card key={eventType.id} className="group relative border-[var(--crm-border)] shadow-sm hover:shadow-md hover:border-[var(--crm-primary)]/50 transition-all duration-300 bg-[var(--crm-surface-1)] flex flex-col rounded-xl overflow-visible">
+                <Card key={eventType.id} className="group relative border-[var(--crm-border)] shadow-sm hover:shadow-md hover:border-[var(--lb-navy)]/50 transition-all duration-300 bg-[var(--crm-surface-1)] flex flex-col rounded-xl overflow-visible">
                   {/* Status Indicator (Top Bar) */}
                   <div 
                     className="h-1.5 w-full transition-all duration-300 rounded-t-xl opacity-80 group-hover:opacity-100" 
-                    style={{ backgroundColor: eventType.color || 'var(--crm-primary)' }} 
+                    style={{ backgroundColor: eventType.color || 'var(--lb-navy)' }} 
                   />
 
                   <CardContent className="p-4 flex-1 flex flex-col">
@@ -288,7 +288,7 @@ export default function EventTypesPage() {
                     </div>
 
                     <div className="flex-1 mt-1 relative z-10">
-                      <h3 className="font-bold text-base text-[var(--crm-text-primary)] line-clamp-1 group-hover:text-[var(--crm-primary)] transition-colors">
+                      <h3 className="font-bold text-base text-[var(--crm-text-primary)] line-clamp-1 group-hover:text-[var(--lb-navy)] transition-colors">
                         {eventType.title}
                       </h3>
                       <p className="text-xs text-[var(--crm-text-secondary)] mt-1 line-clamp-1 italic">
@@ -310,7 +310,7 @@ export default function EventTypesPage() {
                     <div className="mt-4 pt-3 border-t border-[var(--crm-border)] flex items-center justify-between relative z-10">
                       <button
                         onClick={() => { setSelectedEventType(eventType); setShowShareDialog(true); }}
-                        className="text-xs font-semibold text-[var(--crm-primary)] flex items-center gap-1.5 hover:underline"
+                        className="text-xs font-semibold text-[var(--lb-navy)] flex items-center gap-1.5 hover:underline"
                       >
                         <Share2 className="h-3.5 w-3.5" />
                         Share / Embed
@@ -320,7 +320,7 @@ export default function EventTypesPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 group/btn text-[var(--crm-text-secondary)] hover:text-[var(--crm-primary)] hover:bg-[var(--crm-surface-3)] -mr-2"
+                          className="h-8 group/btn text-[var(--crm-text-secondary)] hover:text-[var(--lb-navy)] hover:bg-[var(--crm-surface-3)] -mr-2"
                         >
                           Modify <ArrowRight className="h-3.5 w-3.5 ml-1.5 group-hover/btn:translate-x-1 transition-transform" />
                         </Button>
@@ -334,8 +334,8 @@ export default function EventTypesPage() {
             {/* Add New Card Slot */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="group h-full border-2 border-dashed border-[var(--crm-border)] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 hover:border-[var(--crm-primary)]/50 hover:bg-[var(--crm-surface-2)] transition-all duration-300 cursor-pointer min-h-[160px]">
-                  <div className="h-10 w-10 rounded-full bg-[var(--crm-surface-3)] flex items-center justify-center group-hover:scale-110 group-hover:bg-[var(--crm-primary)] group-hover:text-white transition-all duration-300">
+                <div className="group h-full border-2 border-dashed border-[var(--crm-border)] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 hover:border-[var(--lb-navy)]/50 hover:bg-[var(--crm-surface-2)] transition-all duration-300 cursor-pointer min-h-[160px]">
+                  <div className="h-10 w-10 rounded-full bg-[var(--crm-surface-3)] flex items-center justify-center group-hover:scale-110 group-hover:bg-[var(--lb-navy)] group-hover:text-white transition-all duration-300">
                     <Plus className="h-5 w-5 text-[var(--crm-text-secondary)] group-hover:text-white" />
                   </div>
                   <div className="text-center">
@@ -370,7 +370,7 @@ export default function EventTypesPage() {
         <DialogContent className="sm:max-w-xl w-full bg-[var(--crm-surface-1)] border-[var(--crm-border)] p-6 sm:p-8 rounded-[24px] shadow-2xl">
           <DialogHeader className="text-left space-y-3">
             <div className="h-12 w-12 rounded-2xl bg-[var(--crm-surface-2)] flex items-center justify-center border border-[var(--crm-border)] shadow-sm">
-              <Share2 className="h-5 w-5 text-[var(--crm-primary)]" />
+              <Share2 className="h-5 w-5 text-[var(--lb-navy)]" />
             </div>
             <div>
               <DialogTitle className="text-xl sm:text-2xl font-bold text-[var(--crm-text-primary)]">Share Booking Link</DialogTitle>
@@ -390,9 +390,9 @@ export default function EventTypesPage() {
               <TabsContent value="link" className="space-y-6">
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                    <LinkIcon className="h-4 w-4 text-[var(--crm-text-tertiary)] group-focus-within:text-[var(--crm-primary)] transition-colors" />
+                    <LinkIcon className="h-4 w-4 text-[var(--crm-text-tertiary)] group-focus-within:text-[var(--lb-navy)] transition-colors" />
                   </div>
-                  <div className="w-full text-sm font-medium bg-[var(--crm-surface-2)] border border-[var(--crm-border)] rounded-2xl p-4 pl-11 pr-24 text-[var(--crm-text-primary)] break-all">
+                  <div className="w-full text-sm font-medium bg-[var(--crm-surface-2)] border border-[var(--crm-border)] rounded-2xl p-4 pl-11 pr-24 text-[var(--crm-text-primary)] break-all selection:bg-[var(--lb-navy)]/20">
                     {getBookingUrl(selectedEventType)}
                   </div>
                   <Button
@@ -412,7 +412,7 @@ export default function EventTypesPage() {
 
                 <div className="flex gap-3">
                   <Button
-                    className="flex-1 bg-[var(--crm-primary)] hover:opacity-90 text-white rounded-2xl h-12 font-bold shadow-sm"
+                    className="flex-1 bg-[var(--lb-navy)] hover:opacity-90 text-white rounded-2xl h-12 font-bold shadow-sm"
                     onClick={() => openPreview(selectedEventType)}
                   >
                     <ExternalLink className="mr-2 h-4 w-4" />

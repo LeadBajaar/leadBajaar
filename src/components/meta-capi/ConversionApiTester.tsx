@@ -450,7 +450,7 @@ export function ConversionApiTester() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <BarChart3 className="h-5 w-5 text-blue-600" />
+              <BarChart3 className="h-5 w-5 text-primary" />
               <span>Test Results</span>
             </CardTitle>
           </CardHeader>

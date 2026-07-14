@@ -174,7 +174,7 @@ export function AutomatedSyncDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Bot className="h-6 w-6 text-blue-600" />
+            <Bot className="h-6 w-6 text-primary" />
             Automated Lead Sync
           </h2>
           <p className="text-gray-600">AI-powered lead synchronization to catch webhook failures</p>
@@ -293,7 +293,7 @@ export function AutomatedSyncDashboard() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">Existing Leads</span>
-                <span className="text-lg font-bold text-blue-600">{syncStats.thisWeek.existingLeads}</span>
+                <span className="text-lg font-bold text-primary">{syncStats.thisWeek.existingLeads}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">Errors</span>
@@ -372,7 +372,7 @@ export function AutomatedSyncDashboard() {
             
             <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
               <div className="flex items-center gap-3">
-                <Bot className="h-4 w-4 text-blue-600" />
+                <Bot className="h-4 w-4 text-primary" />
                 <div>
                   <p className="text-sm font-medium">Automated sync started</p>
                   <p className="text-xs text-gray-600">Processing leads from last 2 hours</p>

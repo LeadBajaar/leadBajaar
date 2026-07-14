@@ -87,9 +87,9 @@ const features = [
 export default function DeveloperHubPage() {
     return (
         <RoleGuard allowedFeatures={['developer_tools']}>
-            <div className="h-full overflow-y-auto p-6 lg:p-10 space-y-12 bg-slate-50 dark:bg-slate-950 selection:bg-indigo-100 dark:selection:bg-indigo-900/30">
+            <div className="h-full overflow-y-auto p-6 lg:p-10 space-y-12 bg-slate-50 dark:bg-slate-950 selection:bg-primary/20 dark:selection:bg-indigo-900/30">
                 {/* Hero Header */}
-                <div className="relative overflow-hidden rounded-[2.5rem] bg-indigo-600 p-8 lg:p-16 border border-indigo-500 shadow-2xl shadow-indigo-200 dark:shadow-indigo-950/50">
+                <div className="relative overflow-hidden rounded-[2.5rem] bg-primary p-8 lg:p-16 border border-primary shadow-2xl shadow-primary/20 dark:shadow-indigo-950/50">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[100px] -mr-32 -mt-32" />
                     <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/5 rounded-full blur-[100px] -ml-32 -mb-32" />
 
@@ -105,10 +105,10 @@ export default function DeveloperHubPage() {
                             LeadBajaar's Developer Hub is your command center for Meta API integrations. Access deep asset management, hybrid conversion tracking, and automated ad operations in one place.
                         </p>
                         <div className="flex flex-wrap gap-4 pt-4">
-                            <Link href="/developer/getting-started" className="px-6 py-3 rounded-2xl bg-white text-indigo-600 hover:bg-indigo-50 font-bold transition-all shadow-xl shadow-black/10 flex items-center gap-2 group">
+                            <Link href="/developer/getting-started" className="px-6 py-3 rounded-2xl bg-white text-primary hover:bg-primary/10 font-bold transition-all shadow-xl shadow-black/10 flex items-center gap-2 group">
                                 Get Started <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </Link>
-                            <Link href="/developer/report" className="px-6 py-3 rounded-2xl bg-indigo-700/50 hover:bg-indigo-700 border border-white/10 text-white font-bold transition-all flex items-center gap-2">
+                            <Link href="/developer/report" className="px-6 py-3 rounded-2xl bg-indigo-700/50 hover:bg-primary/90 border border-white/10 text-white font-bold transition-all flex items-center gap-2">
                                 Implementation Report <ExternalLink className="w-4 h-4" />
                             </Link>
                         </div>
@@ -119,31 +119,31 @@ export default function DeveloperHubPage() {
                 <div className="space-y-8">
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-3">
-                            <BookOpen className="w-6 h-6 text-indigo-500" />
+                            <BookOpen className="w-6 h-6 text-primary" />
                             Integration Modules
                         </h2>
-                        <Badge variant="outline" className="border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1 font-bold">18/18 API Slots Active</Badge>
+                        <Badge variant="outline" className="border-primary/20 dark:border-indigo-800 text-primary dark:text-indigo-400 bg-primary/10 dark:bg-indigo-950/30 px-3 py-1 font-bold">18/18 API Slots Active</Badge>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {features.map((feature, idx) => (
                             <Link key={idx} href={feature.href}>
-                                <Card className="group relative h-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-100/50 dark:hover:shadow-indigo-900/20 transition-all duration-300 overflow-hidden cursor-pointer shadow-sm">
+                                <Card className="group relative h-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-primary hover:shadow-xl hover:shadow-indigo-100/50 dark:hover:shadow-indigo-900/20 transition-all duration-300 overflow-hidden cursor-pointer shadow-sm">
                                     {/* Hover Glow */}
                                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 dark:from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
                                     <CardHeader className="relative z-10 pb-2">
                                         <div className={`w-12 h-12 rounded-2xl mb-4 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm ${feature.color === 'emerald' ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400' :
-                                            feature.color === 'blue' ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400' :
+                                            feature.color === 'blue' ? 'bg-blue-50 dark:bg-blue-950/30 text-primary dark:text-blue-400' :
                                                 feature.color === 'violet' ? 'bg-violet-50 dark:bg-violet-950/30 text-violet-600 dark:text-violet-400' :
                                                     feature.color === 'orange' ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400' :
-                                                        feature.color === 'indigo' ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400' :
+                                                        feature.color === 'indigo' ? 'bg-primary/10 dark:bg-indigo-950/30 text-primary dark:text-indigo-400' :
                                                             'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400'
                                             }`}>
                                             <feature.icon className="w-6 h-6" />
                                         </div>
                                         <div className="flex items-center justify-between gap-4">
-                                            <CardTitle className="text-xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                            <CardTitle className="text-xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary dark:group-hover:text-indigo-400 transition-colors">
                                                 {feature.title}
                                             </CardTitle>
                                             <Badge className="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-none text-[10px] uppercase font-bold px-2 py-0">
@@ -155,11 +155,11 @@ export default function DeveloperHubPage() {
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="relative z-10 pt-4 flex items-center justify-between border-t border-slate-50 dark:border-slate-800/50 mt-4">
-                                        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                        <span className="text-xs font-bold text-primary dark:text-indigo-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                                             Configure Module <ArrowRight className="w-3 h-3" />
                                         </span>
                                         <div className="h-1.5 w-12 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden group-hover:w-20 transition-all">
-                                            <div className="h-full w-2/3 bg-indigo-500" />
+                                            <div className="h-full w-2/3 bg-primary/100" />
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -178,13 +178,13 @@ export default function DeveloperHubPage() {
                         <div className="space-y-4">
                             <h4 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Authentication & Tokens</h4>
                             <div className="space-y-4">
-                                <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 group hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors">
+                                <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 dark:hover:border-indigo-800 transition-colors">
                                     <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
                                     <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                                         <strong className="text-slate-900 dark:text-slate-200">Long-Lived Tokens:</strong> All integrations automatically upgrade short-lived tokens to 60-day long-lived tokens via the oauth endpoints.
                                     </p>
                                 </div>
-                                <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 group hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors">
+                                <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 dark:hover:border-indigo-800 transition-colors">
                                     <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
                                     <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                                         <strong className="text-slate-900 dark:text-slate-200">Token Refresh:</strong> Use the "Refresh Token" button if you encounter Error 190 (Token Expired) or permission changes.

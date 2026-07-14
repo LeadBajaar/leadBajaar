@@ -24,8 +24,8 @@ interface Props {
   removeQuestion: (index: number) => void
 }
 
-const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1 block"
-const inputStyle = "h-10 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-all rounded-lg no-scrollbar"
+const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-[var(--crm-text-secondary)] mb-1 block"
+const inputStyle = "h-10 text-sm bg-[var(--crm-surface-2)] border-[var(--crm-border)] focus:bg-[var(--crm-surface-1)] transition-all rounded-lg no-scrollbar"
 
 export const SortableQuestion = ({ question, index, updateQuestion, removeQuestion }: Props) => {
   const {
@@ -81,12 +81,12 @@ export const SortableQuestion = ({ question, index, updateQuestion, removeQuesti
         return (
           <div className="space-y-2 mt-1">
             {question.options?.map((option, i) => (
-              <div key={i} className="flex items-center space-x-2.5 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
+              <div key={i} className="flex items-center space-x-2.5 bg-[var(--crm-surface-2)] p-2 rounded-lg border border-[var(--crm-border)]">
                 <div className={cn(
-                  "h-3.5 w-3.5 rounded-full border border-slate-300 dark:border-slate-700",
+                  "h-3.5 w-3.5 rounded-full border border-slate-300 ",
                   question.type === 'checkbox' ? 'rounded-sm' : 'rounded-full'
                 )} />
-                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{option}</span>
+                <span className="text-xs font-medium text-[var(--crm-text-primary)]">{option}</span>
               </div>
             ))}
           </div>
@@ -151,15 +151,15 @@ export const SortableQuestion = ({ question, index, updateQuestion, removeQuesti
       ref={setNodeRef}
       style={style}
       className={cn(
-        "bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-xl shadow-sm transition-all duration-200 group relative",
-        isDragging && "opacity-50 scale-[0.98] shadow-lg border-indigo-500"
+        "bg-[var(--crm-surface-1)]  border border-[var(--crm-border)]  rounded-xl shadow-sm transition-all duration-200 group relative",
+        isDragging && "opacity-50 scale-[0.98] shadow-lg border-[var(--crm-accent)]"
       )}
     >
       <div className="flex items-start gap-3 p-4 sm:p-5">
         <div 
           {...attributes} 
           {...listeners} 
-          className="mt-0.5 cursor-grab active:cursor-grabbing p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"
+          className="mt-0.5 cursor-grab active:cursor-grabbing p-1 rounded-lg hover:bg-[var(--crm-surface-3)] transition-colors text-[var(--crm-text-secondary)] group-hover:text-[var(--crm-text-secondary)]"
         >
           <GripVertical className="h-4 w-4" />
         </div>
@@ -209,7 +209,7 @@ export const SortableQuestion = ({ question, index, updateQuestion, removeQuesti
             <div className="space-y-1">
               <div className="flex items-center justify-between gap-4">
                 <Label className={labelStyle}>Options</Label>
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5 rounded-full border border-slate-100 dark:border-slate-800">
+                <span className="text-[9px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest bg-[var(--crm-surface-2)] px-1.5 py-0.5 rounded-full border border-[var(--crm-border)]">
                   New line for each
                 </span>
               </div>
@@ -224,21 +224,21 @@ export const SortableQuestion = ({ question, index, updateQuestion, removeQuesti
           )}
 
           <div className="flex items-center gap-4 pt-1">
-            <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-slate-800/50 px-3 py-1 rounded-lg border border-slate-100 dark:border-slate-800 transition-colors">
+            <div className="flex items-center gap-2.5 bg-[var(--crm-surface-2)] px-3 py-1 rounded-lg border border-[var(--crm-border)] transition-colors">
               <Switch
                 id={`required-${question.id}`}
                 checked={question.required}
                 onCheckedChange={(checked) => updateQuestion(index, 'required', checked)}
-                className="scale-90 data-[state=checked]:bg-indigo-600"
+                className="scale-90 data-[state=checked]:bg-[var(--crm-accent)]"
               />
-              <Label htmlFor={`required-${question.id}`} className="text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer select-none">Required</Label>
+              <Label htmlFor={`required-${question.id}`} className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider cursor-pointer select-none">Required</Label>
             </div>
             
             <Button
               variant="ghost"
               size="sm"
               onClick={() => removeQuestion(index)}
-              className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 font-bold text-[10px] uppercase tracking-widest gap-1.5 rounded-lg transition-all"
+              className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50 font-bold text-[10px] uppercase tracking-widest gap-1.5 rounded-lg transition-all"
             >
               <Trash2 className="h-3.5 w-3.5" />
               Remove
@@ -246,18 +246,18 @@ export const SortableQuestion = ({ question, index, updateQuestion, removeQuesti
           </div>
 
           {/* Preview section */}
-          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="mt-4 pt-4 border-t border-[var(--crm-border)]">
             <div className="flex items-center gap-2 mb-2">
-              <div className="h-1 w-1 rounded-full bg-indigo-500" />
-              <Label className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-500/80">Preview</Label>
+              <div className="h-1 w-1 rounded-full bg-[var(--crm-accent-soft)]0" />
+              <Label className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/80">Preview</Label>
             </div>
-            <div className="p-4 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl border border-slate-100 dark:border-slate-800">
-              <p className="text-[13px] font-bold text-slate-900 dark:text-white mb-0.5">
+            <div className="p-4 bg-[var(--crm-surface-2)] rounded-xl border border-[var(--crm-border)]">
+              <p className="text-[13px] font-bold text-[var(--crm-text-primary)] mb-0.5">
                 {question.question || 'New Question'}
                 {question.required && <span className="text-red-500 ml-1 font-black">*</span>}
               </p>
               {question.description && (
-                <p className="text-[11px] text-slate-500 font-medium mb-3 leading-tight font-sans tracking-tight">{question.description}</p>
+                <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium mb-3 leading-tight font-sans tracking-tight">{question.description}</p>
               )}
               <div className="relative">
                 {renderPreview()}

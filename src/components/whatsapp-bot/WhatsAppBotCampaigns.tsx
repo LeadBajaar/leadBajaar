@@ -292,7 +292,7 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'running': return <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-3 font-black">RUNNING</Badge>;
-      case 'completed': return <Badge className="bg-indigo-500/10 text-indigo-500 border-indigo-500/20 px-3 font-black">COMPLETED</Badge>;
+      case 'completed': return <Badge className="bg-primary/10 text-primary border-primary/20 px-3 font-black">COMPLETED</Badge>;
       case 'failed': return <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 px-3 font-black">FAILED</Badge>;
       default: return <Badge className="bg-slate-500/10 text-slate-500 border-slate-500/20 px-3 font-black uppercase">{status}</Badge>;
     }
@@ -308,7 +308,7 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
           <DialogTrigger asChild>
             <Button 
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-primary hover:bg-primary/90 text-white font-black rounded-xl shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={!isSessionActive}
               title={!isSessionActive ? "Reconnect WhatsApp to launch campaigns" : ""}
             >
@@ -344,7 +344,7 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
                     {mediaUrl ? (
                       <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
                         <div className="flex items-center gap-2 overflow-hidden">
-                          <FileText className="h-4 w-4 text-indigo-500 shrink-0" />
+                          <FileText className="h-4 w-4 text-primary shrink-0" />
                           <span className="text-xs font-medium text-slate-600 dark:text-slate-300 truncate">File ready for broadcast</span>
                         </div>
                         <Button variant="ghost" size="sm" onClick={() => { setMediaUrl(''); setMediaType('image'); }} className="h-7 w-7 text-rose-500 hover:bg-rose-50 rounded-lg">
@@ -352,9 +352,9 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
                         </Button>
                       </div>
                     ) : mediaUploading ? (
-                      <div className="flex flex-col items-center justify-center py-6 border-2 border-dashed border-indigo-200 dark:border-indigo-800 rounded-2xl bg-indigo-50/20 dark:bg-indigo-900/10">
-                        <Loader2 className="h-6 w-6 text-indigo-500 animate-spin mb-2" />
-                        <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Uploading...</p>
+                      <div className="flex flex-col items-center justify-center py-6 border-2 border-dashed border-primary/20 dark:border-indigo-800 rounded-2xl bg-primary/0 dark:bg-indigo-900/10">
+                        <Loader2 className="h-6 w-6 text-primary animate-spin mb-2" />
+                        <p className="text-[10px] font-black text-primary uppercase tracking-widest">Uploading...</p>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-900/20">
@@ -399,8 +399,8 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
                 </div>
                 <div className="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2">
                   <div className="flex items-center gap-2 mb-1">
-                    <Rocket className="h-3.5 w-3.5 text-indigo-500 animate-pulse" />
-                    <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Anti-Ban Safety Advisor</p>
+                    <Rocket className="h-3.5 w-3.5 text-primary animate-pulse" />
+                    <p className="text-[10px] font-black text-primary dark:text-indigo-400 uppercase tracking-widest">Anti-Ban Safety Advisor</p>
                   </div>
                   
                   {message && /https?:\/\//i.test(message) && mediaUrl ? (
@@ -434,7 +434,7 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
                 <div className="space-y-2 h-full flex flex-col">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-bold uppercase tracking-widest text-slate-500">Broadcast Message</Label>
-                    <Badge variant="outline" className="text-[10px] bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 border-none px-2 font-bold">SPINTAX SUPPORTED</Badge>
+                    <Badge variant="outline" className="text-[10px] bg-primary/10 dark:bg-indigo-900/20 text-primary border-none px-2 font-bold">SPINTAX SUPPORTED</Badge>
                   </div>
                   <textarea 
                     value={message} 
@@ -450,7 +450,7 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
               <Button 
                 onClick={handleLaunchCampaign} 
                 disabled={isLaunching || !name || (!message && !mediaUrl) || !groupId} 
-                className="flex-1 bg-indigo-600 h-12 font-black rounded-xl shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-primary h-12 font-black rounded-xl shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLaunching ? (
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Launching...</>
@@ -474,7 +474,7 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
+          <Loader2 className="h-8 w-8 text-primary animate-spin" />
         </div>
       ) : campaigns.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-slate-50/50 dark:bg-slate-900/20 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800">
@@ -485,7 +485,7 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
       ) : (
         <div className="space-y-4">
           {campaigns.map(campaign => (
-            <Card key={campaign.id} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden rounded-2xl group hover:border-indigo-200 dark:hover:border-indigo-800 transition-all">
+            <Card key={campaign.id} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden rounded-2xl group hover:border-primary/20 dark:hover:border-indigo-800 transition-all">
               <CardContent className="p-0">
                 <div className="flex flex-col md:flex-row md:items-center">
                   <div className="flex-1 p-6">
@@ -551,7 +551,7 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-center">
                       <div className="p-2 bg-white dark:bg-slate-900 rounded-xl shadow-inner ring-1 ring-slate-100 dark:ring-slate-800">
-                        <p className="text-xl font-black text-indigo-600">{campaign.sent_count}</p>
+                        <p className="text-xl font-black text-primary">{campaign.sent_count}</p>
                         <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Sent</p>
                       </div>
                       <div className="p-2 bg-white dark:bg-slate-900 rounded-xl shadow-inner ring-1 ring-slate-100 dark:ring-slate-800">
@@ -577,8 +577,8 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
           <div className="p-6 pb-2 border-b border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 backdrop-blur-xl sticky top-0 z-10">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl">
-                  <Rocket className="h-5 w-5 text-indigo-500" />
+                <div className="p-2 bg-primary/10 dark:bg-primary/10 rounded-xl">
+                  <Rocket className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">Campaign Report</span>
@@ -697,8 +697,8 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
               <div className="space-y-2">
                 {recipientsLoading ? (
                   <div className="flex flex-col items-center justify-center py-32 space-y-4">
-                    <Loader2 className="h-10 w-10 text-indigo-500 animate-spin" />
-                    <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest animate-pulse">Analyzing Broadcast Data...</p>
+                    <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest animate-pulse">Analyzing Broadcast Data...</p>
                   </div>
                 ) : paginatedRecipients.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-24 text-center">
@@ -709,7 +709,7 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
                 ) : (
                   <div className="grid grid-cols-1 gap-2">
                     {paginatedRecipients.map((r, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800/50 shadow-sm hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors">
+                      <div key={i} className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800/50 shadow-sm hover:border-primary/20 dark:hover:border-indigo-800 transition-colors">
                         <div className="flex items-center gap-3">
                           <div className={cn(
                             "h-8 w-8 rounded-lg flex items-center justify-center font-black text-[10px]",
@@ -757,7 +757,7 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
         <DialogContent className="bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl">
           <DialogHeader>
             <DialogTitle className="font-black text-xl flex items-center gap-2">
-              <Play className="h-5 w-5 text-indigo-500 fill-indigo-500" />
+              <Play className="h-5 w-5 text-primary fill-indigo-500" />
               Resume Campaign Preview
             </DialogTitle>
           </DialogHeader>
@@ -795,7 +795,7 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
                         : "bg-slate-50 border-indigo-100 text-slate-700 dark:bg-slate-900 dark:border-indigo-900/30"
                     )}>
                       <div className="flex items-center gap-2 overflow-hidden">
-                        <FileText className={cn("h-4 w-4 shrink-0", previewMediaMissing ? "text-rose-500" : "text-indigo-500")} />
+                        <FileText className={cn("h-4 w-4 shrink-0", previewMediaMissing ? "text-rose-500" : "text-primary")} />
                         <span className="text-xs font-bold truncate">
                           {previewMediaMissing 
                             ? "⚠️ Attached Media File is missing from the server!" 
@@ -873,9 +873,9 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
                     )}
                   </div>
                 ) : previewMediaUploading ? (
-                  <div className="flex flex-col items-center justify-center py-6 border-2 border-dashed border-indigo-200 dark:border-indigo-800 rounded-2xl bg-indigo-50/20 dark:bg-indigo-900/10">
-                    <Loader2 className="h-6 w-6 text-indigo-500 animate-spin mb-2" />
-                    <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest animate-pulse">Uploading...</p>
+                  <div className="flex flex-col items-center justify-center py-6 border-2 border-dashed border-primary/20 dark:border-indigo-800 rounded-2xl bg-primary/0 dark:bg-indigo-900/10">
+                    <Loader2 className="h-6 w-6 text-primary animate-spin mb-2" />
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest animate-pulse">Uploading...</p>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-900/20">
@@ -934,8 +934,8 @@ export function WhatsAppBotCampaigns({ userId }: WhatsAppBotCampaignsProps) {
               {/* Deliverability & Anti-Ban Safety Assistant Card */}
               <div className="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-2">
                 <div className="flex items-center gap-2">
-                  <Rocket className="h-3.5 w-3.5 text-indigo-500 animate-pulse" />
-                  <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Anti-Ban Safety Advisor</p>
+                  <Rocket className="h-3.5 w-3.5 text-primary animate-pulse" />
+                  <p className="text-[10px] font-black text-primary dark:text-indigo-400 uppercase tracking-widest">Anti-Ban Safety Advisor</p>
                 </div>
                 
                 {previewMessage && /https?:\/\//i.test(previewMessage) && previewMediaUrl ? (

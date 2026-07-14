@@ -11,14 +11,14 @@ interface FlowNodeData {
 
 function FlowNode({ data }: { data: FlowNodeData }) {
   return (
-    <Card className="w-[250px] border-2 border-blue-500">
+    <Card className="w-[250px] border-2 border-primary">
       <CardHeader className="p-2 bg-blue-50 dark:bg-blue-900">
         <div className="flex items-center gap-2">
           <Tag className="w-4 h-4" />
           <CardTitle className="text-sm flex-1">{data.label}</CardTitle>
         </div>
         {data.trigger && (
-          <div className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+          <div className="text-xs text-primary dark:text-blue-300 mt-1">
             Trigger: {data.trigger}
           </div>
         )}

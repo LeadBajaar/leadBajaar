@@ -70,7 +70,8 @@ import {
   ShieldCheck,
   AlertCircle,
   Mail,
-  Info
+  Info,
+  Search
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -100,6 +101,14 @@ interface WebhookConfig {
     sourceField: string;
     targetField: string;
   }[];
+  secret?: string;
+  uuid?: string;
+  enrichment?: {
+    enabled: boolean;
+    url: string;
+    method: string;
+    headers: { key: string; value: string }[];
+  };
 }
 
 interface ConnectedIntegration {
@@ -147,6 +156,8 @@ interface Integration {
   features: string[];
   allowMultiple: boolean;
   plans?: string[];
+  price?: string;
+  isPremium?: boolean;
 }
 
 interface WhatsAppConfig {
@@ -201,6 +212,8 @@ const integrations: Integration[] = [
     ],
     allowMultiple: false,
     plans: ["pro", "enterprise"],
+    price: "$49/mo",
+    isPremium: true,
   },
   {
     id: "evolution",
@@ -215,6 +228,8 @@ const integrations: Integration[] = [
       "Automated Messaging"
     ],
     allowMultiple: true,
+    price: "$19/mo",
+    isPremium: true,
   },
   {
     id: "leadform",
@@ -229,6 +244,8 @@ const integrations: Integration[] = [
       "Automated Lead Capture",
     ],
     allowMultiple: true,
+    price: "Free",
+    isPremium: false,
   },
   {
     id: "facebook_conversion_api",
@@ -245,6 +262,8 @@ const integrations: Integration[] = [
       "iOS 14.5+ Compatible",
     ],
     allowMultiple: true,
+    price: "$29/mo",
+    isPremium: true,
   },
   {
     id: "webhook",
@@ -255,6 +274,8 @@ const integrations: Integration[] = [
     description: "Receive leads into CRM or dispatch them to external tools.",
     features: ["Incoming Lead Receiver", "Outgoing Dispatcher", "Secure Auth", "Custom Mapping"],
     allowMultiple: true,
+    price: "$19/mo",
+    isPremium: true,
   },
   {
     id: "facebook_auth",
@@ -265,6 +286,8 @@ const integrations: Integration[] = [
     description: "Connect Facebook accounts to manage pages and services.",
     features: ["OAuth Connection", "Page Management", "Service Sync"],
     allowMultiple: false,
+    price: "Free",
+    isPremium: false,
   },
   {
     id: "email",
@@ -280,6 +303,8 @@ const integrations: Integration[] = [
       "Sequences Enabled",
     ],
     allowMultiple: false,
+    price: "$29/mo",
+    isPremium: true,
   },
   {
     id: "lb_forms",
@@ -295,6 +320,8 @@ const integrations: Integration[] = [
       "Embeddable Forms"
     ],
     allowMultiple: false,
+    price: "Free",
+    isPremium: false,
   },
 ];
 
@@ -410,6 +437,7 @@ export default function IntegrationsPage() {
   const [isConnecting, setIsConnecting] = useState(false);
 
   const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [isListeningForWebhook, setIsListeningForWebhook] = useState(false);
   const [availablePayloadFields, setAvailablePayloadFields] = useState<{ key: string; value: any }[]>([]);
@@ -486,7 +514,8 @@ export default function IntegrationsPage() {
           events: ci.config.events || ["lead.created"],
           isActive: ci.is_active,
           mapping: ci.config.mapping || [],
-          secret: ci.webhook_secret || ""
+          secret: ci.webhook_secret || "",
+          enrichment: ci.config.enrichment || { enabled: false }
         }));
       setWebhooks(filteredWebhooks);
     } catch (error: any) {
@@ -652,7 +681,8 @@ export default function IntegrationsPage() {
           url: webhook.url,
           events: webhook.events,
           mapping: webhook.mapping,
-          secret: (webhook as any).secret
+          secret: (webhook as any).secret,
+          enrichment: (webhook as any).enrichment
         },
         isActive: webhook.isActive,
         environment: "production" as "production"
@@ -1052,33 +1082,62 @@ export default function IntegrationsPage() {
             </button>
           </div>
         )}
-        {/* Google Workspace Account Card */}
-        <div className="mb-6">
-          <GoogleAccountCard />
+
+        {/* Marketplace Hero */}
+        <div className="mb-8 rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-8 text-white shadow-xl relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="relative z-10 max-w-2xl">
+            <div className="inline-flex items-center gap-1.5 bg-white/20 text-white px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
+              <Zap className="h-3 w-3 fill-amber-300 text-amber-300" /> App Store
+            </div>
+            <h1 className="text-3xl font-black mb-3 tracking-tight">Integration Marketplace</h1>
+            <p className="text-primary-foreground/90 text-sm sm:text-base leading-relaxed mb-6 font-medium">
+              Supercharge your CRM with premium integrations. Connect to the tools you already use or unlock advanced features to scale your business effortlessly.
+            </p>
+          </div>
+          <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 pointer-events-none hidden md:block">
+            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="h-full w-full">
+              <path fill="#FFFFFF" d="M44.7,-76.4C58.9,-69.2,71.8,-59.1,79.6,-45.8C87.4,-32.6,90.1,-16.3,89.1,-0.6C88.1,15.1,83.3,30.3,74.7,43.1C66.1,55.9,53.6,66.4,39.6,73.1C25.6,79.8,10.1,82.8,-5.3,81.1C-20.6,79.4,-35.8,73.1,-48.5,63.4C-61.1,53.7,-71.3,40.7,-77.8,25.8C-84.3,10.9,-87.1,-5.9,-83.4,-21.3C-79.6,-36.7,-69.3,-50.7,-56.3,-58.9C-43.2,-67.2,-27.4,-69.8,-12.3,-72C2.8,-74.3,18.7,-76.3,30.5,-83.6" transform="translate(100 100) scale(1.1)" />
+            </svg>
+          </div>
         </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="w-full overflow-x-auto no-scrollbar mb-4">
-            <TabsList className="inline-flex w-auto min-w-full">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="marketing">Marketing</TabsTrigger>
-              <TabsTrigger value="messaging">Messaging</TabsTrigger>
-              <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-              <TabsTrigger value="settings">Integration Settings</TabsTrigger>
-            </TabsList>
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
+            <div className="w-full overflow-x-auto no-scrollbar">
+              <TabsList className="inline-flex w-auto min-w-full p-1 bg-slate-100 dark:bg-slate-800/50 rounded-xl h-auto">
+                <TabsTrigger value="all" className="rounded-lg h-10 px-5 font-bold data-[state=active]:shadow-sm">All Apps</TabsTrigger>
+                <TabsTrigger value="marketing" className="rounded-lg h-10 px-5 font-bold data-[state=active]:shadow-sm">Marketing</TabsTrigger>
+                <TabsTrigger value="messaging" className="rounded-lg h-10 px-5 font-bold data-[state=active]:shadow-sm">Messaging</TabsTrigger>
+                <TabsTrigger value="webhooks" className="rounded-lg h-10 px-5 font-bold data-[state=active]:shadow-sm">Webhooks</TabsTrigger>
+                <TabsTrigger value="workspace" className="rounded-lg h-10 px-5 font-bold data-[state=active]:shadow-sm">Google Workspace</TabsTrigger>
+                <TabsTrigger value="settings" className="rounded-lg h-10 px-5 font-bold data-[state=active]:shadow-sm">Settings</TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <div className="relative w-full xl:w-72 shrink-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search apps..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-10 bg-white dark:bg-slate-950 rounded-xl"
+              />
+            </div>
           </div>
           {[
             "all",
             "marketing",
             "messaging",
             "webhooks",
+            "workspace",
             "settings",
           ].map((category) => (
             <TabsContent key={category} value={category}>
               {category === "marketing" ? (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {integrations
-                      .filter((i) => i.category === "marketing")
+                      .filter((i) => i.category === "marketing" && (i.name.toLowerCase().includes(searchQuery.toLowerCase()) || i.description.toLowerCase().includes(searchQuery.toLowerCase())))
                       .map((integration) => (
                         <IntegrationCard
                           key={integration.id}
@@ -1117,7 +1176,7 @@ export default function IntegrationsPage() {
                     </Button>
                   </div>
 
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {/* Connect New Webhook Card */}
                     <Card className="border-dashed border-2 flex items-center justify-center p-4 hover:bg-muted/50 transition-colors cursor-pointer group gap-3" onClick={() => {
                       setSelectedWebhookId(null);
@@ -1132,12 +1191,12 @@ export default function IntegrationsPage() {
                       </div>
                     </Card>
 
-                    {webhooks.map((webhook) => (
+                    {webhooks.filter((w) => w.name.toLowerCase().includes(searchQuery.toLowerCase())).map((webhook) => (
                       <Card key={webhook.id} className="flex flex-col p-4 gap-3">
                         <div className="flex justify-between items-start">
                           <div className="flex items-center gap-3 min-w-0">
                             <div className="p-2 rounded-xl bg-blue-500/10 shrink-0">
-                              <Webhook className="h-5 w-5 text-blue-500" />
+                              <Webhook className="h-5 w-5 text-primary" />
                             </div>
                             <div className="min-w-0">
                               <h3 className="text-sm font-bold leading-none truncate">{webhook.name}</h3>
@@ -1191,6 +1250,10 @@ export default function IntegrationsPage() {
                       </Card>
                     ))}
                   </div>
+                </div>
+              ) : category === "workspace" ? (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <GoogleAccountCard />
                 </div>
               ) : category === "settings" ? (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -1375,11 +1438,12 @@ export default function IntegrationsPage() {
                   </Card>
                 </div>
               ) : (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {integrations
                     .filter(
                       (integration) => {
                         const categoryMatch = category === "all" || integration.category === category;
+                        const searchMatch = integration.name.toLowerCase().includes(searchQuery.toLowerCase()) || integration.description.toLowerCase().includes(searchQuery.toLowerCase());
                         
                         // Use hasFeature if the integration defines required features
                         let featureMatch = true;
@@ -1390,7 +1454,7 @@ export default function IntegrationsPage() {
                           featureMatch = hasPlan(integration.plans) || hasType(['agency', 'super_admin']);
                         }
                         
-                        return categoryMatch && featureMatch;
+                        return categoryMatch && featureMatch && searchMatch;
                       }
                     )
                     .map((integration) => (
@@ -1516,7 +1580,7 @@ export default function IntegrationsPage() {
             <Button variant="ghost" onClick={() => setIntegrationToConfirm(null)} disabled={isConnecting}>
               Cancel
             </Button>
-            <Button onClick={handleConfirmConnect} disabled={isConnecting} className="bg-indigo-600 hover:bg-indigo-700">
+            <Button onClick={handleConfirmConnect} disabled={isConnecting} className="bg-primary hover:bg-primary/90">
               {isConnecting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
               Yes, Connect
             </Button>

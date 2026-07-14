@@ -319,18 +319,18 @@ export default function EventTypeForm() {
   }
 
   return (
-    <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:h-full bg-white dark:bg-slate-950 font-sans z-10 overflow-hidden">
-      <div className="shrink-0 flex flex-col border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm z-50">
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="shrink-0 flex flex-col border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)] shadow-sm z-50">
         <div className="px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3 sm:gap-4">
-            <Button variant="outline" size="icon" onClick={() => router.back()} className="h-8 w-8 rounded-lg shrink-0">
-              <ArrowLeft className="h-3.5 w-3.5 text-slate-600" />
+            <Button variant="outline" size="icon" onClick={() => router.back()} className="h-8 w-8 rounded-full shrink-0 border-[var(--crm-border)] bg-[var(--crm-surface-2)] hover:bg-[var(--crm-surface-3)]">
+              <ArrowLeft className="h-3.5 w-3.5 text-[var(--crm-text-secondary)]" />
             </Button>
             <div className="min-w-0">
-              <div className="hidden sm:flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
-                <span>Meetings</span> <span className="h-0.5 w-0.5 rounded-full bg-slate-300" /> <span>Event Config</span>
+              <div className="hidden sm:flex items-center gap-1.5 text-[9px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest mb-0.5">
+                <span>Meetings</span> <span className="h-0.5 w-0.5 rounded-full bg-[var(--crm-border)]" /> <span>Event Config</span>
               </div>
-              <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-none truncate">
+              <h1 className="text-base sm:text-lg font-bold text-[var(--crm-text-primary)] leading-none truncate">
                 {loading ? <Skeleton className="h-4 w-32" /> : (isNew ? 'Create Event Type' : eventType.title || 'Edit Event')}
               </h1>
             </div>
@@ -338,17 +338,17 @@ export default function EventTypeForm() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col overflow-hidden bg-slate-50/30 dark:bg-slate-900/10">
+      <div className="flex-1 flex flex-col overflow-hidden bg-transparent">
         <Tabs defaultValue="basic" className="flex-1 flex flex-col w-full min-h-0">
-          <div className="shrink-0 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-4 sm:px-6 py-2.5 sm:py-2">
+          <div className="shrink-0 z-40 bg-[var(--crm-surface-1)]/80 backdrop-blur-md border-b border-[var(--crm-border)] px-4 sm:px-6 py-2.5 sm:py-2">
             <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
-              <TabsList className="bg-slate-100/50 dark:bg-slate-800/50 p-1 h-10 sm:h-8 rounded-lg flex overflow-x-auto justify-start no-scrollbar w-full sm:w-auto">
-                <TabsTrigger value="basic" className="whitespace-nowrap h-full rounded-md px-3 sm:px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 shadow-sm transition-all">Basic</TabsTrigger>
-                <TabsTrigger value="questions" className="whitespace-nowrap h-full rounded-md px-3 sm:px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 shadow-sm transition-all">Questions</TabsTrigger>
-                <TabsTrigger value="scheduling" className="whitespace-nowrap h-full rounded-md px-3 sm:px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 shadow-sm transition-all">Scheduling</TabsTrigger>
-                <TabsTrigger value="team" className="whitespace-nowrap h-full rounded-md px-3 sm:px-3.5 py-1 text-[11px] font-bold text-slate-500 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 shadow-sm transition-all">Team</TabsTrigger>
+              <TabsList className="bg-[var(--crm-surface-2)] space-x-1 p-1 h-11 rounded-lg flex justify-start overflow-x-auto no-scrollbar w-full sm:w-auto">
+                <TabsTrigger value="basic" className="whitespace-nowrap data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--crm-accent)] data-[state=active]:text-[var(--crm-accent)] data-[state=active]:shadow-sm bg-transparent text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-1)] rounded-md px-4 text-xs font-semibold h-9 transition-all border-b-2 border-transparent">Basic</TabsTrigger>
+                <TabsTrigger value="questions" className="whitespace-nowrap data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--crm-accent)] data-[state=active]:text-[var(--crm-accent)] data-[state=active]:shadow-sm bg-transparent text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-1)] rounded-md px-4 text-xs font-semibold h-9 transition-all border-b-2 border-transparent">Questions</TabsTrigger>
+                <TabsTrigger value="scheduling" className="whitespace-nowrap data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--crm-accent)] data-[state=active]:text-[var(--crm-accent)] data-[state=active]:shadow-sm bg-transparent text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-1)] rounded-md px-4 text-xs font-semibold h-9 transition-all border-b-2 border-transparent">Scheduling</TabsTrigger>
+                <TabsTrigger value="team" className="whitespace-nowrap data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--crm-accent)] data-[state=active]:text-[var(--crm-accent)] data-[state=active]:shadow-sm bg-transparent text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-1)] rounded-md px-4 text-xs font-semibold h-9 transition-all border-b-2 border-transparent">Team</TabsTrigger>
               </TabsList>
-              <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto h-10 sm:h-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-xs sm:text-[11px] px-4 gap-2 transition-all active:scale-95 shadow-sm">
+              <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto h-10 sm:h-8 bg-[var(--crm-accent)] hover:opacity-90 text-white rounded-lg font-bold text-xs sm:text-[11px] px-4 gap-2 transition-all active:scale-95 shadow-sm">
                 {isSaving ? <div className="h-3.5 w-3.5 sm:h-3 sm:w-3 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Save className="h-4 w-4 sm:h-3.5 sm:w-3.5" />}
                 <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
               </Button>
@@ -392,20 +392,20 @@ export default function EventTypeForm() {
       {/* Error Modal */}
       <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
         <DialogContent className="sm:max-w-md rounded-2xl overflow-hidden p-0 gap-0 border-none bg-white dark:bg-slate-900 shadow-2xl">
-          <div className="bg-red-50 dark:bg-red-900/20 p-6 flex flex-col items-center justify-center text-center space-y-3">
+          <div className="bg-[var(--crm-red-soft)] p-6 flex flex-col items-center justify-center text-center space-y-3">
             <div className="h-12 w-12 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center">
-              <XCircle className="h-7 w-7 text-red-600" />
+              <XCircle className="h-7 w-7 text-[var(--crm-red)]" />
             </div>
             <div>
-              <DialogTitle className="text-lg font-black text-red-900 dark:text-red-400 uppercase tracking-tighter">Configuration Failure</DialogTitle>
-              <DialogDescription className="text-red-700/70 dark:text-red-400/60 font-medium text-xs">Some fields require your immediate attention.</DialogDescription>
+              <DialogTitle className="text-lg font-black text-[var(--crm-red)] uppercase tracking-tighter">Configuration Failure</DialogTitle>
+              <DialogDescription className="text-[var(--crm-red)]/80 font-medium text-xs">Some fields require your immediate attention.</DialogDescription>
             </div>
           </div>
           <div className="p-6 space-y-4">
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-100 dark:border-slate-800">
+            <div className="bg-[var(--crm-surface-2)] rounded-xl p-4 border border-[var(--crm-border)]">
               <div className="flex items-start gap-3">
-                <AlertCircle className="h-4 w-4 text-red-500 mt-0.5" />
-                <p className="text-xs font-bold text-slate-700 dark:text-slate-300 leading-relaxed uppercase tracking-wide">{errorMessage}</p>
+                <AlertCircle className="h-4 w-4 text-[var(--crm-red)] mt-0.5" />
+                <p className="text-xs font-bold text-[var(--crm-text-primary)] leading-relaxed uppercase tracking-wide">{errorMessage}</p>
               </div>
             </div>
             <DialogFooter>

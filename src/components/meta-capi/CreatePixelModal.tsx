@@ -151,7 +151,7 @@ export function CreatePixelModal({ open, onClose, adAccounts, onPixelCreated }: 
     const StepDot = ({ idx, label, active, done }: { idx: number; label: string; active: boolean; done: boolean }) => (
         <div className="flex items-center gap-1.5">
             <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all
-                ${done ? 'bg-green-500 text-white' : active ? 'bg-blue-600 text-white ring-4 ring-blue-100' : 'bg-slate-200 text-slate-400'}`}>
+                ${done ? 'bg-green-500 text-white' : active ? 'bg-primary text-white ring-4 ring-blue-100' : 'bg-slate-200 text-slate-400'}`}>
                 {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : idx}
             </div>
             <span className={`text-xs font-semibold hidden sm:block ${active ? 'text-slate-800' : done ? 'text-green-600' : 'text-slate-400'}`}>{label}</span>
@@ -205,7 +205,7 @@ export function CreatePixelModal({ open, onClose, adAccounts, onPixelCreated }: 
                                         href="https://business.facebook.com/settings/ad-accounts"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1 text-xs text-blue-500 hover:underline"
+                                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
                                     >
                                         Open Business Manager <ExternalLink className="h-3 w-3" />
                                     </a>
@@ -222,7 +222,7 @@ export function CreatePixelModal({ open, onClose, adAccounts, onPixelCreated }: 
                                                 <p className="font-semibold text-sm text-slate-800">{account.name}</p>
                                                 <p className="text-[11px] text-slate-400 font-mono mt-0.5">{account.id}</p>
                                             </div>
-                                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-blue-500 transition-colors" />
+                                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-primary transition-colors" />
                                         </button>
                                     ))}
                                 </div>
@@ -241,7 +241,7 @@ export function CreatePixelModal({ open, onClose, adAccounts, onPixelCreated }: 
                                     <p className="font-semibold text-sm text-slate-800 truncate">{selectedAccount.name}</p>
                                     <p className="text-[10px] font-mono text-slate-400">{selectedAccount.id}</p>
                                 </div>
-                                <button onClick={() => setStep('select-account')} className="text-xs text-blue-500 hover:underline shrink-0">Change</button>
+                                <button onClick={() => setStep('select-account')} className="text-xs text-primary hover:underline shrink-0">Change</button>
                             </div>
 
                             {/* Pixel name input */}
@@ -267,7 +267,7 @@ export function CreatePixelModal({ open, onClose, adAccounts, onPixelCreated }: 
                                     <ArrowRight className="h-3 w-3" />
                                     <span className="bg-blue-100 px-2 py-0.5 rounded-full">{selectedAccount.name}</span>
                                     <ArrowRight className="h-3 w-3" />
-                                    <span className="bg-blue-600 text-white px-2 py-0.5 rounded-full">{pixelName || 'New Pixel'}</span>
+                                    <span className="bg-primary text-white px-2 py-0.5 rounded-full">{pixelName || 'New Pixel'}</span>
                                 </div>
                             </div>
 
@@ -275,7 +275,7 @@ export function CreatePixelModal({ open, onClose, adAccounts, onPixelCreated }: 
                                 id="create-pixel-submit"
                                 onClick={handleCreate}
                                 disabled={!pixelName.trim() || isCreating}
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11"
+                                className="w-full bg-primary hover:bg-primary/90 text-white font-bold h-11"
                             >
                                 {isCreating ? (
                                     <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Creating in Meta...</>
@@ -339,7 +339,7 @@ export function CreatePixelModal({ open, onClose, adAccounts, onPixelCreated }: 
                                         'Verify in Meta Events Manager → Test Events tab',
                                     ].map((s, i) => (
                                         <div key={i} className="flex items-start gap-2 text-[11px] text-slate-500">
-                                            <span className="h-4 w-4 rounded-full bg-blue-600 text-white text-[9px] flex items-center justify-center shrink-0 font-bold mt-0.5">{i + 1}</span>
+                                            <span className="h-4 w-4 rounded-full bg-primary text-white text-[9px] flex items-center justify-center shrink-0 font-bold mt-0.5">{i + 1}</span>
                                             <span>{s}</span>
                                         </div>
                                     ))}
@@ -348,7 +348,7 @@ export function CreatePixelModal({ open, onClose, adAccounts, onPixelCreated }: 
 
                             <div className="flex gap-3">
                                 <Button variant="outline" onClick={handleClose} className="flex-1">Done</Button>
-                                <Button onClick={() => { setStep('select-account'); setPixelName(''); setCreatedPixel(null) }} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+                                <Button onClick={() => { setStep('select-account'); setPixelName(''); setCreatedPixel(null) }} className="flex-1 bg-primary hover:bg-primary/90 text-white">
                                     <Plus className="h-4 w-4 mr-1" /> Create Another
                                 </Button>
                             </div>

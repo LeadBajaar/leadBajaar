@@ -79,7 +79,7 @@ export function WhatsAppProvider({ children }: { children: React.ReactNode }) {
         setSelectedUser(activeSessions[0]);
       }
     } catch (err) {
-      console.error('Failed to connect to WhatsApp Service');
+      console.warn('Failed to connect to WhatsApp Service', err);
     } finally {
       setLoading(false);
     }

@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-[#020617] p-6 antialiased">
       {/* ── Background Detail ── */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-15%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/5 blur-[120px] rounded-full" />
+        <div className="absolute top-[-15%] left-[-10%] w-[50%] h-[50%] bg-primary/5 blur-[120px] rounded-full" />
         <div className="absolute bottom-[-15%] right-[-10%] w-[50%] h-[50%] bg-violet-500/5 blur-[120px] rounded-full" />
       </div>
 
@@ -50,12 +50,12 @@ export default function ForgotPasswordPage() {
         {/* Branding */}
         <div className="flex flex-col items-center text-center gap-3">
           <div className="h-12 w-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-center shadow-sm">
-            <Zap className="h-6 w-6 text-indigo-600 dark:text-indigo-400 fill-indigo-600/10" />
+            <Zap className="h-6 w-6 text-primary dark:text-indigo-400 fill-indigo-600/10" />
           </div>
           <div className="space-y-1">
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Reset Password</h2>
             <p className="text-slate-500 dark:text-slate-400 text-sm">
-              <span className="text-indigo-600 dark:text-indigo-400 font-semibold tracking-tight uppercase italic text-xs">LeadBajaar</span>
+              <span className="text-primary dark:text-indigo-400 font-semibold tracking-tight uppercase italic text-xs">LeadBajaar</span>
             </p>
           </div>
         </div>
@@ -82,12 +82,12 @@ export default function ForgotPasswordPage() {
                 <div className="space-y-1.5">
                   <Label htmlFor="email" className="text-xs font-semibold text-slate-700 dark:text-slate-300 ml-0.5">Email Address</Label>
                   <div className="relative group transition-all">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
                     <Input
                       id="email"
                       type="email"
                       placeholder="name@company.com"
-                      className="h-11 pl-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                      className="h-11 pl-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-indigo-500/20 focus:border-primary transition-all text-sm"
                       {...register('email', {
                         required: 'Email is required',
                         pattern: {
@@ -102,7 +102,7 @@ export default function ForgotPasswordPage() {
 
                 <Button
                   type="submit"
-                  className="w-full h-11 rounded-xl bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 text-white font-semibold text-sm transition-all active:scale-[0.98] mt-4 flex items-center justify-center gap-2 group"
+                  className="w-full h-11 rounded-xl bg-slate-900 dark:bg-primary hover:bg-slate-800 dark:hover:bg-primary/90 text-white font-semibold text-sm transition-all active:scale-[0.98] mt-4 flex items-center justify-center gap-2 group"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -119,7 +119,7 @@ export default function ForgotPasswordPage() {
               <Button
                 type="button"
                 onClick={() => router.push('/signin')}
-                className="w-full h-11 rounded-xl bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 text-white font-semibold text-sm transition-all active:scale-[0.98] mt-4 flex items-center justify-center gap-2 group"
+                className="w-full h-11 rounded-xl bg-slate-900 dark:bg-primary hover:bg-slate-800 dark:hover:bg-primary/90 text-white font-semibold text-sm transition-all active:scale-[0.98] mt-4 flex items-center justify-center gap-2 group"
               >
                 Back to Login
               </Button>
@@ -129,7 +129,7 @@ export default function ForgotPasswordPage() {
 
         <p className="text-center text-xs text-slate-500 font-medium">
           Remember your password?{' '}
-          <Link href="/signin" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
+          <Link href="/signin" className="text-primary dark:text-indigo-400 font-bold hover:underline">
             Sign in
           </Link>
         </p>

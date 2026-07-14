@@ -47,7 +47,7 @@ const verificationData = [
 export default function VerificationReportPage() {
     return (
         <div className="h-full overflow-y-auto p-6 lg:p-10 space-y-10 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400">
-            <Link href="/developer" className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 transition-colors font-bold text-sm">
+            <Link href="/developer" className="inline-flex items-center gap-2 text-primary hover:text-primary transition-colors font-bold text-sm">
                 <ArrowLeft className="w-4 h-4" /> Back to Console
             </Link>
 
@@ -81,10 +81,10 @@ export default function VerificationReportPage() {
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {[
-                    { label: "Total Endpoints", value: "18", icon: Target, color: "text-indigo-600", bg: "bg-indigo-50" },
+                    { label: "Total Endpoints", value: "18", icon: Target, color: "text-primary", bg: "bg-primary/10" },
                     { label: "Critical Priority", value: "8", icon: Zap, color: "text-rose-600", bg: "bg-rose-50" },
                     { label: "Deduplication", value: "Active", icon: ShieldCheck, color: "text-emerald-600", bg: "bg-emerald-50" },
-                    { label: "API Version", value: "v25.0", icon: Terminal, color: "text-blue-600", bg: "bg-blue-50" },
+                    { label: "API Version", value: "v25.0", icon: Terminal, color: "text-primary", bg: "bg-blue-50" },
                 ].map((stat, i) => (
                     <Card key={i} className="p-6 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm rounded-2xl flex items-center gap-4 group hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
                         <div className={`w-12 h-12 rounded-xl ${stat.bg} dark:bg-opacity-20 ${stat.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
@@ -120,7 +120,7 @@ export default function VerificationReportPage() {
                         </TableHeader>
                         <TableBody>
                             {verificationData.map((row) => (
-                                <TableRow key={row.id} className="border-slate-50 dark:border-slate-800 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-colors">
+                                <TableRow key={row.id} className="border-slate-50 dark:border-slate-800 hover:bg-primary/5 dark:hover:bg-indigo-900/10 transition-colors">
                                     <TableCell className="text-center font-mono text-xs text-slate-400 dark:text-slate-600">{row.id}</TableCell>
                                     <TableCell>
                                         <div className="font-black text-slate-900 dark:text-slate-200">{row.api}</div>
@@ -135,7 +135,7 @@ export default function VerificationReportPage() {
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400">
-                                            <Code2 className="w-3 h-3 text-indigo-400 dark:text-indigo-600" />
+                                            <Code2 className="w-3 h-3 text-indigo-400 dark:text-primary" />
                                             {row.implementation}
                                         </div>
                                     </TableCell>
@@ -176,19 +176,19 @@ export default function VerificationReportPage() {
                 <div className="space-y-6">
                     <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 p-8 space-y-6 rounded-3xl shadow-sm">
                         <h3 className="text-lg font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest flex items-center gap-2">
-                            <Clock className="w-5 h-5 text-indigo-500" />
+                            <Clock className="w-5 h-5 text-primary" />
                             Next Steps
                         </h3>
                         <div className="space-y-4">
                             <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800">
-                                <AlertCircle className="w-5 h-5 text-indigo-500 mt-0.5 shrink-0" />
+                                <AlertCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                                 <p className="text-xs font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
                                     <strong className="text-slate-900 dark:text-slate-200 block mb-1">Webhooks Health</strong>
                                     Monitor leadgen event latency over the next 48h to ensure &lt; 2s processing.
                                 </p>
                             </div>
-                            <div className="flex gap-4 p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50">
-                                <CheckCircle2 className="w-5 h-5 text-indigo-600 mt-0.5 shrink-0" />
+                            <div className="flex gap-4 p-4 rounded-2xl bg-primary/10 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50">
+                                <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                                 <p className="text-xs font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
                                     <strong className="text-slate-900 dark:text-slate-200 block mb-1">App Review</strong>
                                     All requested scopes are verified. Ready for submission to Meta App Review Live mode.

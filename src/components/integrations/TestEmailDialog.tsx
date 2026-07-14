@@ -32,8 +32,8 @@ export function TestEmailDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px] rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl dark:bg-slate-900">
         <div className="p-8 space-y-6 text-center">
-          <div className="mx-auto w-16 h-16 rounded-3xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center mb-2">
-            <Mail className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+          <div className="mx-auto w-16 h-16 rounded-3xl bg-primary/10 dark:bg-indigo-900/30 flex items-center justify-center mb-2">
+            <Mail className="h-8 w-8 text-primary dark:text-indigo-400" />
           </div>
           <div className="space-y-2">
             <DialogTitle className="text-xl font-black">Dispatch Test Email</DialogTitle>
@@ -57,7 +57,7 @@ export function TestEmailDialog({
                 Cancel
               </Button>
               <Button
-                className="flex-1 h-12 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-bold text-white shadow-lg shadow-indigo-200 dark:shadow-none"
+                className="flex-1 h-12 rounded-2xl bg-primary hover:bg-primary/90 font-bold text-white shadow-lg shadow-primary/20 dark:shadow-none"
                 onClick={onSend}
                 disabled={isConnecting}
               >

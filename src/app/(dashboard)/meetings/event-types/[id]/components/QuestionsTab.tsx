@@ -87,13 +87,13 @@ export const QuestionsTab = ({
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-0.5">Booking Questions</h3>
-            <p className="text-[11px] text-slate-500 font-medium tracking-tight">Gather information from your invitees before meetings.</p>
+            <h3 className="text-sm font-bold text-[var(--crm-text-primary)] uppercase tracking-wider mb-0.5">Booking Questions</h3>
+            <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium tracking-tight">Gather information from your invitees before meetings.</p>
           </div>
           {editingIndex === null && (
             <Button 
               onClick={handleStartAdd}
-              className="h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs gap-2 transition-all shadow-md shrink-0 active:scale-95"
+              className="h-9 px-4 bg-[var(--crm-accent)] hover:opacity-90 text-white rounded-xl font-bold text-xs gap-2 transition-all shadow-md shrink-0 active:scale-95"
             >
               <Plus className="h-4 w-4" />
               Add Question
@@ -137,16 +137,16 @@ export const QuestionsTab = ({
               </div>
 
               {eventType.questions.length === 0 && editingIndex === null && (
-                <Card className="border-dashed border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl overflow-hidden py-10 transition-all hover:bg-slate-100/50 dark:hover:bg-slate-800/40">
+                <Card className="border-dashed border-2 border-[var(--crm-border)] bg-[var(--crm-surface-2)] rounded-2xl overflow-hidden py-10 transition-all hover:bg-[var(--crm-surface-3)]">
                   <CardContent className="flex flex-col items-center justify-center text-center p-0">
-                    <div className="h-16 w-16 rounded-3xl bg-white dark:bg-slate-800 flex items-center justify-center mb-5 shadow-sm border border-slate-100 dark:border-slate-700">
-                      <Plus className="h-8 w-8 text-indigo-500" />
+                    <div className="h-16 w-16 rounded-3xl bg-[var(--crm-surface-1)] flex items-center justify-center mb-5 shadow-sm border border-[var(--crm-border)]">
+                      <Plus className="h-8 w-8 text-primary" />
                     </div>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-widest mb-1.5 leading-none">Questions Needed</p>
-                    <p className="text-[11px] text-slate-400 font-medium max-w-[240px] mb-8 uppercase tracking-widest">Add your first booking question to start collecting data.</p>
+                    <p className="text-sm font-bold text-[var(--crm-text-primary)] uppercase tracking-widest mb-1.5 leading-none">Questions Needed</p>
+                    <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium max-w-[240px] mb-8 uppercase tracking-widest">Add your first booking question to start collecting data.</p>
                     <Button 
                       onClick={handleStartAdd}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-10 px-8 text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-indigo-200/50"
+                      className="bg-[var(--crm-accent)] hover:opacity-90 text-white font-bold h-10 px-8 text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-primary/10"
                     >
                       Initialize Questions
                     </Button>

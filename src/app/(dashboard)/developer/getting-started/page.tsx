@@ -36,13 +36,13 @@ Header: Authorization Bearer {YOUR_TOKEN}`
 
     return (
         <div className="h-full overflow-y-auto p-6 lg:p-10 space-y-8 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400">
-            <Link href="/developer" className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 transition-colors font-bold text-sm">
+            <Link href="/developer" className="inline-flex items-center gap-2 text-primary hover:text-primary transition-colors font-bold text-sm">
                 <ArrowLeft className="w-4 h-4" /> Back to Console
             </Link>
 
             <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200 border border-indigo-500">
+                    <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20 border border-primary">
                         <Rocket className="w-6 h-6" />
                     </div>
                     <div>
@@ -59,7 +59,7 @@ Header: Authorization Bearer {YOUR_TOKEN}`
                         <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 border-b-2 border-slate-100 dark:border-slate-800 pb-2">1. The Core Workflow</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm group hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
-                                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center border border-indigo-100 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 font-black text-xs">A</div>
+                                <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-indigo-950/30 flex items-center justify-center border border-indigo-100 dark:border-indigo-900 text-primary dark:text-indigo-400 font-black text-xs">A</div>
                                 <h4 className="font-bold text-slate-900 dark:text-slate-100">Connect via OAuth</h4>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">Use the Integrations panel to authorize LeadBajaar with your Meta Business Manager.</p>
                             </div>
@@ -87,7 +87,7 @@ Header: Authorization Bearer {YOUR_TOKEN}`
                             2. Authentication
                             <Badge className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900 font-black text-[10px] tracking-widest uppercase py-1">Secure</Badge>
                         </h2>
-                        <div className="p-10 rounded-[2.5rem] bg-indigo-600 text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
+                        <div className="p-10 rounded-[2.5rem] bg-primary text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
                             <div className="absolute bottom-0 right-0 p-8 opacity-10">
                                 <ShieldCheck className="w-32 h-32" />
                             </div>
@@ -117,10 +117,10 @@ Header: Authorization Bearer {YOUR_TOKEN}`
                                 <Link key={i} href={doc.file.startsWith('/') ? doc.file : `/docs/${doc.file}`} target="_blank" className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-700 group transition-all shadow-sm">
                                     <div className="flex items-start justify-between">
                                         <div>
-                                            <h4 className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{doc.title}</h4>
+                                            <h4 className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary dark:group-hover:text-indigo-400 transition-colors">{doc.title}</h4>
                                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{doc.desc}</p>
                                         </div>
-                                        <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
+                                        <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" />
                                     </div>
                                 </Link>
                             ))}
@@ -129,7 +129,7 @@ Header: Authorization Bearer {YOUR_TOKEN}`
                 </div>
 
                 <div className="space-y-6">
-                    <Card className="bg-indigo-600 p-8 space-y-6 border-none text-white shadow-xl shadow-indigo-100">
+                    <Card className="bg-primary p-8 space-y-6 border-none text-white shadow-xl shadow-indigo-100">
                         <h3 className="text-lg font-black uppercase tracking-widest flex items-center gap-2">
                             <Compass className="w-5 h-5 text-indigo-200" />
                             Quick Start Tools
@@ -152,7 +152,7 @@ Header: Authorization Bearer {YOUR_TOKEN}`
 
                     <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 p-8 overflow-hidden relative shadow-sm">
                         <div className="absolute top-0 right-0 p-4 opacity-[0.03] dark:opacity-[0.1]">
-                            <ZapIcon className="w-24 h-24 text-indigo-600" />
+                            <ZapIcon className="w-24 h-24 text-primary" />
                         </div>
                         <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">Platform Power</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 font-medium">Current infrastructure benchmarks.</p>
@@ -169,10 +169,10 @@ Header: Authorization Bearer {YOUR_TOKEN}`
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
                                     <span>P99 Real-time Latency</span>
-                                    <span className="text-blue-600 dark:text-blue-400 font-mono">84ms</span>
+                                    <span className="text-primary dark:text-blue-400 font-mono">84ms</span>
                                 </div>
                                 <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                    <div className="h-full w-[95%] bg-blue-600 rounded-full" />
+                                    <div className="h-full w-[95%] bg-primary rounded-full" />
                                 </div>
                             </div>
                         </div>

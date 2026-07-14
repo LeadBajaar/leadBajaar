@@ -168,7 +168,7 @@ export function FacebookServicesManager() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Facebook className="h-6 w-6 text-blue-600" />
+              <Facebook className="h-6 w-6 text-primary" />
               <CardTitle>Facebook Services Overview</CardTitle>
             </div>
             <Button onClick={handleRefreshToken} variant="outline" size="sm">
@@ -183,7 +183,7 @@ export function FacebookServicesManager() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{totalPages}</div>
+              <div className="text-2xl font-bold text-primary">{totalPages}</div>
               <div className="text-sm text-gray-600">Facebook Pages</div>
             </div>
             <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">

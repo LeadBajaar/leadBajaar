@@ -151,7 +151,7 @@ export default function TeamManagementPage() {
     switch (role) {
       case 'Admin': return <ShieldCheck className="h-4 w-4 text-purple-500" />
       case 'Manager': return <Star className="h-4 w-4 text-amber-500" />
-      case 'Agent': return <User className="h-4 w-4 text-blue-500" />
+      case 'Agent': return <User className="h-4 w-4 text-primary" />
     }
   }
 
@@ -165,16 +165,16 @@ export default function TeamManagementPage() {
 
   return (
     <RoleGuard allowedFeatures={['team_management']}>
-      <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:min-h-screen space-y-4 sm:space-y-6 p-4 sm:p-6 overflow-y-auto z-10 bg-slate-50/50 dark:bg-slate-950/20">
+      <div className="flex flex-col flex-1 gap-4 sm:gap-5">
         <div className="w-full">
           {/* Header Actions */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 mb-4 sm:mb-6">
             <div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
+              <h1 className="text-xl sm:text-2xl font-black text-[var(--crm-text-primary)] tracking-tight flex items-center gap-2">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-[var(--crm-accent)]" />
                 Team Management
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">Manage team members, roles, and permissions</p>
+              <p className="text-xs sm:text-sm text-[var(--crm-text-secondary)] font-medium mt-1">Manage team members, roles, and permissions</p>
             </div>
             <div className="flex justify-start sm:justify-end items-center gap-3 w-full sm:w-auto">
               <Dialog open={isInviteModalOpen} onOpenChange={(v) => {
@@ -182,7 +182,7 @@ export default function TeamManagementPage() {
                 if (!v) setError(null)
               }}>
                 <DialogTrigger asChild>
-                  <Button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]">
+                  <Button className="w-full sm:w-auto bg-[var(--crm-accent)] hover:opacity-90 text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]">
                     <UserPlus className="h-4 w-4 mr-2 shrink-0" />
                     Invite Member
                   </Button>
@@ -196,9 +196,9 @@ export default function TeamManagementPage() {
                 </DialogHeader>
 
                 {error && (
-                  <div className="mx-6 mt-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in duration-200">
-                    <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0" />
-                    <p className="text-xs font-bold text-red-600 dark:text-red-400">{error}</p>
+                  <div className="mx-6 mt-4 bg-red-50 border border-red-200 p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in duration-200">
+                    <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
+                    <p className="text-xs font-bold text-red-600">{error}</p>
                   </div>
                 )}
 
@@ -241,7 +241,7 @@ export default function TeamManagementPage() {
                         </SelectItem>
                         <SelectItem value="Agent" className="rounded-lg">
                           <div className="flex items-center py-0.5">
-                            <User className="h-4 w-4 text-blue-500 mr-3" />
+                            <User className="h-4 w-4 text-primary mr-3" />
                             <div className="text-left">
                               <p className="font-bold text-sm">Agent</p>
                               <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium">Access assigned leads/meetings only</p>
@@ -254,7 +254,7 @@ export default function TeamManagementPage() {
                 </div>
                 <DialogFooter>
                   <Button variant="ghost" onClick={() => setIsInviteModalOpen(false)} className="rounded-xl h-11 font-bold" disabled={isInviting}>Cancel</Button>
-                  <Button onClick={handleInvite} className="rounded-xl h-11 font-black bg-slate-900 dark:bg-white dark:text-[var(--crm-text-primary)] px-8" disabled={!inviteEmail || isInviting}>
+                  <Button onClick={handleInvite} className="rounded-xl h-11 font-black bg-[var(--crm-accent)] hover:opacity-90 text-white px-8" disabled={!inviteEmail || isInviting}>
                     {isInviting ? (
                       <>
                         <div className="h-4 w-4 border-2 border-slate-400 border-t-white rounded-full animate-spin mr-2" />
@@ -284,7 +284,7 @@ export default function TeamManagementPage() {
             {/* Optimized Compact Stat Boxes */}
             <div className="flex flex-wrap gap-6 py-1">
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-blue-100 text-primary">
                   <Users className="h-4 w-4" />
                 </div>
                 <div>
@@ -294,7 +294,7 @@ export default function TeamManagementPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-purple-100 text-purple-600">
                   <ShieldCheck className="h-4 w-4" />
                 </div>
                 <div>
@@ -304,7 +304,7 @@ export default function TeamManagementPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-blue-100 text-primary">
                   <User className="h-4 w-4" />
                 </div>
                 <div>
@@ -314,7 +314,7 @@ export default function TeamManagementPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+                <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-amber-100 text-amber-600">
                   <Mail className="h-4 w-4" />
                 </div>
                 <div>
@@ -356,7 +356,7 @@ export default function TeamManagementPage() {
                         <TableRow key={member.id}>
                           <TableCell className="py-4 pl-6">
                             <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-100 to-blue-50 dark:from-indigo-900/40 dark:to-blue-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm ring-1 ring-white dark:ring-slate-900 shadow-sm shrink-0">
+                              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-100 to-blue-50 flex items-center justify-center text-[var(--crm-accent)] font-bold text-sm ring-1 ring-white shadow-sm shrink-0">
                                 {member.name ? member.name.charAt(0) : member.email.charAt(0).toUpperCase()}
                               </div>
                               <div className="min-w-0">
@@ -393,7 +393,7 @@ export default function TeamManagementPage() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-48 rounded-xl border-[var(--crm-border)] shadow-xl bg-[var(--crm-surface-1)] p-1">
                                 <DropdownMenuLabel className="font-bold text-xs uppercase tracking-wider text-[var(--crm-text-secondary)] px-2 py-1.5">Manage Member</DropdownMenuLabel>
-                                <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
+                                <DropdownMenuSeparator className="bg-[var(--crm-surface-3)]" />
                                 <DropdownMenuItem 
                                   className="cursor-pointer font-medium py-2 px-2.5 focus:bg-[var(--crm-surface-hover)] rounded-lg text-[var(--crm-text-primary)]"
                                   onClick={() => {
@@ -401,18 +401,18 @@ export default function TeamManagementPage() {
                                     setIsEditModalOpen(true)
                                   }}
                                 >
-                                  <Edit className="mr-2 h-4 w-4 text-slate-400" /> Edit Role
+                                  <Edit className="mr-2 h-4 w-4 text-[var(--crm-text-secondary)]" /> Edit Role
                                 </DropdownMenuItem>
                                 {member.status === 'Invited' && (
                                   <DropdownMenuItem 
-                                    className="cursor-pointer font-medium py-2 px-2.5 focus:bg-[var(--crm-surface-hover)] rounded-lg text-indigo-600 dark:text-indigo-400 mt-1"
+                                    className="cursor-pointer font-medium py-2 px-2.5 focus:bg-[var(--crm-surface-hover)] rounded-lg text-[var(--crm-accent)] mt-1"
                                     onClick={() => handleResendInvite(member.id)}
                                   >
                                     <Mail className="mr-2 h-4 w-4" /> Resend Invite
                                   </DropdownMenuItem>
                                 )}
                                 <DropdownMenuItem 
-                                  className="cursor-pointer font-medium py-2 px-2.5 text-red-600 focus:bg-red-50 dark:focus:bg-red-950/30 focus:text-red-600 rounded-lg mt-1"
+                                  className="cursor-pointer font-medium py-2 px-2.5 text-red-600 focus:bg-red-50:bg-red-950/30 focus:text-red-600 rounded-lg mt-1"
                                   onClick={() => handleDelete(member.id)}
                                 >
                                   <Trash2 className="mr-2 h-4 w-4" /> Remove User
@@ -448,7 +448,7 @@ export default function TeamManagementPage() {
                       <TableHead className="font-bold text-[var(--crm-text-primary)] py-4 pl-6">Feature / Access</TableHead>
                       <TableHead className="text-center font-bold text-purple-600">Admin</TableHead>
                       <TableHead className="text-center font-bold text-amber-500">Manager</TableHead>
-                      <TableHead className="text-center font-bold text-blue-500">Agent</TableHead>
+                      <TableHead className="text-center font-bold text-primary">Agent</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -474,7 +474,7 @@ export default function TeamManagementPage() {
               </CardContent>
               <CardFooter className="bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)] p-6">
                 <div className="flex items-start gap-3">
-                  <Info className="h-5 w-5 text-indigo-500 shrink-0 mt-0.5" />
+                  <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   <p className="text-xs text-[var(--crm-text-secondary)] leading-relaxed font-medium">
                     Permissions are global and affect all members with the assigned role. Currently, custom role creation is limited to enterprise plans. 
                     Contact support to learn more about granular access control.
@@ -489,18 +489,18 @@ export default function TeamManagementPage() {
                 { role: 'Manager', color: 'amber', shadow: 'amber', desc: 'Can manage leads and oversee agent performance.', icon: Star },
                 { role: 'Agent', color: 'blue', shadow: 'blue', desc: 'Dedicated to lead processing and chat interactions.', icon: User }
               ].map((role) => (
-                <Card key={role.role} className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] p-4 flex flex-col items-center text-center group hover:ring-indigo-500/50 transition-all duration-300">
+                <Card key={role.role} className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] p-4 flex flex-col items-center text-center group hover:ring-[var(--crm-accent)]/50 transition-all duration-300">
                   <div className={cn(
                     "h-10 w-10 rounded-xl flex items-center justify-center mb-3 transition-all duration-300",
-                    role.role === 'Admin' ? "bg-purple-50 text-purple-600 dark:bg-purple-900/20" : 
-                    role.role === 'Manager' ? "bg-amber-50 text-amber-600 dark:bg-amber-900/20" : 
-                    "bg-blue-50 text-blue-600 dark:bg-blue-900/20"
+                    role.role === 'Admin' ? "bg-purple-50 text-purple-600" : 
+                    role.role === 'Manager' ? "bg-amber-50 text-amber-600" : 
+                    "bg-blue-50 text-primary"
                   )}>
                     <role.icon className="h-5 w-5" />
                   </div>
                   <h4 className="font-bold text-[var(--crm-text-primary)] mb-1 text-sm">{role.role} Role</h4>
                   <p className="text-[10px] text-[var(--crm-text-secondary)] mb-4 flex-1 px-1">{role.desc}</p>
-                  <Button variant="outline" className="w-full rounded-lg font-bold text-[9px] uppercase tracking-wider h-8 border-[var(--crm-border)] group-hover:bg-slate-50 dark:group-hover:bg-slate-800 transition-colors">
+                  <Button variant="outline" className="w-full rounded-lg font-bold text-[9px] uppercase tracking-wider h-8 border-[var(--crm-border)] hover:bg-[var(--crm-surface-3)] transition-colors">
                     View Members
                   </Button>
                 </Card>
@@ -523,9 +523,9 @@ export default function TeamManagementPage() {
             </DialogHeader>
 
             {error && (
-              <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in duration-200">
-                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0" />
-                <p className="text-xs font-bold text-red-600 dark:text-red-400">{error}</p>
+              <div className="bg-red-50 border border-red-200 p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in duration-200">
+                <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
+                <p className="text-xs font-bold text-red-600">{error}</p>
               </div>
             )}
 
@@ -536,7 +536,7 @@ export default function TeamManagementPage() {
                   value={editingMember?.role} 
                   onValueChange={(v: Role) => setEditingMember(prev => prev ? {...prev, role: v} : null)}
                 >
-                  <SelectTrigger className="h-11 rounded-lg bg-slate-50 border-[var(--crm-border)]">
+                  <SelectTrigger className="h-11 rounded-lg bg-[var(--crm-surface-2)] border-[var(--crm-border)]">
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -560,7 +560,7 @@ export default function TeamManagementPage() {
                     </SelectItem>
                     <SelectItem value="Agent">
                       <div className="flex items-center">
-                        <User className="h-4 w-4 text-blue-500 mr-2" />
+                        <User className="h-4 w-4 text-primary mr-2" />
                         <div>
                           <p className="font-bold">Agent</p>
                           <p className="text-[10px] text-[var(--crm-text-secondary)]">Can only handle assigned leads and calls</p>

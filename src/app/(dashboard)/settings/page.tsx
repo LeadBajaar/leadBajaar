@@ -42,6 +42,13 @@ const SECTIONS: SettingsSection[] = [
 export default function SettingsPage() {
   const { user } = useUser()
   const [activeTab, setActiveTab] = useState('profile')
+
+  // Honor deep links like /settings?tab=billing (used by the dashboard's
+  // Renew button and SubscriptionGuard's renew flow).
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab')
+    if (tab && SECTIONS.some(s => s.id === tab)) setActiveTab(tab)
+  }, [])
   const [isSaving, setIsSaving] = useState(false)
   const [profileSettings, setProfileSettings] = useState({
     name: '',
@@ -343,7 +350,7 @@ export default function SettingsPage() {
 
   return (
     <RoleGuard allowedFeatures={['account_settings']}>
-      <div className="flex flex-col lg:flex-row h-full p-4 md:p-6 lg:p-8 gap-6 lg:gap-8 overflow-hidden bg-[var(--crm-bg)]">
+      <div className="flex flex-col lg:flex-row flex-1 gap-6 lg:gap-8">
 
       {/* ── Sidebar Navigation ── */}
       <div className="w-full lg:w-72 flex flex-col gap-4 lg:gap-6 shrink-0">
@@ -368,7 +375,7 @@ export default function SettingsPage() {
                 "h-10 w-10 shrink-0 rounded-xl flex items-center justify-center transition-colors",
                 activeTab === section.id
                   ? "bg-[var(--crm-blue)] text-white shadow-lg shadow-[var(--crm-blue)]/30"
-                  : "bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] group-hover:bg-slate-200"
+                  : "bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] group-hover:bg-[var(--crm-surface-3)]"
               )}>
                 <section.icon className="h-5 w-5" />
               </div>
@@ -422,7 +429,7 @@ export default function SettingsPage() {
                   <div className="relative group shrink-0">
                     <Avatar className="h-24 w-24 lg:h-28 lg:w-28 ring-4 ring-[var(--crm-surface-2)] shadow-xl">
                       <AvatarImage src={imagePreview || undefined} />
-                      <AvatarFallback className="text-2xl font-bold bg-slate-50 dark:bg-slate-800">
+                      <AvatarFallback className="text-2xl font-bold bg-[var(--crm-surface-2)]">
                         {profileSettings.name.split(' ').filter(Boolean).map(n => n[0].toUpperCase()).join('') || 'U'}
                       </AvatarFallback>
                     </Avatar>
@@ -430,7 +437,7 @@ export default function SettingsPage() {
                       onClick={() => fileInputRef.current?.click()}
                       className="absolute inset-0 bg-black/40 rounded-full opacity-100 lg:opacity-0 lg:group-hover:opacity-100 flex items-center justify-center transition-all cursor-pointer backdrop-blur-[2px]"
                     >
-                      <div className="bg-white/20 p-2 rounded-full border border-white/40">
+                      <div className="bg-[var(--crm-surface-1)]/20 p-2 rounded-full border border-white/40">
                         <Camera className="h-5 w-5 text-white" />
                       </div>
                     </button>
@@ -585,7 +592,7 @@ export default function SettingsPage() {
                 <div className="space-y-6">
                   <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-[var(--crm-surface-1)] border border-[var(--crm-border)]">
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 flex items-center justify-center bg-[var(--crm-surface-1)] border border-slate-200 dark:border-slate-700 rounded-xl">
+                      <div className="h-10 w-10 flex items-center justify-center bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl">
                         <Lock className="h-5 w-5 text-[var(--crm-blue)]" />
                       </div>
                       <div>
@@ -598,7 +605,7 @@ export default function SettingsPage() {
 
                   <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-[var(--crm-surface-1)] border border-[var(--crm-border)]">
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 flex items-center justify-center bg-[var(--crm-surface-1)] border border-slate-200 dark:border-slate-700 rounded-xl">
+                      <div className="h-10 w-10 flex items-center justify-center bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl">
                         <Shield className="h-5 w-5 text-emerald-500" />
                       </div>
                       <div>
@@ -629,7 +636,7 @@ export default function SettingsPage() {
                         <p className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider mb-1">Current Plan</p>
                         <h3 className="text-2xl font-bold text-[var(--crm-text-primary)] capitalize flex items-center gap-2">
                           {user?.company?.plan || 'Free'} Plan
-                          <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20">
+                          <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-600 border-emerald-200">
                             {user?.company?.status || 'Active'}
                           </Badge>
                         </h3>
@@ -685,7 +692,7 @@ export default function SettingsPage() {
                         <div className="flex justify-end pt-2 border-t border-[var(--crm-border)]">
                           <div className="text-right text-sm">
                             <p className="text-[var(--crm-text-secondary)] line-through">Subtotal: ₹{appliedCoupon.original_amount}</p>
-                            <p className="text-emerald-600 dark:text-emerald-400 font-semibold text-xs mb-1">
+                            <p className="text-emerald-600 font-semibold text-xs mb-1">
                               Coupon {appliedCoupon.code} applied (-₹{appliedCoupon.discount_amount})
                             </p>
                             <p className="font-bold text-lg text-[var(--crm-text-primary)]">Total: ₹{appliedCoupon.final_amount}</p>

@@ -112,7 +112,7 @@ export default function ChurnPage() {
         <Card>
           <CardContent className="pt-5">
             <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-2">Recoverable</p>
-            <p className="text-2xl font-bold text-blue-600">{fmt(win_back?.reduce((s: number, c: any) => s + (c.monthly_value || 0), 0))}</p>
+            <p className="text-2xl font-bold text-primary">{fmt(win_back?.reduce((s: number, c: any) => s + (c.monthly_value || 0), 0))}</p>
             <p className="text-[10px] text-muted-foreground mt-1">Churned in last 30 days</p>
           </CardContent>
         </Card>
@@ -141,7 +141,7 @@ export default function ChurnPage() {
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <Button size="icon" variant="ghost" className="h-8 w-8 text-indigo-600" asChild>
+                    <Button size="icon" variant="ghost" className="h-8 w-8 text-primary" asChild>
                       <a href={`mailto:${comp.owner?.email}`} title="Email Customer"><Mail className="h-4 w-4" /></a>
                     </Button>
                     <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600" title="Contact Support">
@@ -158,7 +158,7 @@ export default function ChurnPage() {
         <Card>
           <CardHeader className="pb-3 border-b bg-muted/20">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <RefreshCw className="h-4 w-4 text-indigo-500" />
+              <RefreshCw className="h-4 w-4 text-primary" />
               Win-Back Opportunities (Recent Churn)
             </CardTitle>
           </CardHeader>
@@ -172,7 +172,7 @@ export default function ChurnPage() {
                     <p className="text-sm font-bold">{log.company?.name}</p>
                     <p className="text-[10px] text-muted-foreground">Churned on {log.churned_at} • Reason: <span className="capitalize">{log.reason?.replace('_',' ')}</span></p>
                   </div>
-                  <Badge variant="outline" className="text-[10px] border-indigo-200 text-indigo-600 bg-indigo-50">
+                  <Badge variant="outline" className="text-[10px] border-primary/20 text-primary bg-primary/10">
                     Recover {fmt(log.monthly_value)}
                   </Badge>
                 </div>

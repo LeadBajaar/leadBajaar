@@ -94,21 +94,14 @@ export default function EmailMarketingPage() {
   }
 
   return (
-    <div className="absolute inset-0 flex flex-col bg-[var(--crm-bg)] z-10 overflow-hidden">
+    <div className="flex flex-col flex-1 gap-4 sm:gap-5">
       {/* ── Header ────────────────────────────────────────────────────────────── */}
-      <div className="shrink-0 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
-        <div className="flex items-center gap-4 p-6">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-8 w-8 rounded-[8px] text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-3)]"
-            onClick={() => router.push('/integrations')}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+      <div className="shrink-0">
+        <div className="flex items-center gap-4">
+          
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
-              <Mail className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+            <div className="h-10 w-10 rounded-lg bg-primary/10 dark:bg-indigo-900/20 flex items-center justify-center">
+              <Mail className="h-5 w-5 text-primary dark:text-indigo-400" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-[var(--crm-text-primary)]">Email Integration</h1>
@@ -121,8 +114,8 @@ export default function EmailMarketingPage() {
       </div>
 
       {/* ── Content ──────────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className="w-full">
+        <div className="w-full space-y-6">
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-2xl p-6 shadow-sm">
             

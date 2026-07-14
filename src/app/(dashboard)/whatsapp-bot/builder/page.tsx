@@ -92,7 +92,7 @@ const MessageNode = ({ data }: { data: FlowNodeData }) => {
   return (
     <div className="relative group">
       {/* Handles for State Connectivity */}
-      <Handle type="target" position={Position.Top} className={`w-2 h-2 border-2 border-slate-900 ${isRoot ? 'hidden' : 'bg-indigo-500'}`} />
+      <Handle type="target" position={Position.Top} className={`w-2 h-2 border-2 border-slate-900 ${isRoot ? 'hidden' : 'bg-primary/100'}`} />
       
       {/* Node Glow Effect */}
       <div className={`absolute -inset-0.5 bg-gradient-to-r rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200 ${isRoot ? 'from-emerald-500 to-teal-500' : 'from-indigo-500 to-purple-600'}`}></div>
@@ -100,7 +100,7 @@ const MessageNode = ({ data }: { data: FlowNodeData }) => {
       <div className={`relative px-4 py-3 bg-slate-900 border rounded-xl min-w-[220px] shadow-2xl ${isRoot ? 'border-emerald-500/50' : 'border-slate-800'}`}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
-            <div className={`p-1.5 rounded-lg ${isRoot ? 'bg-emerald-500/10' : 'bg-indigo-500/10'}`}>
+            <div className={`p-1.5 rounded-lg ${isRoot ? 'bg-emerald-500/10' : 'bg-primary/10'}`}>
               {isRoot ? <Zap className="w-4 h-4 text-emerald-400" /> : <MessageCircle className="w-4 h-4 text-indigo-400" />}
             </div>
             <span className={`text-[10px] uppercase font-black tracking-widest ${isRoot ? 'text-emerald-500' : 'text-slate-500'}`}>
@@ -129,7 +129,7 @@ const MessageNode = ({ data }: { data: FlowNodeData }) => {
           
           <div className="flex items-center space-x-1 pt-1 justify-between">
              <div className="flex items-center space-x-1">
-               <div className={`text-[8px] px-1.5 py-0.5 rounded border ${isRoot ? 'bg-emerald-900/30 text-emerald-300 border-emerald-500/20' : 'bg-indigo-900/30 text-indigo-300 border-indigo-500/20'}`}>
+               <div className={`text-[8px] px-1.5 py-0.5 rounded border ${isRoot ? 'bg-emerald-900/30 text-emerald-300 border-emerald-500/20' : 'bg-indigo-900/30 text-indigo-300 border-primary/20'}`}>
                  {data.required_state}
                </div>
                <ChevronRight className="w-2 h-2 text-slate-600" />
@@ -387,7 +387,7 @@ export default function FlowBuilderPage() {
           </Button>
           <div>
             <h1 className="text-lg font-black text-white flex items-center tracking-tight">
-              Visual Flow Builder <Badge className="ml-2 bg-indigo-500/20 text-indigo-400 border-none px-2 py-0">PRO</Badge>
+              Visual Flow Builder <Badge className="ml-2 bg-primary/20 text-indigo-400 border-none px-2 py-0">PRO</Badge>
             </h1>
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest opacity-80">WhatsApp Instance: {userId}</p>
           </div>
@@ -398,7 +398,7 @@ export default function FlowBuilderPage() {
             <Activity className="w-3.5 h-3.5 text-emerald-500 mr-2" />
             <span className="text-xs font-semibold text-slate-300">Live Sync Active</span>
           </div>
-          <Button onClick={saveLayout} className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 shadow-indigo-500/20 shadow-lg rounded-xl h-9">
+          <Button onClick={saveLayout} className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 shadow-primary/20 shadow-lg rounded-xl h-9">
             <Save className="w-4 h-4 mr-2" /> Save Changes
           </Button>
         </div>
@@ -446,7 +446,7 @@ export default function FlowBuilderPage() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="h-20 flex-col bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20 text-indigo-400 font-black hover:text-indigo-300"
+                  className="h-20 flex-col bg-primary/10 border-primary/30 hover:bg-primary/20 text-indigo-400 font-black hover:text-indigo-300"
                   onClick={() => onAddNode('step')}
                 >
                   <MessageCircle className="w-6 h-6 mb-2" />
@@ -459,7 +459,7 @@ export default function FlowBuilderPage() {
               <h3 className="text-xs font-black text-indigo-400 mb-3 uppercase tracking-widest">Guide</h3>
               <ul className="text-[11px] space-y-2 text-slate-300 font-medium">
                 <li className="flex items-center">
-                  <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full mr-2 shadow-[0_0_8px_rgba(99,102,241,0.5)]" /> Drag to position
+                  <div className="w-1.5 h-1.5 bg-primary/100 rounded-full mr-2 shadow-[0_0_8px_rgba(99,102,241,0.5)]" /> Drag to position
                 </li>
                 <li className="flex items-center">
                   <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-2 shadow-[0_0_8px_rgba(16,185,129,0.5)]" /> Connect sources to targets
@@ -483,8 +483,8 @@ export default function FlowBuilderPage() {
                   <Zap className="w-5 h-5 text-emerald-500" />
                 </div>
               ) : (
-                <div className="p-1.5 bg-indigo-500/10 rounded-lg mr-2">
-                  <MessageCircle className="w-5 h-5 text-indigo-500" />
+                <div className="p-1.5 bg-primary/10 rounded-lg mr-2">
+                  <MessageCircle className="w-5 h-5 text-primary" />
                 </div>
               )}
               {formData.required_state === 'START' ? 'New Entry Trigger' : 'Sequence Step Settings'}
@@ -536,10 +536,10 @@ export default function FlowBuilderPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
-                    <SelectItem value="contains" className="focus:bg-indigo-600 focus:text-white">Contains</SelectItem>
-                    <SelectItem value="exact" className="focus:bg-indigo-600 focus:text-white">Exact</SelectItem>
-                    <SelectItem value="starts_with" className="focus:bg-indigo-600 focus:text-white">Starts With</SelectItem>
-                    <SelectItem value="wildcard" className="focus:bg-indigo-600 focus:text-white">Wildcard</SelectItem>
+                    <SelectItem value="contains" className="focus:bg-primary focus:text-white">Contains</SelectItem>
+                    <SelectItem value="exact" className="focus:bg-primary focus:text-white">Exact</SelectItem>
+                    <SelectItem value="starts_with" className="focus:bg-primary focus:text-white">Starts With</SelectItem>
+                    <SelectItem value="wildcard" className="focus:bg-primary focus:text-white">Wildcard</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -556,11 +556,11 @@ export default function FlowBuilderPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
-                    <SelectItem value="none" className="focus:bg-indigo-600 focus:text-white">None (Text Only)</SelectItem>
-                    <SelectItem value="image" className="focus:bg-indigo-600 focus:text-white">Image</SelectItem>
-                    <SelectItem value="video" className="focus:bg-indigo-600 focus:text-white">Video</SelectItem>
-                    <SelectItem value="audio" className="focus:bg-indigo-600 focus:text-white">Audio/Voice</SelectItem>
-                    <SelectItem value="document" className="focus:bg-indigo-600 focus:text-white">Document (PDF)</SelectItem>
+                    <SelectItem value="none" className="focus:bg-primary focus:text-white">None (Text Only)</SelectItem>
+                    <SelectItem value="image" className="focus:bg-primary focus:text-white">Image</SelectItem>
+                    <SelectItem value="video" className="focus:bg-primary focus:text-white">Video</SelectItem>
+                    <SelectItem value="audio" className="focus:bg-primary focus:text-white">Audio/Voice</SelectItem>
+                    <SelectItem value="document" className="focus:bg-primary focus:text-white">Document (PDF)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -622,7 +622,7 @@ export default function FlowBuilderPage() {
               <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="hover:bg-slate-800">
                 Cancel
               </Button>
-              <Button onClick={handleSaveFlow} className="bg-indigo-600 hover:bg-indigo-700">
+              <Button onClick={handleSaveFlow} className="bg-primary hover:bg-primary/90">
                 {editingFlow ? 'Update Node' : 'Save Node'}
               </Button>
             </div>

@@ -197,7 +197,7 @@ export function Sidebar({ mobileOpen, setMobileOpen, isCollapsed = false, setIsC
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        <div className="sidebar-top relative flex h-[60px] items-center px-4 border-b border-[var(--crm-border)] shrink-0">
+        <div className="sidebar-top relative flex h-[56px] items-center px-4 border-b border-[var(--crm-border)] shrink-0">
           {!isCollapsed && (
             <div className="flex items-center gap-2 overflow-hidden whitespace-nowrap w-full">
               <img src="/logo-sm.png" alt="LeadBajaar" className="h-7 w-auto object-contain shrink-0" />
@@ -214,9 +214,9 @@ export function Sidebar({ mobileOpen, setMobileOpen, isCollapsed = false, setIsC
               onClick={() => setIsCollapsed(!isCollapsed)}
               className={cn(
                 "hidden lg:flex items-center justify-center text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-3)] hover:text-[var(--crm-text-primary)] transition-colors shrink-0",
-                isCollapsed 
-                  ? "absolute -right-3 top-1/2 -translate-y-1/2 bg-[var(--crm-surface-1)] border border-[var(--crm-border)] shadow-sm rounded-full w-6 h-6 z-50" 
-                  : "ml-auto w-6 h-6 rounded-[var(--crm-r-sm)]"
+                isCollapsed
+                  ? "absolute -right-3 top-1/2 -translate-y-1/2 bg-[var(--crm-surface-1)] border border-[var(--crm-border)] shadow-sm rounded-full w-6 h-6 z-50"
+                  : "ml-auto w-6 h-6 rounded-[var(--r-sm)]"
               )}
             >
               <i className={cn("ti", isCollapsed ? "ti-chevron-right text-[12px]" : "ti-layout-sidebar-right-collapse text-lg")} />
@@ -250,11 +250,11 @@ export function Sidebar({ mobileOpen, setMobileOpen, isCollapsed = false, setIsC
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "group flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[13px] font-medium transition-all duration-150",
+                    "group flex items-center gap-2.5 px-2 py-1.5 rounded-[var(--r-md)] text-[13px] font-medium transition-all duration-150",
                     isCollapsed ? "justify-center" : "",
-                    isActive 
-                      ? "bg-[var(--crm-sidebar-active)] text-[var(--crm-text-primary)] font-semibold shadow-sm ring-1 ring-[var(--crm-border)]" 
-                      : "text-[var(--crm-text-primary)] hover:bg-[var(--crm-sidebar-active)]"
+                    isActive
+                      ? "bg-[var(--crm-sidebar-active)] text-[var(--crm-text-primary)] font-semibold shadow-sm ring-1 ring-[var(--crm-border)]"
+                      : "text-[var(--crm-text-primary)] hover:bg-[var(--crm-sidebar-active)] hover:text-[var(--crm-text-primary)]"
                   )}
                   title={isCollapsed ? item.name : undefined}
                 >
@@ -304,15 +304,15 @@ export function Sidebar({ mobileOpen, setMobileOpen, isCollapsed = false, setIsC
             <i className="ti ti-logout text-[16px] text-red-500 opacity-70 shrink-0" />
             {!isCollapsed && <span>Logout</span>}
           </button>
-          <div 
+          <div
             className={cn(
-              "mt-2 flex items-center gap-2 py-1.5 cursor-pointer hover:bg-[var(--crm-sidebar-hover)] rounded-[var(--crm-r-md)]",
+              "mt-2 flex items-center gap-2 py-1.5 cursor-pointer hover:bg-[var(--crm-sidebar-hover)] rounded-[var(--r-md)]",
               isCollapsed ? "justify-center px-0" : "px-2"
             )}
             onClick={() => router.push('/settings')}
             title={isCollapsed ? user?.name || 'User' : undefined}
           >
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--crm-r-sm)] bg-[var(--crm-surface-active)] text-[10px] font-bold text-[var(--crm-text-primary)] border border-[var(--crm-border)]">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--r-sm)] bg-[var(--crm-accent-soft)] text-[10px] font-bold text-[var(--crm-accent)]">
               {user?.name?.[0]?.toUpperCase() || 'U'}
             </div>
             {!isCollapsed && (

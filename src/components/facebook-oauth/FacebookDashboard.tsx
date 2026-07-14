@@ -1274,7 +1274,7 @@ export function FacebookDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-[var(--crm-border)] mb-4 mt-2">
         <div className="flex items-center gap-2">
           <span className="text-[14px] font-medium text-[var(--crm-text-primary)]">Meta Business Suite</span>
-          <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest leading-none h-[18px] flex items-center">AGENCY PRO</span>
+          <span className="bg-blue-50 text-primary px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest leading-none h-[18px] flex items-center">AGENCY PRO</span>
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
@@ -1328,32 +1328,32 @@ export function FacebookDashboard() {
       <Tabs defaultValue="pages" className="w-full">
         <div className="border-b border-[var(--crm-border)] mb-4 overflow-x-auto scrollbar-hide">
           <TabsList className="flex h-auto w-max bg-transparent p-0 gap-2">
-            <TabsTrigger value="pages" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+            <TabsTrigger value="pages" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
               <Globe className="h-3.5 w-3.5" />
               <span>Pages & Leads</span>
             </TabsTrigger>
             {process.env.NEXT_PUBLIC_FEATURE_ADS === 'true' && (
               <>
-                <TabsTrigger value="ads" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+                <TabsTrigger value="ads" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
                   <TrendingUp className="h-3.5 w-3.5" />
                   <span>Ads Manager</span>
                 </TabsTrigger>
-                <TabsTrigger value="creatives" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+                <TabsTrigger value="creatives" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
                   <FileText className="h-3.5 w-3.5" />
                   <span>Ad Creatives</span>
                 </TabsTrigger>
-                <TabsTrigger value="templates" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+                <TabsTrigger value="templates" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
                   <BarChart3 className="h-3.5 w-3.5" />
                   <span>Ad Templates</span>
                 </TabsTrigger>
-                <TabsTrigger value="roi" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+                <TabsTrigger value="roi" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
                   <TrendingUp className="h-3.5 w-3.5" />
                   <span>ROI Analytics</span>
                 </TabsTrigger>
               </>
             )}
             {process.env.NEXT_PUBLIC_FEATURE_PIXELS === 'true' && (
-              <TabsTrigger value="pixels" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+              <TabsTrigger value="pixels" className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] border-b-[1.5px] border-transparent rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
                 <Zap className="h-3.5 w-3.5" />
                 <span>Pixels / CAPI</span>
               </TabsTrigger>
@@ -1387,7 +1387,7 @@ export function FacebookDashboard() {
                             : `cursor-pointer ${selectedPage?.id === page.id ? 'bg-blue-50/50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800' : 'bg-[var(--crm-surface-2)] hover:bg-[var(--crm-surface-3)]'}`
                           }`}
                       >
-                        <div className="h-7 w-7 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center text-[12px] font-bold shrink-0">
+                        <div className="h-7 w-7 rounded-md bg-blue-100 text-primary flex items-center justify-center text-[12px] font-bold shrink-0">
                           {page.name.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -1402,7 +1402,7 @@ export function FacebookDashboard() {
                             <span className="truncate">ID: {page.id}</span>
                           </p>
                         </div>
-                        <ChevronRight className={`h-3.5 w-3.5 shrink-0 ${selectedPage?.id === page.id ? 'text-blue-500' : 'text-[var(--crm-text-tertiary)]'}`} />
+                        <ChevronRight className={`h-3.5 w-3.5 shrink-0 ${selectedPage?.id === page.id ? 'text-primary' : 'text-[var(--crm-text-tertiary)]'}`} />
                       </div>
                     );
                   })}
@@ -1426,7 +1426,7 @@ export function FacebookDashboard() {
                         {process.env.NEXT_PUBLIC_FEATURE_ADS === 'true' && (
                           <Dialog open={isCreateFormDialogOpen} onOpenChange={setIsCreateFormDialogOpen}>
                             <DialogTrigger asChild>
-                              <Button size="sm" className="h-7 text-[11px] px-3 bg-blue-600 hover:bg-blue-700">
+                              <Button size="sm" className="h-7 text-[11px] px-3 bg-primary hover:bg-primary/90">
                                 <Plus className="h-3 w-3 mr-1" />
                                 Create Form
                               </Button>
@@ -1462,7 +1462,7 @@ export function FacebookDashboard() {
                                 <Button
                                   onClick={handleCreateForm}
                                   disabled={isCreatingForm || !newFormName}
-                                  className="bg-blue-600 hover:bg-blue-700"
+                                  className="bg-primary hover:bg-primary/90"
                                 >
                                   {isCreatingForm ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                                   Launch Form
@@ -1481,7 +1481,7 @@ export function FacebookDashboard() {
                     <div className="p-2 space-y-2 overflow-y-auto">
                       {isLoadingForms ? (
                         <div className="flex flex-col items-center justify-center py-10 space-y-3">
-                          <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+                          <Loader2 className="h-5 w-5 animate-spin text-primary" />
                           <p className="text-[12px] text-muted-foreground">Loading forms...</p>
                         </div>
                       ) : formsError ? (
@@ -1511,7 +1511,7 @@ export function FacebookDashboard() {
                               onCheckedChange={(checked) => handleTrackFormToggle(form, !!checked)}
                               className="w-4 h-4 rounded-sm border-gray-300"
                             />
-                            <FileText className="h-4 w-4 text-blue-500 shrink-0" />
+                            <FileText className="h-4 w-4 text-primary shrink-0" />
                             <div className="flex-1 min-w-[150px]">
                               <label htmlFor={`track-form-${form.id}`} className="text-[12px] font-medium text-[var(--crm-text-primary)] cursor-pointer truncate block">{form.name}</label>
                               <p className="text-[10px] text-[var(--crm-text-tertiary)] flex items-center gap-1 mt-0.5">
@@ -1560,7 +1560,7 @@ export function FacebookDashboard() {
             {/* Data Privacy & Compliance Section (Strongly recommended for Meta verification) */}
             <div className="mt-8 space-y-4">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-blue-600" />
+                <ShieldCheck className="h-5 w-5 text-primary" />
                 <h3 className="text-lg font-bold">Data Privacy & Compliance</h3>
               </div>
               <Card className="border-none shadow-sm bg-blue-50/30 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
@@ -1570,7 +1570,7 @@ export function FacebookDashboard() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="bg-indigo-50/50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 h-9 px-4 font-bold rounded-xl"
+                        className="bg-primary/5 border-primary/20 text-primary hover:bg-primary/20 h-9 px-4 font-bold rounded-xl"
                         onClick={handleRefreshStatus}
                       >
                         <RefreshCw className={cn("h-3.5 w-3.5 mr-2", isSyncingAssets && "animate-spin")} />
@@ -1625,7 +1625,7 @@ export function FacebookDashboard() {
                 {/* Header / Account Selector Row - Global for this tab */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 p-3.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-3.5">
-                    <div className="h-10 w-10 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-600 shadow-inner shrink-0">
+                    <div className="h-10 w-10 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-primary shadow-inner shrink-0">
                       <Briefcase className="h-5 w-5" />
                     </div>
                     <div className="min-w-0">
@@ -1648,7 +1648,7 @@ export function FacebookDashboard() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
                         <DropdownMenuItem className="py-2.5 font-bold cursor-pointer" onClick={() => selectedAdAccount ? setIsCreateCampaignDialogOpen(true) : toast.info("Select Account", { description: "Please select an ad account first." })}>
-                          <Layout className="h-4 w-4 mr-2 text-blue-500" /> New Campaign
+                          <Layout className="h-4 w-4 mr-2 text-primary" /> New Campaign
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="py-2.5 font-bold cursor-pointer"
@@ -1694,7 +1694,7 @@ export function FacebookDashboard() {
                             setIsCreateAudienceDialogOpen(true);
                           }}
                         >
-                          <Users className="h-4 w-4 mr-2 text-blue-600" /> New Audience
+                          <Users className="h-4 w-4 mr-2 text-primary" /> New Audience
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -1705,10 +1705,10 @@ export function FacebookDashboard() {
                           variant="outline"
                           role="combobox"
                           aria-expanded={isAdAccountOpen}
-                          className="w-full md:w-[320px] justify-between h-10 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold rounded-xl shadow-sm hover:border-blue-500 hover:ring-4 hover:ring-blue-500/10 transition-all group"
+                          className="w-full md:w-[320px] justify-between h-10 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold rounded-xl shadow-sm hover:border-primary hover:ring-4 hover:ring-blue-500/10 transition-all group"
                         >
                           <div className="flex items-center gap-2 overflow-hidden">
-                            <Search className="h-4 w-4 text-slate-400 shrink-0 group-hover:text-blue-500 transition-colors" />
+                            <Search className="h-4 w-4 text-slate-400 shrink-0 group-hover:text-primary transition-colors" />
                             <span className="truncate">{selectedAdAccount ? selectedAdAccount.name : "Select Ad Account..."}</span>
                           </div>
                           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -1753,14 +1753,14 @@ export function FacebookDashboard() {
                                     className={`w-full flex items-start gap-3 p-3 text-left rounded-xl transition-all bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800/80 group ${selectedAdAccount?.id === acc.id ? 'bg-blue-50 dark:bg-blue-900/30' : ''} ${acc.account_status !== 1 ? 'opacity-60' : ''}`}
                                   >
                                     <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-white dark:group-hover:bg-slate-700 transition-colors">
-                                      <Briefcase className={`h-4 w-4 ${selectedAdAccount?.id === acc.id ? 'text-blue-500' : 'text-slate-400'}`} />
+                                      <Briefcase className={`h-4 w-4 ${selectedAdAccount?.id === acc.id ? 'text-primary' : 'text-slate-400'}`} />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-center justify-between mb-0.5">
                                         <span className="font-bold text-sm truncate uppercase tracking-tight">{acc.name}</span>
                                         <div className="flex items-center gap-1.5 shrink-0">
                                           <Badge className={`text-[9px] px-1.5 h-4 leading-none border-0 ${accStatus.color}`}>{accStatus.text}</Badge>
-                                          {selectedAdAccount?.id === acc.id && <Check className="h-3.5 w-3.5 text-blue-500" />}
+                                          {selectedAdAccount?.id === acc.id && <Check className="h-3.5 w-3.5 text-primary" />}
                                         </div>
                                       </div>
                                       <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest opacity-70">
@@ -1787,7 +1787,7 @@ export function FacebookDashboard() {
                   <div className="flex flex-col h-full bg-[#f0f2f5] dark:bg-slate-950 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
                     {/* Insights Summary Cards */}
                     <div className="p-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
-                      <div className="min-w-[140px] flex-1 bg-blue-600 p-2.5 rounded-xl text-white shadow-sm transition-all hover:bg-blue-700">
+                      <div className="min-w-[140px] flex-1 bg-primary p-2.5 rounded-xl text-white shadow-sm transition-all hover:bg-primary/90">
                         <p className="text-[9px] opacity-80 uppercase font-black tracking-widest leading-none mb-1">Spend (30d)</p>
                         <h3 className="text-sm font-black truncate">
                           {selectedAdAccount.currency} {insights.reduce((sum, i) => sum + parseFloat(i.spend || '0'), 0).toFixed(2)}
@@ -1827,7 +1827,7 @@ export function FacebookDashboard() {
                         </span>
                         <div className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800 mx-1" />
                         <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 cursor-pointer transition-colors group">
-                          <div className="h-5 w-5 bg-blue-100 dark:bg-blue-900/30 rounded flex items-center justify-center text-blue-600 font-bold text-[10px]">
+                          <div className="h-5 w-5 bg-blue-100 dark:bg-blue-900/30 rounded flex items-center justify-center text-primary font-bold text-[10px]">
                             {selectedAdAccount.name.charAt(0)}
                           </div>
                           <span className="text-xs font-medium text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white">
@@ -1845,10 +1845,10 @@ export function FacebookDashboard() {
                           <button
                             onClick={handleDeepSyncAccount}
                             disabled={isDeepSyncing}
-                            className={`p-1 bg-white border border-slate-200 shadow-sm hover:bg-blue-50 dark:hover:bg-slate-800 rounded transition-all ${isDeepSyncing ? 'animate-spin border-blue-500 text-blue-500' : ''}`}
+                            className={`p-1 bg-white border border-slate-200 shadow-sm hover:bg-blue-50 dark:hover:bg-slate-800 rounded transition-all ${isDeepSyncing ? 'animate-spin border-primary text-primary' : ''}`}
                             title="Deep Sync (Reports & Metrics)"
                           >
-                            <Zap className={`h-3 w-3 ${isDeepSyncing ? 'text-blue-500' : ''}`} />
+                            <Zap className={`h-3 w-3 ${isDeepSyncing ? 'text-primary' : ''}`} />
                           </button>
                         </div>
                         <Button size="sm" variant="outline" className="h-8 text-xs font-bold bg-[#e4e6eb] dark:bg-slate-800 border-none hover:bg-slate-200 dark:hover:bg-slate-700">
@@ -1862,7 +1862,7 @@ export function FacebookDashboard() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setResourceFilter('all')}
-                        className={`h-8 px-3 text-xs font-bold transition-all ${resourceFilter === 'all' ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        className={`h-8 px-3 text-xs font-bold transition-all ${resourceFilter === 'all' ? 'text-primary bg-blue-50 dark:bg-blue-900/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                       >
                         <div className="flex items-center gap-2">
                           <List className="h-3.5 w-3.5" /> All ads
@@ -1877,7 +1877,7 @@ export function FacebookDashboard() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="w-48 p-2 rounded-xl">
                           <DropdownMenuItem className="py-2.5 font-bold cursor-pointer" onClick={() => loadCampaigns(selectedAdAccount.id, true)}>
-                            <RefreshCw className="h-4 w-4 mr-2 text-blue-500" /> Refresh Current View
+                            <RefreshCw className="h-4 w-4 mr-2 text-primary" /> Refresh Current View
                           </DropdownMenuItem>
                           <DropdownMenuItem className="py-2.5 font-bold cursor-pointer" onClick={handleDeepSyncAccount}>
                             <Zap className="h-4 w-4 mr-2 text-amber-500" /> Account Deep Sync
@@ -1914,7 +1914,7 @@ export function FacebookDashboard() {
                     <div className="flex items-center bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-1">
                       <button
                         onClick={() => setActiveInnerTab('campaigns')}
-                        className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'campaigns' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'campaigns' ? 'text-primary border-b-2 border-primary bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                       >
                         <div className="flex items-center gap-2">
                           <Layout className="h-4 w-4" /> Campaigns
@@ -1922,7 +1922,7 @@ export function FacebookDashboard() {
                       </button>
                       <button
                         onClick={() => setActiveInnerTab('ad_sets')}
-                        className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'ad_sets' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'ad_sets' ? 'text-primary border-b-2 border-primary bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                       >
                         <div className="flex items-center gap-2">
                           <Layers className="h-4 w-4" /> Ad sets
@@ -1930,7 +1930,7 @@ export function FacebookDashboard() {
                       </button>
                       <button
                         onClick={() => setActiveInnerTab('ads')}
-                        className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'ads' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'ads' ? 'text-primary border-b-2 border-primary bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                       >
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4" /> Ads
@@ -1949,7 +1949,7 @@ export function FacebookDashboard() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="start" className="w-48 p-2 rounded-xl">
                             <DropdownMenuItem className="py-2 font-bold cursor-pointer" onClick={() => setIsCreateCampaignDialogOpen(true)}>
-                              <Layout className="h-4 w-4 mr-2 text-blue-500" /> Create Campaign
+                              <Layout className="h-4 w-4 mr-2 text-primary" /> Create Campaign
                             </DropdownMenuItem>
                             <DropdownMenuItem className="py-2 font-bold cursor-pointer" onClick={() => selectedCampaign ? setIsCreateAdSetDialogOpen(true) : toast.info("Select Campaign", { description: "Please select a campaign first." })}>
                               <Layers className="h-4 w-4 mr-2 text-purple-500" /> Create Ad Set
@@ -1958,7 +1958,7 @@ export function FacebookDashboard() {
                               <FileText className="h-4 w-4 mr-2 text-green-500" /> Create Ad
                             </DropdownMenuItem>
                             <DropdownMenuItem className="py-2 font-bold cursor-pointer border-t border-slate-100 mt-1 dark:border-slate-800" onClick={() => setIsCreateAudienceDialogOpen(true)}>
-                              <Users className="h-4 w-4 mr-2 text-blue-600" /> New Audience
+                              <Users className="h-4 w-4 mr-2 text-primary" /> New Audience
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -2017,7 +2017,7 @@ export function FacebookDashboard() {
                             {isLoadingAds ? (
                               <TableRow>
                                 <TableCell colSpan={9} className="h-64 text-center">
-                                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500 opacity-20 mb-2" />
+                                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary opacity-20 mb-2" />
                                   <span className="text-xs font-medium text-slate-400">Loading campaigns...</span>
                                 </TableCell>
                               </TableRow>
@@ -2038,7 +2038,7 @@ export function FacebookDashboard() {
                                       </TableCell>
                                       <TableCell>
                                         <div
-                                          className="font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer truncate max-w-[250px] transition-colors"
+                                          className="font-bold text-primary hover:text-blue-700 hover:underline cursor-pointer truncate max-w-[250px] transition-colors"
                                           onClick={() => {
                                             loadAdSets(camp);
                                             setActiveInnerTab('ad_sets');
@@ -2075,7 +2075,7 @@ export function FacebookDashboard() {
                                       <TableCell className="text-center">
                                         <div className="flex items-center justify-center gap-1 transition-opacity">
                                           <button
-                                            className="p-1.5 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-full text-blue-600 transition-colors"
+                                            className="p-1.5 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-full text-primary transition-colors"
                                             onClick={() => {
                                               setSelectedCampaign(camp);
                                               setIsCreateAdSetDialogOpen(true);
@@ -2148,7 +2148,7 @@ export function FacebookDashboard() {
                             {isLoadingAdSets ? (
                               <TableRow>
                                 <TableCell colSpan={8} className="h-64 text-center">
-                                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500 opacity-20 mb-2" />
+                                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary opacity-20 mb-2" />
                                   <span className="text-xs font-medium text-slate-400">Loading ad sets...</span>
                                 </TableCell>
                               </TableRow>
@@ -2167,7 +2167,7 @@ export function FacebookDashboard() {
                                     </TableCell>
                                     <TableCell>
                                       <div
-                                        className="font-bold text-blue-600 hover:underline cursor-pointer truncate max-w-[250px]"
+                                        className="font-bold text-primary hover:underline cursor-pointer truncate max-w-[250px]"
                                         onClick={() => {
                                           loadAds(set);
                                           setActiveInnerTab('ads');
@@ -2209,7 +2209,7 @@ export function FacebookDashboard() {
                                         <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => toast.info("Edit Ad Set", { description: "Audience editing coming soon." })} title="Edit">
                                           <Edit3 className="h-3.5 w-3.5" />
                                         </button>
-                                        <button className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-full text-blue-500 transition-colors" onClick={() => handleDuplicateObject(set.id, 'Ad Set')} title="Duplicate">
+                                        <button className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-full text-primary transition-colors" onClick={() => handleDuplicateObject(set.id, 'Ad Set')} title="Duplicate">
                                           <Copy className="h-3.5 w-3.5" />
                                         </button>
                                         <button className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/40 rounded-full text-red-500 transition-colors" onClick={() => handleDeleteObject(set.id, 'Ad Set')} title="Delete">
@@ -2269,7 +2269,7 @@ export function FacebookDashboard() {
                             {isLoadingSpecificAds ? (
                               <TableRow>
                                 <TableCell colSpan={8} className="h-64 text-center">
-                                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500 opacity-20 mb-2" />
+                                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary opacity-20 mb-2" />
                                   <span className="text-xs font-medium text-slate-400">Loading ads...</span>
                                 </TableCell>
                               </TableRow>
@@ -2305,7 +2305,7 @@ export function FacebookDashboard() {
                                         <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => toast.info("Edit Ad", { description: "Ad creative editing coming soon." })} title="Edit">
                                           <Edit3 className="h-3.5 w-3.5" />
                                         </button>
-                                        <button className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-full text-blue-500 transition-colors" onClick={() => handleDuplicateObject(ad.id, 'Ad')} title="Duplicate">
+                                        <button className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-full text-primary transition-colors" onClick={() => handleDuplicateObject(ad.id, 'Ad')} title="Duplicate">
                                           <Copy className="h-3.5 w-3.5" />
                                         </button>
                                         <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => window.open(`https://www.facebook.com/ads/manager/preview/display/?ad_id=${ad.id}`, '_blank')} title="Preview Ad">
@@ -2359,7 +2359,7 @@ export function FacebookDashboard() {
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="flex items-center gap-1.5"><Globe className="h-3 w-3" /> API Version v25.0</span>
-                        <span className="text-blue-600 cursor-pointer hover:underline">Facebook Ads Manager API</span>
+                        <span className="text-primary cursor-pointer hover:underline">Facebook Ads Manager API</span>
                       </div>
                     </div>
 
@@ -2368,7 +2368,7 @@ export function FacebookDashboard() {
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>
                           <DialogTitle className="flex items-center gap-2">
-                            <Layout className="h-5 w-5 text-blue-500" />
+                            <Layout className="h-5 w-5 text-primary" />
                             Launch New Campaign
                           </DialogTitle>
                           <DialogDescription>Create a lead generation campaign for "{selectedAdAccount?.name}".</DialogDescription>
@@ -2405,13 +2405,13 @@ export function FacebookDashboard() {
                               </div>
                             </div>
                           </div>
-                          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-[11px] text-blue-600 dark:text-blue-400 font-medium">
+                          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-[11px] text-primary dark:text-blue-400 font-medium">
                             Note: This campaign will be created as "PAUSED". All ads must manually be set to ACTIVE after review.
                           </div>
                         </div>
                         <DialogFooter>
                           <Button variant="ghost" onClick={() => setIsCreateCampaignDialogOpen(false)}>Cancel</Button>
-                          <Button onClick={handleCreateCampaign} disabled={isCreatingCampaign || !newCampaignName} className="bg-blue-600 hover:bg-blue-700 font-bold">
+                          <Button onClick={handleCreateCampaign} disabled={isCreatingCampaign || !newCampaignName} className="bg-primary hover:bg-primary/90 font-bold">
                             {isCreatingCampaign && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                             Create Campaign
                           </Button>
@@ -2623,7 +2623,7 @@ export function FacebookDashboard() {
 
           <TabsContent value="templates" className="m-0 space-y-6">
             <div className="flex flex-col items-center justify-center p-8 text-center bg-blue-50/30 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/30 mb-8">
-              <h2 className="text-2xl font-black text-blue-600 dark:text-blue-400">One-Click Lead Ads</h2>
+              <h2 className="text-2xl font-black text-primary dark:text-blue-400">One-Click Lead Ads</h2>
               <p className="text-muted-foreground mt-2 max-w-lg">Launch high-converting lead campaigns using our pre-built industry templates. We handle targeting and optimization defaults.</p>
             </div>
 
@@ -2634,7 +2634,7 @@ export function FacebookDashboard() {
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 mb-2">{tpl.category}</Badge>
-                      <TrendingUp className="h-5 w-5 text-blue-500 opacity-20 group-hover:opacity-100 transition-opacity" />
+                      <TrendingUp className="h-5 w-5 text-primary opacity-20 group-hover:opacity-100 transition-opacity" />
                     </div>
                     <CardTitle className="text-lg">{tpl.name}</CardTitle>
                   </CardHeader>
@@ -2648,7 +2648,7 @@ export function FacebookDashboard() {
                       </div>
 
                       <Button
-                        className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700"
+                        className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-primary dark:hover:bg-primary/90"
                         onClick={() => handleLaunchTemplate(tpl.id)}
                         disabled={isLaunchingTemplate || !selectedAdAccount}
                       >
@@ -2776,7 +2776,7 @@ export function FacebookDashboard() {
                       </div>
                       <Dialog open={isCreateCreativeDialogOpen} onOpenChange={setIsCreateCreativeDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button className="bg-slate-900 hover:bg-black dark:bg-blue-600 dark:hover:bg-blue-700 px-6 font-bold rounded-xl h-11" disabled={!selectedAdAccount}>
+                          <Button className="bg-slate-900 hover:bg-black dark:bg-primary dark:hover:bg-primary/90 px-6 font-bold rounded-xl h-11" disabled={!selectedAdAccount}>
                             <Plus className="h-4 w-4 mr-2" /> Create Creative
                           </Button>
                         </DialogTrigger>
@@ -2862,11 +2862,11 @@ export function FacebookDashboard() {
                         <p className="text-lg font-bold text-slate-500">Select an Ad Account to view creatives</p>
                       </div>
                     ) : isCreativesLoading ? (
-                      <div className="flex flex-col items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-2" /><p className="text-sm text-slate-400">Loading library...</p></div>
+                      <div className="flex flex-col items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary mb-2" /><p className="text-sm text-slate-400">Loading library...</p></div>
                     ) : creatives.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {creatives.map(c => (
-                          <div key={c.id} className="border dark:bg-slate-800/50 rounded-2xl p-4 flex flex-col space-y-3 hover:border-blue-500 transition-all group overflow-hidden shadow-sm hover:shadow-md">
+                          <div key={c.id} className="border dark:bg-slate-800/50 rounded-2xl p-4 flex flex-col space-y-3 hover:border-primary transition-all group overflow-hidden shadow-sm hover:shadow-md">
                             <div className="h-32 w-full bg-slate-100 dark:bg-slate-900 rounded-xl overflow-hidden relative">
                               {c.image_url || c.thumbnail_url ? (
                                 <img src={c.image_url || c.thumbnail_url} className="h-full w-full object-cover transition-transform group-hover:scale-105" alt={c.name} />
@@ -2928,7 +2928,7 @@ export function FacebookDashboard() {
               <Button
                 onClick={handleSyncPixels}
                 disabled={isSyncingPixels}
-                className="bg-blue-600 hover:bg-blue-700 shadow-md"
+                className="bg-primary hover:bg-primary/90 shadow-md"
               >
                 {isSyncingPixels ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
                 Sync Pixels from Meta
@@ -2958,7 +2958,7 @@ export function FacebookDashboard() {
                     {isLoadingPixels ? (
                       <TableRow>
                         <TableCell colSpan={5} className="h-24 text-center">
-                          <Loader2 className="h-6 w-6 animate-spin mx-auto text-blue-500" />
+                          <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
                         </TableCell>
                       </TableRow>
                     ) : pixels.length > 0 ? (
@@ -3058,7 +3058,7 @@ export function FacebookDashboard() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Pencil className="h-5 w-5 text-blue-500" />
+              <Pencil className="h-5 w-5 text-primary" />
               Edit Campaign Details
             </DialogTitle>
             <DialogDescription>Update the settings for your Meta Campaign.</DialogDescription>
@@ -3075,7 +3075,7 @@ export function FacebookDashboard() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setIsEditCampaignDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleUpdateCampaignName} disabled={isCreatingCampaign || !newCampaignName} className="bg-blue-600 hover:bg-blue-700 font-bold">
+            <Button onClick={handleUpdateCampaignName} disabled={isCreatingCampaign || !newCampaignName} className="bg-primary hover:bg-primary/90 font-bold">
               {isCreatingCampaign && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               Save Changes
             </Button>
@@ -3087,7 +3087,7 @@ export function FacebookDashboard() {
       <Dialog open={isCreateAudienceDialogOpen} onOpenChange={setIsCreateAudienceDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-blue-600">
+            <DialogTitle className="flex items-center gap-2 text-primary">
               <Users className="h-5 w-5" />
               Create Custom Audience
             </DialogTitle>
@@ -3125,7 +3125,7 @@ export function FacebookDashboard() {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setIsCreateAudienceDialogOpen(false)}>Cancel</Button>
             <Button
-              className="bg-blue-600 hover:bg-blue-700 font-bold"
+              className="bg-primary hover:bg-primary/90 font-bold"
               onClick={handleCreateAudience}
               disabled={isCreatingAudience || !newAudienceName}
             >
@@ -3140,7 +3140,7 @@ export function FacebookDashboard() {
       <Dialog open={isDataDeletionDialogOpen} onOpenChange={setIsDataDeletionDialogOpen}>
         <DialogContent className="sm:max-w-[450px]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-blue-600">
+            <DialogTitle className="flex items-center gap-2 text-primary">
               <ShieldCheck className="h-5 w-5" />
               Request Data Deletion
             </DialogTitle>
@@ -3164,7 +3164,7 @@ export function FacebookDashboard() {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setIsDataDeletionDialogOpen(false)}>Cancel</Button>
             <Button
-              className="bg-blue-600 hover:bg-blue-700 font-bold"
+              className="bg-primary hover:bg-primary/90 font-bold"
               onClick={handleConfirmDataDeletion}
               disabled={isDeletingData}
             >
@@ -3215,7 +3215,7 @@ export function FacebookDashboard() {
           <div className="p-6 space-y-5 bg-white dark:bg-slate-900">
             <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl flex flex-col items-center gap-1 shadow-inner">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Confirmation Code</p>
-              <p className="font-mono font-black text-xl text-indigo-600 dark:text-indigo-400 tracking-wider">
+              <p className="font-mono font-black text-xl text-primary dark:text-indigo-400 tracking-wider">
                 {statusData?.deletion_details?.code || 'LBJ-DEL-XXXXXX'}
               </p>
             </div>

@@ -55,7 +55,8 @@ export default function WebhooksPage() {
           events: ci.config.events || ["lead.created"],
           isActive: ci.is_active,
           mapping: ci.config.mapping || [],
-          secret: ci.webhook_secret || ""
+          secret: ci.webhook_secret || "",
+          enrichment: ci.config.enrichment || { enabled: false }
         }));
       setWebhooks(filteredWebhooks);
     } catch (error: any) {
@@ -189,7 +190,8 @@ export default function WebhooksPage() {
           url: webhook.url,
           events: webhook.events,
           mapping: webhook.mapping,
-          secret: (webhook as any).secret
+          secret: (webhook as any).secret,
+          enrichment: (webhook as any).enrichment
         },
         isActive: webhook.isActive,
         environment: "production" as "production"
@@ -263,19 +265,12 @@ export default function WebhooksPage() {
   }
 
   return (
-    <div className="absolute inset-0 flex flex-col bg-[var(--crm-bg)] z-10 overflow-hidden">
+    <div className="flex flex-col flex-1 gap-4 sm:gap-5">
       {/* ── Header ────────────────────────────────────────────────────────────── */}
-      <div className="shrink-0 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
-        <div className="flex justify-between items-center p-6">
+      <div className="shrink-0">
+        <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8 rounded-[8px] text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-3)]"
-              onClick={() => router.push('/integrations')}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
+            
             <div>
               <h1 className="text-2xl font-bold text-[var(--crm-text-primary)]">Webhooks</h1>
               <p className="text-sm text-[var(--crm-text-secondary)] mt-1">
@@ -289,7 +284,7 @@ export default function WebhooksPage() {
               setSelectedWebhookId(null);
               setShowNewWebhookDialog(true);
             }}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            className="bg-primary hover:bg-primary/90 text-white"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Webhook
@@ -298,8 +293,8 @@ export default function WebhooksPage() {
       </div>
 
       {/* ── Content ──────────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="grid gap-4 max-w-4xl mx-auto">
+      <div className="w-full">
+        <div className="grid gap-4 w-full">
           {webhooks.length === 0 ? (
             <div className="text-center py-12 text-[var(--crm-text-secondary)] border border-[var(--crm-border)] rounded-xl bg-[var(--crm-surface-1)]">
               No webhooks configured yet.
@@ -312,8 +307,8 @@ export default function WebhooksPage() {
                   className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 hover:bg-[var(--crm-surface-2)] transition-colors gap-4"
                 >
                   <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-900/50">
-                      <Webhook className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 dark:bg-indigo-900/20 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-900/50">
+                      <Webhook className="h-5 w-5 text-primary dark:text-indigo-400" />
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col gap-1">
                       <div className="flex items-center gap-2">

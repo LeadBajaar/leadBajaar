@@ -43,8 +43,9 @@ interface LeadsTableProps {
 }
 
 export const LeadsTableSkeleton = ({ columns, visibleColumns }: { columns: any[], visibleColumns: string[] }) => (
-  <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/50 overflow-hidden">
-    <table className="crm-table">
+  <div className="flex-1 flex flex-col min-h-0 bg-transparent overflow-hidden">
+    <div className="flex-1 overflow-auto min-h-0">
+      <table className="crm-table w-full">
       <thead>
         <tr>
           <th><Skeleton className="h-4 w-4" /></th>
@@ -55,7 +56,7 @@ export const LeadsTableSkeleton = ({ columns, visibleColumns }: { columns: any[]
       </thead>
       <tbody>
         {Array.from({ length: 12 }).map((_, i) => (
-          <tr key={i} className="border-slate-50 dark:border-slate-800">
+          <tr key={i} className="border-b border-[var(--crm-border)] last:border-b-0">
             <td><Skeleton className="h-4 w-4" /></td>
             {columns.filter(c => visibleColumns.includes(c.id)).map(c => (
               <td key={c.id}>
@@ -69,6 +70,7 @@ export const LeadsTableSkeleton = ({ columns, visibleColumns }: { columns: any[]
         ))}
       </tbody>
     </table>
+    </div>
   </div>
 )
 
@@ -156,7 +158,7 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
             {leads.map((lead) => (
               <tr
                 key={`lead-${lead.id}`}
-                className="border-slate-50 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors"
+                className="border-b border-[var(--crm-border)] last:border-b-0 hover:bg-[var(--crm-surface-2)]/60 transition-colors"
               >
                 <td>
                   <input
@@ -268,7 +270,7 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                                   </TooltipProvider>
                                 ) : null}
                               </span>
-                              <span className="text-[12px] text-[var(--crm-text-tertiary)] font-normal truncate opacity-80">{lead.phone || lead.email}</span>
+                              <span className="text-[12px] text-[var(--crm-text-tertiary)] font-normal truncate opacity-80">{lead.company || lead.email}</span>
                             </div>
                           </div>
                         ) : column.id === 'stage' ? (

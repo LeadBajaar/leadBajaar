@@ -183,7 +183,7 @@ export function FacebookConversionApiManager() {
       'Purchase': 'bg-purple-100 text-purple-800',
       'AddToCart': 'bg-orange-100 text-orange-800',
       'InitiateCheckout': 'bg-yellow-100 text-yellow-800',
-      'CompleteRegistration': 'bg-indigo-100 text-indigo-800',
+      'CompleteRegistration': 'bg-primary/20 text-indigo-800',
       'ViewContent': 'bg-pink-100 text-pink-800',
       'Search': 'bg-gray-100 text-gray-800'
     }
@@ -209,7 +209,7 @@ export function FacebookConversionApiManager() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Facebook className="h-6 w-6 text-blue-600" />
+              <Facebook className="h-6 w-6 text-primary" />
               <CardTitle>Facebook Conversion API</CardTitle>
             </div>
             <Button

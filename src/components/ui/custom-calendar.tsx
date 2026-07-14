@@ -108,7 +108,7 @@ export function CustomCalendar({
     
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDayOfMonth; i++) {
-      days.push(<div key={`empty-${i}`} className="aspect-square w-full max-w-[45px] sm:w-[34px] sm:h-[34px] mx-auto" />)
+      days.push(<div key={`empty-${i}`} className="aspect-square w-full max-w-[45px] sm:w-10 sm:h-10 mx-auto" />)
     }
     
     // Add days of the month
@@ -123,11 +123,11 @@ export function CustomCalendar({
         <div
           key={day}
           className={cn(
-            "aspect-square w-full max-w-[45px] sm:w-[34px] sm:h-[34px] flex items-center justify-center text-[13px] rounded-full transition-all duration-200",
+            "aspect-square w-full max-w-[45px] sm:w-10 sm:h-10 flex items-center justify-center text-[13px] rounded-full transition-all duration-200",
             "mx-auto",
             isSelected && "bg-[var(--lb-navy)] text-white font-medium shadow-sm",
             isTodayDate && !isSelected && "border-[0.5px] border-[var(--lb-navy)] text-[var(--lb-navy)] font-medium",
-            isAvailable && !isDisabled && !isSelected && !isTodayDate && "text-indigo-600 dark:text-indigo-300 font-medium bg-indigo-50 dark:bg-indigo-900/40 border-[0.5px] border-indigo-100 dark:border-indigo-800/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 cursor-pointer shadow-sm",
+            isAvailable && !isDisabled && !isSelected && !isTodayDate && "text-primary dark:text-indigo-300 font-medium bg-primary/10 dark:bg-indigo-900/40 border-[0.5px] border-indigo-100 dark:border-indigo-800/60 hover:bg-primary/20 dark:hover:bg-indigo-900/60 cursor-pointer shadow-sm",
             isDisabled && "text-[var(--lb-t3)] cursor-default",
             !isAvailable && !isDisabled && !isSelected && !isTodayDate && "text-[var(--lb-t3)] cursor-default"
           )}
@@ -150,7 +150,9 @@ export function CustomCalendar({
   }
 
   return (
-    <div className={cn("p-0", className)}>
+    // Constrained width keeps the 7-column grid compact and evenly spaced —
+    // full-width columns leave the 34-40px day circles scattered far apart.
+    <div className={cn("p-0 mx-auto w-full sm:max-w-[360px]", className)}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <button
@@ -175,7 +177,7 @@ export function CustomCalendar({
       </div>
 
       {/* Week days */}
-      <div className="grid grid-cols-7 gap-[2px] mb-1">
+      <div className="grid grid-cols-7 gap-x-1 mb-1">
         {weekDays.map(day => (
           <div
             key={day}
@@ -187,14 +189,14 @@ export function CustomCalendar({
       </div>
 
       {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-[2px]">
+      <div className="grid grid-cols-7 gap-x-1 gap-y-1.5">
         {generateCalendarDays()}
       </div>
 
       {/* Legend */}
-      <div className="flex gap-4 pt-3 mt-2 border-t-[0.5px] border-[var(--lb-border)] text-[11px] text-[var(--lb-t2)]">
+      <div className="flex justify-center gap-4 pt-3 mt-2 border-t-[0.5px] border-[var(--lb-border)] text-[11px] text-[var(--lb-t2)]">
         <div className="flex items-center gap-1.5">
-          <div className="h-2 w-2 rounded-full bg-indigo-50 dark:bg-indigo-900/40 border-[0.5px] border-indigo-100 dark:border-indigo-800/60" />
+          <div className="h-2 w-2 rounded-full bg-primary/10 dark:bg-indigo-900/40 border-[0.5px] border-indigo-100 dark:border-indigo-800/60" />
           Available
         </div>
         <div className="flex items-center gap-1.5">

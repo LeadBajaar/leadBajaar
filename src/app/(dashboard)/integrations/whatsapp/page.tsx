@@ -804,12 +804,10 @@ export default function WhatsAppManagementPage() {
   const totalPages = Math.ceil(templates.length / itemsPerPage)
   return (
     <RoleGuard allowedFeatures={['integrations']}>
-      <div className="p-6 space-y-6 h-full overflow-y-auto">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col flex-1 gap-4 sm:gap-5">
+      <div className="flex justify-between items-start sm:items-center flex-col sm:flex-row gap-4">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
+          
           <h1 className="text-2xl font-bold">WhatsApp Management</h1>
         </div>
         <Button onClick={() => {
@@ -822,7 +820,7 @@ export default function WhatsAppManagementPage() {
       </div>
 
       {(accounts.length === 0 || accounts.some(a => !a.phone_number)) ? (
-        <Card className="max-w-2xl mx-auto mt-8">
+        <Card className="w-full max-w-none mt-8">
           <CardHeader>
             <CardTitle>Complete WhatsApp Setup</CardTitle>
             <CardDescription>
@@ -916,7 +914,7 @@ export default function WhatsAppManagementPage() {
                             disabled={isSyncing[account.id]}
                           >
                             {isSyncing[account.id] ? (
-                              <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                              <Loader2 className="h-4 w-4 animate-spin text-primary" />
                             ) : syncSuccess[account.id] ? (
                               <CheckCircle2 className="h-4 w-4 text-green-600" />
                             ) : (

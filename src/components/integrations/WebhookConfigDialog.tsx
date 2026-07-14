@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
   Trash2,
@@ -60,6 +61,12 @@ interface WebhookConfig {
   uuid?: string;
   secret?: string;
   webhook_secret?: string;
+  enrichment?: {
+    enabled: boolean;
+    url: string;
+    method: string;
+    headers: { key: string; value: string }[];
+  };
 }
 
 interface WebhookConfigDialogProps {
@@ -201,6 +208,31 @@ export function WebhookConfigDialog({
                       <p className="text-[11px] text-[var(--crm-text-tertiary)] leading-relaxed">
                         Send a POST request with JSON payload to this URL. The system will automatically capture leads based on your mapping below.
                       </p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-[var(--crm-surface-2)] rounded-xl border border-[var(--crm-border)] space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-semibold text-[var(--crm-text-primary)]">Data Enrichment (HubSpot)</h4>
+                        <p className="text-[11px] text-[var(--crm-text-tertiary)]">Fetch full object data from HubSpot using `objectId` from the incoming payload.</p>
+                      </div>
+                      <Switch
+                        checked={activeWebhook.enrichment?.enabled || false}
+                        onCheckedChange={(checked) => {
+                          setWebhooks(prev => prev.map(w => w.id === webhookId ? { 
+                            ...w, 
+                            enrichment: { 
+                              url: "",
+                              method: "POST",
+                              headers: [],
+                              ...(w.enrichment || {}), 
+                              enabled: checked 
+                            } 
+                          } : w));
+                        }}
+                        className="scale-90"
+                      />
                     </div>
                   </div>
 
@@ -424,7 +456,7 @@ export function WebhookConfigDialog({
         <DialogFooter className="flex-none p-5 bg-[var(--crm-surface-1)] border-t border-[var(--crm-border)]">
           <Button variant="ghost" className="rounded-md font-semibold text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)]" onClick={handleCancel}>Cancel</Button>
           <Button 
-            className="rounded-md bg-indigo-600 hover:bg-indigo-700 font-semibold px-6 shadow-none text-white"
+            className="rounded-md bg-primary hover:bg-primary/90 font-semibold px-6 shadow-none text-white"
             onClick={handleAction} 
             disabled={isConnecting}
           >

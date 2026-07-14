@@ -171,7 +171,7 @@ export default function PayrollPage() {
             <Wand2 className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
             <p className="font-semibold mb-2">No payroll generated for {MONTHS[month-1]} {year}</p>
             <p className="text-sm text-muted-foreground mb-6">Click below to auto-generate pending payouts for all active employees</p>
-            <Button onClick={handleGenerate} disabled={generating} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
+            <Button onClick={handleGenerate} disabled={generating} className="bg-primary hover:bg-primary/90 text-white gap-2">
               <Wand2 className="h-4 w-4" />
               {generating ? 'Generating...' : `Generate Payroll — ${MONTHS[month-1]} ${year}`}
             </Button>
@@ -303,9 +303,9 @@ export default function PayrollPage() {
           {payModal && (
             <div className="space-y-4 py-2">
               {/* Net preview */}
-              <div className="bg-indigo-50 dark:bg-indigo-950/30 rounded-lg p-4 text-center">
+              <div className="bg-primary/10 dark:bg-indigo-950/30 rounded-lg p-4 text-center">
                 <p className="text-xs text-muted-foreground mb-1">Net Salary</p>
-                <p className="text-3xl font-bold text-indigo-600">{fmt(previewNet)}</p>
+                <p className="text-3xl font-bold text-primary">{fmt(previewNet)}</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {fmt(payModal.gross_salary)} gross + {fmt(parseFloat(payForm.bonus || 0))} bonus − {fmt(payModal.tds_deducted)} TDS − {fmt(parseFloat(payForm.other_deductions || 0))} deductions
                 </p>

@@ -256,7 +256,7 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
       <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-[var(--crm-border)] rounded-xl gap-3 bg-[var(--crm-surface-1)] shadow-sm", className)}>
         <div className="flex items-center gap-3">
           <div className="p-1.5 rounded-lg bg-blue-500/10">
-            <Facebook className="h-5 w-5 text-blue-600" />
+            <Facebook className="h-5 w-5 text-primary" />
           </div>
           <div>
             <h3 className="text-[13px] font-medium text-[var(--crm-text-primary)] flex items-center gap-1.5">
@@ -303,7 +303,7 @@ export function FacebookOAuthButton({ onConnect, className }: FacebookOAuthButto
     <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-[var(--crm-border)] rounded-xl gap-3 bg-[var(--crm-surface-1)] shadow-sm", className)}>
       <div className="flex items-center gap-3">
         <div className="p-1.5 rounded-lg bg-blue-500/10">
-          <Facebook className="h-5 w-5 text-blue-600" />
+          <Facebook className="h-5 w-5 text-primary" />
         </div>
         <div>
           <h3 className="text-[13px] font-medium text-[var(--crm-text-primary)]">Facebook & Meta Services</h3>

@@ -36,13 +36,13 @@ function StatCard({
 }) {
   const isUp = trend === 'up'
   return (
-    <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <Card className="bg-[var(--crm-surface-1)] border-[var(--crm-border)] shadow-sm overflow-hidden">
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">{title}</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{value}</p>
-            <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
+            <p className="text-xs font-medium text-[var(--crm-text-secondary)] uppercase tracking-wider">{title}</p>
+            <p className="text-2xl font-bold text-[var(--crm-text-primary)] mt-1">{value}</p>
+            <p className="text-xs text-[var(--crm-text-secondary)] mt-0.5">{sub}</p>
           </div>
           <div className={cn('flex h-10 w-10 items-center justify-center rounded-xl', gradient)}>
             <Icon className="h-5 w-5 text-white" />
@@ -65,13 +65,13 @@ function StatCard({
 function LeadsTooltip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg p-3 text-xs">
-      <p className="font-semibold text-slate-700 dark:text-slate-300 mb-2">{label}</p>
+    <div className="rounded-xl bg-[var(--crm-surface-1)] border border-[var(--crm-border)] shadow-lg p-3 text-xs">
+      <p className="font-semibold text-[var(--crm-text-primary)] mb-2">{label}</p>
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2 py-0.5">
           <span className="inline-block h-2 w-2 rounded-full" style={{ background: p.color }} />
-          <span className="text-slate-500 capitalize">{p.name}:</span>
-          <span className="font-semibold text-slate-800 dark:text-white">{p.value}</span>
+          <span className="text-[var(--crm-text-secondary)] capitalize">{p.name}:</span>
+          <span className="font-semibold text-slate-800">{p.value}</span>
         </div>
       ))}
     </div>
@@ -81,9 +81,9 @@ function LeadsTooltip({ active, payload, label }: TooltipProps<number, string>) 
 function RevenueTooltip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg p-3 text-xs">
-      <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">{label}</p>
-      <p className="text-indigo-600 font-bold">₹{((payload[0]?.value as number) / 1000).toFixed(0)}K</p>
+    <div className="rounded-xl bg-[var(--crm-surface-1)] border border-[var(--crm-border)] shadow-lg p-3 text-xs">
+      <p className="font-semibold text-[var(--crm-text-primary)] mb-1">{label}</p>
+      <p className="text-[var(--crm-accent)] font-bold">₹{((payload[0]?.value as number) / 1000).toFixed(0)}K</p>
     </div>
   )
 }
@@ -130,7 +130,7 @@ export default function AnalyticsPage() {
     return (
       <RoleGuard allowedFeatures={['analytics']}>
         <div className="flex h-screen items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--crm-accent)]"></div>
         </div>
       </RoleGuard>
     )
@@ -138,17 +138,17 @@ export default function AnalyticsPage() {
 
   return (
     <RoleGuard allowedFeatures={['analytics']}>
-      <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:min-h-screen gap-4 sm:gap-6 p-4 md:p-6 lg:p-8 overflow-y-auto">
+      <div className="flex flex-col flex-1 gap-4 sm:gap-5">
 
       {/* ── Header ── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Analytics</h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Track performance across your entire sales pipeline</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-[var(--crm-text-primary)]">Analytics</h1>
+            <p className="text-xs sm:text-sm text-[var(--crm-text-secondary)] mt-0.5">Track performance across your entire sales pipeline</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 w-full lg:w-auto overflow-x-auto no-scrollbar shrink-0">
+        <div className="flex items-center gap-2 bg-[var(--crm-surface-3)] rounded-xl p-1 w-full lg:w-auto overflow-x-auto no-scrollbar shrink-0">
           {PERIODS.map(p => (
             <button
               key={p}
@@ -156,8 +156,8 @@ export default function AnalyticsPage() {
               className={cn(
                 'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                 period === p
-                  ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  ? 'bg-[var(--crm-surface-1)] text-[var(--crm-accent)] shadow-sm'
+                  : 'text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]:text-slate-300'
               )}
             >
               {p}
@@ -206,14 +206,14 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {/* Lead Volume Chart */}
-        <Card className="lg:col-span-2 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="lg:col-span-2 bg-[var(--crm-surface-1)] border-[var(--crm-border)] shadow-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-sm font-semibold text-slate-800 dark:text-white">Lead Volume</CardTitle>
-                <CardDescription className="text-xs text-slate-400 mt-0.5">Monthly leads, converted & lost</CardDescription>
+                <CardTitle className="text-sm font-semibold text-slate-800">Lead Volume</CardTitle>
+                <CardDescription className="text-xs text-[var(--crm-text-secondary)] mt-0.5">Monthly leads, converted & lost</CardDescription>
               </div>
-              <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 text-xs">12 months</Badge>
+              <Badge className="bg-[var(--crm-accent-soft)] text-[var(--crm-accent)] border-indigo-100 text-xs">12 months</Badge>
             </div>
           </CardHeader>
           <CardContent className="pt-0">
@@ -232,7 +232,7 @@ export default function AnalyticsPage() {
               {[['Leads', '#6366f1'], ['Converted', '#10b981'], ['Lost', '#f87171']].map(([label, color]) => (
                 <div key={label} className="flex items-center gap-1.5">
                   <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: color }} />
-                  <span className="text-xs text-slate-500">{label}</span>
+                  <span className="text-xs text-[var(--crm-text-secondary)]">{label}</span>
                 </div>
               ))}
             </div>
@@ -240,10 +240,10 @@ export default function AnalyticsPage() {
         </Card>
 
         {/* Revenue Trend */}
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-[var(--crm-surface-1)] border-[var(--crm-border)] shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-slate-800 dark:text-white">Revenue Trend</CardTitle>
-            <CardDescription className="text-xs text-slate-400">Cumulative deal value (₹)</CardDescription>
+            <CardTitle className="text-sm font-semibold text-slate-800">Revenue Trend</CardTitle>
+            <CardDescription className="text-xs text-[var(--crm-text-secondary)]">Cumulative deal value (₹)</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <ResponsiveContainer width="100%" height={220}>
@@ -271,10 +271,10 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {/* Conversion Rate */}
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-[var(--crm-surface-1)] border-[var(--crm-border)] shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-slate-800 dark:text-white">Conversion Rate</CardTitle>
-            <CardDescription className="text-xs text-slate-400">Actual vs 45% target</CardDescription>
+            <CardTitle className="text-sm font-semibold text-slate-800">Conversion Rate</CardTitle>
+            <CardDescription className="text-xs text-[var(--crm-text-secondary)]">Actual vs 45% target</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <ResponsiveContainer width="100%" height={200}>
@@ -298,10 +298,10 @@ export default function AnalyticsPage() {
         </Card>
 
         {/* Lead Sources Pie */}
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-[var(--crm-surface-1)] border-[var(--crm-border)] shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-slate-800 dark:text-white">Lead Sources</CardTitle>
-            <CardDescription className="text-xs text-slate-400">Where leads come from</CardDescription>
+            <CardTitle className="text-sm font-semibold text-slate-800">Lead Sources</CardTitle>
+            <CardDescription className="text-xs text-[var(--crm-text-secondary)]">Where leads come from</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="flex items-center gap-3">
@@ -327,9 +327,9 @@ export default function AnalyticsPage() {
                     <div key={s.name} className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <span className="h-2 w-2 rounded-full inline-block" style={{ background: s.color }} />
-                        <span className="text-xs text-slate-600 dark:text-slate-400">{s.name}</span>
+                        <span className="text-xs text-[var(--crm-text-secondary)]">{s.name}</span>
                       </div>
-                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{pct}%</span>
+                      <span className="text-xs font-semibold text-[var(--crm-text-primary)]">{pct}%</span>
                     </div>
                   )
                 })}
@@ -339,10 +339,10 @@ export default function AnalyticsPage() {
         </Card>
 
         {/* Pipeline Stage Funnel */}
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-[var(--crm-surface-1)] border-[var(--crm-border)] shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-slate-800 dark:text-white">Pipeline Stages</CardTitle>
-            <CardDescription className="text-xs text-slate-400">Leads by current stage</CardDescription>
+            <CardTitle className="text-sm font-semibold text-slate-800">Pipeline Stages</CardTitle>
+            <CardDescription className="text-xs text-[var(--crm-text-secondary)]">Leads by current stage</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="space-y-2 mt-1">
@@ -351,8 +351,8 @@ export default function AnalyticsPage() {
                 const pct = max > 0 ? (s.count / max) * 100 : 0
                 return (
                   <div key={s.stage} className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 w-20 shrink-0">{s.stage}</span>
-                    <div className="flex-1 h-5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <span className="text-xs text-[var(--crm-text-secondary)] w-20 shrink-0">{s.stage}</span>
+                    <div className="flex-1 h-5 bg-[var(--crm-surface-3)] rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2"
                         style={{ width: `${pct}%`, background: s.color }}
@@ -372,10 +372,10 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {/* Weekly Activity */}
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-[var(--crm-surface-1)] border-[var(--crm-border)] shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-slate-800 dark:text-white">Weekly Activity</CardTitle>
-            <CardDescription className="text-xs text-slate-400">Calls, emails & meetings per day</CardDescription>
+            <CardTitle className="text-sm font-semibold text-slate-800">Weekly Activity</CardTitle>
+            <CardDescription className="text-xs text-[var(--crm-text-secondary)]">Calls, emails & meetings per day</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <ResponsiveContainer width="100%" height={200}>
@@ -393,10 +393,10 @@ export default function AnalyticsPage() {
         </Card>
 
         {/* Deal Value Distribution */}
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-[var(--crm-surface-1)] border-[var(--crm-border)] shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-slate-800 dark:text-white">Deal Value Distribution</CardTitle>
-            <CardDescription className="text-xs text-slate-400">Leads by deal size bracket</CardDescription>
+            <CardTitle className="text-sm font-semibold text-slate-800">Deal Value Distribution</CardTitle>
+            <CardDescription className="text-xs text-[var(--crm-text-secondary)]">Leads by deal size bracket</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <ResponsiveContainer width="100%" height={200}>
@@ -420,16 +420,16 @@ export default function AnalyticsPage() {
         </Card>
 
         {/* Top Performers */}
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-[var(--crm-surface-1)] border-[var(--crm-border)] shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-slate-800 dark:text-white">Top Performers</CardTitle>
-            <CardDescription className="text-xs text-slate-400">Best closers this period</CardDescription>
+            <CardTitle className="text-sm font-semibold text-slate-800">Top Performers</CardTitle>
+            <CardDescription className="text-xs text-[var(--crm-text-secondary)]">Best closers this period</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="space-y-3 mt-1">
               {activeTopPerformers.map((rep: any, i: number) => {
                 const convPct = Math.round((rep.converted / rep.leads) * 100)
-                const accentColors = ['bg-indigo-500', 'bg-violet-500', 'bg-cyan-500', 'bg-emerald-500', 'bg-amber-500']
+                const accentColors = ['bg-[var(--crm-accent-soft)]0', 'bg-violet-500', 'bg-cyan-500', 'bg-emerald-500', 'bg-amber-500']
                 return (
                   <div key={rep.name} className="flex items-center gap-3">
                     <div className={cn(
@@ -440,15 +440,15 @@ export default function AnalyticsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold text-slate-800 dark:text-white truncate">{rep.name}</p>
+                        <p className="text-xs font-semibold text-slate-800 truncate">{rep.name}</p>
                         <span className="text-xs font-bold text-emerald-600 shrink-0 ml-2">{convPct}%</span>
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-slate-400">{rep.leads} leads</span>
+                        <span className="text-[10px] text-[var(--crm-text-secondary)]">{rep.leads} leads</span>
                         <span className="text-[10px] text-slate-300">·</span>
-                        <span className="text-[10px] text-slate-400">₹{(rep.revenue / 1000).toFixed(0)}K</span>
+                        <span className="text-[10px] text-[var(--crm-text-secondary)]">₹{(rep.revenue / 1000).toFixed(0)}K</span>
                       </div>
-                      <div className="mt-1 h-1 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div className="mt-1 h-1 bg-[var(--crm-surface-3)] rounded-full overflow-hidden">
                         <div className={cn('h-full rounded-full', accentColors[i % accentColors.length])}
                           style={{ width: `${convPct}%` }} />
                       </div>

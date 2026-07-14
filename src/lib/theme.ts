@@ -55,12 +55,12 @@ export const theme = {
     sidebar: {
         bg: 'bg-white dark:bg-slate-900',
         border: 'border-slate-200 dark:border-slate-800',
-        activeItem: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300',
+        activeItem: 'bg-primary/10 text-primary dark:bg-indigo-900/30 dark:text-indigo-300',
         hoverItem: 'hover:bg-slate-100 dark:hover:bg-slate-800/60',
         text: 'text-slate-600 dark:text-slate-400',
-        activeText: 'text-indigo-700 dark:text-indigo-300',
+        activeText: 'text-primary dark:text-indigo-300',
         icon: 'text-slate-500 dark:text-slate-400',
-        activeIcon: 'text-indigo-600 dark:text-indigo-400',
+        activeIcon: 'text-primary dark:text-indigo-400',
         logo: 'from-indigo-600 to-violet-600',
         logoBg: 'bg-gradient-to-br from-indigo-600 to-violet-600',
     },
@@ -74,7 +74,7 @@ export const theme = {
     // ── Cards ────────────────────────────────────────────────
     card: {
         base: 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm',
-        hover: 'hover:shadow-md hover:border-indigo-200/60 dark:hover:border-indigo-700/40 transition-all duration-200',
+        hover: 'hover:shadow-md hover:border-primary/10 dark:hover:border-indigo-700/40 transition-all duration-200',
         padding: 'p-5',
     },
 
@@ -89,7 +89,7 @@ export const theme = {
         'Closed Won': 'bg-green-50 text-green-700 border border-green-200/50 dark:bg-green-900/30 dark:text-green-300',
         'DNP': 'bg-orange-50 text-orange-700 border border-orange-200/50 dark:bg-orange-900/30 dark:text-orange-300',
         'Follow Up': 'bg-cyan-50 text-cyan-700 border border-cyan-200/50 dark:bg-cyan-900/30 dark:text-cyan-300',
-        'Call Back': 'bg-indigo-50 text-indigo-700 border border-indigo-200/50 dark:bg-indigo-900/30 dark:text-indigo-300',
+        'Call Back': 'bg-primary/10 text-primary border border-primary/10 dark:bg-indigo-900/30 dark:text-indigo-300',
         'Consultation': 'bg-violet-50 text-violet-700 border border-violet-200/50 dark:bg-violet-900/30 dark:text-violet-300',
         'Not Interested': 'bg-rose-50 text-rose-700 border border-rose-200/50 dark:bg-rose-900/30 dark:text-rose-300',
         'Broadcast Done': 'bg-teal-50 text-teal-700 border border-teal-200/50 dark:bg-teal-900/30 dark:text-teal-300',

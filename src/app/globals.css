@@ -1,3 +1,14 @@
+/*
+ * ⚠ NOT IMPORTED — this file is dead. The app's root layout
+ * (`src/app/layout.tsx`) imports `@/styles/globals.css`, not this file.
+ * The live design-system tokens (--crm-*, --r-*, --shadow-card, etc.)
+ * live there. See ai-context/design/tokens.md for the corrected reference.
+ *
+ * This file is left in its original, pre-existing state below (a second,
+ * unrelated indigo/shadcn token set) rather than deleted, since removing
+ * a file neither this task nor its author currently owns is out of scope —
+ * flagging it here so a future pass can decide whether to delete it.
+ */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

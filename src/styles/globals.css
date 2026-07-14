@@ -14,8 +14,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
  
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 228 56% 27%;
+    --primary-foreground: 0 0% 100%;
  
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -31,7 +31,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 228 56% 27%;
  
     --radius: 0.5rem;
   }
@@ -46,8 +46,8 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
  
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 0 0% 100%;
  
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -63,7 +63,7 @@
  
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 217.2 91.2% 59.8%;
   }
 }
  
@@ -116,45 +116,54 @@
 }
 
 /* ── CRM DESIGN SYSTEM TOKENS ─────────────────────────── */
+/* Unified brand pass (2026-07-05): one accent (LeadBajaar coral, matching
+   --lb-red/#e84545 already used on the public booking pages — this app had
+   drifted onto an unrelated purple/blue palette with no defined source of
+   truth). Surfaces, text, and semantic colors below are defined once and
+   just re-expressed per theme, not independently re-invented per theme. */
 :root {
-  --crm-bg: #ffffff;
+  --crm-bg: #f0f2f8;
   --crm-surface-1: #ffffff;
-  --crm-surface-2: #f9fafb;
-  --crm-surface-3: #f3f4f6;
-  --crm-surface-4: #e5e7eb;
-  
-  --crm-sidebar-bg: #FBFBFB;
-  --crm-sidebar-hover: var(--crm-surface-3);
+  --crm-surface-2: #f5f6fa;
+  --crm-surface-3: #eceef5;
+  --crm-surface-4: #e1e4f0;
+
+  --crm-sidebar-bg: #FFFFFF;
+  --crm-sidebar-hover: var(--crm-surface-2);
   --crm-sidebar-active: var(--crm-surface-3);
-  
-  --crm-border: rgba(0, 0, 0, 0.06);
-  --crm-border-hover: rgba(0, 0, 0, 0.12);
-  --crm-border-press: rgba(0, 0, 0, 0.16);
-  
-  --crm-text-primary: #111827;
-  --crm-text-secondary: #4b5563;
-  --crm-text-tertiary: #9ca3af;
-  
-  --crm-accent: #0f172a;
-  --crm-accent-soft: #f1f5f9;
-  --crm-accent-border: #e2e8f0;
-  
-  --crm-green: #059669;
-  --crm-green-soft: #ecfdf5;
-  --crm-green-border: #a7f3d0;
-  
+
+  --crm-border: #e2e8f0;
+  --crm-border-hover: rgba(30, 45, 107, 0.16);
+  --crm-border-press: rgba(30, 45, 107, 0.20);
+
+  --crm-text-primary: #1e293b;
+  --crm-text-secondary: #475569;
+  --crm-text-tertiary: #94a3b8;
+
+  /* Brand accent: LeadBajaar Navy — the primary brand color used everywhere */
+  --crm-accent: #1e2d6b;
+  --crm-accent-soft: #ebedf5;
+  --crm-accent-border: #cdd4ea;
+
+  /* Semantic — success/danger only, distinct from the coral brand accent. */
+  --crm-green: #15803D;
+  --crm-green-soft: #ECFDF3;
+  --crm-green-border: #A7F3D0;
+
   --crm-amber: #d97706;
   --crm-amber-soft: #fffbeb;
   --crm-amber-border: #fde68a;
-  
-  --crm-red: #dc2626;
+
+  --crm-red: #DC2626;
   --crm-red-soft: #fef2f2;
   --crm-red-border: #fecaca;
-  
+
+  /* Blue/purple kept only as categorical tag colors (e.g. stage badges) —
+     not used as a UI/brand accent anywhere. See ai-context/design/tokens.md. */
   --crm-blue: #2563eb;
   --crm-blue-soft: #eff6ff;
   --crm-blue-border: #bfdbfe;
-  
+
   --crm-purple: #7c3aed;
   --crm-purple-soft: #f5f3ff;
   --crm-purple-border: #ddd6fe;
@@ -165,11 +174,11 @@
   --r-lg: 12px;
   --r-xl: 16px;
   --r-pill: 9999px;
-  
-  --crm-btn-primary-bg: #111827;
+
+  --crm-btn-primary-bg: #1e2d6b;
   --crm-btn-primary-text: #ffffff;
-  
-  --crm-nav-active-icon: #111827;
+
+  --crm-nav-active-icon: #1e2d6b;
 
   /* ── BOOKING FLOW REDESIGN TOKENS ── */
   --lb-navy:   #1e2d6b;
@@ -193,51 +202,54 @@
 }
 
 .dark {
-  /* Backgrounds: Attio dark mode uses very dark slate/blue-gray tones */
-  --crm-bg: #1A1C1E; /* Main content background */
-  --crm-surface-1: #141518; /* Sidebar, main structural panels */
-  --crm-surface-2: #22242A; /* Cards, active items, hover states */
-  --crm-surface-3: #2A2D35; /* Elevated elements, popovers */
-  --crm-surface-4: #353841; /* Buttons, badges */
-  
+  --crm-bg: #0A0A0B;
+  --crm-surface-1: #131316;
+  --crm-surface-2: #1B1B1F;
+  --crm-surface-3: #232327;
+  --crm-surface-4: #2C2C31;
+
   --crm-sidebar-bg: var(--crm-surface-1);
   --crm-sidebar-hover: var(--crm-surface-2);
   --crm-sidebar-active: var(--crm-surface-2);
-  
-  /* Borders: Very subtle, slightly lighter than surfaces */
-  --crm-border: rgba(255, 255, 255, 0.06);
-  --crm-border-hover: rgba(255, 255, 255, 0.12);
-  --crm-border-press: rgba(255, 255, 255, 0.18);
-  
-  /* Typography: Crisp, high contrast for readability */
-  --crm-text-primary: #FFFFFF; /* Pure white for high contrast */
-  --crm-text-secondary: #A1A1AA; /* Brighter secondary gray */
-  --crm-text-tertiary: #71717A; /* Brighter tertiary gray */
-  
-  --crm-accent: #3b82f6; /* Modern vibrant blue accent */
+
+  --crm-border: #1F1F23;
+  --crm-border-hover: rgba(255, 255, 255, 0.18);
+  --crm-border-press: rgba(255, 255, 255, 0.24);
+
+  --crm-text-primary: #F5F5F5;
+  --crm-text-secondary: #8A8A93;
+  --crm-text-tertiary: #6E6E76;
+
+  /* Navy accent for dark mode */
+  --crm-accent: #3b82f6; /* Lighter blue for dark mode visibility */
   --crm-accent-soft: rgba(59, 130, 246, 0.15);
   --crm-accent-border: transparent;
-  
-  --crm-green: #10b981;
-  --crm-green-soft: rgba(16, 185, 129, 0.15);
+
+  --crm-green: #16A34A;
+  --crm-green-soft: rgba(22, 163, 74, 0.15);
   --crm-green-border: transparent;
-  
+
   --crm-amber: #f59e0b;
   --crm-amber-soft: rgba(245, 158, 11, 0.15);
   --crm-amber-border: transparent;
-  
-  --crm-red: #ef4444;
-  --crm-red-soft: rgba(239, 68, 68, 0.15);
+
+  --crm-red: #DC2626;
+  --crm-red-soft: rgba(220, 38, 38, 0.15);
   --crm-red-border: transparent;
-    
+
+  /* Blue/purple kept only as categorical tag colors — not a UI accent. */
+  --crm-blue: #3b82f6;
+  --crm-blue-soft: rgba(59, 130, 246, 0.15);
+  --crm-blue-border: transparent;
+
   --crm-purple: #8b5cf6;
   --crm-purple-soft: rgba(139, 92, 246, 0.15);
   --crm-purple-border: transparent;
-  
+
   --crm-btn-primary-bg: #3b82f6;
   --crm-btn-primary-text: #ffffff;
-  
-  --crm-nav-active-icon: #EDEDEF;
+
+  --crm-nav-active-icon: #3b82f6;
 
   /* ── BOOKING FLOW DARK MODE FIXES ── */
   --lb-navy: #3b82f6;
@@ -884,6 +896,38 @@ body {
 }
 .skeleton-circle { border-radius: 50%; }
 .skeleton-pill   { border-radius: var(--r-pill); }
+
+/* Reduced motion: replace the pulse animation with a static, slightly   */
+/* dimmed block instead of disabling the visual cue outright — skeletons */
+/* still need to read as "loading," just without the flashing.          */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* --- Elevation shadow (state system: EmptyState/ErrorState/cards) ---   */
+/* Light mode: standard drop shadow. Dark mode overrides below — plain   */
+/* rgba-black shadows are invisible against near-black surfaces, so an    */
+/* inset top highlight is what actually reads as "elevated" there.       */
+:root {
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-card-md: 0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04);
+}
+.dark {
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.03) inset, 0 2px 8px rgba(0,0,0,0.35);
+  --shadow-card-md: 0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* --- Stat figure (state system: stat-style SkeletonCard, future StatCard) ---*/
+/* Numeric figures need to outrank their own label without competing with */
+/* headings — not covered by the existing 10-20px text scale above.       */
+.text-stat-value {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
 
 /* --- Toggles & Checkboxes --- */
 .toggle-wrap {

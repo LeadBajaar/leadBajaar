@@ -55,19 +55,19 @@ export function SettingsTab() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden">
         <CardContent className="p-8 flex justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          <Loader2 className="w-8 h-8 animate-spin text-[var(--crm-text-secondary)]" />
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card>
+    <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Settings className="w-5 h-5 text-indigo-500" /> Payment Settings
+          <Settings className="w-5 h-5 text-[var(--crm-accent)]" /> Payment Settings
         </CardTitle>
         <CardDescription>Configure global payment limits and requirements.</CardDescription>
       </CardHeader>

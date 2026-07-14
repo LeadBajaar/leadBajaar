@@ -45,7 +45,7 @@ export default function AssetDocsPage() {
 
     return (
         <div className="h-full overflow-y-auto p-6 lg:p-10 space-y-8 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400">
-            <Link href="/developer" className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 transition-colors font-bold text-sm">
+            <Link href="/developer" className="inline-flex items-center gap-2 text-primary hover:text-primary transition-colors font-bold text-sm">
                 <ArrowLeft className="w-4 h-4" /> Back to Console
             </Link>
 
@@ -65,9 +65,9 @@ export default function AssetDocsPage() {
                 <div className="lg:col-span-2 space-y-8">
                     <Tabs defaultValue="overview" className="w-full">
                         <TabsList className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 rounded-xl w-full justify-start overflow-x-auto shadow-sm">
-                            <TabsTrigger value="overview" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-6 font-bold">Overview</TabsTrigger>
-                            <TabsTrigger value="business" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-6 font-bold">Business Assets</TabsTrigger>
-                            <TabsTrigger value="auth" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-6 font-bold">OAuth & Tokens</TabsTrigger>
+                            <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-6 font-bold">Overview</TabsTrigger>
+                            <TabsTrigger value="business" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-6 font-bold">Business Assets</TabsTrigger>
+                            <TabsTrigger value="auth" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-6 font-bold">OAuth & Tokens</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="overview" className="mt-8 space-y-6">
@@ -76,21 +76,21 @@ export default function AssetDocsPage() {
                                     LeadBajaar organizes Meta assets into a three-tier hierarchy: **Business Manager → Ad Account → Page.**
                                 </p>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-                                    <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm hover:border-indigo-200 dark:hover:border-indigo-700 transition-all">
+                                    <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm hover:border-primary/20 dark:hover:border-indigo-700 transition-all">
                                         <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center border border-emerald-100 dark:border-emerald-900">
                                             <Briefcase className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                                         </div>
                                         <h4 className="font-black text-slate-900 dark:text-slate-100 uppercase text-[10px] tracking-widest leading-none">Business IDs</h4>
                                         <p className="text-xs text-slate-500 dark:text-slate-400 font-bold leading-relaxed">Identify agency-owned vs. client-owned assets.</p>
                                     </div>
-                                    <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm hover:border-indigo-200 dark:hover:border-indigo-700 transition-all">
+                                    <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm hover:border-primary/20 dark:hover:border-indigo-700 transition-all">
                                         <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center border border-blue-100 dark:border-blue-900">
-                                            <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                            <Users className="w-6 h-6 text-primary dark:text-blue-400" />
                                         </div>
                                         <h4 className="font-black text-slate-900 dark:text-slate-100 uppercase text-[10px] tracking-widest leading-none">Role Checks</h4>
                                         <p className="text-xs text-slate-500 dark:text-slate-400 font-bold leading-relaxed">Verifies Admin status before allowing pixel creation.</p>
                                     </div>
-                                    <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm hover:border-indigo-200 dark:hover:border-indigo-700 transition-all">
+                                    <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm hover:border-primary/20 dark:hover:border-indigo-700 transition-all">
                                         <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/30 flex items-center justify-center border border-violet-100 dark:border-violet-900">
                                             <RefreshCw className="w-6 h-6 text-violet-600 dark:text-violet-400" />
                                         </div>
@@ -121,7 +121,7 @@ export default function AssetDocsPage() {
                         <TabsContent value="auth" className="mt-8 space-y-8">
                             <div className="space-y-6">
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                                    <Key className="w-5 h-5 text-indigo-500" />
+                                    <Key className="w-5 h-5 text-primary" />
                                     OAuth Token Architecture
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -184,10 +184,10 @@ export default function AssetDocsPage() {
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
                                     <span>Ad Accounts</span>
-                                    <span className="text-blue-600 dark:text-blue-400 font-mono">42 active</span>
+                                    <span className="text-primary dark:text-blue-400 font-mono">42 active</span>
                                 </div>
                                 <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                    <div className="h-full w-1/2 bg-blue-600 rounded-full" />
+                                    <div className="h-full w-1/2 bg-primary rounded-full" />
                                 </div>
                             </div>
                         </div>

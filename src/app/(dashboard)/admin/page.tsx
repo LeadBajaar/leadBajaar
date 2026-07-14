@@ -202,113 +202,7 @@ interface AdminUser {
   tags?: string[]
 }
 
-// ── Mock Data ───────────────────────────────────────────────────────────────
 
-const initialCompanies: Company[] = [
-  {
-    id: 'c1',
-    name: 'Tech Solutions Inc',
-    owner: 'Arjun Sharma',
-    email: 'arjun@techsolutions.com',
-    plan: 'Enterprise',
-    status: 'Active',
-    usersCount: 24,
-    activeServices: ['Facebook Ads', 'WhatsApp CRM', 'Google Forms'],
-    monthlySpend: 4990,
-    joinedDate: 'Jan 12, 2026',
-    type: 'agency'
-  },
-  {
-    id: 'c2',
-    name: 'Growth Marketers',
-    owner: 'Sriya Patel',
-    email: 'sriya@growth.io',
-    plan: 'Pro',
-    status: 'Active',
-    usersCount: 8,
-    activeServices: ['Facebook Ads', 'WhatsApp CRM'],
-    monthlySpend: 1490,
-    joinedDate: 'Feb 05, 2026',
-    type: 'agency'
-  },
-  {
-    id: 'c3',
-    name: 'Real Estate Hub',
-    owner: 'Vikram Singh',
-    email: 'vikram@rehub.in',
-    plan: 'Free',
-    status: 'Delinquent',
-    usersCount: 2,
-    activeServices: ['Facebook Ads'],
-    monthlySpend: 0,
-    joinedDate: 'Feb 20, 2026',
-    type: 'individual'
-  },
-  {
-    id: 'demo-4',
-    name: 'Global EduTech',
-    owner: 'Zoya Qureshi',
-    email: 'zoya@edutech.com',
-    plan: 'Pro',
-    status: 'Active',
-    usersCount: 15,
-    activeServices: ['Meta Ads', 'Lead Forms'],
-    monthlySpend: 1490,
-    joinedDate: 'Mar 01, 2026',
-    type: 'individual'
-  },
-  {
-    id: 'demo-5',
-    name: 'Nexus Digital',
-    owner: 'Rahul Verma',
-    email: 'rahul@nexus.io',
-    plan: 'Enterprise',
-    status: 'Active',
-    usersCount: 42,
-    activeServices: ['WhatsApp', 'Messenger', 'Instagram'],
-    monthlySpend: 4990,
-    joinedDate: 'Dec 15, 2025',
-    type: 'agency'
-  },
-  {
-    id: 'demo-6',
-    name: 'Zenith Logistics',
-    owner: 'Neha Kapoor',
-    email: 'neha@zenith.in',
-    plan: 'Free',
-    status: 'Suspended',
-    usersCount: 3,
-    activeServices: [],
-    monthlySpend: 0,
-    joinedDate: 'Mar 10, 2026',
-    type: 'individual'
-  }
-]
-
-const initialUsers = [
-  { id: 1, name: 'Arjun Sharma', email: 'arjun@techsolutions.com', company: { name: 'Tech Solutions Inc' }, role: 'Super Admin', status: 'Active', tags: ['vip', 'founder'] },
-  { id: 101, name: 'Sriya Patel', email: 'sriya@growth.io', company: { name: 'Growth Marketers' }, role: 'Admin', status: 'Active', tags: ['priority'] },
-  { id: 102, name: 'Vikram Singh', email: 'vikram@rehub.in', company: { name: 'Real Estate Hub' }, role: 'Agent', status: 'Active', tags: ['new'] },
-  { id: 103, name: 'Zoya Qureshi', email: 'zoya@edutech.com', company: { name: 'Global EduTech' }, role: 'Admin', status: 'Active' },
-  { id: 104, name: 'Rahul Verma', email: 'rahul@nexus.io', company: { name: 'Nexus Digital' }, role: 'Agent', status: 'Active' },
-  { id: 105, name: 'Neha Kapoor', email: 'neha@zenith.in', company: { name: 'Zenith Logistics' }, role: 'Manager', status: 'Suspended', tags: ['blocked'] },
-  { id: 106, name: 'Amit Desai', email: 'amit@demo.com', company: { name: 'Tech Solutions Inc' }, role: 'Agent', status: 'Active' },
-  { id: 107, name: 'Pooja Hegde', email: 'pooja@demo.com', company: { name: 'Nexus Digital' }, role: 'Manager', status: 'Active', tags: ['tech'] },
-  { id: 108, name: 'Kabir Khan', email: 'kabir@demo.com', company: { name: 'Global EduTech' }, role: 'Agent', status: 'Inactive' },
-]
-
-const demoStats = {
-  revenue: { value: '₹14,50,000', sub: '+12.5% from last month', trend: '+12.5%' },
-  active_companies: { value: '142', sub: '8 new this week', trend: '+5.4%' },
-  total_users: { value: '1,284', sub: 'Across 142 orgs', trend: '+8.2%' },
-  api_health: { value: '99.98%', sub: 'Latency: 42ms', trend: 'Stable' },
-  platformMetrics: {
-    total_leads: 12450,
-    total_meetings: 842,
-    active_integrations: 312,
-    system_load: 'Medium'
-  }
-}
 
 const initialPlans: PlanDefinition[] = [
   {
@@ -320,48 +214,6 @@ const initialPlans: PlanDefinition[] = [
     color: 'slate',
     features: [
       { name: 'Up to 100 Leads/mo', included: true },
-      { name: '2 Team Members', included: true },
-      { name: 'Basic Analytics', included: true },
-      { name: 'Facebook Integration', included: true },
-      { name: 'WhatsApp Gateway', included: false },
-      { name: 'Custom Webhooks', included: false },
-      { name: 'White-labeling', included: false },
-    ],
-    capabilities: {}
-  },
-  {
-    id: 'p2',
-    name: 'Pro' as Plan,
-    price: 1490,
-    billingCycle: 'monthly',
-    activeSubscribers: 42,
-    color: 'blue',
-    features: [
-      { name: 'Unlimited Leads', included: true },
-      { name: '10 Team Members', included: true },
-      { name: 'Advanced CRM Tools', included: true },
-      { name: 'WhatsApp Business API', included: true },
-      { name: 'Full Analytics Suite', included: true },
-      { name: 'Custom Webhooks', included: true },
-      { name: 'Priority Support', included: true },
-    ],
-    capabilities: {}
-  },
-  {
-    id: 'p3',
-    name: 'Enterprise' as Plan,
-    price: 4990,
-    billingCycle: 'monthly',
-    activeSubscribers: 16,
-    color: 'purple',
-    features: [
-      { name: 'Everything in Pro', included: true },
-      { name: 'Unlimited Team Members', included: true },
-      { name: 'Dedicated Account Manager', included: true },
-      { name: 'SLA Guarantee', included: true },
-      { name: 'White-labeling', included: true },
-      { name: 'Custom API Limits', included: true },
-      { name: 'Multi-org Management', included: true },
     ],
     capabilities: {}
   }
@@ -384,7 +236,7 @@ export default function SuperAdminPage() {
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false)
   const [isUserModalOpen, setIsUserModalOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
-  const [demoMode, setDemoMode] = useState(false)
+
   const [isUpdatingCompany, setIsUpdatingCompany] = useState(false)
   const [isUpdatingPlan, setIsUpdatingPlan] = useState(false)
   const [isUpdatingUser, setIsUpdatingUser] = useState(false)
@@ -620,7 +472,7 @@ export default function SuperAdminPage() {
 
     return (
       <div className="flex items-center justify-between w-full">
-        <p className="text-xs text-slate-500 font-medium italic">
+        <p className="text-xs text-[var(--crm-text-secondary)] font-medium italic">
           {from !== undefined && to !== undefined ? (
             `Showing ${from} to ${to} of ${totalItems} total entries.`
           ) : (
@@ -662,8 +514,8 @@ export default function SuperAdminPage() {
                 className={cn(
                   "h-8 w-8 rounded-lg text-xs font-bold transition-all",
                   currentPage === page
-                    ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/20 hover:bg-indigo-700"
-                    : "text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    ? "bg-[var(--crm-accent)] text-white shadow-sm shadow-primary/20 hover:opacity-90"
+                    : "text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-3)]"
                 )}
               >
                 {page}
@@ -699,14 +551,7 @@ export default function SuperAdminPage() {
   };
 
   const fetchData = async () => {
-    if (demoMode) {
-      setCompanies(initialCompanies)
-      setStats(demoStats)
-      setUsers(initialUsers)
-      setBillingData([])
-      setIsLoading(false)
-      return
-    }
+
 
     try {
       setIsLoading(true)
@@ -808,7 +653,7 @@ export default function SuperAdminPage() {
       fetchData()
     }, 500) // Debounce search
     return () => clearTimeout(timer)
-  }, [demoMode, activeTab, companiesPage, usersPage, billingPage, testerRequestsPage, searchQuery, filterPlan, filterStatus, filterTag, filterRole, filterUserType, filterUserStatus, filterExpiration, filterStarted, customExpStart, customExpEnd, customStartStart, customStartEnd])
+  }, [activeTab, companiesPage, usersPage, billingPage, testerRequestsPage, searchQuery, filterPlan, filterStatus, filterTag, filterRole, filterUserType, filterUserStatus, filterExpiration, filterStarted, customExpStart, customExpEnd, customStartStart, customStartEnd])
 
   const filteredCompanies = companies.filter((c: Company) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1048,54 +893,40 @@ export default function SuperAdminPage() {
 
   const getPlanColor = (plan: string) => {
     switch (plan) {
-      case 'Enterprise': return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400'
-      case 'Pro': return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400'
-      case 'Free': return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-400'
-      default: return 'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400'
+      case 'Enterprise': return 'bg-purple-100 text-purple-700 border-purple-200'
+      case 'Pro': return 'bg-blue-100 text-blue-700 border-blue-200'
+      case 'Free': return 'bg-[var(--crm-surface-3)] text-[var(--crm-text-primary)] border-[var(--crm-border)]'
+      default: return 'bg-primary/20 text-primary border-primary/20'
     }
   }
 
   const getStatusBadge = (status: AccountStatus) => {
     switch (status) {
-      case 'Active': return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400">Active</Badge>
-      case 'Delinquent': return <Badge className="bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400">Delinquent</Badge>
-      case 'Suspended': return <Badge className="bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400">Suspended</Badge>
+      case 'Active': return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">Active</Badge>
+      case 'Delinquent': return <Badge className="bg-amber-100 text-amber-700 border-amber-200">Delinquent</Badge>
+      case 'Suspended': return <Badge className="bg-red-100 text-red-700 border-red-200">Suspended</Badge>
     }
   }
 
   return (
     <RoleGuard allowedFeatures={['system_admin']}>
-      <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950/20">
-        <div className="px-4 lg:px-6 py-6 space-y-6 w-full">
+      <div className="flex flex-col flex-1 gap-4 sm:gap-5">
+        <div className="space-y-6 w-full">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <div className="h-6 w-6 rounded bg-indigo-600 flex items-center justify-center text-[10px] font-black text-white">SA</div>
-                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Super Admin Portal</h1>
+                <div className="h-6 w-6 rounded bg-[var(--crm-accent)] flex items-center justify-center text-[10px] font-black text-white">SA</div>
+                <h1 className="text-2xl font-extrabold text-[var(--crm-text-primary)] tracking-tight">Super Admin Portal</h1>
               </div>
-              <p className="text-sm text-slate-500 font-medium italic">Master control for LeadBajaar Platform</p>
+              <p className="text-sm text-[var(--crm-text-secondary)] font-medium italic">Master control for LeadBajaar Platform</p>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Demo Data</p>
-                <button
-                  onClick={() => setDemoMode(!demoMode)}
-                  className={cn(
-                    "w-10 h-5 rounded-full transition-all relative",
-                    demoMode ? "bg-indigo-600" : "bg-slate-300"
-                  )}
-                >
-                  <div className={cn(
-                    "absolute top-1 w-3 h-3 rounded-full bg-white transition-all",
-                    demoMode ? "right-1" : "left-1"
-                  )} />
-                </button>
-              </div>
-              <Button variant="outline" onClick={handleSync} className="rounded-xl border-slate-200 h-10 font-bold text-sm">
+
+              <Button variant="outline" onClick={handleSync} className="rounded-xl border-[var(--crm-border)] h-10 font-bold text-sm">
                 <RefreshCw className="h-4 w-4 mr-2" /> Sync Data
               </Button>
-              <Button onClick={() => toast.success("System Healthy", { description: "All 14 services operating within normal parameters." })} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md rounded-xl h-10 px-5">
+              <Button onClick={() => toast.success("System Healthy", { description: "All 14 services operating within normal parameters." })} className="bg-[var(--crm-accent)] hover:opacity-90 text-white font-bold shadow-md rounded-xl h-10 px-5">
                 <Zap className="h-4 w-4 mr-2" /> System Status
               </Button>
             </div>
@@ -1141,24 +972,28 @@ export default function SuperAdminPage() {
                 items: false
               }
             ].map((stat, i) => (
-              <Card key={i} className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden relative group">
+              <Card key={i} className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden relative group">
                 <div className={cn("absolute top-0 right-0 -mt-2 -mr-2 h-16 w-16 rounded-full blur-2xl opacity-10", `bg-${stat.color}-500 group-hover:opacity-20 transition-opacity`)}></div>
-                <CardContent className="p-5">
-                  <div className="flex justify-between items-start">
-                    <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center mb-3", `bg-${stat.color}-50 text-${stat.color}-600 dark:bg-${stat.color}-950/30 dark:text-${stat.color}-400`)}>
-                      <stat.icon className="h-5 w-5" />
-                    </div>
-                    <div className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full", stat.trend.includes('+') ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500")}>
-                      {stat.trend}
-                    </div>
+                <CardContent className="p-3 sm:p-4 flex items-center gap-3">
+                  <div className={cn("h-10 w-10 shrink-0 rounded-xl flex items-center justify-center", `bg-${stat.color}-50 text-${stat.color}-600`)}>
+                    <stat.icon className="h-5 w-5" />
                   </div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">{stat.label}</p>
-                  {isLoading ? (
-                    <div className="h-8 w-24 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-lg mt-1" />
-                  ) : (
-                    <p className="text-2xl font-black text-slate-900 dark:text-white leading-tight">{stat.value}</p>
-                  )}
-                  <p className="text-[10px] text-slate-400 mt-1.5 font-medium">{stat.sub}</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <p className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider truncate mr-2">{stat.label}</p>
+                      <div className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0", stat.trend.includes('+') ? "bg-emerald-50 text-emerald-600" : "bg-[var(--crm-surface-3)] text-[var(--crm-text-secondary)]")}>
+                        {stat.trend}
+                      </div>
+                    </div>
+                    {isLoading ? (
+                      <div className="h-6 w-20 bg-[var(--crm-surface-3)] animate-pulse rounded mt-1" />
+                    ) : (
+                      <div className="flex items-baseline gap-1.5 overflow-hidden">
+                        <p className="text-lg font-black text-[var(--crm-text-primary)] leading-none">{stat.value}</p>
+                        <p className="text-[9px] text-[var(--crm-text-secondary)] font-medium truncate">{stat.sub}</p>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -1167,37 +1002,37 @@ export default function SuperAdminPage() {
 
           <Tabs defaultValue="companies" onValueChange={setActiveTab} className="space-y-4">
           <div className="w-full overflow-x-auto no-scrollbar pb-1">
-            <TabsList className="bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl h-12 border border-slate-200 dark:border-slate-800 w-max min-w-full justify-start flex-nowrap">
-              <TabsTrigger value="companies" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
+            <TabsList className="bg-[var(--crm-surface-3)] p-1 rounded-xl h-12 border border-[var(--crm-border)] w-max min-w-full justify-start flex-nowrap">
+              <TabsTrigger value="companies" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all whitespace-nowrap">
                 <Building2 className="h-4 w-4 mr-2" />
                 Manage Companies
               </TabsTrigger>
-              <TabsTrigger value="users" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
+              <TabsTrigger value="users" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all whitespace-nowrap">
                 <Users className="h-4 w-4 mr-2" />
                 Manage Users
               </TabsTrigger>
-              <TabsTrigger value="billing" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
+              <TabsTrigger value="billing" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all whitespace-nowrap">
                 <CreditCard className="h-4 w-4 mr-2" />
                 Global Billing
               </TabsTrigger>
-              <TabsTrigger value="plans" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
+              <TabsTrigger value="plans" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all whitespace-nowrap">
                 <Settings className="h-4 w-4 mr-2" />
                 Plan Management
               </TabsTrigger>
-              <TabsTrigger value="health" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
+              <TabsTrigger value="health" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all whitespace-nowrap">
                 <Activity className="h-4 w-4 mr-2" />
                 Service Status
               </TabsTrigger>
-              <TabsTrigger value="meta-deletions" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
+              <TabsTrigger value="meta-deletions" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all whitespace-nowrap">
                 <ShieldAlert className="h-4 w-4 mr-2 text-red-500" />
                 Meta Compliance
               </TabsTrigger>
-              <TabsTrigger value="announcements" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
+              <TabsTrigger value="announcements" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all whitespace-nowrap">
                 <Megaphone className="h-4 w-4 mr-2 text-amber-500" />
                 Announcements
               </TabsTrigger>
-              <TabsTrigger value="testers" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all whitespace-nowrap">
-                <Smartphone className="h-4 w-4 mr-2 text-blue-500" />
+              <TabsTrigger value="testers" className="rounded-lg px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all whitespace-nowrap">
+                <Smartphone className="h-4 w-4 mr-2 text-primary" />
                 Beta Testers
               </TabsTrigger>
             </TabsList>
@@ -1206,21 +1041,21 @@ export default function SuperAdminPage() {
             <TabsContent value="users" className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="relative w-full sm:w-96">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--crm-text-secondary)]">
                     <Search className="h-4 w-4" />
                   </div>
                   <Input
                     placeholder="Search users by name, email..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-10 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl text-sm shadow-sm pl-10"
+                    className="h-10 bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-xl text-sm shadow-sm pl-10"
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
                   {/* Role Filter */}
                   <Select value={filterRole} onValueChange={setFilterRole}>
-                    <SelectTrigger className="h-10 w-full sm:w-32 rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold text-[10px] uppercase">
-                      <Users className="h-3 w-3 mr-2 text-indigo-500" />
+                    <SelectTrigger className="h-10 w-full sm:w-32 rounded-xl bg-[var(--crm-surface-1)] border-[var(--crm-border)] font-bold text-[10px] uppercase">
+                      <Users className="h-3 w-3 mr-2 text-primary" />
                       <SelectValue placeholder="Role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1234,8 +1069,8 @@ export default function SuperAdminPage() {
 
                   {/* Account Type Filter */}
                   <Select value={filterUserType} onValueChange={setFilterUserType}>
-                    <SelectTrigger className="h-10 w-full sm:w-36 rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold text-[10px] uppercase">
-                      <Building2 className="h-3 w-3 mr-2 text-indigo-500" />
+                    <SelectTrigger className="h-10 w-full sm:w-36 rounded-xl bg-[var(--crm-surface-1)] border-[var(--crm-border)] font-bold text-[10px] uppercase">
+                      <Building2 className="h-3 w-3 mr-2 text-primary" />
                       <SelectValue placeholder="Account" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1247,8 +1082,8 @@ export default function SuperAdminPage() {
 
                   {/* Status Filter */}
                   <Select value={filterUserStatus} onValueChange={setFilterUserStatus}>
-                    <SelectTrigger className="h-10 w-full sm:w-32 rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold text-[10px] uppercase">
-                      <Activity className="h-3 w-3 mr-2 text-indigo-500" />
+                    <SelectTrigger className="h-10 w-full sm:w-32 rounded-xl bg-[var(--crm-surface-1)] border-[var(--crm-border)] font-bold text-[10px] uppercase">
+                      <Activity className="h-3 w-3 mr-2 text-primary" />
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1261,9 +1096,9 @@ export default function SuperAdminPage() {
 
                   {/* Tag Filter */}
                   <Select value={filterTag} onValueChange={setFilterTag}>
-                    <SelectTrigger className="h-10 w-full sm:w-40 rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold text-[10px] uppercase">
+                    <SelectTrigger className="h-10 w-full sm:w-40 rounded-xl bg-[var(--crm-surface-1)] border-[var(--crm-border)] font-bold text-[10px] uppercase">
                       <div className="flex items-center">
-                        <Tag className="h-3 w-3 mr-2 text-indigo-500" />
+                        <Tag className="h-3 w-3 mr-2 text-primary" />
                         <SelectValue placeholder="Tag" />
                       </div>
                     </SelectTrigger>
@@ -1285,25 +1120,25 @@ export default function SuperAdminPage() {
                       setFilterUserStatus('all');
                       fetchData();
                     }}
-                    className="h-10 rounded-xl border-slate-200 text-slate-500 shadow-sm px-3"
+                    className="h-10 rounded-xl border-[var(--crm-border)] text-[var(--crm-text-secondary)] shadow-sm px-3"
                   >
                     <RefreshCw className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </div>
 
-              <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden">
+              <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-2xl ring-1 ring-slate-200 overflow-hidden">
                 <CardContent className="p-0">
                   <Table>
-                    <TableHeader className="bg-slate-50/80 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                    <TableHeader className="bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)]">
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="font-bold text-slate-500 py-4 pl-6">User</TableHead>
-                        <TableHead className="font-bold text-slate-500 py-4">Company</TableHead>
-                        <TableHead className="font-bold text-slate-500 py-4">Account Type</TableHead>
-                        <TableHead className="font-bold text-slate-500 py-4">Role</TableHead>
-                        <TableHead className="font-bold text-slate-500 py-4">Status</TableHead>
-                        <TableHead className="font-bold text-slate-500 py-4">Tags</TableHead>
-                        <TableHead className="text-right font-bold text-slate-500 py-4 pr-6">Actions</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4 pl-6">User</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4">Company</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4">Account Type</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4">Role</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4">Status</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4">Tags</TableHead>
+                        <TableHead className="text-right font-bold text-[var(--crm-text-secondary)] py-4 pr-6">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1311,40 +1146,40 @@ export default function SuperAdminPage() {
                         <TableRow>
                           <TableCell colSpan={7} className="h-64 text-center">
                             <div className="flex flex-col items-center justify-center gap-3">
-                              <Loader2 className="h-10 w-10 text-indigo-500 animate-spin" />
-                              <p className="text-sm font-bold text-slate-500 italic">Retrieving user directory...</p>
+                              <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                              <p className="text-sm font-bold text-[var(--crm-text-secondary)] italic">Retrieving user directory...</p>
                             </div>
                           </TableCell>
                         </TableRow>
                       ) : users.length > 0 ? (
                         users.map((u) => (
-                          <TableRow key={u.id} className="border-slate-100 dark:border-slate-800">
+                          <TableRow key={u.id} className="border-[var(--crm-border)]">
                             <TableCell className="py-4 pl-6">
                               <div>
-                                <p className="font-bold text-sm text-slate-900 dark:text-white">{u.name}</p>
-                                <p className="text-[10px] text-slate-400 font-medium">{u.email}</p>
+                                <p className="font-bold text-sm text-[var(--crm-text-primary)]">{u.name}</p>
+                                <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium">{u.email}</p>
                               </div>
                             </TableCell>
-                            <TableCell className="text-sm font-medium text-slate-600 dark:text-slate-400">{u.company?.name || 'No Company'}</TableCell>
+                            <TableCell className="text-sm font-medium text-[var(--crm-text-secondary)]">{u.company?.name || 'No Company'}</TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="text-[10px] font-bold uppercase bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700">{u.user_type || 'Individual'}</Badge>
+                              <Badge variant="outline" className="text-[10px] font-bold uppercase bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] border-[var(--crm-border)]">{u.user_type || 'Individual'}</Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge variant="default" className="text-[10px] font-bold uppercase bg-indigo-600 text-white border-none">{u.role}</Badge>
+                              <Badge variant="default" className="text-[10px] font-bold uppercase bg-[var(--crm-accent)] text-white border-none">{u.role}</Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge className={cn("text-[10px] font-bold py-0.5", u.status === 'Active' ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-600 border-slate-200")}>
+                              <Badge className={cn("text-[10px] font-bold py-0.5", u.status === 'Active' ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-[var(--crm-surface-3)] text-[var(--crm-text-secondary)] border-[var(--crm-border)]")}>
                                 {u.status}
                               </Badge>
                             </TableCell>
                             <TableCell>
                               <div className="flex flex-wrap gap-1 max-w-[150px]">
                                 {u.tags && u.tags.length > 0 ? u.tags.map((tag, idx) => (
-                                  <Badge key={idx} variant="secondary" className="text-[9px] px-1.5 h-4 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 border-none">
+                                  <Badge key={idx} variant="secondary" className="text-[9px] px-1.5 h-4 bg-[var(--crm-accent-soft)] text-[var(--crm-accent)] border-none">
                                     {tag}
                                   </Badge>
                                 )) : (
-                                  <span className="text-[10px] text-slate-400 italic">No tags</span>
+                                  <span className="text-[10px] text-[var(--crm-text-secondary)] italic">No tags</span>
                                 )}
                               </div>
                             </TableCell>
@@ -1360,7 +1195,7 @@ export default function SuperAdminPage() {
                                     Edit Role
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
-                                    className="text-indigo-600 font-bold"
+                                    className="text-[var(--crm-accent)] font-bold"
                                     onClick={() => handleImpersonate(Number(u.id))}
                                   >
                                     <ExternalLink className="h-4 w-4 mr-2" /> Impersonate
@@ -1381,12 +1216,12 @@ export default function SuperAdminPage() {
                         <TableRow>
                           <TableCell colSpan={7} className="h-64 text-center">
                             <div className="flex flex-col items-center justify-center gap-3">
-                              <div className="h-12 w-12 rounded-2xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+                              <div className="h-12 w-12 rounded-2xl bg-[var(--crm-surface-2)] flex items-center justify-center">
                                 <Search className="h-6 w-6 text-slate-300" />
                               </div>
                               <div className="space-y-1">
-                                <p className="text-base font-bold text-slate-900 dark:text-white">No Users Found</p>
-                                <p className="text-sm text-slate-500 max-w-[250px] mx-auto">We couldn't find any users matching your current filters or search query.</p>
+                                <p className="text-base font-bold text-[var(--crm-text-primary)]">No Users Found</p>
+                                <p className="text-sm text-[var(--crm-text-secondary)] max-w-[250px] mx-auto">We couldn't find any users matching your current filters or search query.</p>
                               </div>
                               <Button
                                 variant="link"
@@ -1398,7 +1233,7 @@ export default function SuperAdminPage() {
                                   setFilterUserStatus('all');
                                   fetchData();
                                 }}
-                                className="text-indigo-600 font-bold"
+                                className="text-[var(--crm-accent)] font-bold"
                               >
                                 Reset all filters
                               </Button>
@@ -1410,7 +1245,7 @@ export default function SuperAdminPage() {
                   </Table>
                 </CardContent>
                 {usersMeta && (
-                  <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 py-4 px-6">
+                  <CardFooter className="bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)] py-4 px-6">
                     <PaginationSection
                       currentPage={usersPage}
                       lastPage={usersMeta.last_page}
@@ -1427,25 +1262,25 @@ export default function SuperAdminPage() {
               {/* Filter Row */}
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="relative w-full sm:w-96">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--crm-text-secondary)]">
                     <Search className="h-4 w-4" />
                   </div>
                   <Input
                     placeholder="Search by company, owner, or email..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-10 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl text-sm shadow-sm pl-10"
+                    className="h-10 bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-xl text-sm shadow-sm pl-10"
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
                   {/* Plan Filter */}
                   <Select value={filterPlan} onValueChange={setFilterPlan}>
                     <SelectTrigger className={cn(
-                      "h-10 w-10 px-0 flex items-center justify-center hover:w-auto hover:px-4 rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold text-[10px] uppercase group transition-all duration-300 overflow-hidden",
+                      "h-10 w-10 px-0 flex items-center justify-center hover:w-auto hover:px-4 rounded-xl bg-[var(--crm-surface-1)] border-[var(--crm-border)] font-bold text-[10px] uppercase group transition-all duration-300 overflow-hidden",
                       filterPlan !== 'all' && "w-auto px-4"
                     )}>
                       <div className="flex items-center justify-center w-full">
-                        <CreditCard className="h-3.5 w-3.5 text-indigo-500 flex-shrink-0" />
+                        <CreditCard className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                         <span className={cn(
                           "max-w-0 group-hover:max-w-[120px] opacity-0 group-hover:opacity-100 transition-all duration-300 ml-0 group-hover:ml-2 whitespace-nowrap",
                           filterPlan !== 'all' && "max-w-[120px] opacity-100 ml-2"
@@ -1454,7 +1289,7 @@ export default function SuperAdminPage() {
                         </span>
                       </div>
                     </SelectTrigger>
-                    <SelectContent className="dark:bg-slate-900 dark:border-slate-800 shadow-xl">
+                    <SelectContent className="dark:bg-[var(--crm-accent)] shadow-xl">
                       <SelectItem value="all" className="font-bold">All Plans</SelectItem>
                       {plans.map((p) => (
                         <SelectItem key={p.id} value={p.name}>{p.name} Tier</SelectItem>
@@ -1465,11 +1300,11 @@ export default function SuperAdminPage() {
                   {/* Status Filter */}
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
                     <SelectTrigger className={cn(
-                      "h-10 w-10 px-0 flex items-center justify-center hover:w-auto hover:px-4 rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold text-[10px] uppercase group transition-all duration-300 overflow-hidden",
+                      "h-10 w-10 px-0 flex items-center justify-center hover:w-auto hover:px-4 rounded-xl bg-[var(--crm-surface-1)] border-[var(--crm-border)] font-bold text-[10px] uppercase group transition-all duration-300 overflow-hidden",
                       filterStatus !== 'all' && "w-auto px-4"
                     )}>
                       <div className="flex items-center justify-center w-full">
-                        <Activity className="h-3.5 w-3.5 text-indigo-500 flex-shrink-0" />
+                        <Activity className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                         <span className={cn(
                           "max-w-0 group-hover:max-w-[120px] opacity-0 group-hover:opacity-100 transition-all duration-300 ml-0 group-hover:ml-2 whitespace-nowrap",
                           filterStatus !== 'all' && "max-w-[120px] opacity-100 ml-2"
@@ -1489,11 +1324,11 @@ export default function SuperAdminPage() {
                   {/* Tag Filter */}
                   <Select value={filterTag} onValueChange={setFilterTag}>
                     <SelectTrigger className={cn(
-                      "h-10 w-10 px-0 flex items-center justify-center hover:w-auto hover:px-4 rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold text-[10px] uppercase group transition-all duration-300 overflow-hidden",
+                      "h-10 w-10 px-0 flex items-center justify-center hover:w-auto hover:px-4 rounded-xl bg-[var(--crm-surface-1)] border-[var(--crm-border)] font-bold text-[10px] uppercase group transition-all duration-300 overflow-hidden",
                       filterTag !== 'all' && "w-auto px-4"
                     )}>
                       <div className="flex items-center justify-center w-full">
-                        <Tag className="h-3.5 w-3.5 text-indigo-500 flex-shrink-0" />
+                        <Tag className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                         <span className={cn(
                           "max-w-0 group-hover:max-w-[120px] opacity-0 group-hover:opacity-100 transition-all duration-300 ml-0 group-hover:ml-2 whitespace-nowrap",
                           filterTag !== 'all' && "max-w-[120px] opacity-100 ml-2"
@@ -1529,7 +1364,7 @@ export default function SuperAdminPage() {
                     }}
                     placeholder="Expiration Filter"
                     isIconTriggerOnly={true}
-                    icon={<Clock className="h-3.5 w-3.5 text-indigo-500" />}
+                    icon={<Clock className="h-3.5 w-3.5 text-primary" />}
                   />
 
                   {/* Started Filter */}
@@ -1551,7 +1386,7 @@ export default function SuperAdminPage() {
                     }}
                     placeholder="Started Filter"
                     isIconTriggerOnly={true}
-                    icon={<Calendar className="h-3.5 w-3.5 text-indigo-500" />}
+                    icon={<Calendar className="h-3.5 w-3.5 text-primary" />}
                   />
 
                   <Button
@@ -1570,7 +1405,7 @@ export default function SuperAdminPage() {
                       setCustomStartEnd('');
                       fetchData();
                     }}
-                    className="h-10 w-10 p-0 flex flex-shrink-0 items-center justify-center rounded-xl border-slate-200 text-slate-500 shadow-sm group transition-all duration-300 overflow-hidden hover:w-auto hover:px-4"
+                    className="h-10 w-10 p-0 flex flex-shrink-0 items-center justify-center rounded-xl border-[var(--crm-border)] text-[var(--crm-text-secondary)] shadow-sm group transition-all duration-300 overflow-hidden hover:w-auto hover:px-4"
                   >
                     <div className="flex items-center justify-center w-full">
                       <RefreshCw className="h-3.5 w-3.5" />
@@ -1583,7 +1418,7 @@ export default function SuperAdminPage() {
                   <Button
                     variant="outline"
                     onClick={handleExport}
-                    className="h-10 w-10 p-0 flex flex-shrink-0 items-center justify-center rounded-xl border-indigo-100 dark:border-indigo-900 bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 shadow-sm group transition-all duration-300 overflow-hidden hover:w-auto hover:px-4"
+                    className="h-10 w-10 p-0 flex flex-shrink-0 items-center justify-center rounded-xl border-indigo-100 bg-[var(--crm-accent-soft)]/50 text-[var(--crm-accent)] shadow-sm group transition-all duration-300 overflow-hidden hover:w-auto hover:px-4"
                   >
                     <div className="flex items-center justify-center w-full">
                       <Download className="h-4 w-4" />
@@ -1596,21 +1431,21 @@ export default function SuperAdminPage() {
               </div>
 
               {/* Companies Table */}
-              <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden">
+              <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-2xl ring-1 ring-slate-200 overflow-hidden">
                 <CardContent className="p-0">
                   <Table>
-                    <TableHeader className="bg-slate-50/80 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                    <TableHeader className="bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)]">
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-xs py-5 pl-6">Company & Owner</TableHead>
-                        <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-xs py-5">Plan</TableHead>
-                        <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-xs py-5">Entity Type</TableHead>
-                        <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-xs py-5">Status</TableHead>
-                        <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px] py-5">Node</TableHead>
-                        <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px] py-5">Users</TableHead>
-                        <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px] py-5">Expiration</TableHead>
-                        <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px] py-5">Started</TableHead>
-                        <TableHead className="text-right font-bold text-slate-500 uppercase tracking-wider text-[10px] py-5 pr-6">Monthly MRR</TableHead>
-                        <TableHead className="text-right font-bold text-slate-500 uppercase tracking-wider text-[10px] py-5 pr-6"></TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-5 pl-6">Company & Owner</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-5">Plan</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-5">Entity Type</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-5">Status</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-[10px] py-5">Node</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-[10px] py-5">Users</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-[10px] py-5">Expiration</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-[10px] py-5">Started</TableHead>
+                        <TableHead className="text-right font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-[10px] py-5 pr-6">Monthly MRR</TableHead>
+                        <TableHead className="text-right font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-[10px] py-5 pr-6"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1618,30 +1453,30 @@ export default function SuperAdminPage() {
                         <TableRow>
                           <TableCell colSpan={10} className="h-64 text-center">
                             <div className="flex flex-col items-center justify-center gap-3">
-                              <Loader2 className="h-10 w-10 text-indigo-500 animate-spin" />
-                              <p className="text-sm font-bold text-slate-500 italic">Syncing company nodes...</p>
+                              <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                              <p className="text-sm font-bold text-[var(--crm-text-secondary)] italic">Syncing company nodes...</p>
                             </div>
                           </TableCell>
                         </TableRow>
                       ) : companies.length > 0 ? (
                         companies.map((company: Company) => (
-                          <TableRow key={company.id} className="border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
+                          <TableRow key={company.id} className="border-[var(--crm-border)] hover:bg-[var(--crm-surface-3)] transition-colors group">
                             {/* ... existing table cells ... */}
                             <TableCell className="py-5 pl-6">
                               <div className="flex items-center gap-4">
-                                <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold shadow-sm">
+                                <div className="h-10 w-10 rounded-xl bg-[var(--crm-surface-3)] flex items-center justify-center text-[var(--crm-text-secondary)] font-bold shadow-sm">
                                   {company.name.charAt(0)}
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="font-bold text-slate-900 dark:text-white text-sm">{company.name}</p>
+                                  <p className="font-bold text-[var(--crm-text-primary)] text-sm">{company.name}</p>
                                   <div className="flex items-center gap-1.5 mt-0.5">
-                                    <p className="text-xs text-slate-500 font-medium">{company.owner}</p>
+                                    <p className="text-xs text-[var(--crm-text-secondary)] font-medium">{company.owner}</p>
                                     <span className="text-slate-300">•</span>
-                                    <p className="text-[11px] text-slate-400">{company.email}</p>
+                                    <p className="text-[11px] text-[var(--crm-text-secondary)]">{company.email}</p>
                                   </div>
                                   <div className="flex flex-wrap gap-1 mt-1.5">
                                     {company.tags?.map((tag, idx) => (
-                                      <Badge key={idx} variant="secondary" className="text-[8px] px-1.5 h-3.5 bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border-none font-bold">
+                                      <Badge key={idx} variant="secondary" className="text-[8px] px-1.5 h-3.5 bg-[var(--crm-surface-3)] text-[var(--crm-text-secondary)] border-none font-bold">
                                         {tag}
                                       </Badge>
                                     ))}
@@ -1655,7 +1490,7 @@ export default function SuperAdminPage() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge variant="secondary" className={cn("text-[10px] uppercase font-black tracking-widest px-2 py-0.5", company.type === 'agency' ? "bg-indigo-50 text-indigo-700 border-indigo-100" : "bg-slate-50 text-slate-600 border-slate-100")}>
+                              <Badge variant="secondary" className={cn("text-[10px] uppercase font-black tracking-widest px-2 py-0.5", company.type === 'agency' ? "bg-[var(--crm-accent-soft)] text-primary border-indigo-100" : "bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] border-[var(--crm-border)]")}>
                                 {company.type || 'individual'}
                               </Badge>
                             </TableCell>
@@ -1664,57 +1499,57 @@ export default function SuperAdminPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-1.5">
-                                <Activity className="h-3.5 w-3.5 text-slate-400" />
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{company.usersCount}</span>
+                                <Activity className="h-3.5 w-3.5 text-[var(--crm-text-secondary)]" />
+                                <span className="text-sm font-bold text-[var(--crm-text-primary)]">{company.usersCount}</span>
                               </div>
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-1.5">
-                                <Users className="h-3.5 w-3.5 text-slate-400" />
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{company.usersCount}</span>
+                                <Users className="h-3.5 w-3.5 text-[var(--crm-text-secondary)]" />
+                                <span className="text-sm font-bold text-[var(--crm-text-primary)]">{company.usersCount}</span>
                               </div>
                             </TableCell>
                             <TableCell>
                               <div className="space-y-0.5">
-                                <p className="text-xs font-black text-indigo-600 dark:text-indigo-400">
+                                <p className="text-xs font-black text-[var(--crm-accent)]">
                                   {company.expires_at ? new Date(company.expires_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }) : 'Never'}
                                 </p>
-                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Automatic Expiry</p>
+                                <p className="text-[9px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tighter">Automatic Expiry</p>
                               </div>
                             </TableCell>
                             <TableCell>
                               <div className="space-y-0.5">
-                                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                <p className="text-xs font-bold text-[var(--crm-text-primary)]">
                                   {company.subscription_started_at ? new Date(company.subscription_started_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }) : 'N/A'}
                                 </p>
-                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Plan Started</p>
+                                <p className="text-[9px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tighter">Plan Started</p>
                               </div>
                             </TableCell>
                             <TableCell className="text-right pr-6">
-                              <p className="font-black text-slate-900 dark:text-white text-sm">₹{company.monthlySpend}</p>
-                              <p className="text-[10px] text-slate-500">Joined {company.joinedDate}</p>
+                              <p className="font-black text-[var(--crm-text-primary)] text-sm">₹{company.monthlySpend}</p>
+                              <p className="text-[10px] text-[var(--crm-text-secondary)]">Joined {company.joinedDate}</p>
                             </TableCell>
                             <TableCell className="text-right pr-6">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" className="h-9 w-9 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-500">
+                                  <Button variant="ghost" className="h-9 w-9 p-0 hover:bg-[var(--crm-surface-3)] rounded-xl text-[var(--crm-text-secondary)]">
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-56 rounded-2xl border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-slate-950 p-1.5">
-                                  <DropdownMenuLabel className="font-bold text-xs uppercase tracking-wider text-slate-500 px-3 py-2">Account Control</DropdownMenuLabel>
-                                  <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
+                                <DropdownMenuContent align="end" className="w-56 rounded-2xl border-[var(--crm-border)] shadow-xl bg-[var(--crm-surface-1)] p-1.5">
+                                  <DropdownMenuLabel className="font-bold text-xs uppercase tracking-wider text-[var(--crm-text-secondary)] px-3 py-2">Account Control</DropdownMenuLabel>
+                                  <DropdownMenuSeparator className="bg-[var(--crm-surface-3)]" />
                                   <DropdownMenuItem
-                                    className="cursor-pointer font-medium py-2.5 px-3 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-xl"
+                                    className="cursor-pointer font-medium py-2.5 px-3 focus:bg-[var(--crm-surface-2)]:bg-[var(--crm-accent)] rounded-xl"
                                     onClick={() => {
                                       setEditingCompany({ ...company })
                                       setIsEditModalOpen(true)
                                     }}
                                   >
-                                    <Edit className="mr-3 h-4 w-4 text-slate-400" /> Edit Plan & Billing
+                                    <Edit className="mr-3 h-4 w-4 text-[var(--crm-text-secondary)]" /> Edit Plan & Billing
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
-                                    className="cursor-pointer font-bold py-2.5 px-3 text-indigo-600 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-xl"
+                                    className="cursor-pointer font-bold py-2.5 px-3 text-[var(--crm-accent)] focus:bg-[var(--crm-surface-2)]:bg-[var(--crm-accent)] rounded-xl"
                                     onClick={() => {
                                       if (company.owner_id) {
                                         handleImpersonate(Number(company.owner_id))
@@ -1725,28 +1560,28 @@ export default function SuperAdminPage() {
                                   >
                                     <ExternalLink className="mr-3 h-4 w-4" /> Enter Account
                                   </DropdownMenuItem>
-                                  <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
-                                  <DropdownMenuLabel className="font-bold text-[10px] uppercase tracking-wider text-slate-400 px-3 py-1">Advanced Actions</DropdownMenuLabel>
+                                  <DropdownMenuSeparator className="bg-[var(--crm-surface-3)]" />
+                                  <DropdownMenuLabel className="font-bold text-[10px] uppercase tracking-wider text-[var(--crm-text-secondary)] px-3 py-1">Advanced Actions</DropdownMenuLabel>
                                   <DropdownMenuItem
-                                    className="cursor-pointer font-bold py-2.5 px-3 text-emerald-600 focus:bg-emerald-50 dark:focus:bg-emerald-950/30 rounded-xl"
+                                    className="cursor-pointer font-bold py-2.5 px-3 text-emerald-600 focus:bg-emerald-50:bg-emerald-950/30 rounded-xl"
                                     onClick={() => setRenewModal({ isOpen: true, companyId: Number(company.id), companyName: company.name, days: 30, notes: '' })}
                                   >
                                     <RefreshCw className="mr-3 h-4 w-4 text-emerald-400" /> Prolong Plan
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
-                                    className="cursor-pointer font-bold py-2.5 px-3 text-slate-600 focus:bg-slate-50 dark:focus:bg-slate-900 rounded-xl"
+                                    className="cursor-pointer font-bold py-2.5 px-3 text-[var(--crm-text-secondary)] focus:bg-[var(--crm-surface-2)]:bg-[var(--crm-accent)] rounded-xl"
                                     onClick={() => handleViewHistory(Number(company.id), company.name)}
                                   >
-                                    <History className="mr-3 h-4 w-4 text-slate-400" /> Audit History
+                                    <History className="mr-3 h-4 w-4 text-[var(--crm-text-secondary)]" /> Audit History
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
-                                    className="cursor-pointer font-medium py-2.5 px-3 text-red-600 focus:bg-red-50 dark:focus:bg-red-950/30 focus:text-red-600 rounded-xl"
+                                    className="cursor-pointer font-medium py-2.5 px-3 text-red-600 focus:bg-red-50:bg-red-950/30 focus:text-red-600 rounded-xl"
                                     onClick={() => handleStatusChange(company.id, 'Suspended')}
                                   >
                                     <ShieldAlert className="mr-3 h-4 w-4" /> Suspend Account
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
-                                    className="cursor-pointer font-bold py-2.5 px-3 text-red-600 focus:bg-red-100 dark:focus:bg-red-900/40 rounded-xl"
+                                    className="cursor-pointer font-bold py-2.5 px-3 text-red-600 focus:bg-red-100:bg-red-900/40 rounded-xl"
                                     onClick={() => setConfirmModal({ isOpen: true, type: 'delete_company', id: Number(company.id), name: company.name, variant: 'destructive' })}
                                   >
                                     <Trash2 className="mr-3 h-4 w-4" /> Terminate Node
@@ -1760,17 +1595,17 @@ export default function SuperAdminPage() {
                         <TableRow>
                           <TableCell colSpan={10} className="h-64 text-center">
                             <div className="flex flex-col items-center justify-center gap-3">
-                              <div className="h-12 w-12 rounded-2xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+                              <div className="h-12 w-12 rounded-2xl bg-[var(--crm-surface-2)] flex items-center justify-center">
                                 <Building2 className="h-6 w-6 text-slate-300" />
                               </div>
                               <div className="space-y-1">
-                                <p className="text-base font-bold text-slate-900 dark:text-white">No Companies Found</p>
-                                <p className="text-sm text-slate-500 max-w-[250px] mx-auto">Try adjusting your filters or search keywords.</p>
+                                <p className="text-base font-bold text-[var(--crm-text-primary)]">No Companies Found</p>
+                                <p className="text-sm text-[var(--crm-text-secondary)] max-w-[250px] mx-auto">Try adjusting your filters or search keywords.</p>
                               </div>
                               <Button
                                 variant="link"
                                 onClick={() => { setFilterPlan('all'); setFilterStatus('all'); setSearchQuery(''); fetchData(); }}
-                                className="text-indigo-600 font-bold"
+                                className="text-[var(--crm-accent)] font-bold"
                               >
                                 Reset all filters
                               </Button>
@@ -1781,7 +1616,7 @@ export default function SuperAdminPage() {
                     </TableBody>
                   </Table>
                 </CardContent>
-                <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 py-4 px-6">
+                <CardFooter className="bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)] py-4 px-6">
                   <PaginationSection
                     currentPage={companiesPage}
                     lastPage={companiesMeta?.last_page || 1}
@@ -1796,13 +1631,13 @@ export default function SuperAdminPage() {
 
             <TabsContent value="billing" className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="md:col-span-2 border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800">
-                  <CardHeader className="border-b border-slate-100 dark:border-slate-800">
+                <Card className="md:col-span-2 border-none shadow-sm bg-[var(--crm-surface-1)] rounded-2xl ring-1 ring-slate-200">
+                  <CardHeader className="border-b border-[var(--crm-border)]">
                     <CardTitle className="text-lg font-bold">Recent Invoices</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
                     <Table>
-                      <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
+                      <TableHeader className="bg-[var(--crm-surface-2)]">
                         <TableRow>
                           <TableHead className="font-bold text-[11px] uppercase pl-6">ID</TableHead>
                           <TableHead className="font-bold text-[11px] uppercase">Company</TableHead>
@@ -1816,37 +1651,37 @@ export default function SuperAdminPage() {
                           <TableRow>
                             <TableCell colSpan={5} className="h-48 text-center">
                               <div className="flex flex-col items-center justify-center gap-2">
-                                <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
-                                <p className="text-sm font-medium text-slate-500 italic">Fetching transaction history...</p>
+                                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                                <p className="text-sm font-medium text-[var(--crm-text-secondary)] italic">Fetching transaction history...</p>
                               </div>
                             </TableCell>
                           </TableRow>
                         ) : billingData.length > 0 ? (
                           billingData.map((inv: any) => (
-                            <TableRow key={inv.id} className="border-slate-100 dark:border-slate-800">
+                            <TableRow key={inv.id} className="border-[var(--crm-border)]">
                               <TableCell className="font-medium pl-6 text-sm">#{inv.id}</TableCell>
-                              <TableCell className="font-bold text-sm text-slate-800 dark:text-slate-200">{inv.company?.name || 'Deleted'}</TableCell>
+                              <TableCell className="font-bold text-sm text-slate-800">{inv.company?.name || 'Deleted'}</TableCell>
                               <TableCell>
                                 <Badge variant="outline" className="text-[10px] font-bold uppercase">{inv.type}</Badge>
                               </TableCell>
                               <TableCell className="text-right font-black text-sm">
                                 ₹{inv.amount && parseFloat(inv.amount) > 0 ? parseFloat(inv.amount).toLocaleString() : '0'}
                               </TableCell>
-                              <TableCell className="text-right text-slate-500 text-xs pr-6">
+                              <TableCell className="text-right text-[var(--crm-text-secondary)] text-xs pr-6">
                                 {new Date(inv.created_at).toLocaleDateString()}
                               </TableCell>
                             </TableRow>
                           ))
                         ) : (
                           <TableRow>
-                            <TableCell colSpan={5} className="py-10 text-center text-slate-500 italic font-medium">No billing history found matching current criteria.</TableCell>
+                            <TableCell colSpan={5} className="py-10 text-center text-[var(--crm-text-secondary)] italic font-medium">No billing history found matching current criteria.</TableCell>
                           </TableRow>
                         )}
                       </TableBody>
                     </Table>
                   </CardContent>
                   {billingMeta && (
-                    <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 py-4 px-6">
+                    <CardFooter className="bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)] py-4 px-6">
                       <PaginationSection
                         currentPage={billingPage}
                         lastPage={billingMeta.last_page}
@@ -1858,16 +1693,16 @@ export default function SuperAdminPage() {
                   )}
                 </Card>
 
-                <Card className="border-none shadow-sm bg-indigo-600 rounded-2xl p-6 text-white relative overflow-hidden">
-                  <div className="absolute top-0 right-0 -mt-8 -mr-8 h-32 w-32 rounded-full bg-white/10 blur-3xl"></div>
+                <Card className="border-none shadow-sm bg-[var(--crm-accent)] rounded-2xl p-6 text-white relative overflow-hidden">
+                  <div className="absolute top-0 right-0 -mt-8 -mr-8 h-32 w-32 rounded-full bg-[var(--crm-surface-1)]/10 blur-3xl"></div>
                   <div className="relative z-10 flex flex-col h-full">
                     <div className="flex justify-between items-start mb-2">
                       <p className="text-indigo-100 text-xs font-bold uppercase tracking-widest">Total MRR</p>
                       <div className="group relative">
                         <Activity className="h-3.5 w-3.5 text-indigo-300 cursor-help" />
-                        <div className="absolute right-0 bottom-full mb-2 w-64 p-3 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-100 dark:border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                          <p className="text-[10px] font-bold text-slate-500 uppercase mb-2">Calculation Logic</p>
-                          <ul className="space-y-1.5 text-xs font-medium text-slate-700 dark:text-slate-200">
+                        <div className="absolute right-0 bottom-full mb-2 w-64 p-3 bg-[var(--crm-surface-1)] rounded-xl shadow-xl border border-[var(--crm-border)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                          <p className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase mb-2">Calculation Logic</p>
+                          <ul className="space-y-1.5 text-xs font-medium text-[var(--crm-text-primary)]">
                             <li className="flex justify-between">
                               <span>Pro Tier:</span>
                               <span className="font-bold">Qty × ₹1,490</span>
@@ -1876,7 +1711,7 @@ export default function SuperAdminPage() {
                               <span>Enterprise:</span>
                               <span className="font-bold">Qty × ₹4,990</span>
                             </li>
-                            <li className="flex justify-between border-t border-slate-100 dark:border-slate-800 pt-1.5">
+                            <li className="flex justify-between border-t border-[var(--crm-border)] pt-1.5">
                               <span>Custom:</span>
                               <span className="font-bold">Manual Adjustments</span>
                             </li>
@@ -1899,7 +1734,7 @@ export default function SuperAdminPage() {
                         <span className="font-bold">{stats?.revenue?.breakdown?.custom || '₹0'}</span>
                       </div>
                     </div>
-                    <Button className="mt-8 bg-white/20 hover:bg-white/30 backdrop-blur-md border-none text-white font-bold w-full rounded-xl">
+                    <Button className="mt-8 bg-[var(--crm-surface-1)]/20 hover:bg-[var(--crm-surface-1)]/30 backdrop-blur-md border-none text-white font-bold w-full rounded-xl">
                       View Revenue Analytics
                     </Button>
                   </div>
@@ -1910,20 +1745,20 @@ export default function SuperAdminPage() {
             <TabsContent value="plans" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Subscription Tiers</h3>
-                  <p className="text-sm text-slate-500">Configure features and pricing for LeadBajaar plans.</p>
+                  <h3 className="text-lg font-bold text-[var(--crm-text-primary)]">Subscription Tiers</h3>
+                  <p className="text-sm text-[var(--crm-text-secondary)]">Configure features and pricing for LeadBajaar plans.</p>
                 </div>
-                <Button onClick={handleCreatePlan} className="bg-slate-900 dark:bg-slate-100 dark:text-slate-900 font-bold rounded-xl h-10 px-5">
+                <Button onClick={handleCreatePlan} className="bg-[var(--crm-accent)] font-bold rounded-xl h-10 px-5">
                   <Plus className="h-4 w-4 mr-2" /> Create New Plan
                 </Button>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {plans.map((plan) => (
-                  <Card key={plan.id} className="border-none shadow-md bg-white dark:bg-slate-900 rounded-3xl ring-1 ring-slate-200 dark:ring-slate-800 flex flex-col overflow-hidden relative group transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                  <Card key={plan.id} className="border-none shadow-md bg-[var(--crm-surface-1)] rounded-3xl ring-1 ring-slate-200 flex flex-col overflow-hidden relative group transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                     <div className={cn("absolute top-0 left-0 w-full h-1.5",
                       plan.name === 'Enterprise' ? "bg-purple-500" :
-                        plan.name === 'Pro' ? "bg-indigo-500" : "bg-slate-400"
+                        plan.name === 'Pro' ? "bg-[var(--crm-accent-soft)]0" : "bg-slate-400"
                     )}></div>
 
                     <CardHeader className="pt-8 pb-4 text-center">
@@ -1931,13 +1766,13 @@ export default function SuperAdminPage() {
                         {plan.name} Tier
                       </Badge>
                       <div className="flex items-center justify-center gap-1 mt-2">
-                        <span className="text-sm font-bold text-slate-500">₹</span>
-                        <span className="text-4xl font-black text-slate-900 dark:text-white leading-none">{plan.price}</span>
-                        <span className="text-sm font-bold text-slate-500">/mo</span>
+                        <span className="text-sm font-bold text-[var(--crm-text-secondary)]">₹</span>
+                        <span className="text-4xl font-black text-[var(--crm-text-primary)] leading-none">{plan.price}</span>
+                        <span className="text-sm font-bold text-[var(--crm-text-secondary)]">/mo</span>
                       </div>
                       <div className="mt-4 flex items-center justify-center gap-2">
-                        <Users className="h-3.5 w-3.5 text-slate-400" />
-                        <span className="text-xs font-bold text-slate-500">{plan.activeSubscribers} Active Subscribers</span>
+                        <Users className="h-3.5 w-3.5 text-[var(--crm-text-secondary)]" />
+                        <span className="text-xs font-bold text-[var(--crm-text-secondary)]">{plan.activeSubscribers} Active Subscribers</span>
                       </div>
                     </CardHeader>
 
@@ -1945,28 +1780,28 @@ export default function SuperAdminPage() {
                         {Array.isArray(plan.features) ? plan.features.map((feat, idx) => (
                           <div key={idx} className="flex items-center gap-3">
                             {feat.included ? (
-                              <div className="h-5 w-5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center shrink-0">
+                              <div className="h-5 w-5 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
                                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
                               </div>
                             ) : (
-                              <div className="h-5 w-5 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                                <XCircle className="h-3.5 w-3.5 text-slate-300 dark:text-slate-700" />
+                              <div className="h-5 w-5 rounded-full bg-[var(--crm-surface-2)] flex items-center justify-center shrink-0">
+                                <XCircle className="h-3.5 w-3.5 text-slate-300" />
                               </div>
                             )}
-                            <span className={cn("text-xs font-semibold", feat.included ? "text-slate-700 dark:text-slate-200" : "text-slate-400 line-through")}>
+                            <span className={cn("text-xs font-semibold", feat.included ? "text-[var(--crm-text-primary)]" : "text-[var(--crm-text-secondary)] line-through")}>
                               {feat.name}
                             </span>
                           </div>
                         )) : (
-                          <p className="text-xs text-slate-400 italic">No features defined.</p>
+                          <p className="text-xs text-[var(--crm-text-secondary)] italic">No features defined.</p>
                         )}
                       </div>
 
-                    <CardFooter className="p-6 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800">
+                    <CardFooter className="p-6 bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)]">
                       <Button
                         variant="outline"
                         onClick={() => handleEditPlan(plan)}
-                        className="w-full rounded-2xl h-11 font-bold border-slate-200 hover:bg-white dark:hover:bg-slate-800 transition-colors"
+                        className="w-full rounded-2xl h-11 font-bold border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)] transition-colors"
                       >
                         <Edit className="h-4 w-4 mr-2" /> Edit Features
                       </Button>
@@ -1975,8 +1810,8 @@ export default function SuperAdminPage() {
                 ))}
               </div>
 
-              <Card className="border-none shadow-sm bg-blue-600 rounded-3xl p-8 text-white relative overflow-hidden group">
-                <div className="absolute top-0 right-0 -mt-12 -mr-12 h-64 w-64 rounded-full bg-white/10 blur-3xl transition-transform duration-700 group-hover:scale-125"></div>
+              <Card className="border-none shadow-sm bg-primary rounded-3xl p-8 text-white relative overflow-hidden group">
+                <div className="absolute top-0 right-0 -mt-12 -mr-12 h-64 w-64 rounded-full bg-[var(--crm-surface-1)]/10 blur-3xl transition-transform duration-700 group-hover:scale-125"></div>
                 <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
                   <div className="max-w-xl text-center md:text-left">
                     <h4 className="text-2xl font-black mb-3 italic">Custom Enterprise Solutions?</h4>
@@ -1985,7 +1820,7 @@ export default function SuperAdminPage() {
                       Manage custom contracts directly through the Enterprise Deal Hub.
                     </p>
                   </div>
-                  <Button className="bg-white text-blue-600 hover:bg-white/90 font-black h-12 px-8 rounded-2xl text-sm shadow-xl shadow-blue-500/20 shrink-0">
+                  <Button className="bg-[var(--crm-surface-1)] text-primary hover:bg-[var(--crm-surface-1)]/90 font-black h-12 px-8 rounded-2xl text-sm shadow-xl shadow-blue-500/20 shrink-0">
                     Open Deal Hub <Plus className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -2000,13 +1835,13 @@ export default function SuperAdminPage() {
                   { label: 'Integrations', value: stats?.platformMetrics?.activeIntegrations || 0, icon: Plug2, color: 'violet' },
                   { label: 'System Load', value: stats?.platformMetrics?.systemLoad || 'N/A', icon: Activity, color: 'indigo' },
                 ].map((m, i) => (
-                  <Card key={i} className="bg-white dark:bg-slate-900 border-none ring-1 ring-slate-200 dark:ring-slate-800 p-4">
+                  <Card key={i} className="bg-[var(--crm-surface-1)] border-none ring-1 ring-slate-200 p-4">
                     <div className="flex items-center gap-3">
-                      <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center", `bg-${m.color}-50 text-${m.color}-600 dark:bg-${m.color}-950/30 dark:text-${m.color}-400`)}>
+                      <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center", `bg-${m.color}-50 text-${m.color}-600${m.color}-950/30${m.color}-400`)}>
                         <m.icon className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-500 uppercase">{m.label}</p>
+                        <p className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase">{m.label}</p>
                         <p className="text-xl font-black">{m.value}</p>
                       </div>
                     </div>
@@ -2015,11 +1850,11 @@ export default function SuperAdminPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden">
-                  <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
+                <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-2xl ring-1 ring-slate-200 overflow-hidden">
+                  <CardHeader className="border-b border-[var(--crm-border)] pb-4">
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-base font-bold flex items-center gap-2">
-                        <Facebook className="h-4 w-4 text-blue-600" /> Meta API Node 1
+                        <Facebook className="h-4 w-4 text-primary" /> Meta API Node 1
                       </CardTitle>
                       <Badge className="bg-emerald-50 text-emerald-600 border-none">Stable</Badge>
                     </div>
@@ -2027,24 +1862,24 @@ export default function SuperAdminPage() {
                   <CardContent className="pt-6 space-y-4">
                     <div className="flex justify-between items-end gap-1 h-12">
                       {[80, 75, 90, 85, 95, 100, 95, 80, 70, 85, 90, 95, 100, 98, 92, 100, 100, 100, 95, 90].map((h: number, i: number) => (
-                        <div key={i} className="flex-1 bg-emerald-500 dark:bg-emerald-600 opacity-60 rounded-t-sm" style={{ height: `${h}%` }}></div>
+                        <div key={i} className="flex-1 bg-emerald-500 opacity-60 rounded-t-sm" style={{ height: `${h}%` }}></div>
                       ))}
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Response Time</p>
-                        <p className="text-lg font-black text-slate-900 dark:text-white">124ms</p>
+                      <div className="p-3 bg-[var(--crm-surface-2)] rounded-xl border border-[var(--crm-border)]">
+                        <p className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase mb-1">Response Time</p>
+                        <p className="text-lg font-black text-[var(--crm-text-primary)]">124ms</p>
                       </div>
-                      <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Active Hooks</p>
-                        <p className="text-lg font-black text-slate-900 dark:text-white">4,281</p>
+                      <div className="p-3 bg-[var(--crm-surface-2)] rounded-xl border border-[var(--crm-border)]">
+                        <p className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase mb-1">Active Hooks</p>
+                        <p className="text-lg font-black text-[var(--crm-text-primary)]">4,281</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden">
-                  <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
+                <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-2xl ring-1 ring-slate-200 overflow-hidden">
+                  <CardHeader className="border-b border-[var(--crm-border)] pb-4">
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-base font-bold flex items-center gap-2">
                         <Smartphone className="h-4 w-4 text-emerald-600" /> WhatsApp Gateway
@@ -2055,17 +1890,17 @@ export default function SuperAdminPage() {
                   <CardContent className="pt-6 space-y-4">
                     <div className="flex justify-between items-end gap-1 h-12">
                       {[60, 65, 70, 75, 80, 85, 90, 85, 80, 75, 70, 80, 85, 90, 95, 100, 98, 95, 90, 95].map((h: number, i: number) => (
-                        <div key={i} className="flex-1 bg-emerald-500 dark:bg-emerald-600 opacity-60 rounded-t-sm" style={{ height: `${h}%` }}></div>
+                        <div key={i} className="flex-1 bg-emerald-500 opacity-60 rounded-t-sm" style={{ height: `${h}%` }}></div>
                       ))}
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Queue Size</p>
-                        <p className="text-lg font-black text-slate-900 dark:text-white">14 pkts</p>
+                      <div className="p-3 bg-[var(--crm-surface-2)] rounded-xl border border-[var(--crm-border)]">
+                        <p className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase mb-1">Queue Size</p>
+                        <p className="text-lg font-black text-[var(--crm-text-primary)]">14 pkts</p>
                       </div>
-                      <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Success Rate</p>
-                        <p className="text-lg font-black text-slate-900 dark:text-white">98.2%</p>
+                      <div className="p-3 bg-[var(--crm-surface-2)] rounded-xl border border-[var(--crm-border)]">
+                        <p className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase mb-1">Success Rate</p>
+                        <p className="text-lg font-black text-[var(--crm-text-primary)]">98.2%</p>
                       </div>
                     </div>
                   </CardContent>
@@ -2076,26 +1911,26 @@ export default function SuperAdminPage() {
             <TabsContent value="meta-deletions" className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-[var(--crm-text-primary)] flex items-center gap-2">
                     <ShieldAlert className="h-5 w-5 text-red-500" /> Meta Data Deletion Monitor
                   </h3>
-                  <p className="text-sm text-slate-500">Track and act on user requests to wipe Facebook/Meta data from the database.</p>
+                  <p className="text-sm text-[var(--crm-text-secondary)]">Track and act on user requests to wipe Facebook/Meta data from the database.</p>
                 </div>
                 <Button variant="outline" onClick={fetchData} className="rounded-xl h-10">
                   <RefreshCw className="h-4 w-4 mr-2" /> Refresh List
                 </Button>
               </div>
 
-              <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden">
+              <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-2xl ring-1 ring-slate-200 overflow-hidden">
                 <CardContent className="p-0">
                   <Table>
-                    <TableHeader className="bg-slate-50/80 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                    <TableHeader className="bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)]">
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="font-bold text-slate-500 py-4 pl-6">Company/User</TableHead>
-                        <TableHead className="font-bold text-slate-500 py-4">Confirmation ID</TableHead>
-                        <TableHead className="font-bold text-slate-500 py-4">Request Date</TableHead>
-                        <TableHead className="font-bold text-slate-500 py-4">Current Status</TableHead>
-                        <TableHead className="text-right font-bold text-slate-500 py-4 pr-6">Database Action</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4 pl-6">Company/User</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4">Confirmation ID</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4">Request Date</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4">Current Status</TableHead>
+                        <TableHead className="text-right font-bold text-[var(--crm-text-secondary)] py-4 pr-6">Database Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -2103,26 +1938,26 @@ export default function SuperAdminPage() {
                         <TableRow>
                           <TableCell colSpan={5} className="h-48 text-center">
                             <div className="flex flex-col items-center justify-center gap-2">
-                              <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
-                              <p className="text-sm font-medium text-slate-500 italic">Scanning compliance logs...</p>
+                              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                              <p className="text-sm font-medium text-[var(--crm-text-secondary)] italic">Scanning compliance logs...</p>
                             </div>
                           </TableCell>
                         </TableRow>
                       ) : deletionRequests.length > 0 ? (
                         deletionRequests.map((req, i) => (
-                          <TableRow key={i} className="border-slate-100 dark:border-slate-800">
+                          <TableRow key={i} className="border-[var(--crm-border)]">
                             <TableCell className="py-4 pl-6">
                               <div>
-                                <p className="font-bold text-sm text-slate-900 dark:text-white">{req.user?.name || 'Unknown'}</p>
-                                <p className="text-[10px] text-slate-400 font-medium tracking-tight uppercase">USER ID: {req.user?.id}</p>
+                                <p className="font-bold text-sm text-[var(--crm-text-primary)]">{req.user?.name || 'Unknown'}</p>
+                                <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium tracking-tight uppercase">USER ID: {req.user?.id}</p>
                               </div>
                             </TableCell>
                             <TableCell>
-                              <code className="text-xs font-black bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg text-indigo-600 border border-slate-200 dark:border-slate-700">
+                              <code className="text-xs font-black bg-[var(--crm-surface-3)] px-2.5 py-1 rounded-lg text-[var(--crm-accent)] border border-[var(--crm-border)]">
                                 {req.code}
                               </code>
                             </TableCell>
-                            <TableCell className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                            <TableCell className="text-sm font-medium text-[var(--crm-text-secondary)]">
                               {req.requested_at ? new Date(req.requested_at).toLocaleString() : 'N/A'}
                             </TableCell>
                             <TableCell>
@@ -2149,7 +1984,7 @@ export default function SuperAdminPage() {
                           <TableCell colSpan={5} className="py-12 text-center">
                             <div className="flex flex-col items-center gap-2 opacity-40">
                               <CheckCircle2 className="h-8 w-8 text-emerald-500" />
-                              <p className="text-sm font-bold text-slate-500">No pending deletion requests.</p>
+                              <p className="text-sm font-bold text-[var(--crm-text-secondary)]">No pending deletion requests.</p>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -2157,21 +1992,21 @@ export default function SuperAdminPage() {
                     </TableBody>
                   </Table>
                 </CardContent>
-                <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 py-3 px-6">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <CardFooter className="bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)] py-3 px-6">
+                  <p className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest flex items-center gap-2">
                     <Lock className="h-3 w-3" /> Encrypted Compliance Log
                   </p>
                 </CardFooter>
               </Card>
 
-              <Card className="border-none shadow-sm bg-indigo-50 dark:bg-indigo-950/20 rounded-2xl p-6 ring-1 ring-indigo-100 dark:ring-indigo-900">
+              <Card className="border-none shadow-sm bg-[var(--crm-accent-soft)] rounded-2xl p-6 ring-1 ring-indigo-100">
                 <div className="flex gap-4">
-                  <div className="h-10 w-10 rounded-xl bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center shrink-0">
-                    <ShieldAlert className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                  <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+                    <ShieldAlert className="h-5 w-5 text-[var(--crm-accent)]" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-indigo-900 dark:text-indigo-300">Compliance Warning</h4>
-                    <p className="text-xs text-indigo-700 dark:text-indigo-400/80 leading-relaxed max-w-2xl mt-1">
+                    <h4 className="font-bold text-indigo-900">Compliance Warning</h4>
+                    <p className="text-xs text-primary leading-relaxed max-w-2xl mt-1">
                       Meta (Facebook) requires that all User Data be deleted within a reasonable timeframe (usually 30 days) upon request.
                       Use this monitor to track requests that come via the standard deauthorization webhooks or in-app buttons.
                     </p>
@@ -2183,58 +2018,58 @@ export default function SuperAdminPage() {
             <TabsContent value="announcements" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Composition Form */}
-                <Card className="lg:col-span-1 border-none shadow-xl bg-white dark:bg-slate-900 rounded-3xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden h-fit">
-                  <CardHeader className="bg-slate-900 text-white p-6">
+                <Card className="lg:col-span-1 border-none shadow-xl bg-[var(--crm-surface-1)] rounded-3xl ring-1 ring-slate-200 overflow-hidden h-fit">
+                  <CardHeader className="bg-[var(--crm-accent)] text-white p-6">
                     <CardTitle className="text-xl font-black flex items-center gap-3">
-                      <div className="p-2 bg-indigo-500 rounded-xl">
+                      <div className="p-2 bg-[var(--crm-accent-soft)]0 rounded-xl">
                         <Megaphone className="h-5 w-5 text-white" />
                       </div>
                       Broadcast System
                     </CardTitle>
-                    <CardDescription className="text-slate-400 font-medium">Draft and dispatch platform-wide alerts.</CardDescription>
+                    <CardDescription className="text-[var(--crm-text-secondary)] font-medium">Draft and dispatch platform-wide alerts.</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6 space-y-5">
                     <div className="space-y-2">
-                      <Label className="text-xs font-black uppercase text-slate-500 tracking-wider">Announcement Title</Label>
+                      <Label className="text-xs font-black uppercase text-[var(--crm-text-secondary)] tracking-wider">Announcement Title</Label>
                       <Input
                         placeholder="e.g. Scheduled Maintenance, New Feature..."
                         value={broadcastData.title}
                         onChange={(e) => setBroadcastData({ ...broadcastData, title: e.target.value })}
-                        className="h-11 rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold"
+                        className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] font-bold"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-black uppercase text-slate-500 tracking-wider">Message Narrative</Label>
+                      <Label className="text-xs font-black uppercase text-[var(--crm-text-secondary)] tracking-wider">Message Narrative</Label>
                       <textarea
                         placeholder="Provide the details for the users..."
                         value={broadcastData.message}
                         onChange={(e) => setBroadcastData({ ...broadcastData, message: e.target.value })}
-                        className="w-full min-h-[120px] p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="w-full min-h-[120px] p-4 rounded-xl bg-[var(--crm-surface-2)] border border-[var(--crm-border)] font-medium text-sm focus:outline-none focus:ring-2 focus:ring-[var(--crm-accent)]/20"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-black uppercase text-slate-500 tracking-wider">Cover Image URL (Optional)</Label>
+                      <Label className="text-xs font-black uppercase text-[var(--crm-text-secondary)] tracking-wider">Cover Image URL (Optional)</Label>
                       <div className="relative">
                         <Input
                           placeholder="https://example.com/image.jpg"
                           value={broadcastData.image_url}
                           onChange={(e) => setBroadcastData({ ...broadcastData, image_url: e.target.value })}
-                          className="h-11 rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold pl-10"
+                          className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] font-bold pl-10"
                         />
-                        <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-secondary)]" />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-slate-500 tracking-wider">Alert Level</Label>
+                        <Label className="text-xs font-black uppercase text-[var(--crm-text-secondary)] tracking-wider">Alert Level</Label>
                         <Select
                           value={broadcastData.type}
                           onValueChange={(val) => setBroadcastData({ ...broadcastData, type: val })}
                         >
-                          <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold">
+                          <SelectTrigger className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] font-bold">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -2245,12 +2080,12 @@ export default function SuperAdminPage() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-slate-500 tracking-wider">Target Audience</Label>
+                        <Label className="text-xs font-black uppercase text-[var(--crm-text-secondary)] tracking-wider">Target Audience</Label>
                         <Select
                           value={broadcastData.target}
                           onValueChange={(val: 'all' | 'company') => setBroadcastData({ ...broadcastData, target: val, company_ids: [] })}
                         >
-                          <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 font-bold">
+                          <SelectTrigger className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] font-bold">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -2264,26 +2099,26 @@ export default function SuperAdminPage() {
                     {broadcastData.target === 'company' && (
                       <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
                         <div className="flex justify-between items-center">
-                          <Label className="text-xs font-black uppercase text-slate-500 tracking-wider">Target Workspaces</Label>
-                          <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-600 border-indigo-100">
+                          <Label className="text-xs font-black uppercase text-[var(--crm-text-secondary)] tracking-wider">Target Workspaces</Label>
+                          <Badge variant="outline" className="text-[10px] bg-[var(--crm-accent-soft)] text-[var(--crm-accent)] border-indigo-100">
                             {broadcastData.company_ids.length} Selected
                           </Badge>
                         </div>
                         
                         <div className="space-y-2">
                           <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--crm-text-secondary)]" />
                             <Input
                               placeholder="Search workspaces..."
                               value={workspaceSearch}
                               onChange={(e) => setWorkspaceSearch(e.target.value)}
-                              className="h-9 rounded-lg bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-xs pl-9"
+                              className="h-9 rounded-lg bg-[var(--crm-surface-2)] border-[var(--crm-border)] text-xs pl-9"
                             />
                           </div>
 
-                          <div className="max-h-[200px] overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl p-2 space-y-1 bg-slate-50/50 dark:bg-slate-950/50 custom-scrollbar">
+                          <div className="max-h-[200px] overflow-y-auto border border-[var(--crm-border)] rounded-xl p-2 space-y-1 bg-[var(--crm-surface-2)] custom-scrollbar">
                             {filteredSelectionCompanies.length === 0 ? (
-                              <p className="text-[10px] text-center py-4 text-slate-400 font-bold uppercase tracking-widest">No results found</p>
+                              <p className="text-[10px] text-center py-4 text-[var(--crm-text-secondary)] font-bold uppercase tracking-widest">No results found</p>
                             ) : (
                               filteredSelectionCompanies.map((c: Company) => {
                                 const isSelected = broadcastData.company_ids.includes(Number(c.id))
@@ -2301,17 +2136,17 @@ export default function SuperAdminPage() {
                                     className={cn(
                                       "flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-all border group",
                                       isSelected 
-                                        ? "bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-none" 
-                                        : "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-900"
+                                        ? "bg-[var(--crm-accent)] border-[var(--crm-accent)] text-white shadow-md shadow-primary/20" 
+                                        : "bg-[var(--crm-surface-1)] border-[var(--crm-border)] hover:border-indigo-300:border-indigo-900"
                                     )}
                                   >
                                     <div className="flex flex-col">
-                                      <span className={cn("text-xs font-black", isSelected ? "text-white" : "text-slate-900 dark:text-slate-200")}>{c.name}</span>
-                                      <span className={cn("text-[9px] font-bold uppercase tracking-tight", isSelected ? "text-indigo-100" : "text-slate-400")}>{c.plan} Plan</span>
+                                      <span className={cn("text-xs font-black", isSelected ? "text-white" : "text-[var(--crm-text-primary)]")}>{c.name}</span>
+                                      <span className={cn("text-[9px] font-bold uppercase tracking-tight", isSelected ? "text-indigo-100" : "text-[var(--crm-text-secondary)]")}>{c.plan} Plan</span>
                                     </div>
                                     <div className={cn(
                                       "h-4 w-4 rounded-full border flex items-center justify-center transition-all",
-                                      isSelected ? "bg-white border-white text-indigo-600" : "border-slate-200 dark:border-slate-700"
+                                      isSelected ? "bg-[var(--crm-surface-1)] border-white text-[var(--crm-accent)]" : "border-[var(--crm-border)]"
                                     )}>
                                       {isSelected && <CheckCircle2 className="h-3 w-3" />}
                                     </div>
@@ -2324,10 +2159,10 @@ export default function SuperAdminPage() {
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between p-4 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-800/30 mt-4">
+                    <div className="flex items-center justify-between p-4 bg-[var(--crm-accent-soft)]/50 rounded-2xl border border-indigo-100 mt-4">
                       <div className="space-y-0.5">
-                        <Label className="text-sm font-black text-indigo-900 dark:text-indigo-300">Promotional Modal</Label>
-                        <p className="text-[10px] text-indigo-700 dark:text-indigo-400 font-medium">Show as an interstitial overlay on page load.</p>
+                        <Label className="text-sm font-black text-indigo-900">Promotional Modal</Label>
+                        <p className="text-[10px] text-primary font-medium">Show as an interstitial overlay on page load.</p>
                       </div>
                       <Switch 
                         checked={broadcastData.is_modal}
@@ -2336,15 +2171,15 @@ export default function SuperAdminPage() {
                     </div>
 
                     {broadcastData.is_modal && (
-                      <div className="space-y-5 p-4 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 mt-4">
+                      <div className="space-y-5 p-4 bg-[var(--crm-surface-2)] rounded-2xl border border-[var(--crm-border)] animate-in fade-in zoom-in-95 duration-200 mt-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-slate-500">Frequency</Label>
+                            <Label className="text-[10px] font-black uppercase text-[var(--crm-text-secondary)]">Frequency</Label>
                             <Select
                               value={broadcastData.frequency}
                               onValueChange={(val: any) => setBroadcastData({ ...broadcastData, frequency: val })}
                             >
-                              <SelectTrigger className="h-9 rounded-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-xs font-bold">
+                              <SelectTrigger className="h-9 rounded-lg bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-xs font-bold">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -2355,33 +2190,33 @@ export default function SuperAdminPage() {
                             </Select>
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-slate-500">Expiry Date</Label>
+                            <Label className="text-[10px] font-black uppercase text-[var(--crm-text-secondary)]">Expiry Date</Label>
                             <Input
                               type="date"
                               value={broadcastData.expires_at}
                               onChange={(e) => setBroadcastData({ ...broadcastData, expires_at: e.target.value })}
-                              className="h-9 rounded-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-xs font-bold"
+                              className="h-9 rounded-lg bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-xs font-bold"
                             />
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-slate-500">CTA Text</Label>
+                            <Label className="text-[10px] font-black uppercase text-[var(--crm-text-secondary)]">CTA Text</Label>
                             <Input
                               placeholder="e.g. Claim Offer"
                               value={broadcastData.cta_text}
                               onChange={(e) => setBroadcastData({ ...broadcastData, cta_text: e.target.value })}
-                              className="h-9 rounded-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-xs font-bold"
+                              className="h-9 rounded-lg bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-xs font-bold"
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-slate-500">CTA Link</Label>
+                            <Label className="text-[10px] font-black uppercase text-[var(--crm-text-secondary)]">CTA Link</Label>
                             <Input
                               placeholder="https://..."
                               value={broadcastData.cta_link}
                               onChange={(e) => setBroadcastData({ ...broadcastData, cta_link: e.target.value })}
-                              className="h-9 rounded-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-xs font-bold"
+                              className="h-9 rounded-lg bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-xs font-bold"
                             />
                           </div>
                         </div>
@@ -2391,7 +2226,7 @@ export default function SuperAdminPage() {
                     <Button
                       onClick={handleSendBroadcast}
                       disabled={isSendingBroadcast}
-                      className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 mt-4 group"
+                      className="w-full h-12 rounded-xl bg-[var(--crm-accent)] hover:opacity-90 text-white font-black uppercase tracking-widest shadow-lg shadow-primary/20 mt-4 group"
                     >
                       {isSendingBroadcast ? (
                         <Loader2 className="h-5 w-5 animate-spin" />
@@ -2406,25 +2241,25 @@ export default function SuperAdminPage() {
                 </Card>
 
                 {/* History Log */}
-                <Card className="lg:col-span-2 border-none shadow-xl bg-white dark:bg-slate-900 rounded-3xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden">
-                  <CardHeader className="border-b border-slate-100 dark:border-slate-800">
+                <Card className="lg:col-span-2 border-none shadow-xl bg-[var(--crm-surface-1)] rounded-3xl ring-1 ring-slate-200 overflow-hidden">
+                  <CardHeader className="border-b border-[var(--crm-border)]">
                     <div className="flex justify-between items-center">
                       <div>
-                        <CardTitle className="text-lg font-black text-slate-900 dark:text-white">Broadcast History</CardTitle>
+                        <CardTitle className="text-lg font-black text-[var(--crm-text-primary)]">Broadcast History</CardTitle>
                         <CardDescription>Track previous platform-wide announcements.</CardDescription>
                       </div>
-                      <Badge variant="outline" className="bg-slate-50 dark:bg-slate-800 text-slate-500 font-black text-[10px] uppercase">{broadcastHistory.length} SENT</Badge>
+                      <Badge variant="outline" className="bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] font-black text-[10px] uppercase">{broadcastHistory.length} SENT</Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="max-h-[650px] overflow-y-auto custom-scrollbar">
                       <Table>
-                        <TableHeader className="bg-slate-50/80 dark:bg-slate-900/80 sticky top-0 z-10">
+                        <TableHeader className="bg-[var(--crm-surface-2)] sticky top-0 z-10">
                           <TableRow>
-                            <TableHead className="font-bold text-slate-500 py-4 pl-6">Timestamp & Subject</TableHead>
-                            <TableHead className="font-bold text-slate-500 py-4">Audience</TableHead>
-                            <TableHead className="font-bold text-slate-500 py-4">Type</TableHead>
-                            <TableHead className="text-right font-bold text-slate-500 py-4 pr-6">Status</TableHead>
+                            <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4 pl-6">Timestamp & Subject</TableHead>
+                            <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4">Audience</TableHead>
+                            <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4">Type</TableHead>
+                            <TableHead className="text-right font-bold text-[var(--crm-text-secondary)] py-4 pr-6">Status</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -2432,40 +2267,40 @@ export default function SuperAdminPage() {
                             <TableRow>
                               <TableCell colSpan={4} className="py-24 text-center">
                                 <div className="flex flex-col items-center gap-3 opacity-30">
-                                  <History className="h-12 w-12 text-slate-400" />
+                                  <History className="h-12 w-12 text-[var(--crm-text-secondary)]" />
                                   <p className="font-bold text-sm">No broadcast history available.</p>
                                 </div>
                               </TableCell>
                             </TableRow>
                           ) : (
                             broadcastHistory.map((log, i) => (
-                              <TableRow key={i} className="border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                              <TableRow key={i} className="border-[var(--crm-border)] hover:bg-[var(--crm-surface-3)] transition-colors">
                                 <TableCell className="py-4 pl-6">
                                   <div className="flex gap-4">
                                     {log.image_url && (
-                                      <div className="h-12 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden shrink-0">
+                                      <div className="h-12 w-12 rounded-lg bg-[var(--crm-surface-3)] border border-[var(--crm-border)] overflow-hidden shrink-0">
                                         <img src={log.image_url} alt="" className="w-full h-full object-cover" />
                                       </div>
                                     )}
                                     <div>
-                                      <p className="font-black text-slate-900 dark:text-white text-sm">{log.title}</p>
+                                      <p className="font-black text-[var(--crm-text-primary)] text-sm">{log.title}</p>
                                     <div className="flex items-center gap-2 mt-1">
-                                      <p className="text-[10px] text-slate-400 font-bold uppercase">{new Date(log.created_at).toLocaleString()}</p>
+                                      <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase">{new Date(log.created_at).toLocaleString()}</p>
                                       <span className="h-1 w-1 rounded-full bg-slate-300"></span>
                                       <p className="text-[10px] text-indigo-400 font-bold uppercase">Sent by Admin</p>
                                     </div>
-                                    <p className="text-xs text-slate-500 mt-2 line-clamp-1 max-w-md font-medium italic">"{log.message}"</p>
+                                    <p className="text-xs text-[var(--crm-text-secondary)] mt-2 line-clamp-1 max-w-md font-medium italic">"{log.message}"</p>
                                     </div>
                                   </div>
                                 </TableCell>
                                 <TableCell>
-                                  <Badge variant="outline" className="bg-slate-50 dark:bg-slate-800 text-slate-500 font-bold text-[10px] uppercase border-slate-200 dark:border-slate-700">
+                                  <Badge variant="outline" className="bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] font-bold text-[10px] uppercase border-[var(--crm-border)]">
                                     {log.target === 'all' ? 'All Platform' : (log.company?.name || 'Specific Node')}
                                   </Badge>
                                 </TableCell>
                                 <TableCell>
                                   <Badge className={cn("text-[10px] font-black uppercase px-2 py-0 h-5", 
-                                    log.type === 'info' ? 'bg-indigo-50 text-indigo-600' :
+                                    log.type === 'info' ? 'bg-[var(--crm-accent-soft)] text-[var(--crm-accent)]' :
                                     log.type === 'warning' ? 'bg-amber-50 text-amber-600' :
                                     'bg-emerald-50 text-emerald-600'
                                   )}>
@@ -2485,8 +2320,8 @@ export default function SuperAdminPage() {
                       </Table>
                     </div>
                   </CardContent>
-                  <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 py-4 px-6 flex justify-between items-center">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Platform Sync Active</p>
+                  <CardFooter className="bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)] py-4 px-6 flex justify-between items-center">
+                    <p className="text-[10px] font-black text-[var(--crm-text-secondary)] uppercase tracking-widest">Platform Sync Active</p>
                     {broadcastMeta && (
                       <PaginationSection 
                         currentPage={broadcastMeta.current_page}
@@ -2504,28 +2339,28 @@ export default function SuperAdminPage() {
             <TabsContent value="testers" className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="relative w-full sm:w-96">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--crm-text-secondary)]">
                     <Search className="h-4 w-4" />
                   </div>
                   <input
                     placeholder="Search testers by name, email..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex h-10 w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm shadow-sm pl-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="flex h-10 w-full bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl text-sm shadow-sm pl-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crm-accent)]"
                   />
                 </div>
               </div>
 
-              <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden">
+              <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-2xl ring-1 ring-slate-200 overflow-hidden">
                 <CardContent className="p-0">
                   <Table>
-                    <TableHeader className="bg-slate-50/80 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                    <TableHeader className="bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)]">
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="font-bold text-slate-500 py-4 pl-6">Tester Info</TableHead>
-                        <TableHead className="font-bold text-slate-500 py-4">Phone</TableHead>
-                        <TableHead className="font-bold text-slate-500 py-4">Requested On</TableHead>
-                        <TableHead className="font-bold text-slate-500 py-4">Status</TableHead>
-                        <TableHead className="text-right font-bold text-slate-500 py-4 pr-6">Manage Access</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4 pl-6">Tester Info</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4">Phone</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4">Requested On</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4">Status</TableHead>
+                        <TableHead className="text-right font-bold text-[var(--crm-text-secondary)] py-4 pr-6">Manage Access</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -2533,22 +2368,22 @@ export default function SuperAdminPage() {
                         <TableRow>
                           <TableCell colSpan={5} className="h-64 text-center">
                             <div className="flex flex-col items-center justify-center gap-3">
-                              <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
-                              <p className="text-sm font-bold text-slate-500 italic">Syncing tester applications...</p>
+                              <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                              <p className="text-sm font-bold text-[var(--crm-text-secondary)] italic">Syncing tester applications...</p>
                             </div>
                           </TableCell>
                         </TableRow>
                       ) : testerRequests.length > 0 ? (
                         testerRequests.map((req) => (
-                          <TableRow key={req.id} className="border-slate-100 dark:border-slate-800">
+                          <TableRow key={req.id} className="border-[var(--crm-border)]">
                             <TableCell className="py-4 pl-6">
                               <div>
-                                <p className="font-bold text-sm text-slate-900 dark:text-white">{req.name}</p>
-                                <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">{req.email}</p>
+                                <p className="font-bold text-sm text-[var(--crm-text-primary)]">{req.name}</p>
+                                <p className="text-[10px] text-[var(--crm-accent)] font-bold">{req.email}</p>
                               </div>
                             </TableCell>
-                            <TableCell className="text-sm font-medium text-slate-600 dark:text-slate-400">{req.phone}</TableCell>
-                            <TableCell className="text-xs text-slate-500">
+                            <TableCell className="text-sm font-medium text-[var(--crm-text-secondary)]">{req.phone}</TableCell>
+                            <TableCell className="text-xs text-[var(--crm-text-secondary)]">
                               {new Date(req.created_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
                             </TableCell>
                             <TableCell>
@@ -2566,7 +2401,7 @@ export default function SuperAdminPage() {
                                 {req.status === 'pending' && (
                                   <Button 
                                     size="sm" 
-                                    className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold h-7 rounded-lg"
+                                    className="bg-primary hover:bg-primary/90 text-white text-[10px] font-bold h-7 rounded-lg"
                                     onClick={() => handleUpdateTesterStatus(req.id, 'approved')}
                                     disabled={isUpdatingTester}
                                   >
@@ -2607,7 +2442,7 @@ export default function SuperAdminPage() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={5} className="h-64 text-center text-slate-400 italic">
+                          <TableCell colSpan={5} className="h-64 text-center text-[var(--crm-text-secondary)] italic">
                             No tester requests found.
                           </TableCell>
                         </TableRow>
@@ -2616,7 +2451,7 @@ export default function SuperAdminPage() {
                   </Table>
                 </CardContent>
                 {testerRequestsMeta && (
-                  <CardFooter className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 py-4 px-6">
+                  <CardFooter className="bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)] py-4 px-6">
                     <PaginationSection
                       currentPage={testerRequestsPage}
                       lastPage={testerRequestsMeta.last_page}
@@ -2632,10 +2467,10 @@ export default function SuperAdminPage() {
 
           {/* Edit Company Modal */}
           <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-            <DialogContent className="sm:max-w-[425px] bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-3xl">
+            <DialogContent className="sm:max-w-[425px] bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-3xl">
               <DialogHeader>
-                <DialogTitle className="text-xl font-black text-slate-900 dark:text-white">Edit Company Billing</DialogTitle>
-                <DialogDescription className="text-slate-500 dark:text-slate-400 font-medium">
+                <DialogTitle className="text-xl font-black text-[var(--crm-text-primary)]">Edit Company Billing</DialogTitle>
+                <DialogDescription className="text-[var(--crm-text-secondary)] font-medium">
                   Modify plan and subscription details for <strong>{editingCompany?.name}</strong>.
                 </DialogDescription>
               </DialogHeader>
@@ -2643,15 +2478,15 @@ export default function SuperAdminPage() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Plan Tier</Label>
+                      <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">Plan Tier</Label>
                       <Select
                         value={editingCompany?.plan}
                         onValueChange={(val) => setEditingCompany(prev => prev ? { ...prev, plan: val as Plan } : null)}
                       >
-                        <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold dark:text-white">
+                        <SelectTrigger className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] font-bold">
                           <SelectValue placeholder="Select Plan" />
                         </SelectTrigger>
-                        <SelectContent className="dark:bg-slate-900 dark:border-slate-800">
+                        <SelectContent className="dark:bg-[var(--crm-accent)]">
                           {plans.map((p) => (
                             <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
                           ))}
@@ -2659,15 +2494,15 @@ export default function SuperAdminPage() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Node Status</Label>
+                      <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">Node Status</Label>
                       <Select
                         value={editingCompany?.status}
                         onValueChange={(val) => setEditingCompany(prev => prev ? { ...prev, status: val as AccountStatus } : null)}
                       >
-                        <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold dark:text-white">
+                        <SelectTrigger className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] font-bold">
                           <SelectValue placeholder="Select Status" />
                         </SelectTrigger>
-                        <SelectContent className="dark:bg-slate-900 dark:border-slate-800">
+                        <SelectContent className="dark:bg-[var(--crm-accent)]">
                           <SelectItem value="Active">Active</SelectItem>
                           <SelectItem value="Delinquent">Delinquent</SelectItem>
                           <SelectItem value="Suspended">Suspended</SelectItem>
@@ -2678,44 +2513,44 @@ export default function SuperAdminPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Subscription Start</Label>
+                      <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">Subscription Start</Label>
                       <Input
                         type="date"
                         value={editingCompany?.subscription_started_at ? new Date(editingCompany.subscription_started_at).toISOString().split('T')[0] : ''}
                         onChange={(e) => handleStartDateChange(e.target.value)}
-                        className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold dark:text-white"
+                        className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] font-bold"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Duration (Days)</Label>
+                      <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">Duration (Days)</Label>
                       <Input
                         type="number"
                         value={editDays}
                         onChange={(e) => handleEditDaysChange(parseInt(e.target.value) || 0)}
-                        className="h-11 rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-black text-indigo-600 dark:text-indigo-400"
+                        className="h-11 rounded-xl bg-[var(--crm-surface-1)] border-[var(--crm-border)] font-black text-[var(--crm-accent)]"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Auto Expiration Date</Label>
+                    <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">Auto Expiration Date</Label>
                     <Input
                       type="date"
                       value={editingCompany?.expires_at ? new Date(editingCompany.expires_at).toISOString().split('T')[0] : ''}
                       onChange={(e) => handleEndDateChange(e.target.value)}
-                      className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold dark:text-white"
+                      className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] font-bold"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/30 rounded-2xl">
+                  <div className="flex items-center justify-between p-4 bg-[var(--crm-accent-soft)] border border-indigo-100 rounded-2xl">
                     <div className="space-y-0.5">
-                      <Label className="text-sm font-bold text-slate-900 dark:text-white">Email Feature</Label>
-                      <p className="text-[10px] text-slate-500 font-medium">Enable/Disable platform email sending for this company.</p>
+                      <Label className="text-sm font-bold text-[var(--crm-text-primary)]">Email Feature</Label>
+                      <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium">Enable/Disable platform email sending for this company.</p>
                     </div>
                     <Switch 
                       checked={editingCompany?.is_email_enabled ?? false} 
                       onCheckedChange={(checked) => setEditingCompany(prev => prev ? { ...prev, is_email_enabled: checked } : null)}
-                      className="data-[state=checked]:bg-indigo-600"
+                      className="data-[state=checked]:bg-[var(--crm-accent)]"
                     />
                   </div>
                 </div>
@@ -2724,7 +2559,7 @@ export default function SuperAdminPage() {
                 <Button
                   variant="outline"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="rounded-xl h-11 font-bold border-slate-200 dark:border-slate-800 dark:text-slate-400"
+                  className="rounded-xl h-11 font-bold border-[var(--crm-border)]"
                   disabled={isUpdatingCompany}
                 >
                   Cancel
@@ -2732,7 +2567,7 @@ export default function SuperAdminPage() {
                 <Button
                   onClick={handleUpdateCompany}
                   className={cn("rounded-xl h-11 font-black px-8 shadow-lg transition-all",
-                    isUpdatingCompany ? "bg-slate-400 dark:bg-slate-700" : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/20"
+                    isUpdatingCompany ? "bg-slate-400" : "bg-[var(--crm-accent)] hover:opacity-90 shadow-primary/20"
                   )}
                   disabled={isUpdatingCompany}
                 >
@@ -2749,18 +2584,18 @@ export default function SuperAdminPage() {
 
           {/* Plan Feature Modal */}
           <Dialog open={isPlanModalOpen} onOpenChange={setIsPlanModalOpen}>
-            <DialogContent className="sm:max-w-4xl rounded-3xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 p-0 overflow-hidden">
+            <DialogContent className="sm:max-w-4xl rounded-3xl bg-[var(--crm-surface-1)] border-[var(--crm-border)] p-0 overflow-hidden">
               <div className="flex flex-col h-[85vh]">
-                <DialogHeader className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                <DialogHeader className="p-6 border-b border-[var(--crm-border)] bg-[var(--crm-surface-2)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <DialogTitle className="text-2xl font-black text-slate-900 dark:text-white">Plan Configuration</DialogTitle>
-                      <DialogDescription className="font-medium text-slate-500 dark:text-slate-400">
+                      <DialogTitle className="text-2xl font-black text-[var(--crm-text-primary)]">Plan Configuration</DialogTitle>
+                      <DialogDescription className="font-medium text-[var(--crm-text-secondary)]">
                         Configure pricing, marketing, and system engine for the <strong>{editingPlan?.name}</strong> tier.
                       </DialogDescription>
                     </div>
                     <Badge className={cn("px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-widest shadow-lg", 
-                      editingPlan?.name === 'Enterprise' ? "bg-purple-600" : editingPlan?.name === 'Pro' ? "bg-blue-600" : "bg-slate-600"
+                      editingPlan?.name === 'Enterprise' ? "bg-purple-600" : editingPlan?.name === 'Pro' ? "bg-primary" : "bg-slate-600"
                     )}>
                       {editingPlan?.name}
                     </Badge>
@@ -2769,45 +2604,45 @@ export default function SuperAdminPage() {
 
                 <div className="flex-1 overflow-hidden flex">
                   {/* Left Column: Core Pricing & Marketing */}
-                  <div className="w-[40%] border-r border-slate-100 dark:border-slate-800 p-6 space-y-6 overflow-y-auto custom-scrollbar">
+                  <div className="w-[40%] border-r border-[var(--crm-border)] p-6 space-y-6 overflow-y-auto custom-scrollbar">
                     <div className="space-y-4">
-                      <Label className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-tighter">Core Economics</Label>
+                      <Label className="text-[10px] font-black uppercase text-[var(--crm-accent)] tracking-tighter">Core Economics</Label>
                       <div className="grid grid-cols-1 gap-4">
                         <div className="space-y-2">
-                          <Label className="text-xs font-bold text-slate-500">Plan Name</Label>
+                          <Label className="text-xs font-bold text-[var(--crm-text-secondary)]">Plan Name</Label>
                           <Input
                             value={editingPlan?.name}
                             onChange={(e) => setEditingPlan((prev: PlanDefinition | null) => prev ? { ...prev, name: e.target.value as Plan } : null)}
-                            className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold"
+                            className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] font-bold"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-xs font-bold text-slate-500">Price (₹/mo)</Label>
+                          <Label className="text-xs font-bold text-[var(--crm-text-secondary)]">Price (₹/mo)</Label>
                           <Input
                             type="number"
                             value={editingPlan?.price}
                             onChange={(e) => setEditingPlan((prev: PlanDefinition | null) => prev ? { ...prev, price: parseInt(e.target.value) || 0 } : null)}
-                            className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold"
+                            className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] font-bold"
                           />
                         </div>
                       </div>
                     </div>
 
-                    <div className="space-y-4 pt-6 border-t border-slate-50 dark:border-slate-900">
+                    <div className="space-y-4 pt-6 border-t border-slate-50">
                       <div className="flex items-center justify-between">
-                        <Label className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-tighter">Marketing Bullets</Label>
+                        <Label className="text-[10px] font-black uppercase text-[var(--crm-accent)] tracking-tighter">Marketing Bullets</Label>
                         <Button 
                           variant="ghost" 
                           size="sm"
                           onClick={() => setEditingPlan(p => p ? { ...p, features: [...p.features, { name: 'New Feature', included: true }] } : null)}
-                          className="h-6 text-[10px] rounded-lg font-black bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600"
+                          className="h-6 text-[10px] rounded-lg font-black bg-[var(--crm-accent-soft)] text-[var(--crm-accent)]"
                         >
                           <Plus className="h-3 w-3 mr-1" /> Add Bullet
                         </Button>
                       </div>
                       <div className="space-y-2">
                         {Array.isArray(editingPlan?.features) ? editingPlan.features.map((feat, i) => (
-                          <div key={i} className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                          <div key={i} className="flex items-center gap-2 p-2 rounded-xl bg-[var(--crm-surface-2)] border border-[var(--crm-border)]">
                             <Input 
                               value={feat.name}
                               onChange={(e) => {
@@ -2833,7 +2668,7 @@ export default function SuperAdminPage() {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-6 w-6 text-slate-400 hover:text-rose-500"
+                                className="h-6 w-6 text-[var(--crm-text-secondary)] hover:text-rose-500"
                                 onClick={() => {
                                   setEditingPlan(prev => prev ? {
                                     ...prev,
@@ -2851,10 +2686,10 @@ export default function SuperAdminPage() {
                   </div>
 
                   {/* Right Column: System Engine */}
-                  <div className="flex-1 p-6 space-y-6 overflow-y-auto custom-scrollbar bg-slate-50/30 dark:bg-slate-900/30">
+                  <div className="flex-1 p-6 space-y-6 overflow-y-auto custom-scrollbar bg-[var(--crm-surface-2)]">
                     <div className="flex items-center justify-between mb-2">
-                      <Label className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-tighter">System Capabilities & RBAC</Label>
-                      <Badge variant="outline" className="text-[9px] font-black uppercase tracking-tighter text-indigo-500 border-indigo-500/20 bg-indigo-500/5 px-2">Backend Logic</Badge>
+                      <Label className="text-[10px] font-black uppercase text-[var(--crm-accent)] tracking-tighter">System Capabilities & RBAC</Label>
+                      <Badge variant="outline" className="text-[9px] font-black uppercase tracking-tighter text-primary border-[var(--crm-accent)]/20 bg-[var(--crm-accent-soft)]0/5 px-2">Backend Logic</Badge>
                     </div>
                     
                     <div className="grid grid-cols-1 gap-3">
@@ -2866,16 +2701,16 @@ export default function SuperAdminPage() {
                           <div key={feature.id} className={cn(
                             "p-4 rounded-2xl border transition-all duration-300",
                             isEnabled 
-                              ? "bg-white dark:bg-slate-950 border-indigo-200 dark:border-indigo-800 shadow-md ring-1 ring-indigo-500/5" 
-                              : "bg-transparent border-slate-200 dark:border-slate-800 opacity-60 grayscale"
+                              ? "bg-[var(--crm-surface-1)] border-primary/20 shadow-md ring-1 ring-[var(--crm-accent)]/5" 
+                              : "bg-transparent border-[var(--crm-border)] opacity-60 grayscale"
                           )}>
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center gap-3">
                                 <div className={cn(
                                   "w-3 h-3 rounded-full",
-                                  isEnabled ? "bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" : "bg-slate-300"
+                                  isEnabled ? "bg-[var(--crm-accent-soft)]0 shadow-[0_0_10px_rgba(99,102,241,0.5)]" : "bg-slate-300"
                                 )} />
-                                <span className="text-sm font-black text-slate-800 dark:text-slate-200 tracking-tight">{feature.label}</span>
+                                <span className="text-sm font-black text-slate-800 tracking-tight">{feature.label}</span>
                               </div>
                               <Switch 
                                 checked={isEnabled}
@@ -2895,10 +2730,10 @@ export default function SuperAdminPage() {
                             </div>
                             
                             {isEnabled && (
-                              <div className="pt-3 border-t border-slate-50 dark:border-slate-900 space-y-3">
+                              <div className="pt-3 border-t border-slate-50 space-y-3">
                                 <div className="flex items-center justify-between">
-                                  <Label className="text-[10px] font-bold uppercase text-slate-400">Restricted Roles</Label>
-                                  <span className="text-[10px] text-indigo-500 font-bold">{activeRoles.includes('*') ? "Global Access" : `${activeRoles.length} Roles`}</span>
+                                  <Label className="text-[10px] font-bold uppercase text-[var(--crm-text-secondary)]">Restricted Roles</Label>
+                                  <span className="text-[10px] text-primary font-bold">{activeRoles.includes('*') ? "Global Access" : `${activeRoles.length} Roles`}</span>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                   <Badge 
@@ -2949,18 +2784,18 @@ export default function SuperAdminPage() {
                   </div>
                 </div>
 
-                <DialogFooter className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-end gap-3">
+                <DialogFooter className="p-6 border-t border-[var(--crm-border)] bg-[var(--crm-surface-2)] flex items-center justify-end gap-3">
                   <Button 
                     variant="ghost" 
                     onClick={() => setIsPlanModalOpen(false)} 
-                    className="rounded-xl h-11 font-bold text-slate-500 hover:bg-slate-100" 
+                    className="rounded-xl h-11 font-bold text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-3)]" 
                     disabled={isUpdatingPlan}
                   >
                     Discard Changes
                   </Button>
                   <Button
                     onClick={handleSavePlan}
-                    className="rounded-xl h-11 font-black bg-indigo-600 hover:bg-indigo-700 text-white px-10 shadow-xl shadow-indigo-500/20"
+                    className="rounded-xl h-11 font-black bg-[var(--crm-accent)] hover:opacity-90 text-white px-10 shadow-xl shadow-primary/20"
                     disabled={isUpdatingPlan}
                   >
                     {isUpdatingPlan ? (
@@ -2980,31 +2815,31 @@ export default function SuperAdminPage() {
             <DialogContent className="sm:max-w-md rounded-3xl">
               <DialogHeader>
                 <DialogTitle className="text-xl font-black">Manual License Extension</DialogTitle>
-                <DialogDescription className="font-medium text-slate-500">
+                <DialogDescription className="font-medium text-[var(--crm-text-secondary)]">
                   Prolonging platform access for <strong>{renewModal.companyName}</strong>.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-slate-500">Extension Duration (Days)</Label>
+                  <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">Extension Duration (Days)</Label>
                   <div className="relative">
                     <Input
                       type="number"
                       value={renewModal.days}
                       onChange={(e) => setRenewModal({ ...renewModal, days: parseInt(e.target.value) || 0 })}
-                      className="h-11 rounded-xl bg-slate-50 border-slate-200 pl-10 font-black"
+                      className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] pl-10 font-black"
                     />
-                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-secondary)]" />
                   </div>
-                  <p className="text-[10px] text-slate-400 font-medium italic">* To reduce duration, use negative values.</p>
+                  <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium italic">* To reduce duration, use negative values.</p>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-slate-500">Audit Notes (Optional)</Label>
+                  <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">Audit Notes (Optional)</Label>
                   <Input
                     placeholder="e.g., Client loyalty credit, Backdated activation..."
                     value={renewModal.notes}
                     onChange={(e) => setRenewModal({ ...renewModal, notes: e.target.value })}
-                    className="h-11 rounded-xl bg-white border-slate-200 text-sm"
+                    className="h-11 rounded-xl bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-sm"
                   />
                 </div>
               </div>
@@ -3017,21 +2852,21 @@ export default function SuperAdminPage() {
 
           {/* Global Audit History Modal */}
           <Dialog open={historyModal.isOpen} onOpenChange={(open) => setHistoryModal({ ...historyModal, isOpen: open })}>
-            <DialogContent className="sm:max-w-[700px] border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden p-0 shadow-2xl">
-              <div className="p-6 bg-slate-900 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 -mt-8 -mr-8 h-32 w-32 rounded-full bg-white/5 blur-3xl"></div>
+            <DialogContent className="sm:max-w-[700px] border-[var(--crm-border)] rounded-3xl overflow-hidden p-0 shadow-2xl">
+              <div className="p-6 bg-[var(--crm-accent)] text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 -mt-8 -mr-8 h-32 w-32 rounded-full bg-[var(--crm-surface-1)]/5 blur-3xl"></div>
                 <div className="relative z-10">
                   <DialogTitle className="text-xl font-black flex items-center gap-2">
                     <History className="h-5 w-5 text-indigo-400" />
                     Subscription Audit Trail
                   </DialogTitle>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Workspace: {historyModal.companyName}</p>
+                  <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-widest mt-1">Workspace: {historyModal.companyName}</p>
                 </div>
               </div>
 
               <div className="max-h-[500px] overflow-y-auto">
                 <Table>
-                  <TableHeader className="bg-slate-50 dark:bg-slate-900 sticky top-0 z-10 border-b border-slate-100 dark:border-slate-800">
+                  <TableHeader className="bg-[var(--crm-surface-2)] sticky top-0 z-10 border-b border-[var(--crm-border)]">
                     <TableRow>
                       <TableHead className="text-[10px] uppercase font-black py-4 pl-6">Timestamp</TableHead>
                       <TableHead className="text-[10px] uppercase font-black py-4">Event Node</TableHead>
@@ -3052,25 +2887,25 @@ export default function SuperAdminPage() {
                       </TableRow>
                     ) : (
                       historyModal.logs.map((log) => (
-                        <TableRow key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                          <TableCell className="text-xs font-bold text-slate-600 dark:text-slate-400 py-4 pl-6">
+                        <TableRow key={log.id} className="hover:bg-[var(--crm-surface-3)] transition-colors">
+                          <TableCell className="text-xs font-bold text-[var(--crm-text-secondary)] py-4 pl-6">
                             {new Date(log.created_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className={cn("text-[8px] font-black uppercase px-2",
                               log.type === 'RENEWAL' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                log.type === 'ADJUSTMENT' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-slate-50 text-slate-500'
+                                log.type === 'ADJUSTMENT' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)]'
                             )}>
                               {log.type}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                          <TableCell className="text-xs font-bold text-[var(--crm-text-primary)]">
                             {log.processor?.name || 'System Auto'}
                           </TableCell>
-                          <TableCell className="text-xs font-black text-indigo-600 dark:text-indigo-400">
+                          <TableCell className="text-xs font-black text-[var(--crm-accent)]">
                             {log.new_expiry ? new Date(log.new_expiry).toLocaleDateString() : '—'}
                           </TableCell>
-                          <TableCell className="text-[10px] text-slate-500 font-medium pr-6 max-w-[200px] truncate italic">
+                          <TableCell className="text-[10px] text-[var(--crm-text-secondary)] font-medium pr-6 max-w-[200px] truncate italic">
                             {log.notes || 'No narrative provided.'}
                           </TableCell>
                         </TableRow>
@@ -3079,9 +2914,9 @@ export default function SuperAdminPage() {
                   </TableBody>
                 </Table>
               </div>
-              <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center px-6">
-                <p className="text-[10px] text-slate-400 font-bold uppercase">End of audit log</p>
-                <Button onClick={() => setHistoryModal({ ...historyModal, isOpen: false })} className="rounded-xl font-bold bg-slate-900 dark:bg-white dark:text-slate-900 px-8 h-10">Close Audit</Button>
+              <div className="p-4 bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)] flex justify-between items-center px-6">
+                <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase">End of audit log</p>
+                <Button onClick={() => setHistoryModal({ ...historyModal, isOpen: false })} className="rounded-xl font-bold bg-[var(--crm-accent)] px-8 h-10">Close Audit</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -3090,20 +2925,20 @@ export default function SuperAdminPage() {
           <Dialog open={isUserModalOpen} onOpenChange={setIsUserModalOpen}>
             <DialogContent className="sm:max-w-md rounded-3xl">
               <DialogHeader>
-                <DialogTitle className="text-xl font-black text-slate-900 dark:text-white">User Permissions</DialogTitle>
-                <DialogDescription className="font-medium text-slate-500">
+                <DialogTitle className="text-xl font-black text-[var(--crm-text-primary)]">User Permissions</DialogTitle>
+                <DialogDescription className="font-medium text-[var(--crm-text-secondary)]">
                   Modify role and access status for <strong>{editingUser?.name}</strong>.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-6 py-4">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase text-slate-500">System Role</Label>
+                    <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">System Role</Label>
                     <Select
                       value={editingUser?.role}
                       onValueChange={(val: string) => setEditingUser((prev: AdminUser | null) => prev ? { ...prev, role: val } : null)}
                     >
-                      <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                      <SelectTrigger className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)]">
                         <SelectValue placeholder="Select Role" />
                       </SelectTrigger>
                       <SelectContent>
@@ -3116,12 +2951,12 @@ export default function SuperAdminPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase text-slate-500">Account Status</Label>
+                    <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">Account Status</Label>
                     <Select
                       value={editingUser?.status}
                       onValueChange={(val: string) => setEditingUser((prev: AdminUser | null) => prev ? { ...prev, status: val } : null)}
                     >
-                      <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                      <SelectTrigger className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)]">
                         <SelectValue placeholder="Select Status" />
                       </SelectTrigger>
                       <SelectContent>
@@ -3133,10 +2968,10 @@ export default function SuperAdminPage() {
                   </div>
 
                   <div className="space-y-3">
-                    <Label className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">User Tags</Label>
+                    <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">User Tags</Label>
                     <div className="flex gap-2">
                       <div className="relative flex-1">
-                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--crm-text-secondary)]" />
                         <Input
                           placeholder="Type and press Enter to add..."
                           value={newTag}
@@ -3154,13 +2989,13 @@ export default function SuperAdminPage() {
                               }
                             }
                           }}
-                          className="h-10 rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 pl-9 font-medium"
+                          className="h-10 rounded-xl bg-[var(--crm-surface-1)] border-[var(--crm-border)] pl-9 font-medium"
                         />
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-2 min-h-[44px] p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
+                    <div className="flex flex-wrap gap-2 min-h-[44px] p-2.5 rounded-2xl bg-[var(--crm-surface-2)] border border-[var(--crm-border)]">
                       {editingUser?.tags && editingUser.tags.length > 0 ? editingUser.tags.map((tag, idx) => (
-                        <Badge key={idx} className="bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border-indigo-100 dark:border-indigo-900 px-3 py-1 rounded-full group font-bold text-[10px] uppercase tracking-wide">
+                        <Badge key={idx} className="bg-[var(--crm-accent-soft)] text-primary border-indigo-100 px-3 py-1 rounded-full group font-bold text-[10px] uppercase tracking-wide">
                           {tag}
                           <X
                             className="h-3 w-3 ml-2 cursor-pointer hover:text-red-500 transition-colors"
@@ -3176,7 +3011,7 @@ export default function SuperAdminPage() {
                         </Badge>
                       )) : (
                         <div className="flex items-center justify-center w-full py-2">
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic">No tags assigned</p>
+                          <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-widest italic">No tags assigned</p>
                         </div>
                       )}
                     </div>
@@ -3184,7 +3019,7 @@ export default function SuperAdminPage() {
                     {/* Tag Suggestions */}
                     {globalTags.length > 0 && (
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Library Suggestions</Label>
+                        <Label className="text-[10px] font-black uppercase text-[var(--crm-text-secondary)] tracking-widest">Library Suggestions</Label>
                         <div className="flex flex-wrap gap-1.5">
                           {globalTags
                             .filter(tag => !editingUser?.tags?.includes(tag))
@@ -3199,7 +3034,7 @@ export default function SuperAdminPage() {
                                     setEditingUser({ ...editingUser, tags: [...tags, tag] });
                                   }
                                 }}
-                                className="text-[9px] px-2.5 py-1 rounded-lg bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all font-black uppercase"
+                                className="text-[9px] px-2.5 py-1 rounded-lg bg-[var(--crm-accent-soft)]/50 text-[var(--crm-accent)] border border-indigo-100/50 hover:bg-primary/20:bg-indigo-900/40 transition-all font-black uppercase"
                               >
                                 + {tag}
                               </button>
@@ -3214,14 +3049,14 @@ export default function SuperAdminPage() {
                 <Button
                   variant="ghost"
                   onClick={() => setIsUserModalOpen(false)}
-                  className="rounded-xl font-bold h-11 border-transparent dark:text-slate-400"
+                  className="rounded-xl font-bold h-11 border-transparent"
                   disabled={isUpdatingUser}
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleUpdateUser}
-                  className="rounded-xl font-black bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 px-8 h-11 transition-all active:scale-95"
+                  className="rounded-xl font-black bg-[var(--crm-accent)] hover:opacity-90 text-white shadow-lg shadow-primary/20 px-8 h-11 transition-all active:scale-95"
                   disabled={isUpdatingUser}
                 >
                   {isUpdatingUser ? (

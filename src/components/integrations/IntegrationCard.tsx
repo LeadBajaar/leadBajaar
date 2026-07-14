@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LucideIcon, Trash2, Settings, Plus, Play, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import { cn } from "@/lib/utils";
 interface Integration {
   id: string;
   name: string;
@@ -23,6 +23,8 @@ interface Integration {
   description: string;
   features: string[];
   allowMultiple: boolean;
+  price?: string;
+  isPremium?: boolean;
 }
 
 interface ConnectedIntegration {
@@ -70,8 +72,11 @@ export function IntegrationCard({
             />
           </div>
           <div>
-            <h3 className="text-sm font-bold leading-none">{integration.name}</h3>
-            <p className="text-[11px] text-[var(--crm-text-secondary)] mt-1 line-clamp-1">{integration.description}</p>
+            <h3 className="text-sm font-bold leading-none flex items-center gap-2">
+              {integration.name}
+              {integration.isPremium && <Badge variant="secondary" className="h-4 text-[9px] px-1.5 bg-amber-100 text-amber-700 hover:bg-amber-100 border-none font-black tracking-widest">PRO</Badge>}
+            </h3>
+            <p className="text-[11px] text-[var(--crm-text-secondary)] mt-1.5 line-clamp-2 leading-relaxed">{integration.description}</p>
           </div>
         </div>
         
@@ -101,7 +106,7 @@ export function IntegrationCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-indigo-500 hover:bg-indigo-500/10 rounded-lg"
+                className="h-7 w-7 text-primary hover:bg-primary/10 rounded-lg"
                 onClick={() => router.push("/integrations/meta-capi")}
                 title="Manage CAPI"
               >
@@ -131,20 +136,23 @@ export function IntegrationCard({
           </>
         ) : (
           <>
+            {integration.price && (
+              <span className="text-[11px] font-black text-foreground mr-auto bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
+                {integration.price}
+              </span>
+            )}
             <div className="flex-1" />
             <Button
-              variant="default"
+              variant={integration.isPremium ? "default" : "secondary"}
               size="sm"
-              className="h-7 text-[11px] px-3 rounded-lg font-semibold"
+              className={cn("h-7 text-[11px] px-4 rounded-lg font-bold shadow-sm", integration.isPremium ? "bg-primary hover:bg-primary/90 text-white" : "")}
               onClick={() => onAction(integration)}
               disabled={isConnecting}
             >
               {isConnecting ? (
                 <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
-              ) : (
-                <Plus className="h-3 w-3 mr-1.5" />
-              )}
-              {isConnecting ? "Connecting..." : "Connect"}
+              ) : null}
+              {isConnecting ? "Connecting..." : (integration.isPremium ? "Purchase" : "Connect")}
             </Button>
           </>
         )}

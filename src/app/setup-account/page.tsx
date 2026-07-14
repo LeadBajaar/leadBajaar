@@ -87,11 +87,11 @@ function SetupAccount() {
           <div className="space-y-2">
             <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Account Active!</h2>
             <p className="text-slate-500 dark:text-slate-400 font-medium">
-              Welcome to the team at <span className="text-indigo-600 font-bold">{companyName}</span>.
+              Welcome to the team at <span className="text-primary font-bold">{companyName}</span>.
             </p>
           </div>
           <div className="w-full p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
-             <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+             <Loader2 className="h-4 w-4 animate-spin text-primary" />
              <p className="text-xs font-bold text-slate-600 dark:text-slate-400 italic">Redirecting you to workspace...</p>
           </div>
         </div>
@@ -103,7 +103,7 @@ function SetupAccount() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-[#020617] p-6 antialiased">
       {/* ── Background Detail ── */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-15%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/5 blur-[120px] rounded-full" />
+        <div className="absolute top-[-15%] left-[-10%] w-[50%] h-[50%] bg-primary/5 blur-[120px] rounded-full" />
         <div className="absolute bottom-[-15%] right-[-10%] w-[50%] h-[50%] bg-violet-500/5 blur-[120px] rounded-full" />
       </div>
 
@@ -111,12 +111,12 @@ function SetupAccount() {
         {/* Branding */}
         <div className="flex flex-col items-center text-center gap-3">
           <div className="h-12 w-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-center shadow-sm">
-            <ShieldCheck className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+            <ShieldCheck className="h-6 w-6 text-primary dark:text-indigo-400" />
           </div>
           <div className="space-y-1">
             <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Join the Workspace</h2>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-              Invited to <span className="text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-tight italic text-xs px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-md">{companyName}</span>
+              Invited to <span className="text-primary dark:text-indigo-400 font-bold uppercase tracking-tight italic text-xs px-1.5 py-0.5 bg-primary/10 dark:bg-indigo-900/30 rounded-md">{companyName}</span>
             </p>
           </div>
         </div>
@@ -125,7 +125,7 @@ function SetupAccount() {
           <CardHeader className="space-y-1 pb-6 pt-8 px-8 border-b border-slate-100 dark:border-slate-800">
             <CardTitle className="text-lg font-bold tracking-tight">Setup Your Account</CardTitle>
             <CardDescription className="text-[11px] text-slate-500 font-medium">
-              You are joining as <span className="text-indigo-500 font-bold">{invitedEmail}</span>
+              You are joining as <span className="text-primary font-bold">{invitedEmail}</span>
             </CardDescription>
           </CardHeader>
           <CardContent className="px-8 py-8">
@@ -133,11 +133,11 @@ function SetupAccount() {
               <div className="space-y-2">
                 <Label htmlFor="fullName" className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-0.5">Your Full Name</Label>
                 <div className="relative group transition-all">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
                   <Input
                     id="fullName"
                     placeholder="E.g. Alex Johnson"
-                    className="h-12 pl-10 bg-slate-50/50 dark:bg-slate-950 border-slate-200/60 dark:border-slate-800 rounded-xl focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm font-medium"
+                    className="h-12 pl-10 bg-slate-50/50 dark:bg-slate-950 border-slate-200/60 dark:border-slate-800 rounded-xl focus:ring-indigo-500/10 focus:border-primary transition-all text-sm font-medium"
                     {...register('fullName', { required: 'Name is required' })}
                   />
                 </div>
@@ -147,12 +147,12 @@ function SetupAccount() {
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-0.5">Set Password</Label>
                 <div className="relative group transition-all">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    className="h-12 pl-10 pr-10 bg-slate-50/50 dark:bg-slate-950 border-slate-200/60 dark:border-slate-800 rounded-xl focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm font-medium"
+                    className="h-12 pl-10 pr-10 bg-slate-50/50 dark:bg-slate-950 border-slate-200/60 dark:border-slate-800 rounded-xl focus:ring-indigo-500/10 focus:border-primary transition-all text-sm font-medium"
                     {...register('password', { 
                       required: 'Password is required',
                       minLength: { value: 8, message: 'Must be at least 8 characters' }
@@ -172,12 +172,12 @@ function SetupAccount() {
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-0.5">Confirm Password</Label>
                 <div className="relative group transition-all">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
                   <Input
                     id="confirmPassword"
                     type="password"
                     placeholder="••••••••"
-                    className="h-12 pl-10 bg-slate-50/50 dark:bg-slate-950 border-slate-200/60 dark:border-slate-800 rounded-xl focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm font-medium"
+                    className="h-12 pl-10 bg-slate-50/50 dark:bg-slate-950 border-slate-200/60 dark:border-slate-800 rounded-xl focus:ring-indigo-500/10 focus:border-primary transition-all text-sm font-medium"
                     {...register('confirmPassword', { 
                       required: 'Please confirm your password',
                       validate: (val: string) => val === password || 'Passwords do not match'
@@ -190,7 +190,7 @@ function SetupAccount() {
               <div className="pt-2">
                 <Button
                   type="submit"
-                  className="w-full h-12 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm transition-all active:scale-[0.98] shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 group"
+                  className="w-full h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-sm transition-all active:scale-[0.98] shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 group"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -228,7 +228,7 @@ export default function SetupAccountPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-[#020617] p-6">
-        <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
       </div>
     }>
       <SetupAccount />

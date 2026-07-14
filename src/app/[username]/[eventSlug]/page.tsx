@@ -24,7 +24,6 @@ import { validateQuestionResponse } from '@/lib/validations/questions'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { formatInTimeZone } from 'date-fns-tz'
 import { API_BASE_URL } from '@/lib/api'
 
 interface EventType {
@@ -605,7 +604,7 @@ export default function BookingPage() {
 
   return (
     <div className={cn(isEmbed ? "p-0 bg-transparent w-full" : "min-h-[100dvh] flex flex-col items-center sm:justify-center bg-[var(--lb-s1)] sm:bg-[var(--lb-bg)] sm:py-6 sm:px-4")}>
-      <div className="w-full h-full sm:h-auto max-w-[820px] mx-auto flex flex-col flex-1">
+      <div className="w-full h-full sm:h-auto max-w-[700px] mx-auto flex flex-col flex-1 sm:flex-none">
         <Card className="border-0 sm:border-[0.5px] border-[var(--lb-border)] bg-[var(--lb-s1)] shadow-none sm:shadow-sm rounded-none sm:rounded-[16px] overflow-hidden w-full flex-1 flex flex-col">
           <CardContent className="p-0 relative flex-1 flex flex-col">
           <div className="grid sm:grid-cols-[220px,1fr] flex-1">
@@ -676,17 +675,18 @@ export default function BookingPage() {
                     <div className="flex justify-between items-center px-3.5 py-[9px] border-b-[0.5px] border-[var(--lb-border)]">
                       <span className="text-[12px] text-[var(--lb-t3)]">Date</span>
                       <span className="text-[12px] font-medium text-[var(--lb-t1)]">
-                        {bookingDetails?.start_time ? 
-                          formatInTimeZone(new Date(bookingDetails.start_time), 'UTC', 'EEEE, MMMM d, yyyy') : 
-                          selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : ''}
+                        {/* Prefer the visitor's own selection (already in their local timezone).
+                            The API's start_time is raw UTC, so the fallback formats it in the
+                            browser's local zone — never as UTC wall time. */}
+                        {selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') :
+                          bookingDetails?.start_time ? format(new Date(bookingDetails.start_time), 'EEEE, MMMM d, yyyy') : ''}
                       </span>
                     </div>
                     <div className="flex justify-between items-center px-3.5 py-[9px] border-b-[0.5px] border-[var(--lb-border)]">
                       <span className="text-[12px] text-[var(--lb-t3)]">Time</span>
                       <span className="text-[12px] font-medium text-[var(--lb-t1)]">
-                        {bookingDetails?.start_time ? 
-                          formatInTimeZone(new Date(bookingDetails.start_time), 'UTC', 'h:mm a') : 
-                          selectedTime ? format(new Date(selectedTime), 'h:mm a') : ''}
+                        {selectedTime ? format(new Date(selectedTime), 'h:mm a') :
+                          bookingDetails?.start_time ? format(new Date(bookingDetails.start_time), 'h:mm a') : ''}
                       </span>
                     </div>
                     <div className="flex justify-between items-center px-3.5 py-[9px]">

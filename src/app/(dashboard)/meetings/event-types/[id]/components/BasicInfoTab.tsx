@@ -19,8 +19,8 @@ interface Props {
   errors?: Record<string, string>
 }
 
-const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 block"
-const inputStyle = "h-10 text-sm bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-800 transition-all rounded-lg no-scrollbar"
+const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-[var(--crm-text-secondary)] mb-1.5 block"
+const inputStyle = "h-10 text-sm bg-[var(--crm-surface-2)]  border-[var(--crm-border)]  focus:bg-[var(--crm-surface-1)] transition-all rounded-lg no-scrollbar"
 const COLORS = [
   '#4f46e5', // indigo
   '#2563eb', // blue
@@ -40,11 +40,11 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
     <TabsContent value="basic" className="mt-0 outline-none">
       <div className="space-y-4">
         <div>
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-0.5">Basic Settings</h3>
-          <p className="text-[11px] text-slate-500 font-medium tracking-tight">General information about your event type.</p>
+          <h3 className="text-sm font-bold text-[var(--crm-text-primary)] uppercase tracking-wider mb-0.5">Basic Settings</h3>
+          <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium tracking-tight">General information about your event type.</p>
         </div>
 
-        <Card className="border-slate-200/60 dark:border-slate-800/60 shadow-sm rounded-xl overflow-hidden bg-white dark:bg-slate-900">
+        <Card className="border-[var(--crm-border)] shadow-sm rounded-xl overflow-hidden bg-[var(--crm-surface-1)]">
           <CardContent className="p-5 space-y-5">
             <div className="grid gap-y-4 gap-x-6 sm:grid-cols-2">
               <div className="space-y-1.5 sm:col-span-2">
@@ -54,7 +54,7 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
                   value={eventType.title}
                   onChange={(e) => setEventType({ ...eventType, title: e.target.value })}
                   placeholder="e.g., Product Demo Call"
-                  className={cn(inputStyle, errors?.title && "border-red-500 bg-red-50/50 focus:bg-white")}
+                  className={cn(inputStyle, errors?.title && "border-red-500 bg-red-50/50 focus:bg-[var(--crm-surface-1)]")}
                 />
                 {errors?.title && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1 animate-in fade-in slide-in-from-top-1 duration-200">{errors.title}</p>}
               </div>
@@ -66,7 +66,7 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
                   value={eventType.description}
                   onChange={(e) => setEventType({ ...eventType, description: e.target.value })}
                   placeholder="Add a description for your event"
-                  className={cn(inputStyle, "min-h-[70px] py-2 no-scrollbar resize-none", errors?.description && "border-red-500 bg-red-50/50 focus:bg-white")}
+                  className={cn(inputStyle, "min-h-[70px] py-2 no-scrollbar resize-none", errors?.description && "border-red-500 bg-red-50/50 focus:bg-[var(--crm-surface-1)]")}
                 />
                 {errors?.description && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1 animate-in fade-in slide-in-from-top-1 duration-200">{Array.isArray(errors.description) ? errors.description[0] : errors.description}</p>}
               </div>
@@ -97,9 +97,9 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
                     value={eventType.max_invitees || 2}
                     onChange={(e) => setEventType({ ...eventType, max_invitees: parseInt(e.target.value) || 2 })}
                     placeholder="e.g., 10"
-                    className={cn(inputStyle, errors?.max_invitees && "border-red-500 bg-red-50/50 focus:bg-white")}
+                    className={cn(inputStyle, errors?.max_invitees && "border-red-500 bg-red-50/50 focus:bg-[var(--crm-surface-1)]")}
                   />
-                  <p className="text-[9px] text-slate-400 font-medium italic mt-1.5 leading-tight uppercase tracking-tighter">
+                  <p className="text-[9px] text-[var(--crm-text-secondary)] font-medium italic mt-1.5 leading-tight uppercase tracking-tighter">
                     Maximum number of people that can book the exact same time slot.
                   </p>
                   {errors?.max_invitees && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1 animate-in fade-in slide-in-from-top-1 duration-200">{errors.max_invitees}</p>}
@@ -112,7 +112,7 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
                   value={eventType.duration?.toString()}
                   onValueChange={(value) => setEventType({ ...eventType, duration: parseInt(value) })}
                 >
-                  <SelectTrigger className={cn(inputStyle, errors?.duration && "border-red-500 bg-red-50/50 focus:bg-white")}>
+                  <SelectTrigger className={cn(inputStyle, errors?.duration && "border-red-500 bg-red-50/50 focus:bg-[var(--crm-surface-1)]")}>
                     <SelectValue placeholder="Select duration" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -145,7 +145,7 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
                     <SelectItem value="120">120 minutes</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-[9px] text-slate-400 font-medium italic mt-1.5 leading-tight uppercase tracking-tighter">
+                <p className="text-[9px] text-[var(--crm-text-secondary)] font-medium italic mt-1.5 leading-tight uppercase tracking-tighter">
                   Start times grid (e.g., 30 mins means slots start at 11:00, 11:30, etc.). 
                   Breaks are calculated dynamically after each booking.
                 </p>
@@ -209,7 +209,7 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
                   placeholder="e.g., https://yourwebsite.com/thank-you"
                   className={inputStyle}
                 />
-                <p className="text-[9px] text-slate-400 font-medium italic mt-1.5 leading-tight uppercase tracking-tighter">Redirect users to this URL after they successfully book a meeting.</p>
+                <p className="text-[9px] text-[var(--crm-text-secondary)] font-medium italic mt-1.5 leading-tight uppercase tracking-tighter">Redirect users to this URL after they successfully book a meeting.</p>
               </div>
 
               <div className="space-y-2 sm:col-span-2 mt-2">
@@ -242,7 +242,7 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
                     )
                   })}
                 </div>
-                <p className="text-[10px] text-slate-400 font-medium italic mt-1.5 leading-tight uppercase tracking-tighter">
+                <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium italic mt-1.5 leading-tight uppercase tracking-tighter">
                   This color helps you visually identify this event type on your meetings dashboard.
                 </p>
               </div>

@@ -21,8 +21,8 @@ interface Props {
   updateScheduling: (field: string, value: any) => void
 }
 
-const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 block"
-const inputStyle = "h-10 text-sm bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-800 transition-all rounded-lg no-scrollbar"
+const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-[var(--crm-text-secondary)] mb-1.5 block"
+const inputStyle = "h-10 text-sm bg-[var(--crm-surface-2)]  border-[var(--crm-border)]  focus:bg-[var(--crm-surface-1)] transition-all rounded-lg no-scrollbar"
 
 export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
   return (
@@ -31,22 +31,22 @@ export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
         {/* Availability Settings */}
         <div className="space-y-3">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-0.5">Availability Protocol</h3>
-            <p className="text-[11px] text-slate-500 font-medium tracking-tight">Define when you are available for bookings.</p>
+            <h3 className="text-sm font-bold text-[var(--crm-text-primary)] uppercase tracking-wider mb-0.5">Availability Protocol</h3>
+            <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium tracking-tight">Define when you are available for bookings.</p>
           </div>
 
-          <Card className="border-slate-200/60 dark:border-slate-800/60 shadow-sm rounded-xl overflow-hidden bg-white dark:bg-slate-900">
+          <Card className="border-[var(--crm-border)] shadow-sm rounded-xl overflow-hidden bg-[var(--crm-surface-1)]">
             <CardContent className="p-4 space-y-6">
-              <div className="flex items-center space-x-2 border border-slate-200 dark:border-slate-800 p-1 rounded-lg w-fit mb-4 bg-slate-50 dark:bg-slate-900/50">
+              <div className="flex items-center space-x-2 border border-[var(--crm-border)] p-1 rounded-lg w-fit mb-4 bg-[var(--crm-surface-2)]">
                 <Button
                   variant={eventType.scheduling.availabilityType !== 'specific_dates' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => updateScheduling('availabilityType', 'recurring')}
                   className={cn(
-                    "text-xs h-8 px-4",
+                    "text-xs h-8 px-4 rounded-md transition-all",
                     eventType.scheduling.availabilityType !== 'specific_dates' 
-                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm hover:bg-white dark:hover:bg-slate-800" 
-                      : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                      ? "bg-[var(--crm-surface-1)] text-[var(--crm-text-primary)] shadow-sm" 
+                      : "text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-1)]"
                   )}
                 >
                   Weekly Recurring
@@ -56,10 +56,10 @@ export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
                   size="sm"
                   onClick={() => updateScheduling('availabilityType', 'specific_dates')}
                   className={cn(
-                    "text-xs h-8 px-4",
+                    "text-xs h-8 px-4 rounded-md transition-all",
                     eventType.scheduling.availabilityType === 'specific_dates' 
-                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm hover:bg-white dark:hover:bg-slate-800" 
-                      : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                      ? "bg-[var(--crm-surface-1)] text-[var(--crm-text-primary)] shadow-sm" 
+                      : "text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-1)]"
                   )}
                 >
                   Specific Dates
@@ -78,11 +78,11 @@ export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
                 />
               )}
 
-              <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800">
+              <div className="pt-3.5 border-t border-[var(--crm-border)]">
                 <div className="flex items-center justify-between gap-4 mb-3.5">
                   <div>
-                    <Label className="text-sm font-bold text-slate-900 dark:text-white mb-0.5">Recurring Availability</Label>
-                    <p className="text-[11px] text-slate-500 font-medium tracking-tight">Set this schedule to repeat automatically.</p>
+                    <Label className="text-sm font-bold text-[var(--crm-text-primary)] mb-0.5">Recurring Availability</Label>
+                    <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium tracking-tight">Set this schedule to repeat automatically.</p>
                   </div>
                   <Switch
                     checked={!!eventType.scheduling.recurring}
@@ -93,12 +93,12 @@ export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
                         timeslots: []
                       } : null)
                     }}
-                    className="scale-90 data-[state=checked]:bg-indigo-600"
+                    className="scale-90 data-[state=checked]:bg-[var(--crm-accent)]"
                   />
                 </div>
 
                 {eventType.scheduling.recurring && (
-                  <div className="grid sm:grid-cols-2 gap-4 p-3.5 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl border border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="grid sm:grid-cols-2 gap-4 p-3.5 bg-[var(--crm-surface-2)] rounded-xl border border-[var(--crm-border)] animate-in fade-in slide-in-from-top-1 duration-200">
                     <div className="space-y-1.5">
                       <Label className={labelStyle}>Frequency</Label>
                       <Select
@@ -132,7 +132,7 @@ export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
                           })}
                           className={cn(inputStyle, "w-16 text-center font-bold")}
                         />
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <span className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest">
                           {eventType.scheduling.recurring.frequency === 'daily' ? 'Days' : 
                            eventType.scheduling.recurring.frequency === 'weekly' ? 'Weeks' : 'Months'}
                         </span>
@@ -148,11 +148,11 @@ export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
         {/* Booking Rules */}
         <div className="space-y-3">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-0.5">Booking Limits</h3>
-            <p className="text-[11px] text-slate-500 font-medium tracking-tight">Control the frequency and timing of meetings.</p>
+            <h3 className="text-sm font-bold text-[var(--crm-text-primary)] uppercase tracking-wider mb-0.5">Booking Limits</h3>
+            <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium tracking-tight">Control the frequency and timing of meetings.</p>
           </div>
 
-          <Card className="border-slate-200/60 dark:border-slate-800/60 shadow-sm rounded-xl overflow-hidden bg-white dark:bg-slate-900">
+          <Card className="border-[var(--crm-border)] shadow-sm rounded-xl overflow-hidden bg-[var(--crm-surface-1)]">
             <CardContent className="p-4 space-y-5">
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
                 <div className="space-y-1.5">
@@ -195,7 +195,7 @@ export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
                       <SelectItem value="60">60 minutes</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="text-[9px] text-indigo-600 dark:text-indigo-400 font-bold italic mt-2 uppercase tracking-tight">
+                  <p className="text-[9px] text-[var(--crm-accent)] font-bold italic mt-2 uppercase tracking-tight">
                     Tip: Set a 30 min buffer here to ensure a gap after every meeting. 
                     The next available slot will automatically jump forward.
                   </p>
@@ -211,7 +211,7 @@ export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
                       onChange={(e) => updateScheduling('minimumNotice', parseInt(e.target.value))}
                       className={cn(inputStyle, "w-16 text-center font-bold")}
                     />
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hours</span>
+                    <span className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest">Hours</span>
                   </div>
                 </div>
 
@@ -225,7 +225,7 @@ export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
                       onChange={(e) => updateScheduling('dateRange', parseInt(e.target.value))}
                       className={cn(inputStyle, "w-16 text-center font-bold")}
                     />
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Days</span>
+                    <span className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest">Days</span>
                   </div>
                 </div>
 
@@ -240,7 +240,7 @@ export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
                       className={cn(inputStyle, "w-16 text-center font-bold")}
                       placeholder="∞"
                     />
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Count</span>
+                    <span className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest">Count</span>
                   </div>
                 </div>
 

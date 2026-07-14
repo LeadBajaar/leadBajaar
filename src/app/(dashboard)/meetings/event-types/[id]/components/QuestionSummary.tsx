@@ -51,32 +51,32 @@ export const QuestionSummary = ({ question, index, onEdit, onRemove }: Props) =>
       ref={setNodeRef}
       style={style}
       className={cn(
-        "bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-xl shadow-sm transition-all duration-200 group flex items-center gap-4 p-3 pr-4",
-        isDragging && "opacity-50 scale-[0.98] shadow-lg border-indigo-500"
+        "bg-[var(--crm-surface-1)]  border border-[var(--crm-border)]  rounded-xl shadow-sm transition-all duration-200 group flex items-center gap-4 p-3 pr-4",
+        isDragging && "opacity-50 scale-[0.98] shadow-lg border-[var(--crm-accent)]"
       )}
     >
       <div 
         {...attributes} 
         {...listeners} 
-        className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-400"
+        className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg hover:bg-[var(--crm-surface-3)] transition-colors text-[var(--crm-text-secondary)]"
       >
         <GripVertical className="h-4 w-4" />
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
-          <span className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[300px]">
+          <span className="text-xs font-bold text-[var(--crm-text-primary)] truncate max-w-[300px]">
             {question.question || 'Untitled Question'}
           </span>
           {question.required && <span className="text-red-500 text-[10px] font-black">*</span>}
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5 rounded-md border border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-1 text-[9px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest bg-[var(--crm-surface-2)] px-1.5 py-0.5 rounded-md border border-[var(--crm-border)]">
             {getTypeIcon(question.type)}
             {question.type}
           </div>
           {question.description && (
-            <span className="text-[9px] text-slate-400 font-medium truncate">• {question.description}</span>
+            <span className="text-[9px] text-[var(--crm-text-secondary)] font-medium truncate">• {question.description}</span>
           )}
         </div>
       </div>
@@ -86,7 +86,7 @@ export const QuestionSummary = ({ question, index, onEdit, onRemove }: Props) =>
           variant="ghost"
           size="icon"
           onClick={() => onEdit(index)}
-          className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all"
+          className="h-8 w-8 text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)] hover:bg-[var(--crm-accent-soft)] rounded-lg transition-all"
         >
           <Edit2 className="h-3.5 w-3.5" />
         </Button>
@@ -95,7 +95,7 @@ export const QuestionSummary = ({ question, index, onEdit, onRemove }: Props) =>
             variant="ghost"
             size="icon"
             onClick={() => onRemove(index)}
-            className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+            className="h-8 w-8 text-[var(--crm-text-secondary)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>

@@ -72,13 +72,13 @@ lbTrack('Lead', {
 
     return (
         <div className="h-full overflow-y-auto p-6 lg:p-10 space-y-8 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 font-medium">
-            <Link href="/developer" className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 transition-colors font-bold text-sm">
+            <Link href="/developer" className="inline-flex items-center gap-2 text-primary hover:text-primary transition-colors font-bold text-sm">
                 <ArrowLeft className="w-4 h-4" /> Back to Console
             </Link>
 
             <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200 border border-indigo-500">
+                    <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20 border border-primary">
                         <Target className="w-6 h-6" />
                     </div>
                     <div>
@@ -92,11 +92,11 @@ lbTrack('Lead', {
                 <div className="lg:col-span-3 space-y-8">
                     <Tabs defaultValue="architecture" className="w-full">
                         <TabsList className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 rounded-xl w-full justify-start overflow-x-auto shadow-sm">
-                            <TabsTrigger value="architecture" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-6 font-bold">Architecture</TabsTrigger>
-                            <TabsTrigger value="workflows" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-6 font-bold">CRM Workflows</TabsTrigger>
-                            <TabsTrigger value="advertiser" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-6 font-bold">Advertiser Setup</TabsTrigger>
-                            <TabsTrigger value="developer" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-6 font-bold">Developer Guide</TabsTrigger>
-                            <TabsTrigger value="api" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-lg px-6 font-bold">Payload Spec</TabsTrigger>
+                            <TabsTrigger value="architecture" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-6 font-bold">Architecture</TabsTrigger>
+                            <TabsTrigger value="workflows" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-6 font-bold">CRM Workflows</TabsTrigger>
+                            <TabsTrigger value="advertiser" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-6 font-bold">Advertiser Setup</TabsTrigger>
+                            <TabsTrigger value="developer" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-6 font-bold">Developer Guide</TabsTrigger>
+                            <TabsTrigger value="api" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-lg px-6 font-bold">Payload Spec</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="architecture" className="mt-8 space-y-6">
@@ -110,7 +110,7 @@ lbTrack('Lead', {
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center text-center">
                                         <div className="space-y-4">
                                             <div className="mx-auto w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center border border-blue-100 dark:border-blue-900 shadow-sm shadow-blue-50">
-                                                <Users className="w-8 h-8 text-blue-600" />
+                                                <Users className="w-8 h-8 text-primary" />
                                             </div>
                                             <div className="font-bold text-slate-900 dark:text-slate-100">Lead Ad Submission</div>
                                             <div className="text-xs text-slate-500 font-mono">Generates Lead ID</div>
@@ -120,8 +120,8 @@ lbTrack('Lead', {
                                             <Badge variant="outline" className="text-[10px] font-black uppercase tracking-tighter">Matched via Lead ID</Badge>
                                         </div>
                                         <div className="space-y-4">
-                                            <div className="mx-auto w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center border border-indigo-100 dark:border-indigo-900 shadow-sm shadow-indigo-50">
-                                                <Layers className="w-8 h-8 text-indigo-600" />
+                                            <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 dark:bg-indigo-950/30 flex items-center justify-center border border-indigo-100 dark:border-indigo-900 shadow-sm shadow-indigo-50">
+                                                <Layers className="w-8 h-8 text-primary" />
                                             </div>
                                             <div className="font-bold text-slate-900 dark:text-slate-100">CRM Conversion</div>
                                             <div className="text-xs text-slate-500 font-mono">Optimization: Conversion Leads</div>
@@ -182,7 +182,7 @@ lbTrack('Lead', {
                         <TabsContent value="advertiser" className="mt-8 space-y-8">
                             <div className="space-y-6">
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                                    <Settings className="w-5 h-5 text-indigo-500" />
+                                    <Settings className="w-5 h-5 text-primary" />
                                     Meta Ads Manager Setup
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -194,10 +194,10 @@ lbTrack('Lead', {
                                         { title: "Generate Access Token", desc: "Go to Pixel Settings > Conversions API > Generate Access Token.", icon: Key },
                                         { title: "Map Sales Funnel", desc: "Categorize and order your CRM stages in the Events Manager Funnel Builder.", icon: Layers }
                                     ].map((item, idx) => (
-                                        <Card key={idx} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 p-6 shadow-sm hover:border-indigo-500 transition-colors">
+                                        <Card key={idx} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 p-6 shadow-sm hover:border-primary transition-colors">
                                             <div className="flex gap-4">
                                                 <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-100 dark:border-slate-700 shadow-sm">
-                                                    <item.icon className="w-5 h-5 text-indigo-600" />
+                                                    <item.icon className="w-5 h-5 text-primary" />
                                                 </div>
                                                 <div>
                                                     <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-1">{item.title}</h4>
@@ -214,7 +214,7 @@ lbTrack('Lead', {
                             <div className="space-y-8">
                                 <div className="space-y-4">
                                     <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                                        <Webhook className="w-5 h-5 text-indigo-500" />
+                                        <Webhook className="w-5 h-5 text-primary" />
                                         Phase 1: Ingesting Leads
                                     </h3>
                                     <p className="text-slate-500 font-medium text-sm">
@@ -224,14 +224,14 @@ lbTrack('Lead', {
 
                                 <div className="space-y-4">
                                     <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                                        <RefreshCw className="w-5 h-5 text-indigo-500" />
+                                        <RefreshCw className="w-5 h-5 text-primary" />
                                         Phase 2: Sending Funnel Events
                                     </h3>
                                     <p className="text-slate-500 font-medium text-sm">
                                         Implement server-side calls for **every stage** transition in the sales funnel.
                                     </p>
                                     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 space-y-4 shadow-sm">
-                                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-indigo-600">
+                                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
                                             <CheckCircle2 className="w-3 h-3" /> Mandatory Parameters
                                         </div>
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-[11px] font-mono">
@@ -245,7 +245,7 @@ lbTrack('Lead', {
 
                                 <div className="space-y-4">
                                     <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                                        <Activity className="w-5 h-5 text-indigo-500" />
+                                        <Activity className="w-5 h-5 text-primary" />
                                         Phase 3: Verification & EMQ
                                     </h3>
                                     <p className="text-slate-500 font-medium text-sm">
@@ -261,7 +261,7 @@ lbTrack('Lead', {
                                     <Badge className="bg-emerald-500/10 text-emerald-400 border-none uppercase font-black text-[10px] tracking-widest px-2 py-0.5">CAPI JSON PAYLOAD</Badge>
                                     <span className="text-xs font-mono text-slate-500">endpoint: /v25.0/{"{pixel_id}"}/events</span>
                                 </div>
-                                <pre className="text-xs text-indigo-200 leading-relaxed font-mono overflow-x-auto selection:bg-indigo-500/30">{payloadSpec}</pre>
+                                <pre className="text-xs text-indigo-200 leading-relaxed font-mono overflow-x-auto selection:bg-primary/30">{payloadSpec}</pre>
                                 <Button variant="ghost" size="icon" className="absolute bottom-4 right-4 text-slate-400 hover:text-white hover:bg-white/10" onClick={() => copyToClipboard(payloadSpec)}>
                                     <Copy className="w-4 h-4" />
                                 </Button>
@@ -285,7 +285,7 @@ lbTrack('Lead', {
                 </div>
 
                 <div className="space-y-6">
-                    <Card className="bg-indigo-600 p-8 space-y-6 border-none text-white shadow-xl shadow-indigo-100">
+                    <Card className="bg-primary p-8 space-y-6 border-none text-white shadow-xl shadow-indigo-100">
                         <h3 className="text-lg font-black uppercase tracking-widest flex items-center gap-2">
                             <ShieldCheck className="w-5 h-5 text-indigo-200" />
                             Critical Logic
@@ -308,7 +308,7 @@ lbTrack('Lead', {
 
                     <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 p-8 overflow-hidden relative shadow-sm">
                         <div className="absolute top-0 right-0 p-4 opacity-[0.03] dark:opacity-[0.1]">
-                            <Activity className="w-24 h-24 text-indigo-600" />
+                            <Activity className="w-24 h-24 text-primary" />
                         </div>
                         <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2 tracking-tight uppercase">Health Monitor</h3>
                         <div className="space-y-5 mt-6">
@@ -324,10 +324,10 @@ lbTrack('Lead', {
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
                                     <span>Funnel Analysis</span>
-                                    <span className="text-indigo-600 dark:text-indigo-400 font-mono">ENABLED</span>
+                                    <span className="text-primary dark:text-indigo-400 font-mono">ENABLED</span>
                                 </div>
                                 <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                    <div className="h-full w-full bg-indigo-600 rounded-full" />
+                                    <div className="h-full w-full bg-primary rounded-full" />
                                 </div>
                             </div>
                         </div>

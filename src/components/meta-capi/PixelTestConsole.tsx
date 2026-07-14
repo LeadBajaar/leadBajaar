@@ -82,7 +82,9 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
     }, [pixels])
 
     useEffect(() => {
-        logsEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        if (logs.length > 0) {
+            logsEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        }
     }, [logs])
 
     const handlePixelSelect = (pixelId: string) => {
@@ -289,7 +291,7 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
                     <Button
                         size="sm"
                         onClick={() => setShowCreateModal(true)}
-                        className="h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                        className="h-8 text-xs bg-primary hover:bg-primary/90 text-white"
                     >
                         <Plus className="h-3.5 w-3.5 mr-1.5" /> Create Pixel
                     </Button>
@@ -369,7 +371,7 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
                                                     key={src.value}
                                                     onClick={() => setActionSource(src.value)}
                                                     className={`flex items-center gap-2 p-2 rounded-xl border text-left transition-all text-[10px] font-bold ${actionSource === src.value
-                                                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                                                        ? 'bg-primary text-white border-primary shadow-sm'
                                                         : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-blue-300 dark:bg-slate-800 dark:border-slate-700'
                                                         }`}
                                                 >
@@ -389,7 +391,7 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
                                                     key={evt.value}
                                                     onClick={() => setSelectedEvent(evt.value)}
                                                     className={`flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all text-xs font-semibold ${selectedEvent === evt.value
-                                                        ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                                        ? 'bg-primary text-white border-primary shadow-md'
                                                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-blue-300 hover:bg-blue-50 dark:bg-slate-800 dark:border-slate-700'
                                                         }`}
                                                 >
@@ -463,7 +465,7 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
                                     </div>
 
                                     <Button
-                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md"
+                                        className="w-full bg-primary hover:bg-primary/90 text-white font-bold shadow-md"
                                         onClick={handleSendTestEvent}
                                         disabled={isTesting || !selectedPixelId}
                                     >
@@ -531,9 +533,9 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
 
                             {/* How it works */}
                             <Alert className="bg-blue-50/50 border-blue-100 dark:bg-blue-900/10 dark:border-blue-900/30">
-                                <Info className="h-4 w-4 text-blue-500" />
+                                <Info className="h-4 w-4 text-primary" />
                                 <AlertTitle className="text-blue-700 dark:text-blue-400 font-bold text-xs">How Test Events Work</AlertTitle>
-                                <AlertDescription className="text-[11px] text-blue-600/80 dark:text-blue-400/80 space-y-1 mt-1">
+                                <AlertDescription className="text-[11px] text-primary/80 dark:text-blue-400/80 space-y-1 mt-1">
                                     <p>1. Test events use a <strong>Test Event Code</strong> so they appear in Meta Events Manager → Test Events tab without polluting real data.</p>
                                     <p>2. LeadBajaar sends the event server-side via CAPI and automatically hashes all PII.</p>
                                     <p>3. Check your Meta Events Manager to see the event appear within ~30 seconds.</p>
@@ -565,7 +567,7 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
                                                 <button
                                                     key={px.id}
                                                     onClick={() => { setSelectedPixelForScript(px); setSelectedPixelId(px.pixel_id); }}
-                                                    className={`w-full p-3 text-left hover:bg-accent/50 transition-all ${selectedPixelForScript?.id === px.id ? 'bg-indigo-500/10 border-r-2 border-indigo-500' : ''
+                                                    className={`w-full p-3 text-left hover:bg-accent/50 transition-all ${selectedPixelForScript?.id === px.id ? 'bg-primary/10 border-r-2 border-primary' : ''
                                                         }`}
                                                 >
                                                     <div className="flex items-center gap-2 mb-0.5">
@@ -585,7 +587,7 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
                                 <div className="space-y-2">
                                     {['Copy the script on the right', 'Paste it inside <head> on every page', 'Call lbTrack() on form submits', 'Check Meta Events Manager → Test Events'].map((step, i) => (
                                         <div key={i} className="flex items-start gap-2">
-                                            <span className="h-4 w-4 rounded-full bg-blue-600 text-white text-[9px] flex items-center justify-center shrink-0 mt-0.5 font-bold">{i + 1}</span>
+                                            <span className="h-4 w-4 rounded-full bg-primary text-white text-[9px] flex items-center justify-center shrink-0 mt-0.5 font-bold">{i + 1}</span>
                                             <span>{step}</span>
                                         </div>
                                     ))}
@@ -609,7 +611,7 @@ export function PixelTestConsole({ pixels, adAccounts, onRefreshPixels, isSyncin
                                         <Button
                                             onClick={copyScript}
                                             disabled={!selectedPixelForScript}
-                                            className={`transition-all ${scriptCopied ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700'}`}
+                                            className={`transition-all ${scriptCopied ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-900 hover:bg-slate-800 dark:bg-primary dark:hover:bg-primary/90'}`}
                                         >
                                             {scriptCopied ? (
                                                 <><CheckCircle2 className="h-4 w-4 mr-2" /> Copied!</>

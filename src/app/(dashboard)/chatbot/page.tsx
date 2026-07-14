@@ -99,18 +99,13 @@ export default function ChatbotPage() {
 
   return (
     <RoleGuard allowedFeatures={['chatbot']}>
-      <div className="h-full overflow-y-auto bg-[var(--crm-bg)]">
-        <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+      <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full">
           
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-[var(--crm-text-primary)]">Chatbot Flows</h1>
-              <p className="text-sm text-[var(--crm-text-secondary)] mt-1">Design and manage automated conversation flows</p>
-            </div>
+          {/* Actions */}
+          <div className="flex justify-end mb-2">
             <Button 
               onClick={() => router.push('/chatbot/builder/new')}
-              className="bg-[var(--crm-blue)] text-white hover:opacity-90 rounded-[var(--r-md)] shadow-sm font-semibold h-10 px-5"
+              className="bg-[var(--crm-accent)] text-white hover:opacity-90 rounded-[var(--r-md)] shadow-sm font-semibold h-10 px-5"
             >
               <PlusCircle className="w-4 h-4 mr-2" /> 
               Create Flow
@@ -120,7 +115,7 @@ export default function ChatbotPage() {
           {/* Content area */}
           {loading ? (
             <div className="flex justify-center items-center h-64">
-              <Loader2 className="w-8 h-8 animate-spin text-[var(--crm-blue)]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[var(--crm-accent)]" />
             </div>
           ) : (
             <>
@@ -133,7 +128,7 @@ export default function ChatbotPage() {
                   <p className="text-sm text-[var(--crm-text-secondary)] mb-6 text-center max-w-sm mt-1">Automate your inbound conversations by building your first chatbot flow.</p>
                   <Button 
                     onClick={() => router.push('/chatbot/builder/new')}
-                    className="bg-[var(--crm-blue)] text-white hover:opacity-90 rounded-[var(--r-md)]"
+                    className="bg-[var(--crm-accent)] text-white hover:opacity-90 rounded-[var(--r-md)]"
                   >
                     <PlusCircle className="w-4 h-4 mr-2" /> Create First Flow
                   </Button>
@@ -174,12 +169,12 @@ export default function ChatbotPage() {
                         <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--crm-border)]">
                           <div className="flex items-center gap-1.5">
                             {flow.is_active
-                              ? <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                              : <div className="h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-700" />
+                              ? <div className="h-2 w-2 rounded-full bg-[var(--crm-green)] shadow-[0_0_8px_rgba(22,163,74,0.5)]" />
+                              : <div className="h-2 w-2 rounded-full bg-[var(--crm-surface-4)]" />
                             }
                             <span className={cn(
                               'font-bold text-[11px] uppercase tracking-wider',
-                              flow.is_active ? 'text-emerald-600 dark:text-emerald-400' : 'text-[var(--crm-text-tertiary)]'
+                              flow.is_active ? 'text-[var(--crm-green)]' : 'text-[var(--crm-text-tertiary)]'
                             )}>
                               {flow.is_active ? 'Active' : 'Inactive'}
                             </span>
@@ -208,7 +203,7 @@ export default function ChatbotPage() {
                           <Copy className="w-3.5 h-3.5" /> Copy
                         </button>
                         <button
-                          className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                          className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold text-[var(--crm-red)] hover:opacity-80 hover:bg-[var(--crm-red-soft)] transition-colors"
                           onClick={() => handleDelete(flow.id)}
                         >
                           <Trash className="w-3.5 h-3.5" /> Delete
@@ -220,7 +215,6 @@ export default function ChatbotPage() {
               )}
             </>
           )}
-        </div>
       </div>
     </RoleGuard>
   )

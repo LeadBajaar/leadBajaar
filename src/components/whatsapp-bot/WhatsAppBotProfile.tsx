@@ -85,7 +85,7 @@ export function WhatsAppBotProfile({ userId }: WhatsAppBotProfileProps) {
               
               {isGhost && (
                 <>
-                  <Button variant="outline" className="border-indigo-200 text-indigo-500 hover:bg-indigo-50 rounded-xl font-bold" onClick={handleReconnectGhost}>
+                  <Button variant="outline" className="border-primary/20 text-primary hover:bg-primary/10 rounded-xl font-bold" onClick={handleReconnectGhost}>
                     <RefreshCw className="mr-2 h-4 w-4" /> Reconnect
                   </Button>
                   <Button variant="outline" className="border-rose-200 text-rose-500 hover:bg-rose-50 rounded-xl font-bold" onClick={() => shredSession(userId)}>
@@ -95,7 +95,7 @@ export function WhatsAppBotProfile({ userId }: WhatsAppBotProfileProps) {
               )}
               
               {isHistorical && (
-                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold" onClick={handleConnectHistorical}>
+                <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl font-bold" onClick={handleConnectHistorical}>
                   <QrCode className="mr-2 h-4 w-4" /> Scan QR Code
                 </Button>
               )}
@@ -104,8 +104,8 @@ export function WhatsAppBotProfile({ userId }: WhatsAppBotProfileProps) {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800">
-              <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center shrink-0">
-                <Fingerprint className="h-5 w-5 text-indigo-500" />
+              <div className="h-10 w-10 rounded-xl bg-primary/10 dark:bg-indigo-900/20 flex items-center justify-center shrink-0">
+                <Fingerprint className="h-5 w-5 text-primary" />
               </div>
               <div className="min-w-0">
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Account Identifier</p>

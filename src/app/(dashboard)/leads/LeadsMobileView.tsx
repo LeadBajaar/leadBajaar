@@ -44,7 +44,7 @@ interface LeadsMobileViewProps {
 export const LeadsMobileSkeleton = () => (
   <div className="grid grid-cols-1 gap-0">
     {Array.from({ length: 6 }).map((_, i) => (
-      <div key={i} className="bg-white dark:bg-slate-900 p-4 border-b border-slate-100 dark:border-slate-800 space-y-3">
+      <div key={i} className="bg-transparent p-4 border-b border-[var(--crm-border)] space-y-3">
         <div className="flex items-center gap-3">
           <Skeleton className="h-4 w-4 rounded" />
           <Skeleton className="h-4 w-32 rounded" />
@@ -105,8 +105,8 @@ export const LeadsMobileView: React.FC<LeadsMobileViewProps> = ({
             key={lead.id}
             onClick={() => handleCardClick(lead.id)}
             className={cn(
-              "group relative bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 transition-all active:scale-[0.99] cursor-pointer",
-              isSelected ? "bg-indigo-50 dark:bg-indigo-900/20" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
+              "group relative bg-transparent border-b border-[var(--crm-border)] transition-all active:scale-[0.99] cursor-pointer",
+              isSelected ? "bg-[var(--crm-accent-soft)]" : "hover:bg-[var(--crm-surface-2)]/60"
             )}
           >
             <div className="p-2.5">
@@ -213,7 +213,7 @@ export const LeadsMobileView: React.FC<LeadsMobileViewProps> = ({
                     variant="outline"
                     className="h-7 w-7 p-0 rounded-lg border-slate-100 dark:border-slate-800"
                   >
-                    <Phone className="h-3.5 w-3.5 text-indigo-500" />
+                    <Phone className="h-3.5 w-3.5 text-primary" />
                   </Button>
                 </div>
               </div>

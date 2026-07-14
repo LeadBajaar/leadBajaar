@@ -28,6 +28,7 @@ export interface Lead {
   agent?: {
     id: number;
     name: string;
+    color?: string;
   } | null;
   new_note?: string;
 }
@@ -92,7 +93,7 @@ export const temperatureConfig: Record<TemperatureType, { color: string; icon: L
 };
 
 export const defaultStages = {
-  'Lead': { color: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300', icon: User },
+  'Lead': { color: 'bg-blue-50 text-primary dark:bg-blue-900/30 dark:text-blue-300', icon: User },
   'Appointment Booked': { color: 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300', icon: CalendarIcon },
   'Qualified': { color: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300', icon: CheckCircle },
   'Disqualified': { color: 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-300', icon: AlertCircle },
@@ -101,7 +102,7 @@ export const defaultStages = {
   'Closed Won': { color: 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-300', icon: CheckCircle },
   'DNP': { color: 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-300', icon: AlertCircle },
   'Follow Up': { color: 'bg-cyan-50 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-300', icon: Clock },
-  'Call Back': { color: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300', icon: Phone },
+  'Call Back': { color: 'bg-primary/10 text-primary dark:bg-indigo-900/30 dark:text-indigo-300', icon: Phone },
   'Consultation': { color: 'bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-300', icon: MessageSquare },
   'Not Interested': { color: 'bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-300', icon: X },
   'Broadcast Done': { color: 'bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-300', icon: Globe },

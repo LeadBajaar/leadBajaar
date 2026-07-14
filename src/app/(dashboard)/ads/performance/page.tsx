@@ -215,7 +215,7 @@ export default function AdPerformancePage() {
           </div>
           <button
             onClick={() => router.push("/integrations")}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
           >
             Go to Integrations
           </button>

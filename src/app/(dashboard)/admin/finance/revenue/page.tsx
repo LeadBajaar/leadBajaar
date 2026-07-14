@@ -147,7 +147,7 @@ export default function RevenuePage() {
           <p className="text-sm text-muted-foreground">Manage subscriptions and monthly recurring revenue</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={() => setShowAdj(true)} className="h-9 gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white">
+          <Button onClick={() => setShowAdj(true)} className="h-9 gap-1.5 bg-primary hover:bg-primary/90 text-white">
             <Plus className="h-4 w-4" /> Add Adjustment
           </Button>
           <Button onClick={fetchData} variant="outline" size="sm" className="h-9 gap-1">
@@ -180,8 +180,8 @@ export default function RevenuePage() {
           <CardContent className="pt-5">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Annual (ARR)</span>
-              <div className="h-7 w-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                <DollarSign className="h-3.5 w-3.5 text-indigo-600" />
+              <div className="h-7 w-7 rounded-lg bg-primary/20 dark:bg-indigo-900/30 flex items-center justify-center">
+                <DollarSign className="h-3.5 w-3.5 text-primary" />
               </div>
             </div>
             <p className="text-2xl font-bold">{fmt(mrrData?.arr)}</p>
@@ -194,7 +194,7 @@ export default function RevenuePage() {
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Active Subs</span>
               <div className="h-7 w-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                <Building2 className="h-3.5 w-3.5 text-blue-600" />
+                <Building2 className="h-3.5 w-3.5 text-primary" />
               </div>
             </div>
             <p className="text-2xl font-bold">{mrrData?.active_count}</p>
@@ -422,7 +422,7 @@ export default function RevenuePage() {
           </div>
           <DialogFooter>
             <Button variant="ghost" size="sm" onClick={() => setShowRenew(false)}>Cancel</Button>
-            <Button size="sm" onClick={handleRenew} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            <Button size="sm" onClick={handleRenew} className="bg-primary hover:bg-primary/90 text-white">
               Process Renewal
             </Button>
           </DialogFooter>

@@ -332,16 +332,16 @@ export default function LeadsPage() {
   // Add these new state variables at the top of your component
   const [filters, setFilters] = useState<{
     search: string;
-    status: string;
-    stage: string;
-    source: string;
+    status: string[];
+    stage: string[];
+    source: string[];
     dateRange: DateRange | undefined;
     createdAt: DateRange | undefined;
   }>({
     search: '',
-    status: 'all',
-    stage: 'all',
-    source: 'all',
+    status: [],
+    stage: [],
+    source: [],
     dateRange: undefined,
     createdAt: undefined
   });
@@ -483,9 +483,9 @@ export default function LeadsPage() {
   const clearFilters = () => {
     setFilters({
       search: '',
-      status: 'all',
-      stage: 'all',
-      source: 'all',
+      status: [],
+      stage: [],
+      source: [],
       dateRange: undefined,
       createdAt: undefined
     });
@@ -533,9 +533,9 @@ export default function LeadsPage() {
         page: currentPage,
         per_page: itemsPerPage,
         ...(debouncedSearch && { search: debouncedSearch }),
-        ...(filters.status !== 'all' && { status: filters.status }),
-        ...(filters.stage !== 'all' && { stage: filters.stage }),
-        ...(filters.source !== 'all' && { source: filters.source }),
+        ...(filters.status.length > 0 && { status: filters.status.join(',') }),
+        ...(filters.stage.length > 0 && { stage: filters.stage.join(',') }),
+        ...(filters.source.length > 0 && { source: filters.source.join(',') }),
         ...(filters.dateRange?.from && {
           last_contact_from: format(filters.dateRange.from, 'yyyy-MM-dd')
         }),
@@ -1422,8 +1422,8 @@ export default function LeadsPage() {
 
   return (
     <RoleGuard allowedFeatures={['leads']}>
-      <div className="flex flex-col h-full bg-[var(--crm-bg)] overflow-hidden">
-      <div className="shrink-0">
+      <div className="flex flex-col flex-1 h-full overflow-hidden">
+        <div className="shrink-0 mb-3 sm:mb-4">
         <LeadsFilters
           filters={filters}
           handleFilterChange={handleFilterChange}
@@ -1442,7 +1442,7 @@ export default function LeadsPage() {
         />
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0 p-0 sm:p-2.5 pb-0 sm:pb-0 overflow-hidden">
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
         {leads.length > 0 && selectedLeads.length > 0 && (
           <div className="mx-2 mb-2 flex items-center justify-between p-2.5 rounded-[var(--r-xl)] border bg-[var(--crm-surface-1)] animate-in fade-in slide-in-from-top-1 duration-300" style={{ borderColor: 'var(--crm-border)' }}>
             <div className="flex items-center gap-2.5 px-1">
@@ -1528,8 +1528,9 @@ export default function LeadsPage() {
             stages={stages}
           />
         )}
-        <div className="shrink-0 mt-2 border-t border-slate-50 dark:border-slate-800/50 pt-2 pb-6 px-4">
+        <div className="shrink-0 mt-2 border-t border-[var(--crm-border)] pt-3">
           <PaginationControls />
+        </div>
         </div>
       </div>
 
@@ -1709,7 +1710,6 @@ export default function LeadsPage() {
         onChange={handleFileChange}
       />
 
-    </div>
     </RoleGuard>
   )
 }

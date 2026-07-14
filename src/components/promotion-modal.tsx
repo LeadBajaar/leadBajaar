@@ -22,7 +22,7 @@ export function PromotionModal({ notification, onClose }: PromotionModalProps) {
     switch (type) {
       case 'warning': return { primary: 'bg-amber-600', light: 'bg-amber-50', text: 'text-amber-900', icon: 'text-amber-600' }
       case 'success': return { primary: 'bg-emerald-600', light: 'bg-emerald-50', text: 'text-emerald-900', icon: 'text-emerald-600' }
-      default: return { primary: 'bg-indigo-600', light: 'bg-indigo-50', text: 'text-indigo-900', icon: 'text-indigo-600' }
+      default: return { primary: 'bg-primary', light: 'bg-primary/10', text: 'text-indigo-900', icon: 'text-primary' }
     }
   }
 

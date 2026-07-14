@@ -95,7 +95,7 @@ export function GoogleAccountCard() {
             <p className="text-sm text-[var(--crm-text-secondary)]">
               You are currently not connected to any Google account. Connect now to enable features.
             </p>
-            <Button onClick={() => handleConnect()} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button onClick={() => handleConnect()} className="bg-primary hover:bg-primary/90 text-white">
               Continue with Google
             </Button>
           </div>
