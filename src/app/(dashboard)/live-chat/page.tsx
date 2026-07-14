@@ -540,7 +540,24 @@ export default function LiveChatPage() {
                                       <div className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere [word-break:break-word] min-w-[50px]">
                                         {(() => {
                                           const raw = msg.content;
+                                          const meta = msg.metadata;
                                           
+                                          // Unsupported / error messages from Meta (code 131051)
+                                          if (meta?.type === 'unsupported' || (typeof raw === 'string' && raw.startsWith('⚠️'))) {
+                                            const errorTitle = meta?.errors?.[0]?.title || 'Message type not supported';
+                                            return (
+                                              <span className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 italic">
+                                                <span>⚠️</span>
+                                                <span>{errorTitle}</span>
+                                              </span>
+                                            );
+                                          }
+
+                                          // Media type labels from metadata
+                                          if (meta?.type && typeof raw === 'string' && raw.match(/^[\p{Emoji}]/u)) {
+                                            return <span className="italic text-[var(--crm-text-secondary)]">{raw}</span>;
+                                          }
+
                                           const extractSafeString = (val: any): string => {
                                             if (!val) return '';
                                             if (typeof val === 'string') return val;

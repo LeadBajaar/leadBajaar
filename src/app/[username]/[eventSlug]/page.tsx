@@ -313,6 +313,8 @@ export default function BookingPage() {
             value={answers[question.id] || ''}
             onChange={(e) => handleAnswerChange(question.id, e.target.value, question.type)}
             placeholder={`Enter your ${question.question.toLowerCase()}`}
+            className="h-11 sm:h-10 text-[16px] sm:text-[13px] focus-visible:border-[var(--lb-navy)] focus-visible:ring-[var(--lb-navy-border)]"
+            autoFocus
           />
         )
 
@@ -323,6 +325,8 @@ export default function BookingPage() {
             value={answers[question.id] || ''}
             onChange={(e) => handleAnswerChange(question.id, e.target.value, 'phone')}
             placeholder="Enter your phone number"
+            className="h-11 sm:h-10 text-[16px] sm:text-[13px] focus-visible:border-[var(--lb-navy)] focus-visible:ring-[var(--lb-navy-border)]"
+            autoFocus
           />
         )
 
@@ -332,6 +336,8 @@ export default function BookingPage() {
             value={answers[question.id] || ''}
             onChange={(e) => handleAnswerChange(question.id, e.target.value, 'text')}
             placeholder={`Enter your response`}
+            className="min-h-[100px] text-[16px] sm:text-[13px] focus-visible:border-[var(--lb-navy)] focus-visible:ring-[var(--lb-navy-border)]"
+            autoFocus
           />
         )
 
@@ -341,7 +347,7 @@ export default function BookingPage() {
             value={answers[question.id] || ''}
             onValueChange={(value) => handleAnswerChange(question.id, value, 'select')}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-11 sm:h-10 text-[16px] sm:text-[13px] focus:border-[var(--lb-navy)]">
               <SelectValue placeholder="Select an option" />
             </SelectTrigger>
             <SelectContent>
@@ -358,7 +364,7 @@ export default function BookingPage() {
         return (
           <div className="space-y-2">
             {question.options.map((option: string) => (
-              <div key={option} className="flex items-center space-x-2">
+              <div key={option} className="flex items-center space-x-2 py-1.5 sm:py-0">
                 <Checkbox
                   id={`${question.id}-${option}`}
                   checked={(answers[question.id] || []).includes(option)}
@@ -383,7 +389,7 @@ export default function BookingPage() {
             onValueChange={(value) => handleAnswerChange(question.id, value, 'radio')}
           >
             {question.options.map((option: string) => (
-              <div key={option} className="flex items-center space-x-2">
+              <div key={option} className="flex items-center space-x-2 py-1.5 sm:py-0">
                 <RadioGroupItem value={option} id={`${question.id}-${option}`} />
                 <Label htmlFor={`${question.id}-${option}`}>{option}</Label>
               </div>
@@ -395,7 +401,7 @@ export default function BookingPage() {
         return (
           <div className="space-y-2">
             {question.options.map((option: string) => (
-              <div key={option} className="flex items-center space-x-2">
+              <div key={option} className="flex items-center space-x-2 py-1.5 sm:py-0">
                 <Checkbox
                   id={`${question.id}-${option}`}
                   checked={(answers[question.id] || []).includes(option)}
@@ -607,12 +613,12 @@ export default function BookingPage() {
       <div className="w-full h-full sm:h-auto max-w-[700px] mx-auto flex flex-col flex-1 sm:flex-none">
         <Card className="border-0 sm:border-[0.5px] border-[var(--lb-border)] bg-[var(--lb-s1)] shadow-none sm:shadow-sm rounded-none sm:rounded-[16px] overflow-hidden w-full flex-1 flex flex-col">
           <CardContent className="p-0 relative flex-1 flex flex-col">
-          <div className="grid sm:grid-cols-[220px,1fr] flex-1">
+          <div className="grid grid-rows-[auto,1fr] sm:grid-rows-none sm:grid-cols-[220px,1fr] flex-1">
             <div className={cn("p-4 sm:p-[24px_20px] border-b sm:border-b-0 sm:border-r border-[var(--lb-border)] bg-[var(--lb-s1)] flex flex-row sm:flex-col items-center sm:items-center text-left sm:text-center gap-4 sm:gap-0")}>
               <div className="mb-0 sm:mb-[16px] shrink-0">
-                <Avatar className="w-[48px] h-[48px] sm:w-[64px] sm:h-[64px] rounded-2xl border-[0.5px] border-[var(--lb-border)] shadow-sm">
+                <Avatar className="w-[48px] h-[48px] sm:w-[64px] sm:h-[64px] rounded-full border-[0.5px] border-[var(--lb-border)] shadow-sm">
                   <AvatarImage src={eventType?.owner?.avatar_url || eventType?.teamMembers?.[0]?.avatar} className="object-cover" />
-                  <AvatarFallback className="bg-[var(--lb-s2)] text-[var(--lb-navy)] font-bold text-lg sm:text-xl rounded-2xl">
+                  <AvatarFallback className="bg-[var(--lb-navy)] text-white font-bold text-lg sm:text-xl rounded-full">
                     {eventType?.owner?.name?.[0]?.toUpperCase() || 'LB'}
                   </AvatarFallback>
                 </Avatar>
@@ -621,13 +627,19 @@ export default function BookingPage() {
                 <div className="text-[15px] font-medium text-[var(--lb-t1)] mb-0.5 sm:mb-1">
                   {eventType?.owner?.name || eventType?.teamMembers?.[0]?.name || 'LeadBajaar'}
                 </div>
-                <div className="flex items-center gap-1.5 text-[12px] text-[var(--lb-t2)] mb-0 sm:mb-2">
+                <div className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[var(--lb-navy)] bg-[var(--lb-navy-soft)] border-[0.5px] border-[var(--lb-navy-border)] rounded-full px-2.5 py-0.5 mb-1 sm:mb-2 self-start sm:self-center">
                   <Clock className="w-3.5 h-3.5" />
                   <span>{eventType?.duration} min</span>
                 </div>
-                <div className="hidden sm:block text-[12px] text-[var(--lb-t3)] leading-relaxed">
+                <div className="text-[12px] text-[var(--lb-t3)] leading-relaxed line-clamp-2 sm:line-clamp-none mt-1 sm:mt-0">
                   {eventType?.description || eventType?.title}
                 </div>
+                {selectedDate && selectedTime && (
+                  <div className="sm:hidden inline-flex items-center gap-1.5 mt-2 text-[12px] font-medium text-[var(--lb-navy)] bg-[var(--lb-navy-soft)] border-[0.5px] border-[var(--lb-navy-border)] rounded-full px-2.5 py-1 self-start">
+                    <Calendar className="w-3 h-3 shrink-0" />
+                    <span>{format(selectedDate, 'EEE, MMM d')} · {format(new Date(selectedTime), 'h:mm a')}</span>
+                  </div>
+                )}
               </div>
 
               {/* Meeting Summary */}
@@ -655,7 +667,7 @@ export default function BookingPage() {
             </div>
 
             {/* Right Section - Calendar & Questions */}
-            <div className="p-4 sm:p-6 min-h-[500px] relative flex flex-col w-full max-w-[100vw] sm:max-w-none overflow-x-hidden sm:overflow-x-visible">
+            <div className="p-4 sm:p-6 min-h-0 sm:min-h-[500px] relative flex flex-col w-full max-w-[100vw] sm:max-w-none overflow-x-hidden sm:overflow-x-visible">
               {showSuccess && bookingDetails ? (
                 <div className="flex flex-col py-2 animate-in fade-in slide-in-from-bottom-4 duration-300 w-full">
                   <div className="w-14 h-14 rounded-full bg-[var(--lb-green-soft)] border-[0.5px] border-[var(--lb-green-border)] flex items-center justify-center mx-auto mb-3.5">
@@ -722,19 +734,19 @@ export default function BookingPage() {
                         setCurrentQuestionIndex(0);
                       }
                     }}
-                    className="w-full max-w-md mx-auto bg-[var(--lb-navy)] text-white border-none rounded-xl p-[13px] text-[14px] font-medium cursor-pointer tracking-[0.04em] uppercase hover:opacity-90 transition-opacity"
+                    className="w-full max-w-md mx-auto bg-[var(--lb-navy)] text-white border-none rounded-full p-[13px] text-[14px] font-medium cursor-pointer tracking-[0.04em] uppercase hover:opacity-90 transition-opacity shadow-sm"
                   >
                     Done
                   </button>
                 </div>
               ) : step === 1 ? (
                 <>
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-start sm:items-center justify-between gap-2 mb-4">
                     <h3 className="text-[16px] font-medium text-[var(--lb-t1)]">
                       {selectedDate ? (
                         <>
                           Available times
-                          <span className="text-[13px] font-normal text-[var(--lb-t2)] ml-1.5">
+                          <span className="block sm:inline text-[13px] font-medium text-[var(--lb-navy)] ml-0 sm:ml-1.5 mt-0.5 sm:mt-0">
                             — {format(selectedDate, 'EEEE, MMMM d')}
                           </span>
                         </>
@@ -742,20 +754,20 @@ export default function BookingPage() {
                         'Select date & time'
                       )}
                     </h3>
-                    <div className="flex items-center gap-[5px] text-[11px] text-[var(--lb-t2)] bg-[var(--lb-s2)] border-[0.5px] border-[var(--lb-border)] rounded-full px-2.5 py-1">
+                    <div className="flex items-center gap-[5px] text-[11px] text-[var(--lb-t2)] bg-[var(--lb-s2)] border-[0.5px] border-[var(--lb-border)] rounded-full px-2.5 py-1 whitespace-nowrap shrink-0">
                       <Globe className="h-[13px] w-[13px]" />
                       <span>{eventType.scheduling.timezone}</span>
                     </div>
                   </div>
                   
-                  <div className="grid gap-0">
+                  <div className="flex flex-col flex-1">
                     {/* Calendar/Slots Transition Container */}
-                    <div className="p-0 rounded-lg flex-grow">
+                    <div className="p-0 rounded-lg flex-grow flex flex-col">
                       {/* Calendar View */}
                       <div
                         className={cn(
                           "transition-all duration-300",
-                          selectedDate ? "opacity-0 -translate-y-2 pointer-events-none h-0 overflow-hidden" : "opacity-100 translate-y-0"
+                          selectedDate ? "opacity-0 -translate-y-2 pointer-events-none h-0 overflow-hidden" : "opacity-100 translate-y-0 flex-1 sm:flex-none flex flex-col justify-center sm:justify-start"
                         )}
                         aria-hidden={!!selectedDate}
                       >
@@ -779,7 +791,7 @@ export default function BookingPage() {
                         ref={slotsRef}
                         className={cn(
                           "transition-all duration-300",
-                          selectedDate ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none h-0 overflow-hidden"
+                          selectedDate ? "opacity-100 translate-y-0 flex-1 flex flex-col sm:flex-none sm:block" : "opacity-0 translate-y-2 pointer-events-none h-0 overflow-hidden"
                         )}
                         aria-hidden={!selectedDate}
                       >
@@ -789,13 +801,13 @@ export default function BookingPage() {
                               setSelectedTime(null)
                               setSelectedDate(undefined)
                             }}
-                            className="inline-flex items-center gap-[6px] bg-[var(--lb-s2)] border-[0.5px] border-[var(--lb-border)] rounded-xl px-3 py-[7px] text-[12px] text-[var(--lb-t2)] hover:bg-[var(--lb-s3)] transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-[6px] bg-[var(--lb-s2)] border-[0.5px] border-[var(--lb-border)] rounded-full px-3.5 py-[7px] text-[12px] text-[var(--lb-t2)] hover:bg-[var(--lb-s3)] transition-colors cursor-pointer"
                           >
                             <ChevronLeft className="h-[13px] w-[13px]" /> Change date
                           </button>
                           <div className="flex items-center gap-2">
                             {availableSlots.length > 0 && (
-                              <span className="text-[11px] text-[var(--lb-t3)]">
+                              <span className="text-[11px] font-medium text-[var(--lb-navy)] bg-[var(--lb-navy-soft)] rounded-full px-2.5 py-0.5">
                                 {availableSlots.length} slots available
                               </span>
                             )}
@@ -814,7 +826,7 @@ export default function BookingPage() {
                               <button
                                 key={slot.startTime}
                                 className={cn(
-                                  "w-full transition-all duration-200 border-[0.5px] rounded-xl font-medium text-[13px] p-[10px] flex flex-col items-center justify-center gap-1",
+                                  "w-full min-h-[44px] transition-all duration-200 border-[0.5px] rounded-full font-medium text-[14px] sm:text-[13px] p-[12px] sm:p-[10px] flex flex-col items-center justify-center gap-0.5",
                                   !slot.available && "opacity-50 cursor-not-allowed bg-[var(--lb-s2)] border-[var(--lb-border)] text-[var(--lb-t3)]",
                                   selectedTime !== slot.startTime && slot.available && "bg-[var(--lb-s2)] border-[var(--lb-border)] text-[var(--lb-t1)] hover:border-[var(--lb-navy)]",
                                   selectedTime === slot.startTime && "bg-[var(--lb-navy)] text-white border-[var(--lb-navy)]"
@@ -837,15 +849,17 @@ export default function BookingPage() {
                           </div>
                         )}
 
-                        {/* Next Button */}
+                        {/* Next Button — pinned to the bottom / sticky within the scroll on mobile */}
                         {selectedDate && selectedTime && (
-                          <button 
-                            ref={nextButtonRef}
-                            className="w-full mt-4 bg-[var(--lb-navy)] text-white border-none rounded-xl p-[13px] text-[14px] font-medium cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => setStep(2)}
-                          >
-                            Next &rarr;
-                          </button>
+                          <div className="mt-auto pt-4 -mx-4 px-4 pb-3 sticky bottom-0 bg-gradient-to-t from-[var(--lb-s1)] via-[var(--lb-s1)] to-transparent sm:static sm:mt-4 sm:pt-0 sm:mx-0 sm:px-0 sm:pb-0 sm:bg-none">
+                            <button
+                              ref={nextButtonRef}
+                              className="w-full bg-[var(--lb-navy)] text-white border-none rounded-full p-[13px] text-[14px] font-medium cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
+                              onClick={() => setStep(2)}
+                            >
+                              Next &rarr;
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -904,9 +918,9 @@ export default function BookingPage() {
                   <div className="space-y-6">
                     <div 
                       key={eventType.questions[currentQuestionIndex].id} 
-                      className="space-y-1.5 min-h-[200px]"
+                      className="space-y-1.5 min-h-[120px] sm:min-h-[200px]"
                     >
-                      <div className="text-[11px] font-semibold tracking-[0.08em] uppercase text-[var(--lb-t2)] flex items-center gap-1">
+                      <div className="text-[11px] font-semibold tracking-[0.08em] uppercase text-[var(--lb-navy)] flex items-center gap-1">
                         {eventType.questions[currentQuestionIndex].question}
                         {eventType.questions[currentQuestionIndex].required && (
                           <span className="text-[var(--lb-red)] text-[12px]">*</span>
@@ -935,16 +949,16 @@ export default function BookingPage() {
                     </div>
                   )}
 
-                  <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 mt-6">
-                      <button 
+                  <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 mt-auto pt-6 sm:mt-6 sm:pt-0">
+                      <button
                         onClick={handlePreviousQuestion}
-                        className="w-full sm:w-auto bg-[var(--lb-s2)] text-[var(--lb-t1)] border-[0.5px] border-[var(--lb-border)] rounded-xl px-5 py-2.5 text-[13px] font-medium cursor-pointer hover:bg-[var(--lb-s3)] transition-colors"
+                        className="w-full sm:w-auto bg-[var(--lb-s2)] text-[var(--lb-t1)] border-[0.5px] border-[var(--lb-border)] rounded-full px-5 py-3 sm:py-2.5 text-[13px] font-medium cursor-pointer hover:bg-[var(--lb-s3)] transition-colors"
                       >
                         Previous
                       </button>
-                      <button 
+                      <button
                         onClick={currentQuestionIndex === eventType.questions.length - 1 ? handleSubmit : handleNextQuestion}
-                        className="w-full sm:w-auto bg-[var(--lb-navy)] text-white border-none rounded-xl px-7 py-2.5 text-[13px] font-medium cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                        className="w-full sm:w-auto bg-[var(--lb-navy)] text-white border-none rounded-full px-7 py-3 sm:py-2.5 text-[14px] sm:text-[13px] font-medium cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-sm"
                         disabled={isSubmitting || !isCurrentQuestionValid()}
                       >
                         {isSubmitting ? (
@@ -965,7 +979,7 @@ export default function BookingPage() {
       </Card>
       
       {!isEmbed && (
-        <div className="mt-4 text-center flex items-center justify-center text-[var(--lb-t3)] text-[11px] font-medium space-x-1">
+        <div className="py-3 sm:py-0 sm:mt-4 text-center flex items-center justify-center text-[var(--lb-t3)] text-[11px] font-medium space-x-1">
            <Zap className="h-3 w-3" />
            <span>Powered by LeadBajaar</span>
         </div>

@@ -199,6 +199,9 @@
   --lb-green:      #16a34a;
   --lb-green-soft: #dcfce7;
   --lb-green-border: rgba(22, 163, 74, 0.2);
+
+  --lb-navy-soft:   rgba(30, 45, 107, 0.08);
+  --lb-navy-border: rgba(30, 45, 107, 0.22);
 }
 
 .dark {
@@ -262,6 +265,8 @@
   --lb-t1: var(--crm-text-primary);
   --lb-t2: var(--crm-text-secondary);
   --lb-t3: var(--crm-text-tertiary);
+  --lb-navy-soft: rgba(59, 130, 246, 0.15);
+  --lb-navy-border: rgba(59, 130, 246, 0.35);
 }
 
 /* ── CENTRALIZED DARK MODE FIXES ────────────────────────────
