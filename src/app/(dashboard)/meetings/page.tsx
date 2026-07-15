@@ -173,15 +173,26 @@ function MeetingDetailDialog({
 }) {
   const { theme, resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark' || theme === 'dark'
-  const [isEditing, setIsEditing] = useState(false)
-  const [isRescheduling, setIsRescheduling] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+
+  // ── Per-field edit state ──
+  type EditableField = 'host' | 'notes' | 'outcome'
+  const [editingField, setEditingField] = useState<EditableField | null>(null)
+  const [confirmingField, setConfirmingField] = useState<EditableField | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  
+
+  // ── Committed values (shown in view mode) ──
   const [notes, setNotes] = useState(meeting?.notes ?? '')
   const [outcome, setOutcome] = useState(meeting?.outcome ?? '')
   const [assignedTo, setAssignedTo] = useState<TeamMember | null>(meeting?.assignedTo || null)
 
+  // ── Draft values (while editing) ──
+  const [draftNotes, setDraftNotes] = useState(meeting?.notes ?? '')
+  const [draftOutcome, setDraftOutcome] = useState(meeting?.outcome ?? '')
+  const [draftAssignedTo, setDraftAssignedTo] = useState<TeamMember | null>(meeting?.assignedTo || null)
+
+  // ── Reschedule / Delete state ──
+  const [isRescheduling, setIsRescheduling] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [newDate, setNewDate] = useState<Date | undefined>(undefined)
   const [newTime, setNewTime] = useState('')
   const [popoverOpen, setPopoverOpen] = useState(false)
@@ -190,7 +201,6 @@ function MeetingDetailDialog({
     if (meeting?.start_time) {
       const date = new Date(meeting.start_time)
       setNewDate(date)
-      // Snap to the nearest 15-minute slot so the value matches the picker's options
       const total = Math.round((date.getHours() * 60 + date.getMinutes()) / 15) * 15
       const snapped = total >= 24 * 60 ? 0 : total
       const hours = String(Math.floor(snapped / 60)).padStart(2, '0')
@@ -204,7 +214,11 @@ function MeetingDetailDialog({
       setNotes(meeting.notes ?? '')
       setOutcome(meeting.outcome ?? '')
       setAssignedTo(meeting.assignedTo)
-      setIsEditing(false)
+      setDraftNotes(meeting.notes ?? '')
+      setDraftOutcome(meeting.outcome ?? '')
+      setDraftAssignedTo(meeting.assignedTo)
+      setEditingField(null)
+      setConfirmingField(null)
       setIsRescheduling(false)
       setPopoverOpen(false)
       setIsDeleting(false)
@@ -218,12 +232,32 @@ function MeetingDetailDialog({
   const TypeIcon = typeInfo.icon
   const statusInfo = statusConfig[meeting.status] ?? statusConfig.confirmed
 
-  const handleSave = async () => {
+  // ── Per-field helpers ──
+  const startEdit = (field: EditableField) => {
+    setDraftNotes(notes)
+    setDraftOutcome(outcome)
+    setDraftAssignedTo(assignedTo)
+    setEditingField(field)
+    setConfirmingField(null)
+  }
+  const cancelEdit = () => { setEditingField(null); setConfirmingField(null) }
+
+  const handleFieldSave = async (field: EditableField) => {
     if (!meeting) return
     setIsSubmitting(true)
     try {
-      await onUpdate?.({ ...meeting, notes, outcome, assignedTo: assignedTo as TeamMember })
-      setIsEditing(false)
+      const updated = {
+        ...meeting,
+        notes: field === 'notes' ? draftNotes : notes,
+        outcome: field === 'outcome' ? draftOutcome : outcome,
+        assignedTo: (field === 'host' ? draftAssignedTo : assignedTo) as TeamMember,
+      }
+      await onUpdate?.(updated)
+      if (field === 'notes') setNotes(draftNotes)
+      if (field === 'outcome') setOutcome(draftOutcome)
+      if (field === 'host') setAssignedTo(draftAssignedTo)
+      setEditingField(null)
+      setConfirmingField(null)
     } finally {
       setIsSubmitting(false)
     }
@@ -306,7 +340,7 @@ function MeetingDetailDialog({
 
             {/* Left Column: Details (scrolls independently on desktop) */}
             <div className="lg:col-span-7 space-y-3 sm:space-y-4 lg:h-full lg:overflow-y-auto custom-scrollbar lg:pr-1">
-              
+
               {/* Participant/Attendees Section */}
               <div className="border border-[var(--crm-border)] rounded-2xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
                 <div className="px-5 py-3.5 border-b border-[var(--crm-border)] flex items-center gap-2.5">
@@ -319,7 +353,7 @@ function MeetingDetailDialog({
                     {meeting.attendees && meeting.attendees.length > 0 ? `Attendees (${meeting.attendees.length})` : 'Participant'}
                   </h3>
                 </div>
-                
+
                 <div className="p-4 space-y-4">
                   {meeting.attendees && meeting.attendees.length > 0 ? (
                     <div className="space-y-4">
@@ -398,37 +432,101 @@ function MeetingDetailDialog({
                 </div>
               </div>
 
-              {/* Notes & Outcome */}
+              {/* Notes — inline editable */}
               <div className="border border-[var(--crm-border)] rounded-2xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
-                <div className="p-5 space-y-5">
-                  <div>
-                    <h4 className="text-[11px] uppercase tracking-[0.08em] font-bold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
-                      <FileText className="h-3.5 w-3.5 text-primary" /> Meeting Notes
-                    </h4>
-                    {isEditing ? (
-                      <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add meeting notes..." className="min-h-[100px] text-sm rounded-xl" />
-                    ) : (
-                      <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
-                        <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
-                          {notes || <span className="text-slate-400 italic">No notes added.</span>}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <h4 className="text-[11px] uppercase tracking-[0.08em] font-bold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-primary" /> Outcome
-                    </h4>
-                    {isEditing ? (
-                      <Textarea value={outcome} onChange={e => setOutcome(e.target.value)} placeholder="Add meeting outcome..." className="min-h-[80px] text-sm rounded-xl" />
-                    ) : (
-                      <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
-                        <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
-                          {outcome || <span className="text-slate-400 italic">No outcome recorded.</span>}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                <div className="px-5 py-3.5 border-b border-[var(--crm-border)] flex items-center justify-between gap-2">
+                  <h4 className="text-[11px] uppercase tracking-[0.08em] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <FileText className="h-3.5 w-3.5 text-primary" /> Meeting Notes
+                  </h4>
+                  {editingField !== 'notes' && (
+                    <button
+                      onClick={() => startEdit('notes')}
+                      className="h-6 w-6 rounded-md flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/10 transition-all shrink-0"
+                      title="Edit notes"
+                    >
+                      <Edit className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+                <div className="p-4 space-y-3">
+                  {editingField === 'notes' ? (
+                    <>
+                      <Textarea value={draftNotes} onChange={e => setDraftNotes(e.target.value)} placeholder="Add meeting notes..." className="min-h-[100px] text-sm rounded-xl" />
+                      {confirmingField === 'notes' ? (
+                        <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 space-y-2">
+                          <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">Save these notes?</p>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="ghost" className="flex-1 h-8 rounded-lg text-xs font-bold" onClick={cancelEdit} disabled={isSubmitting}>Cancel</Button>
+                            <Button size="sm" className="flex-1 h-8 rounded-lg text-xs font-bold bg-primary text-white" onClick={() => handleFieldSave('notes')} disabled={isSubmitting}>
+                              {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Confirm'}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="ghost" className="flex-1 h-8 rounded-lg text-xs font-bold text-slate-500" onClick={cancelEdit}>Discard</Button>
+                          <Button size="sm" className="flex-1 h-8 rounded-lg text-xs font-bold bg-primary/10 text-primary hover:bg-primary hover:text-white border border-primary/20" onClick={() => setConfirmingField('notes')}>
+                            <Save className="h-3 w-3 mr-1" /> Save
+                          </Button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
+                      <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                        {notes || <span className="text-slate-400 italic">No notes added yet. Click the pencil to add.</span>}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Outcome — inline editable */}
+              <div className="border border-[var(--crm-border)] rounded-2xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
+                <div className="px-5 py-3.5 border-b border-[var(--crm-border)] flex items-center justify-between gap-2">
+                  <h4 className="text-[11px] uppercase tracking-[0.08em] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-primary" /> Outcome
+                  </h4>
+                  {editingField !== 'outcome' && (
+                    <button
+                      onClick={() => startEdit('outcome')}
+                      className="h-6 w-6 rounded-md flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/10 transition-all shrink-0"
+                      title="Edit outcome"
+                    >
+                      <Edit className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+                <div className="p-4 space-y-3">
+                  {editingField === 'outcome' ? (
+                    <>
+                      <Textarea value={draftOutcome} onChange={e => setDraftOutcome(e.target.value)} placeholder="Add meeting outcome..." className="min-h-[80px] text-sm rounded-xl" />
+                      {confirmingField === 'outcome' ? (
+                        <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 space-y-2">
+                          <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">Save this outcome?</p>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="ghost" className="flex-1 h-8 rounded-lg text-xs font-bold" onClick={cancelEdit} disabled={isSubmitting}>Cancel</Button>
+                            <Button size="sm" className="flex-1 h-8 rounded-lg text-xs font-bold bg-primary text-white" onClick={() => handleFieldSave('outcome')} disabled={isSubmitting}>
+                              {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Confirm'}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="ghost" className="flex-1 h-8 rounded-lg text-xs font-bold text-slate-500" onClick={cancelEdit}>Discard</Button>
+                          <Button size="sm" className="flex-1 h-8 rounded-lg text-xs font-bold bg-primary/10 text-primary hover:bg-primary hover:text-white border border-primary/20" onClick={() => setConfirmingField('outcome')}>
+                            <Save className="h-3 w-3 mr-1" /> Save
+                          </Button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
+                      <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                        {outcome || <span className="text-slate-400 italic">No outcome recorded yet. Click the pencil to add.</span>}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -446,52 +544,58 @@ function MeetingDetailDialog({
                     <h3 className="text-[14px] font-bold tracking-tight text-slate-900 dark:text-white">Schedule</h3>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">When and how this meeting happens.</p>
                   </div>
-                  {!isEditing && !isRescheduling && !isDeleting && (
-                    <TooltipProvider delayDuration={200}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            className="h-8 px-3 text-[12px] font-bold rounded-full shrink-0 bg-primary/10 text-primary border border-primary/25 shadow-sm hover:bg-primary hover:text-white hover:border-primary transition-all"
-                            onClick={() => setIsEditing(true)}
-                          >
-                            <Edit className="h-3.5 w-3.5 mr-1.5" /> Edit
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="z-[110] text-xs font-medium">
-                          Change the host or add notes & outcome
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
+                  {/* No global Edit button — fields are individually editable */}
                 </div>
 
                 <div className="space-y-2.5 flex-1 min-h-0 overflow-hidden">
-                  {/* Assigned Host */}
-                  <div className="bg-white dark:bg-slate-900 border border-[var(--crm-border)] rounded-2xl px-3.5 py-2.5 shadow-sm">
-                    {isEditing ? (
-                      <Select value={assignedTo?.email || ''} onValueChange={(v) => {
-                        const m = team.find(t => t.email === v)
-                        if (m) setAssignedTo(m)
-                      }}>
-                        <SelectTrigger className="h-10 rounded-xl border-[var(--crm-border)] bg-white dark:bg-slate-900">
-                          <SelectValue placeholder="Select Host" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl border-[var(--crm-border)] z-[200]" position="popper">
-                          {team.filter(m => !m.status || m.status.toLowerCase() !== 'invited').map(m => (
-                            <SelectItem key={m.id} value={m.email} className="rounded-lg py-2">
-                              <div className="flex items-center gap-3">
-                                <div className="h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: getAgentColor(m.id).bg }}>
-                                  {initials(m.name)}
+                  {/* Assigned Host — inline editable */}
+                  <div className="bg-white dark:bg-slate-900 border border-[var(--crm-border)] rounded-2xl px-3.5 py-2.5 shadow-sm space-y-2">
+                    {editingField === 'host' ? (
+                      <>
+                        <Select value={draftAssignedTo?.email || ''} onValueChange={(v) => {
+                          const m = team.find(t => t.email === v)
+                          if (m) setDraftAssignedTo(m)
+                        }}>
+                          <SelectTrigger className="h-10 rounded-xl border-[var(--crm-border)] bg-white dark:bg-slate-900">
+                            <SelectValue placeholder="Select Host" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl border-[var(--crm-border)] z-[200]" position="popper">
+                            {team.filter(m => !m.status || m.status.toLowerCase() !== 'invited').map(m => (
+                              <SelectItem key={m.id} value={m.email} className="rounded-lg py-2">
+                                <div className="flex items-center gap-3">
+                                  <div className="h-7 w-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: getAgentColor(m.id).bg }}>
+                                    {initials(m.name)}
+                                  </div>
+                                  <div className="text-left">
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{m.name || m.email}</p>
+                                    <p className="text-xs text-slate-500">{m.role}</p>
+                                  </div>
                                 </div>
-                                <div className="text-left">
-                                  <p className="text-sm font-bold text-slate-900 dark:text-white">{m.name || m.email}</p>
-                                  <p className="text-xs text-slate-500">{m.role}</p>
-                                </div>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {confirmingField === 'host' ? (
+                          <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 space-y-2">
+                            <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">
+                              Change host to <span className="font-bold">{draftAssignedTo?.name ?? 'Unassigned'}</span>?
+                            </p>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="ghost" className="flex-1 h-8 rounded-lg text-xs font-bold" onClick={cancelEdit} disabled={isSubmitting}>Cancel</Button>
+                              <Button size="sm" className="flex-1 h-8 rounded-lg text-xs font-bold bg-primary text-white" onClick={() => handleFieldSave('host')} disabled={isSubmitting}>
+                                {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Confirm'}
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="ghost" className="flex-1 h-8 rounded-lg text-xs font-bold text-slate-500" onClick={cancelEdit}>Discard</Button>
+                            <Button size="sm" className="flex-1 h-8 rounded-lg text-xs font-bold bg-primary/10 text-primary hover:bg-primary hover:text-white border border-primary/20" onClick={() => setConfirmingField('host')}>
+                              <Save className="h-3 w-3 mr-1" /> Save
+                            </Button>
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <div className="flex items-center gap-3">
                         <div className="h-9 w-9 shrink-0 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm" style={{ backgroundColor: assignedTo && assignedTo.id !== 0 ? getAgentColor(assignedTo.id).bg : '#94a3b8' }}>
@@ -505,7 +609,13 @@ function MeetingDetailDialog({
                             {assignedTo && assignedTo.id !== 0 ? assignedTo.role : 'Waiting for host'}
                           </p>
                         </div>
-                        <span className="text-[10px] uppercase tracking-[0.08em] font-bold text-slate-400 shrink-0">Host</span>
+                        <button
+                          onClick={() => startEdit('host')}
+                          className="h-7 w-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/10 transition-all shrink-0"
+                          title="Change host"
+                        >
+                          <Edit className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     )}
                   </div>
@@ -538,16 +648,7 @@ function MeetingDetailDialog({
 
                 {/* Actions Bottom Area — pinned to rail bottom */}
                 <div className="shrink-0 mt-auto pt-4 border-t border-primary/10">
-                  {isEditing ? (
-                    <div className="space-y-3">
-                      <Button className="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary/25 text-sm" onClick={handleSave} disabled={isSubmitting}>
-                        {isSubmitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</> : <><Save className="h-4 w-4 mr-2" /> Save Details</>}
-                      </Button>
-                      <Button variant="outline" className="w-full h-11 rounded-xl font-bold text-sm bg-white dark:bg-slate-900 border-[var(--crm-border)]" onClick={() => setIsEditing(false)} disabled={isSubmitting}>
-                        Cancel Edit
-                      </Button>
-                    </div>
-                  ) : isRescheduling ? (
+                  {isRescheduling ? (
                     <div className="space-y-4 bg-white dark:bg-slate-900 border border-[var(--crm-border)] rounded-2xl p-5 shadow-sm">
                       <h4 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                         <CalendarRange className="h-4 w-4 text-primary" /> Reschedule Meeting
@@ -630,105 +731,82 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
   return (
     <div
       onClick={() => onSelect(meeting)}
-      className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 rounded-xl border border-[var(--crm-border)] bg-[var(--crm-surface-1)] hover:border-[var(--crm-primary)] hover:shadow-sm transition-all duration-200 cursor-pointer overflow-hidden relative"
+      className="group flex flex-col p-3.5 sm:p-4 rounded-xl border border-[var(--crm-border)] bg-[var(--crm-surface-1)] hover:border-[var(--crm-primary)] hover:shadow-sm transition-all duration-200 cursor-pointer overflow-hidden relative"
     >
-      {/* Dynamic left border for event type */}
-      <div 
-        className="absolute left-0 top-0 bottom-0 w-1.5 opacity-80 group-hover:opacity-100 transition-opacity" 
+      {/* Dynamic left accent bar */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-1 sm:w-1.5 opacity-80 group-hover:opacity-100 transition-opacity"
         style={{ backgroundColor: meeting.eventType?.color || '#4f46e5' }}
       />
-      {/* Left: Avatar & Info */}
-      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-        {/* Avatar */}
-        <div 
-          className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm"
+
+      {/* Top: Avatar + Info */}
+      <div className="flex items-start gap-3 pl-1">
+        <div
+          className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm mt-0.5"
           style={{ backgroundColor: meeting.eventType?.color || '#4f46e5' }}
         >
-          {meeting.attendees && meeting.attendees.length > 0 ? (
-            <Users className="h-5 w-5" />
-          ) : (
-            initials(meeting.lead.name)
-          )}
+          {meeting.attendees && meeting.attendees.length > 0
+            ? <Users className="h-4 w-4" />
+            : initials(meeting.lead.name)}
         </div>
 
-        {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
+          <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
             <p className="font-semibold text-sm text-[var(--crm-text-primary)] truncate">{meeting.title}</p>
             {meeting.eventType && (
-              <span 
-                className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
-                style={{ 
-                  color: meeting.eventType.color || '#4f46e5', 
-                  backgroundColor: `${meeting.eventType.color || '#4f46e5'}15`,
-                  border: `1px solid ${meeting.eventType.color || '#4f46e5'}40`
-                }}
-              >
-                {meeting.eventType.type === 'group' ? 'Group' : '1-on-1'}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-            <span className="flex items-center gap-1 text-xs text-[var(--crm-text-secondary)]">
-              <Clock className="h-3 w-3" />{meeting.time} · {meeting.duration}
-            </span>
-            {meeting.attendees && meeting.attendees.length > 0 && (
-              <span className="flex items-center gap-1 text-xs font-medium text-[var(--crm-text-primary)]">
-                <Users className="h-3 w-3 text-[var(--crm-text-tertiary)]" />
-                {meeting.attendees.length} Attendee{meeting.attendees.length !== 1 ? 's' : ''}
-              </span>
-            )}
-            {meeting.lead.company && (
-              <span className="flex items-center gap-1 text-xs text-[var(--crm-text-secondary)]">
-                <Building2 className="h-3 w-3" />{meeting.lead.company}
-              </span>
-            )}
-            {meeting.agent && (
-              <div 
-                className="flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border shadow-sm transition-all duration-300"
-                title={`Meeting Host: ${meeting.agent.name}`}
+              <span
+                className="text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 whitespace-nowrap"
                 style={{
-                  backgroundColor: isDark 
-                    ? getAgentColor(meeting.agent.id).bgDark 
-                    : getAgentColor(meeting.agent.id).bg,
-                  color: isDark 
-                    ? getAgentColor(meeting.agent.id).textDark 
-                    : getAgentColor(meeting.agent.id).text,
-                  borderColor: isDark 
-                    ? getAgentColor(meeting.agent.id).borderDark 
-                    : getAgentColor(meeting.agent.id).border,
+                  color: meeting.eventType.color || '#4f46e5',
+                  backgroundColor: `${meeting.eventType.color || '#4f46e5'}12`,
+                  borderColor: `${meeting.eventType.color || '#4f46e5'}40`
                 }}
               >
-                <Users className="h-2.5 w-2.5 opacity-70" />
-                <span>Host: {meeting.agent.name}</span>
-              </div>
+                {meeting.eventType.type === 'group' ? 'Group' : '1-ON-1'}
+              </span>
             )}
           </div>
+          <div className="flex items-center gap-1 text-xs text-[var(--crm-text-secondary)] mb-1.5">
+            <Clock className="h-3 w-3 shrink-0" />
+            <span>{meeting.time} · {meeting.duration}</span>
+          </div>
+          {meeting.agent && (
+            <div
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border"
+              style={{
+                backgroundColor: isDark ? getAgentColor(meeting.agent.id).bgDark : getAgentColor(meeting.agent.id).bg,
+                color: isDark ? getAgentColor(meeting.agent.id).textDark : getAgentColor(meeting.agent.id).text,
+                borderColor: isDark ? getAgentColor(meeting.agent.id).borderDark : getAgentColor(meeting.agent.id).border,
+              }}
+            >
+              <Users className="h-3 w-3 opacity-70" />
+              <span>Host: {meeting.agent.name}</span>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Right: Badges & Call / WhatsApp Quick Actions */}
-      <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-3 sm:pt-0 border-t border-[var(--crm-border)] sm:border-t-0 mt-1 sm:mt-0">
+      {/* Bottom: Type badge + Status + Actions + Chevron */}
+      <div className="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-[var(--crm-border)]">
         <div className="flex items-center gap-2">
           {/* Type badge */}
-          <div className={cn('flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border shadow-sm', typeInfo.bg, typeInfo.color, 'border-current/10')}>
-            <TypeIcon className="h-2.5 w-2.5 shrink-0" />
-            <span className="truncate whitespace-nowrap">{typeInfo.label.replace(' Call', '')}</span>
+          <div className={cn('flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border', typeInfo.bg, typeInfo.color, 'border-current/10')}>
+            <TypeIcon className="h-3 w-3 shrink-0" />
+            <span>{typeInfo.label.replace(' Call', '')}</span>
           </div>
-
           {/* Status */}
-          <Badge variant="outline" className={cn('text-xs font-semibold border shrink-0', statusInfo.className)}>
+          <Badge variant="outline" className={cn('text-[10px] sm:text-xs font-semibold border shrink-0', statusInfo.className)}>
             {statusInfo.label}
           </Badge>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Call & WhatsApp Quick Actions */}
+        <div className="flex items-center gap-1.5">
+          {/* Call & WhatsApp */}
           {meeting.lead.phone && (
             <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
               <a
                 href={`tel:${meeting.lead.phone}`}
-                className="flex items-center justify-center h-8 w-8 rounded-full border border-indigo-100 dark:border-indigo-800/50 bg-primary/5 hover:bg-primary/20 text-primary dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-400 transition-all duration-200 shadow-sm"
+                className="flex items-center justify-center h-7 w-7 rounded-full border border-indigo-100 dark:border-indigo-800/50 bg-primary/5 hover:bg-primary/20 text-primary dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-400 transition-all duration-200 shadow-sm"
                 title={`Call ${meeting.lead.name}`}
               >
                 <Phone className="h-3.5 w-3.5" />
@@ -737,7 +815,7 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
                 href={`https://wa.me/${meeting.lead.phone.replace(/\D/g, '').length === 10 ? '91' + meeting.lead.phone.replace(/\D/g, '') : meeting.lead.phone.replace(/\D/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center h-8 w-8 rounded-full border border-emerald-100 dark:border-emerald-800/50 bg-emerald-50/50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-400 transition-all duration-200 shadow-sm"
+                className="flex items-center justify-center h-7 w-7 rounded-full border border-emerald-100 dark:border-emerald-800/50 bg-emerald-50/50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-400 transition-all duration-200 shadow-sm"
                 title={`WhatsApp ${meeting.lead.name}`}
               >
                 <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
@@ -746,14 +824,13 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
               </a>
             </div>
           )}
-
-          {/* Chevron */}
           <ChevronRight className="h-4 w-4 text-[var(--crm-text-tertiary)] group-hover:text-[var(--crm-primary)] transition-colors shrink-0" />
         </div>
       </div>
     </div>
   )
 }
+
 
 // ─── Infinite Scroll Hook ─────────────────────────────────────────────────────
 
@@ -766,11 +843,9 @@ function useInfiniteScroll(onLoadMore: () => void, hasMore: boolean, debugName: 
     }
 
     if (node && hasMore) {
-      console.log(`[InfiniteScroll] Attaching observer for ${debugName}`)
       observer.current = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting) {
-            console.log(`[InfiniteScroll] ${debugName} sentinel intersected! Triggering load...`)
             onLoadMore()
           }
         },
@@ -815,8 +890,8 @@ const mapBooking = (booking: any, defaultStatus: string): Meeting => {
     }
     if (typeof answersToSearch === 'object' && answersToSearch !== null) {
       const k = key.toLowerCase()
-      return answersToSearch[`q-${k}`] || answersToSearch[k] || answersToSearch[key] || 
-             Object.entries(answersToSearch).find(([ak]) => ak.toLowerCase().includes(k))?.[1]
+      return answersToSearch[`q-${k}`] || answersToSearch[k] || answersToSearch[key] ||
+        Object.entries(answersToSearch).find(([ak]) => ak.toLowerCase().includes(k))?.[1]
     }
     return null
   }
@@ -831,33 +906,33 @@ const mapBooking = (booking: any, defaultStatus: string): Meeting => {
       return answersObj.map((a: any) => ({ question: a.question, answer: a.answer }))
     }
     if (typeof answersObj === 'object' && answersObj !== null) {
-      return Object.entries(answersObj).map(([k, v]) => ({ 
-        question: k.replace(/^q-/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), 
-        answer: String(v) 
+      return Object.entries(answersObj).map(([k, v]) => ({
+        question: k.replace(/^q-/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        answer: String(v)
       }))
     }
     return []
   }
 
-  const attendees: Attendee[] | undefined = isGrouped 
+  const attendees: Attendee[] | undefined = isGrouped
     ? booking.grouped_bookings.map((b: any) => ({
-        id: b.id,
-        lead: {
-          name: b.lead?.name || getAnswer(b.answers, 'NAME') || getAnswer(b.answers, 'name') || 'Guest',
-          email: b.lead?.email || getAnswer(b.answers, 'EMAIL') || getAnswer(b.answers, 'email') || '',
-          phone: b.lead?.phone || getAnswer(b.answers, 'phone') || getAnswer(b.answers, 'MOBILE NUMBER') || '',
-          profession: '', company: b.lead?.company || '', state: '', requirements: '', avatar: ''
-        },
-        questionnaire: parseQuestionnaire(b.answers),
-        status: b.status || defaultStatus,
-        notes: b.notes,
-        outcome: b.outcome
-      }))
+      id: b.id,
+      lead: {
+        name: b.lead?.name || getAnswer(b.answers, 'NAME') || getAnswer(b.answers, 'name') || 'Guest',
+        email: b.lead?.email || getAnswer(b.answers, 'EMAIL') || getAnswer(b.answers, 'email') || '',
+        phone: b.lead?.phone || getAnswer(b.answers, 'phone') || getAnswer(b.answers, 'MOBILE NUMBER') || '',
+        profession: '', company: b.lead?.company || '', state: '', requirements: '', avatar: ''
+      },
+      questionnaire: parseQuestionnaire(b.answers),
+      status: b.status || defaultStatus,
+      notes: b.notes,
+      outcome: b.outcome
+    }))
     : undefined;
 
   return {
     id: repBooking.id, // For grouped, this is just the first booking's ID
-    title: isGrouped ? `${repBooking.eventType?.title || 'Group Event'}` : `Meeting with ${name}`,
+    title: isGrouped ? `${repBooking.eventType?.title || 'Group Event'}` : `${name}`,
     date: formatInTimeZone(startTime, 'UTC', 'EEE, MMM d, yyyy'),
     time: formatInTimeZone(startTime, 'UTC', 'h:mm a'),
     duration: `${repBooking.eventType?.duration || 30} minutes`,
@@ -868,11 +943,11 @@ const mapBooking = (booking: any, defaultStatus: string): Meeting => {
       state: '', requirements: '', avatar: '',
     },
     attendees,
-    assignedTo: { 
-      id: repBooking.user_id || 0, 
-      name: repBooking.user?.name || 'Host', 
-      email: repBooking.user?.email || '', 
-      role: 'Host', 
+    assignedTo: {
+      id: repBooking.user_id || 0,
+      name: repBooking.user?.name || 'Host',
+      email: repBooking.user?.email || '',
+      role: 'Host',
       avatar: '',
       status: repBooking.user?.status || 'Active'
     },
@@ -979,12 +1054,10 @@ export default function MeetingsPage() {
 
   const loadMoreHistory = useCallback(async () => {
     if (fetchingRef.current.history || !pagination.history.hasMore) {
-      console.log('[MeetingsPage] Skipping loadMoreHistory:', { isFetching: fetchingRef.current.history, hasMore: pagination.history.hasMore })
       return
     }
 
     try {
-      console.log(`[MeetingsPage] Loading more history... Page: ${pagination.history.page + 1}`)
       fetchingRef.current.history = true
       setIsFetchingMore(prev => ({ ...prev, history: true }))
       const nextPage = pagination.history.page + 1
@@ -992,7 +1065,6 @@ export default function MeetingsPage() {
 
       const body = response.data
       const data = Array.isArray(body) ? body : (Array.isArray(body?.data) ? body.data : [])
-      console.log(`[MeetingsPage] Loaded ${data.length} more history items.`)
 
       if (data.length > 0) {
         setRawBookings(prev => ({ ...prev, history: mergeRawBookings(prev.history, data) }))
@@ -1014,8 +1086,7 @@ export default function MeetingsPage() {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        console.log('[MeetingsPage] Fetching initial data...')
-        setIsLoading(true)
+      setIsLoading(true)
         const [upRes, histRes] = await Promise.all([
           getBookings({ type: 'upcoming', page: 1, per_page: 15, search: debouncedSearch }),
           getBookings({ type: 'history', page: 1, per_page: 15, search: debouncedSearch })
@@ -1029,7 +1100,6 @@ export default function MeetingsPage() {
         const upData = extractData(upRes)
         const histData = extractData(histRes)
 
-        console.log('[MeetingsPage] Initial loaded history count:', histData.length)
 
         setRawBookings({ upcoming: upData, history: histData })
 
@@ -1054,7 +1124,7 @@ export default function MeetingsPage() {
         notes: updated.notes,
         outcome: updated.outcome
       };
-      
+
       const response = await updateBooking(updated.id, updateData);
       const freshBooking = response.data.booking;
       const freshlyMapped = mapBooking(freshBooking, updated.status);
@@ -1124,7 +1194,7 @@ export default function MeetingsPage() {
   // Stats
   const totalUpcoming = pagination.upcoming.total || meetings.upcoming.length
   const totalHistory = pagination.history.total || meetings.history.length
-  
+
   // Try to use true API totals for these, but fallback to arrays if unavailable.
   // Note: If you want exact server-side "confirmed" counts, you'd need backend support,
   // but this is close enough as a fallback for the KPI row.
@@ -1134,10 +1204,10 @@ export default function MeetingsPage() {
   return (
     <RoleGuard allowedFeatures={['meetings']}>
       <div className="flex flex-col flex-1 h-full overflow-hidden">
-          <div className="shrink-0">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 sm:pb-4 gap-3 sm:gap-0">
-          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto ml-auto">
-            <div className="relative flex-1 sm:w-64">
+        <div className="shrink-0">
+          {/* Header: Search + Event Types button */}
+          <div className="flex items-center gap-2 pb-3 sm:pb-4">
+            <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-[var(--crm-text-tertiary)]" />
               <Input
                 placeholder="Search by name, phone..."
@@ -1146,248 +1216,249 @@ export default function MeetingsPage() {
                 className="w-full pl-9 h-8 text-[12px] bg-[var(--crm-surface-2)] border-[var(--crm-border)] focus-visible:ring-[var(--lb-navy)]"
               />
             </div>
-            <Link href="/meetings/event-types" className="flex-1 sm:flex-none">
-              <Button size="sm" className="w-full sm:w-auto h-8 px-3 text-[12px] bg-[var(--lb-navy)] hover:opacity-90 text-white shadow-sm transition-opacity">
-                <Settings2 className="h-4 w-4 mr-2" />
-                Event Types
+            <Link href="/meetings/event-types" className="shrink-0">
+              <Button size="sm" className="h-8 px-2 sm:px-3 text-[12px] bg-[var(--lb-navy)] hover:opacity-90 text-white shadow-sm transition-opacity">
+                <Settings2 className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Event Types</span>
               </Button>
             </Link>
           </div>
-            </div>
 
-            {/* ── KPI Row ── */}
-            <div className="flex overflow-x-auto gap-3 shrink-0 py-3 border-y border-[var(--crm-border)] no-scrollbar items-center mb-2">
-          {[
-            { label: 'Upcoming', value: totalUpcoming, color: 'text-primary dark:text-indigo-400', bg: 'bg-primary/10 dark:bg-primary/10 border-indigo-100 dark:border-primary/20' },
-            { label: 'Confirmed', value: totalConfirmed, color: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20' },
-            { label: 'Completed', value: totalCompleted, color: 'text-sky-700 dark:text-sky-400', bg: 'bg-sky-50 dark:bg-sky-500/10 border-sky-100 dark:border-sky-500/20' },
-            { label: 'Total', value: totalUpcoming + totalHistory, color: 'text-violet-700 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-500/10 border-violet-100 dark:border-violet-500/20' },
-          ].map(({ label, value, color, bg }) => (
-            <div key={label} className={cn("flex items-center gap-2 px-3.5 py-1.5 rounded-lg border shadow-sm transition-all hover:scale-[1.02]", bg)}>
-              <span className={cn("font-medium text-xs opacity-80", color)}>{label}</span>
-              <span className={cn("font-bold text-sm", color)}>
-                {isLoading ? <Skeleton className="h-4 w-6 inline-block bg-current/20" /> : value}
-              </span>
-            </div>
-          ))}
-            </div>
+          {/* KPI Row — 2-col grid on mobile, horizontal scroll on desktop */}
+          <div className="grid grid-cols-2 sm:flex sm:overflow-x-auto gap-2 sm:gap-3 shrink-0 pb-3 border-b border-[var(--crm-border)] no-scrollbar mb-2">
+            {[
+              { label: 'Upcoming', value: totalUpcoming, color: 'text-primary dark:text-indigo-400', bg: 'bg-primary/10 dark:bg-primary/10 border-indigo-100 dark:border-primary/20' },
+              { label: 'Confirmed', value: totalConfirmed, color: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20' },
+              { label: 'Completed', value: totalCompleted, color: 'text-sky-700 dark:text-sky-400', bg: 'bg-sky-50 dark:bg-sky-500/10 border-sky-100 dark:border-sky-500/20' },
+              { label: 'Total', value: totalUpcoming + totalHistory, color: 'text-violet-700 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-500/10 border-violet-100 dark:border-violet-500/20' },
+            ].map(({ label, value, color, bg }) => (
+              <div key={label} className={cn("flex items-center justify-between sm:justify-start sm:gap-2 px-3 py-2 rounded-lg border shadow-sm", bg)}>
+                <span className={cn("font-medium text-xs opacity-80", color)}>{label}</span>
+                <span className={cn("font-bold text-sm", color)}>
+                  {isLoading ? <Skeleton className="h-4 w-6 inline-block bg-current/20" /> : value}
+                </span>
+              </div>
+            ))}
           </div>
+        </div>
 
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
           <Tabs defaultValue="upcoming" className="flex-1 flex flex-col min-h-0">
             <div className="flex items-center justify-between border-b border-[var(--crm-border)] shrink-0 bg-transparent">
-            <TabsList className="h-12 bg-transparent p-0 gap-4">
-              <TabsTrigger value="upcoming" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--lb-navy)] data-[state=active]:text-[var(--lb-navy)] data-[state=active]:shadow-none data-[state=active]:bg-transparent px-2 font-semibold">
-                Upcoming Meetings
-                {totalUpcoming > 0 && (
-                  <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-[10px] bg-[var(--crm-accent)] text-white border-transparent">
-                    {totalUpcoming}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="history" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--lb-navy)] data-[state=active]:text-[var(--lb-navy)] data-[state=active]:shadow-none data-[state=active]:bg-transparent px-2 font-semibold">
-                Past Meetings
-              </TabsTrigger>
-            </TabsList>
-            <div className="py-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-8 w-[140px] border-[var(--crm-border)] bg-[var(--crm-surface-2)]">
-                  <SelectValue placeholder="Filter status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="rescheduled">Rescheduled</SelectItem>
-                </SelectContent>
-              </Select>
+              <TabsList className="h-11 bg-transparent p-0 gap-2 sm:gap-4">
+                <TabsTrigger value="upcoming" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--lb-navy)] data-[state=active]:text-[var(--lb-navy)] data-[state=active]:shadow-none data-[state=active]:bg-transparent px-1 sm:px-2 text-xs sm:text-sm font-semibold">
+                  <span className="hidden sm:inline">Upcoming Meetings</span>
+                  <span className="sm:hidden">Upcoming</span>
+                  {totalUpcoming > 0 && (
+                    <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-[10px] bg-[var(--crm-accent)] text-white border-transparent">
+                      {totalUpcoming}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="history" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--lb-navy)] data-[state=active]:text-[var(--lb-navy)] data-[state=active]:shadow-none data-[state=active]:bg-transparent px-1 sm:px-2 text-xs sm:text-sm font-semibold">
+                  <span className="hidden sm:inline">Past Meetings</span>
+                  <span className="sm:hidden">Past</span>
+                </TabsTrigger>
+              </TabsList>
+              <div className="py-2">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-8 w-[110px] sm:w-[140px] border-[var(--crm-border)] bg-[var(--crm-surface-2)] text-xs sm:text-sm">
+                    <SelectValue placeholder="Filter" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="rescheduled">Rescheduled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
 
-          {/* ── Upcoming Tab ── */}
-          <TabsContent value="upcoming" className="flex-1 data-[state=active]:flex flex-col min-h-0 m-0 mt-0 overflow-hidden outline-none">
-            <div className="flex-1 overflow-auto p-5 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
+            {/* ── Upcoming Tab ── */}
+            <TabsContent value="upcoming" className="flex-1 data-[state=active]:flex flex-col min-h-0 m-0 mt-0 overflow-hidden outline-none">
+              <div className="flex-1 overflow-auto px-2 py-3 sm:p-5 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
+                {isLoading ? (
+                  <div className="space-y-4">
+                    <MeetingsSkeleton />
+                  </div>
+                ) : filteredUpcoming.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-24 text-center">
+                    <div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-6 shadow-inner">
+                      <CalendarCheck className="h-8 w-8 text-slate-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">No upcoming meetings</h3>
+                    <p className="text-sm text-slate-500 mt-2 max-w-xs mx-auto">Meetings booked via your event types will appear here</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {Object.entries(groupMeetingsByDate(filteredUpcoming)).map(([date, dayMeetings]) => (
+                      <div key={date}>
+                        <div className="flex items-center gap-3 mb-4">
+                          <p className="text-[10px] font-bold text-primary dark:text-indigo-400 uppercase tracking-widest bg-primary/10 dark:bg-indigo-900/30 px-2.5 py-1 rounded-full whitespace-nowrap">
+                            {formatInTimeZone(new Date(date), 'UTC', 'EEE, MMM d, yyyy')}
+                          </p>
+                          <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
+                          <span className="text-xs font-medium text-slate-400">{dayMeetings.length} meeting{dayMeetings.length > 1 ? 's' : ''}</span>
+                        </div>
+                        <div className="space-y-3">
+                          {dayMeetings.map(m => (
+                            <MeetingCard key={m.id} meeting={m} onSelect={openMeeting} />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Scroll sentinel */}
+                    <div ref={upcomingSentinel} className="py-8 flex flex-col items-center justify-center gap-3">
+                      {pagination.upcoming.hasMore && (
+                        <>
+                          <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                          <p className="text-xs text-slate-500 font-medium">Loading more meetings...</p>
+                        </>
+                      )}
+                      {!pagination.upcoming.hasMore && totalUpcoming > 0 && (
+                        <p className="text-xs text-slate-400 font-medium bg-slate-50 dark:bg-slate-800/50 px-4 py-1.5 rounded-full">You've reached the end of the list</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* ── History Tab ── */}
+            <TabsContent value="history" className="flex-1 data-[state=active]:flex flex-col min-h-0 m-0 mt-0 overflow-hidden outline-none">
               {isLoading ? (
-                <div className="space-y-4">
+                <div className="p-5 space-y-4">
                   <MeetingsSkeleton />
                 </div>
-              ) : filteredUpcoming.length === 0 ? (
+              ) : filteredHistory.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 text-center">
                   <div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-6 shadow-inner">
-                    <CalendarCheck className="h-8 w-8 text-slate-400" />
+                    <AlignLeft className="h-8 w-8 text-slate-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">No upcoming meetings</h3>
-                  <p className="text-sm text-slate-500 mt-2 max-w-xs mx-auto">Meetings booked via your event types will appear here</p>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">No meeting history</h3>
+                  <p className="text-sm text-slate-500 mt-2 max-w-xs mx-auto">Past meetings will appear here</p>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {Object.entries(groupMeetingsByDate(filteredUpcoming)).map(([date, dayMeetings]) => (
-                    <div key={date}>
-                      <div className="flex items-center gap-3 mb-4">
-                        <p className="text-[10px] font-bold text-primary dark:text-indigo-400 uppercase tracking-widest bg-primary/10 dark:bg-indigo-900/30 px-2.5 py-1 rounded-full whitespace-nowrap">
-                          {formatInTimeZone(new Date(date), 'UTC', 'EEE, MMM d, yyyy')}
-                        </p>
-                        <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
-                        <span className="text-xs font-medium text-slate-400">{dayMeetings.length} meeting{dayMeetings.length > 1 ? 's' : ''}</span>
-                      </div>
-                      <div className="space-y-3">
-                        {dayMeetings.map(m => (
-                          <MeetingCard key={m.id} meeting={m} onSelect={openMeeting} />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex-1 flex flex-col min-h-0 bg-transparent">
+                  <div className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
+                    <Table className="relative border-separate border-spacing-0 min-w-max">
+                      <TableHeader className="sticky top-0 z-20">
+                        <TableRow className="bg-[var(--crm-surface-2)] shadow-sm">
+                          {['Meeting', 'Attendee', 'Date & Time', 'Type', 'Status', 'Outcome', 'Actions'].map(h => (
+                            <TableHead key={h}
+                              className="h-12 whitespace-nowrap text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)] bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)] backdrop-blur-sm first:pl-6">
+                              {h}
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredHistory.map(m => {
+                          const typeInfo = meetingTypeConfig[m.type] ?? meetingTypeConfig.video
+                          const TypeIcon = typeInfo.icon
+                          const statusInfo = statusConfig[m.status] ?? statusConfig.completed
+                          return (
+                            <TableRow key={m.id}
+                              className="border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)] transition-colors">
+                              <TableCell className="whitespace-nowrap font-semibold text-sm text-[var(--crm-text-primary)] pl-6">
+                                {m.title}
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                <div className="flex items-center gap-3">
+                                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-sm">
+                                    {initials(m.lead.name)}
+                                  </div>
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-xs font-semibold text-[var(--crm-text-primary)] whitespace-nowrap">{m.lead.name}</p>
+                                      {m.lead.phone && (
+                                        <div className="flex items-center gap-1 inline-flex shrink-0">
+                                          <a
+                                            href={`tel:${m.lead.phone}`}
+                                            className="flex items-center justify-center p-1 rounded-full text-[var(--crm-text-tertiary)] hover:text-primary hover:bg-primary/10 dark:hover:bg-indigo-900/30 transition-colors"
+                                            title={`Call ${m.lead.name}`}
+                                          >
+                                            <Phone className="h-3 w-3" />
+                                          </a>
+                                          <a
+                                            href={`https://wa.me/${m.lead.phone.replace(/\D/g, '').length === 10 ? '91' + m.lead.phone.replace(/\D/g, '') : m.lead.phone.replace(/\D/g, '')}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-center p-1 rounded-full text-[var(--crm-text-tertiary)] hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors"
+                                            title={`WhatsApp ${m.lead.name}`}
+                                          >
+                                            <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
+                                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.455 5.703 1.458h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                                            </svg>
+                                          </a>
+                                        </div>
+                                      )}
+                                    </div>
+                                    {m.lead.company && <p className="text-[10px] text-[var(--crm-text-secondary)] mt-0.5 whitespace-nowrap">{m.lead.company}</p>}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap text-xs text-[var(--crm-text-secondary)]">
+                                <div className="font-medium text-[var(--crm-text-primary)]">{m.date}</div>
+                                <div className="mt-0.5">{m.time}</div>
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                <div className={cn('flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider w-fit border shadow-sm', typeInfo.bg, typeInfo.color, 'border-current/10')}>
+                                  <TypeIcon className="h-3 w-3" />{typeInfo.label}
+                                </div>
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                <Badge variant="outline" className={cn('text-[10px] font-bold uppercase tracking-wider border shadow-sm px-2.5 py-0.5 rounded-full', statusInfo.className)}>
+                                  {statusInfo.label}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap text-xs text-[var(--crm-text-secondary)] max-w-[200px] truncate">
+                                {m.outcome || <span className="text-[var(--crm-text-tertiary)] italic">— No outcome recorded —</span>}
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                <Button variant="ghost" size="sm" className="h-8 text-xs font-medium text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)] transition-all"
+                                  onClick={() => openMeeting(m)}>
+                                  View Details
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
 
-                  {/* Scroll sentinel */}
-                  <div ref={upcomingSentinel} className="py-8 flex flex-col items-center justify-center gap-3">
-                    {pagination.upcoming.hasMore && (
-                      <>
-                        <Loader2 className="h-6 w-6 text-primary animate-spin" />
-                        <p className="text-xs text-slate-500 font-medium">Loading more meetings...</p>
-                      </>
-                    )}
-                    {!pagination.upcoming.hasMore && totalUpcoming > 0 && (
-                      <p className="text-xs text-slate-400 font-medium bg-slate-50 dark:bg-slate-800/50 px-4 py-1.5 rounded-full">You've reached the end of the list</p>
-                    )}
+                    {/* Scroll sentinel moved inside scrollable div */}
+                    <div ref={historySentinel} className="py-8 flex flex-col items-center justify-center gap-3 bg-slate-50/30 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800">
+                      {pagination.history.hasMore && (
+                        <>
+                          <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                          <p className="text-xs text-slate-500 font-medium">Loading history...</p>
+                        </>
+                      )}
+                      {!pagination.history.hasMore && totalHistory > 0 && (
+                        <p className="text-xs text-slate-400 font-medium bg-white dark:bg-slate-900 px-4 py-1.5 rounded-full shadow-sm">End of history</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
-            </div>
-          </TabsContent>
-
-          {/* ── History Tab ── */}
-          <TabsContent value="history" className="flex-1 data-[state=active]:flex flex-col min-h-0 m-0 mt-0 overflow-hidden outline-none">
-            {isLoading ? (
-              <div className="p-5 space-y-4">
-                <MeetingsSkeleton />
-              </div>
-            ) : filteredHistory.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-24 text-center">
-                <div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-6 shadow-inner">
-                  <AlignLeft className="h-8 w-8 text-slate-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">No meeting history</h3>
-                <p className="text-sm text-slate-500 mt-2 max-w-xs mx-auto">Past meetings will appear here</p>
-              </div>
-            ) : (
-              <div className="flex-1 flex flex-col min-h-0 bg-transparent">
-                <div className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
-                  <Table className="relative border-separate border-spacing-0 min-w-max">
-                    <TableHeader className="sticky top-0 z-20">
-                      <TableRow className="bg-[var(--crm-surface-2)] shadow-sm">
-                        {['Meeting', 'Attendee', 'Date & Time', 'Type', 'Status', 'Outcome', 'Actions'].map(h => (
-                          <TableHead key={h}
-                            className="h-12 whitespace-nowrap text-xs font-bold uppercase tracking-wider text-[var(--crm-text-secondary)] bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)] backdrop-blur-sm first:pl-6">
-                            {h}
-                          </TableHead>
-                        ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredHistory.map(m => {
-                        const typeInfo = meetingTypeConfig[m.type] ?? meetingTypeConfig.video
-                        const TypeIcon = typeInfo.icon
-                        const statusInfo = statusConfig[m.status] ?? statusConfig.completed
-                        return (
-                          <TableRow key={m.id}
-                            className="border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)] transition-colors">
-                            <TableCell className="whitespace-nowrap font-semibold text-sm text-[var(--crm-text-primary)] pl-6">
-                              {m.title}
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-sm">
-                                  {initials(m.lead.name)}
-                                </div>
-                                <div>
-                                  <div className="flex items-center gap-2">
-                                    <p className="text-xs font-semibold text-[var(--crm-text-primary)] whitespace-nowrap">{m.lead.name}</p>
-                                    {m.lead.phone && (
-                                      <div className="flex items-center gap-1 inline-flex shrink-0">
-                                        <a
-                                          href={`tel:${m.lead.phone}`}
-                                          className="flex items-center justify-center p-1 rounded-full text-[var(--crm-text-tertiary)] hover:text-primary hover:bg-primary/10 dark:hover:bg-indigo-900/30 transition-colors"
-                                          title={`Call ${m.lead.name}`}
-                                        >
-                                          <Phone className="h-3 w-3" />
-                                        </a>
-                                        <a
-                                          href={`https://wa.me/${m.lead.phone.replace(/\D/g, '').length === 10 ? '91' + m.lead.phone.replace(/\D/g, '') : m.lead.phone.replace(/\D/g, '')}`}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex items-center justify-center p-1 rounded-full text-[var(--crm-text-tertiary)] hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors"
-                                          title={`WhatsApp ${m.lead.name}`}
-                                        >
-                                          <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
-                                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.455 5.703 1.458h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                                          </svg>
-                                        </a>
-                                      </div>
-                                    )}
-                                  </div>
-                                  {m.lead.company && <p className="text-[10px] text-[var(--crm-text-secondary)] mt-0.5 whitespace-nowrap">{m.lead.company}</p>}
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap text-xs text-[var(--crm-text-secondary)]">
-                              <div className="font-medium text-[var(--crm-text-primary)]">{m.date}</div>
-                              <div className="mt-0.5">{m.time}</div>
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              <div className={cn('flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider w-fit border shadow-sm', typeInfo.bg, typeInfo.color, 'border-current/10')}>
-                                <TypeIcon className="h-3 w-3" />{typeInfo.label}
-                              </div>
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              <Badge variant="outline" className={cn('text-[10px] font-bold uppercase tracking-wider border shadow-sm px-2.5 py-0.5 rounded-full', statusInfo.className)}>
-                                {statusInfo.label}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap text-xs text-[var(--crm-text-secondary)] max-w-[200px] truncate">
-                              {m.outcome || <span className="text-[var(--crm-text-tertiary)] italic">— No outcome recorded —</span>}
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              <Button variant="ghost" size="sm" className="h-8 text-xs font-medium text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)] transition-all"
-                                onClick={() => openMeeting(m)}>
-                                View Details
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-
-                  {/* Scroll sentinel moved inside scrollable div */}
-                  <div ref={historySentinel} className="py-8 flex flex-col items-center justify-center gap-3 bg-slate-50/30 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800">
-                    {pagination.history.hasMore && (
-                      <>
-                        <Loader2 className="h-6 w-6 text-primary animate-spin" />
-                        <p className="text-xs text-slate-500 font-medium">Loading history...</p>
-                      </>
-                    )}
-                    {!pagination.history.hasMore && totalHistory > 0 && (
-                      <p className="text-xs text-slate-400 font-medium bg-white dark:bg-slate-900 px-4 py-1.5 rounded-full shadow-sm">End of history</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-        <MeetingDetailDialog
-          meeting={selectedMeeting}
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          onUpdate={handleMeetingUpdate}
-          onDelete={handleMeetingDelete}
-          onReschedule={handleMeetingReschedule}
-          team={team}
-        />
+            </TabsContent>
+          </Tabs>
+          <MeetingDetailDialog
+            meeting={selectedMeeting}
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            onUpdate={handleMeetingUpdate}
+            onDelete={handleMeetingDelete}
+            onReschedule={handleMeetingReschedule}
+            team={team}
+          />
+        </div>
       </div>
-    </div>
     </RoleGuard>
   )
 }
