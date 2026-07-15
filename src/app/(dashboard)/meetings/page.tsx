@@ -260,52 +260,52 @@ function MeetingDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden bg-white dark:bg-slate-900 border-none shadow-[0_24px_80px_-16px_rgba(30,45,107,0.35)] rounded-[24px] gap-0 [&>button]:hidden">
+      <DialogContent className="w-[calc(100vw-16px)] sm:w-full max-w-4xl p-0 bg-white dark:bg-slate-900 border-none shadow-[0_24px_80px_-16px_rgba(30,45,107,0.35)] rounded-[20px] sm:rounded-[24px] gap-0 [&>button]:hidden">
 
         {/* Tinted Gradient Header */}
-        <div className="relative p-6 pb-7 bg-gradient-to-br from-primary/10 via-primary/[0.04] to-transparent dark:from-primary/20 dark:via-primary/[0.06] border-b border-[var(--crm-border)]">
-          <div className="flex items-start gap-4">
+        <div className="relative p-4 sm:p-6 sm:pb-7 bg-gradient-to-br from-primary/10 via-primary/[0.04] to-transparent dark:from-primary/20 dark:via-primary/[0.06] border-b border-[var(--crm-border)]">
+          <div className="flex items-start gap-3 pr-10">
             <div className="relative shrink-0">
-              <div className="flex items-center justify-center h-14 w-14 rounded-2xl bg-white dark:bg-slate-900 shadow-[0_8px_24px_-8px_rgba(30,45,107,0.4)] ring-1 ring-primary/15 text-primary">
-                <TypeIcon className="h-6 w-6" />
+              <div className="flex items-center justify-center h-11 w-11 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-white dark:bg-slate-900 shadow-[0_8px_24px_-8px_rgba(30,45,107,0.4)] ring-1 ring-primary/15 text-primary">
+                <TypeIcon className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
               <span
-                className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full ring-[3px] ring-white dark:ring-slate-900"
+                className="absolute -bottom-1 -right-1 h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full ring-[3px] ring-white dark:ring-slate-900"
                 style={{ backgroundColor: meeting.eventType?.color || 'var(--lb-navy, #1e2d6b)' }}
               />
             </div>
-            <div className="min-w-0 pt-0.5">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <DialogTitle className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight truncate">
+            <div className="min-w-0 flex-1 pt-0.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <DialogTitle className="text-base sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
                   {meeting.title}
                 </DialogTitle>
-                <Badge className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-bold shadow-none border', statusInfo.className)}>
+                <Badge className={cn('rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-bold shadow-none border shrink-0', statusInfo.className)}>
                   {statusInfo.label}
                 </Badge>
               </div>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[13px] text-slate-500 dark:text-slate-400">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <TypeIcon className="h-3.5 w-3.5 text-primary" /> {typeInfo.label}
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 text-[12px] sm:text-[13px] text-slate-500 dark:text-slate-400">
+                <span className="flex items-center gap-1 font-medium">
+                  <TypeIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" /> {typeInfo.label}
                 </span>
                 <span className="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-600" />
-                <span className="flex items-center gap-1.5 font-medium">
-                  <Clock className="h-3.5 w-3.5 text-primary" /> {meeting.time} · {meeting.duration}
+                <span className="flex items-center gap-1 font-medium">
+                  <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" /> {meeting.time} · {meeting.duration}
                 </span>
               </div>
             </div>
           </div>
-          <DialogClose className="absolute right-5 top-5 h-8 w-8 rounded-full flex items-center justify-center bg-white/70 dark:bg-slate-800/70 backdrop-blur hover:bg-white dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06] transition-all">
+          <DialogClose className="absolute right-3 top-3 sm:right-5 sm:top-5 h-8 w-8 rounded-full flex items-center justify-center bg-white/70 dark:bg-slate-800/70 backdrop-blur hover:bg-white dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06] transition-all">
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>
           </DialogClose>
         </div>
 
-        {/* 2-Column Body — fixed height on desktop: left column scrolls, right rail stays put */}
-        <div className="p-5 max-h-[78vh] overflow-y-auto lg:overflow-hidden lg:h-[min(680px,80vh)] lg:max-h-none custom-scrollbar">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:h-full">
+        {/* 2-Column Body — scrolls on mobile, dual-column fixed-height on desktop */}
+        <div className="p-3 sm:p-5 max-h-[80vh] overflow-y-auto lg:overflow-hidden lg:h-[min(680px,80vh)] lg:max-h-none custom-scrollbar">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-5 lg:h-full">
 
             {/* Left Column: Details (scrolls independently on desktop) */}
-            <div className="lg:col-span-7 space-y-4 lg:h-full lg:overflow-y-auto custom-scrollbar lg:pr-1">
+            <div className="lg:col-span-7 space-y-3 sm:space-y-4 lg:h-full lg:overflow-y-auto custom-scrollbar lg:pr-1">
               
               {/* Participant/Attendees Section */}
               <div className="border border-[var(--crm-border)] rounded-2xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
@@ -358,25 +358,27 @@ function MeetingDetailDialog({
                     </div>
                   ) : (
                     <div className="flex flex-col gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: meeting.eventType?.color || '#1e2d6b' }}>
-                          {initials(meeting.lead.name)}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: meeting.eventType?.color || '#1e2d6b' }}>
+                            {initials(meeting.lead.name)}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{meeting.lead.name}</p>
+                            {(meeting.lead.profession || meeting.lead.company) && (
+                              <p className="text-xs text-slate-500 truncate">{meeting.lead.profession} {meeting.lead.company ? `· ${meeting.lead.company}` : ''}</p>
+                            )}
+                          </div>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{meeting.lead.name}</p>
-                          {(meeting.lead.profession || meeting.lead.company) && (
-                            <p className="text-xs text-slate-500 truncate">{meeting.lead.profession} {meeting.lead.company ? `· ${meeting.lead.company}` : ''}</p>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap items-center justify-end gap-1.5">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:ml-auto">
                           {meeting.lead.email && (
-                            <a href={`mailto:${meeting.lead.email}`} className="bg-slate-50 dark:bg-slate-800/50 hover:bg-primary/5 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
-                              <Mail className="h-3.5 w-3.5 text-slate-400" />{meeting.lead.email}
+                            <a href={`mailto:${meeting.lead.email}`} className="bg-slate-50 dark:bg-slate-800/50 hover:bg-primary/5 rounded-lg px-2 py-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-primary transition-colors min-w-0 max-w-full">
+                              <Mail className="h-3.5 w-3.5 text-slate-400 shrink-0" /><span className="truncate">{meeting.lead.email}</span>
                             </a>
                           )}
                           {meeting.lead.phone && (
-                            <span className="bg-slate-50 dark:bg-slate-800/50 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
-                              <Phone className="h-3.5 w-3.5 text-slate-400" />{meeting.lead.phone}
+                            <span className="bg-slate-50 dark:bg-slate-800/50 rounded-lg px-2 py-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+                              <Phone className="h-3.5 w-3.5 text-slate-400 shrink-0" /><span className="truncate">{meeting.lead.phone}</span>
                             </span>
                           )}
                         </div>
@@ -432,9 +434,9 @@ function MeetingDetailDialog({
 
             </div>
 
-            {/* Right Column: Information & Actions (fixed — never scrolls) */}
+            {/* Right Column: Schedule & Actions */}
             <div className="lg:col-span-5 lg:h-full lg:min-h-0">
-              <div className="bg-gradient-to-b from-primary/[0.06] to-primary/[0.02] dark:from-primary/10 dark:to-primary/[0.03] border border-primary/15 rounded-[20px] p-4 flex flex-col h-full overflow-hidden">
+              <div className="bg-gradient-to-b from-primary/[0.06] to-primary/[0.02] dark:from-primary/10 dark:to-primary/[0.03] border border-primary/15 rounded-[20px] p-3 sm:p-4 flex flex-col lg:h-full">
 
                 <div className="flex items-center gap-3 mb-3 shrink-0">
                   <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
@@ -474,7 +476,7 @@ function MeetingDetailDialog({
                         <SelectTrigger className="h-10 rounded-xl border-[var(--crm-border)] bg-white dark:bg-slate-900">
                           <SelectValue placeholder="Select Host" />
                         </SelectTrigger>
-                        <SelectContent className="rounded-xl border-[var(--crm-border)] z-[70]">
+                        <SelectContent className="rounded-xl border-[var(--crm-border)] z-[200]" position="popper">
                           {team.filter(m => !m.status || m.status.toLowerCase() !== 'invited').map(m => (
                             <SelectItem key={m.id} value={m.email} className="rounded-lg py-2">
                               <div className="flex items-center gap-3">
