@@ -34,6 +34,8 @@ interface Notification {
     days_since_creation?: number;
     facebook_lead_id?: string;
     original_created_at?: string;
+    frequency?: 'once' | 'session' | 'always';
+    [key: string]: any;
   };
 }
 
@@ -205,9 +207,9 @@ export function NotificationBell() {
 
   if (!isMounted) {
     return (
-      <Button variant="outline" size="icon" className="h-9 w-9 rounded-full border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)]">
-        <Bell className="h-4 w-4 text-[var(--crm-text-secondary)]" />
-      </Button>
+      <button className="flex items-center justify-center h-10 w-10 rounded-full text-[var(--crm-text-secondary)] transition-all bg-transparent hover:bg-transparent">
+        <Bell className="h-[22px] w-[22px]" />
+      </button>
     );
   }
 
@@ -215,11 +217,11 @@ export function NotificationBell() {
     <>
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="icon" className="relative h-9 w-9 rounded-full border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)] transition-all active:scale-90 group">
+        <button className="relative group flex items-center justify-center h-10 w-10 rounded-full text-[var(--crm-text-secondary)] transition-all bg-transparent hover:bg-transparent">
           {unreadCount > 0 ? (
-            <BellRing className="h-4 w-4 text-primary animate-pulse group-hover:scale-110 transition-transform" />
+            <BellRing className="h-[22px] w-[22px] text-primary animate-pulse group-hover:scale-110 transition-transform" />
           ) : (
-            <Bell className="h-4 w-4 text-[var(--crm-text-secondary)] group-hover:text-[var(--crm-text-primary)] transition-all" />
+            <Bell className="h-[22px] w-[22px] transition-all" />
           )}
           {unreadCount > 0 && (
             <Badge
@@ -228,7 +230,7 @@ export function NotificationBell() {
               {unreadCount > 99 ? '99+' : unreadCount}
             </Badge>
           )}
-        </Button>
+        </button>
       </PopoverTrigger>
       <PopoverContent className="w-[380px] p-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden" align="end">
         {/* Header */}

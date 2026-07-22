@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 
@@ -37,20 +38,134 @@ interface Props {
 const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-[var(--crm-text-secondary)] mb-1.5 block"
 const inputStyle = "h-10 text-sm bg-[var(--crm-surface-2)]  border-[var(--crm-border)]  focus:bg-[var(--crm-surface-1)] transition-all rounded-lg no-scrollbar text-[var(--crm-text-primary)] "
 
-export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
-  const formatTo12Hour = (time: string) => {
-    if (!time) return '';
-    try {
-      const [hours, minutes] = time.split(':');
-      const h = parseInt(hours);
-      const ampm = h >= 12 ? 'PM' : 'AM';
-      const h12 = h % 12 || 12;
-      return `${h12}:${minutes} ${ampm}`;
-    } catch (e) {
-      return time;
+const formatTo12Hour = (time: string) => {
+  if (!time) return '';
+  try {
+    const [hours, minutes] = time.split(':');
+    const h = parseInt(hours);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${minutes} ${ampm}`;
+  } catch (e) {
+    return time;
+  }
+};
+
+const BreakEditorDialog = ({ slot, breakItem, onSave, onRemove }: { slot: TimeSlot, breakItem: Break, onSave: (b: Break) => void, onRemove: () => void }) => {
+  const [open, setOpen] = React.useState(false);
+  const [localBreak, setLocalBreak] = React.useState<Break>(breakItem);
+  const [error, setError] = React.useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = React.useState(false);
+
+  React.useEffect(() => {
+    if (open) {
+      setLocalBreak(breakItem);
+      setError(null);
+      setIsSuccess(false);
     }
+  }, [open, breakItem]);
+
+  const handleSave = () => {
+    const { startTime: breakStart, endTime: breakEnd } = localBreak;
+    if (breakStart >= breakEnd) {
+      setError(`Start time cannot be after or equal to the end time.`);
+      return;
+    }
+    setError(null);
+    setIsSuccess(true);
+    onSave(localBreak);
+    setTimeout(() => {
+      setOpen(false);
+    }, 600);
   };
 
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <div className="group/break flex items-center justify-between p-3 bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-lg cursor-pointer hover:border-indigo-400 :border-[var(--crm-accent)] transition-all shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="h-7 w-7 bg-[var(--crm-surface-2)] rounded-md flex items-center justify-center border border-[var(--crm-border)]">
+              <Clock className="h-3 w-3 text-[var(--crm-text-secondary)]" />
+            </div>
+            <div>
+              <p className="text-[11px] font-bold text-[var(--crm-text-primary)] uppercase tracking-tight leading-none">{breakItem.label}</p>
+              <p className="text-[9px] font-bold text-primary uppercase tracking-widest mt-1">
+                {formatTo12Hour(breakItem.startTime)} — {formatTo12Hour(breakItem.endTime)}
+              </p>
+            </div>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="h-7 w-7 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-all sm:opacity-0 sm:group-hover/break:opacity-100"
+            onClick={(e) => {
+              e.stopPropagation()
+              onRemove()
+            }}
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
+        </div>
+      </DialogTrigger>
+      <DialogContent className="rounded-xl border-none shadow-2xl p-0 overflow-hidden max-w-sm">
+        <DialogHeader className="p-5 bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)]">
+          <DialogTitle className="text-[11px] font-black uppercase tracking-widest text-[var(--crm-text-primary)]">Edit {localBreak.label} ({formatTo12Hour(localBreak.startTime)} — {formatTo12Hour(localBreak.endTime)})</DialogTitle>
+        </DialogHeader>
+        <div className="p-6 space-y-6">
+          <div className="space-y-1.5">
+            <Label className={labelStyle}>Sequence Title</Label>
+            <Input
+              value={localBreak.label}
+              onChange={(e) => setLocalBreak(prev => ({ ...prev, label: e.target.value }))}
+              placeholder="e.g., Lunch Break"
+              className={inputStyle}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label className={labelStyle}>Start</Label>
+              <Input
+                type="time"
+                value={localBreak.startTime}
+                onChange={(e) => setLocalBreak(prev => ({ ...prev, startTime: e.target.value }))}
+                className={inputStyle}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className={labelStyle}>End</Label>
+              <Input
+                type="time"
+                value={localBreak.endTime}
+                onChange={(e) => setLocalBreak(prev => ({ ...prev, endTime: e.target.value }))}
+                className={inputStyle}
+              />
+            </div>
+          </div>
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-100 rounded-lg animate-in fade-in slide-in-from-top-1">
+              <p className="text-xs text-red-600 font-semibold">{error}</p>
+            </div>
+          )}
+        </div>
+        <DialogFooter className="p-5 bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)]">
+          <Button 
+            onClick={handleSave}
+            className={cn(
+              "w-full font-bold h-10 rounded-lg text-xs uppercase tracking-widest transition-all duration-300",
+              isSuccess 
+                ? "bg-green-500 hover:bg-green-600 text-white" 
+                : "bg-[var(--crm-accent)] hover:opacity-90 text-white"
+            )}
+          >
+            {isSuccess ? 'Saved' : 'Save Sequence'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
   const addSlot = () => {
@@ -104,14 +219,14 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
     )
   }
 
-  const updateBreak = (slotId: string, breakId: string, field: keyof Break, value: any) => {
+  const updateBreakComplete = (slotId: string, updatedBreak: Break) => {
     onSlotsChange(
       slots.map(slot => 
         slot.id === slotId 
           ? {
               ...slot,
               breaks: slot.breaks?.map(b => 
-                b.id === breakId ? { ...b, [field]: value } : b
+                b.id === updatedBreak.id ? updatedBreak : b
               )
             }
           : slot
@@ -127,19 +242,6 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
           : slot
       )
     )
-  }
-
-  const validateBreakTime = (slotId: string, breakId: string, field: 'startTime' | 'endTime', value: string) => {
-    const slot = slots.find(s => s.id === slotId)
-    if (!slot) return false
-
-    const breakItem = slot.breaks?.find(b => b.id === breakId)
-    if (!breakItem) return false
-
-    const breakStart = field === 'startTime' ? value : breakItem.startTime
-    const breakEnd = field === 'endTime' ? value : breakItem.endTime
-
-    return breakStart >= slot.startTime && breakEnd <= slot.endTime
   }
 
   return (
@@ -249,81 +351,13 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
 
                       <div className="grid gap-2">
                         {slot.breaks?.map((breakItem) => (
-                          <Dialog key={breakItem.id}>
-                            <DialogTrigger asChild>
-                              <div className="group/break flex items-center justify-between p-3 bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-lg cursor-pointer hover:border-indigo-400 :border-[var(--crm-accent)] transition-all shadow-sm">
-                                <div className="flex items-center gap-3">
-                                  <div className="h-7 w-7 bg-[var(--crm-surface-2)] rounded-md flex items-center justify-center border border-[var(--crm-border)]">
-                                    <Clock className="h-3 w-3 text-[var(--crm-text-secondary)]" />
-                                  </div>
-                                  <div>
-                                    <p className="text-[11px] font-bold text-[var(--crm-text-primary)] uppercase tracking-tight leading-none">{breakItem.label}</p>
-                                    <p className="text-[9px] font-bold text-primary uppercase tracking-widest mt-1">
-                                      {formatTo12Hour(breakItem.startTime)} — {formatTo12Hour(breakItem.endTime)}
-                                    </p>
-                                  </div>
-                                </div>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  className="h-7 w-7 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-all sm:opacity-0 sm:group-hover/break:opacity-100"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    removeBreak(slot.id, breakItem.id)
-                                  }}
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </DialogTrigger>
-                            <DialogContent className="rounded-xl border-none shadow-2xl p-0 overflow-hidden max-w-sm">
-                              <DialogHeader className="p-5 bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)]">
-                                <DialogTitle className="text-[11px] font-black uppercase tracking-widest text-[var(--crm-text-primary)]">Edit {breakItem.label} ({formatTo12Hour(breakItem.startTime)} — {formatTo12Hour(breakItem.endTime)})</DialogTitle>
-                              </DialogHeader>
-                              <div className="p-6 space-y-6">
-                                <div className="space-y-1.5">
-                                  <Label className={labelStyle}>Sequence Title</Label>
-                                  <Input
-                                    value={breakItem.label}
-                                    onChange={(e) => updateBreak(slot.id, breakItem.id, 'label', e.target.value)}
-                                    placeholder="e.g., Lunch Break"
-                                    className={inputStyle}
-                                  />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div className="space-y-1.5">
-                                    <Label className={labelStyle}>Start</Label>
-                                    <Input
-                                      type="time"
-                                      value={breakItem.startTime}
-                                      onChange={(e) => {
-                                        if (validateBreakTime(slot.id, breakItem.id, 'startTime', e.target.value)) {
-                                          updateBreak(slot.id, breakItem.id, 'startTime', e.target.value)
-                                        }
-                                      }}
-                                      className={inputStyle}
-                                    />
-                                  </div>
-                                  <div className="space-y-1.5">
-                                    <Label className={labelStyle}>End</Label>
-                                    <Input
-                                      type="time"
-                                      value={breakItem.endTime}
-                                      onChange={(e) => {
-                                        if (validateBreakTime(slot.id, breakItem.id, 'endTime', e.target.value)) {
-                                          updateBreak(slot.id, breakItem.id, 'endTime', e.target.value)
-                                        }
-                                      }}
-                                      className={inputStyle}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                              <DialogFooter className="p-5 bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)]">
-                                <Button className="w-full bg-[var(--crm-accent)] hover:opacity-90 text-white font-bold h-10 rounded-lg text-xs uppercase tracking-widest">Save Sequence</Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
+                          <BreakEditorDialog
+                            key={breakItem.id}
+                            slot={slot}
+                            breakItem={breakItem}
+                            onSave={(updated) => updateBreakComplete(slot.id, updated)}
+                            onRemove={() => removeBreak(slot.id, breakItem.id)}
+                          />
                         ))}
 
                         {(!slot.breaks || slot.breaks.length === 0) && (
@@ -360,3 +394,4 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
     </div>
   )
 }
+

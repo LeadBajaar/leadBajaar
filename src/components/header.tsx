@@ -47,14 +47,12 @@ export function Header({ setMobileOpen, mobileOpen }: HeaderProps) {
       bg-[var(--crm-sidebar-bg)] border-b border-[var(--crm-border)]
     ">
       {/* Mobile menu toggle */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="lg:hidden h-8 w-8 rounded-full text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-3)]"
+      <button
+        className="lg:hidden flex items-center justify-center h-10 w-10 rounded-full text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] transition-all bg-transparent hover:bg-transparent"
         onClick={() => setMobileOpen(!mobileOpen)}
       >
-        {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-      </Button>
+        {mobileOpen ? <X className="h-[22px] w-[22px]" /> : <Menu className="h-[22px] w-[22px]" />}
+      </button>
 
       {/* Page title + description */}
       <div className="flex-1 min-w-0">

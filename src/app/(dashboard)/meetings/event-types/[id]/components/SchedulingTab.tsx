@@ -19,12 +19,13 @@ import { cn } from "@/lib/utils"
 interface Props {
   eventType: any
   updateScheduling: (field: string, value: any) => void
+  updateEventField?: (field: string, value: any) => void
 }
 
 const labelStyle = "text-[11px] font-bold uppercase tracking-wider text-[var(--crm-text-secondary)] mb-1.5 block"
 const inputStyle = "h-10 text-sm bg-[var(--crm-surface-2)]  border-[var(--crm-border)]  focus:bg-[var(--crm-surface-1)] transition-all rounded-lg no-scrollbar"
 
-export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
+export const SchedulingTab = ({ eventType, updateScheduling, updateEventField }: Props) => {
   return (
     <TabsContent value="scheduling" className="mt-0 outline-none">
       <div className="space-y-6 pb-6">
@@ -259,6 +260,38 @@ export const SchedulingTab = ({ eventType, updateScheduling }: Props) => {
                           {tz === 'Asia/Kolkata' || tz === 'Asia/Calcutta' ? 'Calcutta' : tz.split('/').pop()?.replace(/_/g, ' ')}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={labelStyle}>Invitee Bookings Limit</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="1"
+                      value={eventType.max_bookings_per_invitee || ''}
+                      onChange={(e) => updateEventField && updateEventField('max_bookings_per_invitee', e.target.value ? parseInt(e.target.value) : null)}
+                      className={cn(inputStyle, "w-16 text-center font-bold")}
+                      placeholder="∞"
+                    />
+                    <span className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest">Count</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={labelStyle}>Limit Timeframe</Label>
+                  <Select
+                    value={eventType.invitee_booking_limit_timeframe || 'ACTIVE'}
+                    onValueChange={(value) => updateEventField && updateEventField('invitee_booking_limit_timeframe', value)}
+                  >
+                    <SelectTrigger className={inputStyle}>
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="ACTIVE" className="text-[10px] font-medium">Active (At a time)</SelectItem>
+                      <SelectItem value="PER_WEEK" className="text-[10px] font-medium">Per Week</SelectItem>
+                      <SelectItem value="PER_MONTH" className="text-[10px] font-medium">Per Month</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

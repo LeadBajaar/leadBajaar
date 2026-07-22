@@ -57,6 +57,9 @@ import {
   teamApi
 } from '@/lib/api'
 import { LeadsMobileView } from './LeadsMobileView'
+import { KanbanBoard } from './KanbanBoard'
+import { MobileFilterBottomSheet } from './mobile/MobileFilterBottomSheet'
+import { MobileBulkActionBar } from './mobile/MobileBulkActionBar'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
@@ -79,7 +82,6 @@ import {
 import { LeadsHeader } from './LeadsHeader'
 import { LeadsFilters } from './LeadsFilters'
 import { LeadsTable, LeadsTableSkeleton } from './LeadsTable'
-import { KanbanBoard } from './KanbanBoard'
 import { ImportLeadsDialog } from './ImportLeadsDialog'
 import { FacebookRetrievalDialog } from './FacebookRetrievalDialog'
 import { DeleteConfirmationDialog } from './DeleteConfirmationDialog'
@@ -133,37 +135,6 @@ const parseCSVLine = (line: string): string[] => {
   result.push(current.trim());
   return result;
 };
-
-// // Add this component for the date picker
-// const DatePicker = ({ date, onChange }: DatePickerProps) => {
-//   return (
-//     <Popover>
-//       <PopoverTrigger asChild>
-//         <Button
-//           variant="outline"
-//           className={cn(
-//             "w-[240px] justify-start text-left font-normal",
-//             !date && "text-muted-foreground"
-//           )}
-//         >
-//           <CalendarIcon className="mr-2 h-4 w-4" />
-//           {date ? format(date, "PPP") : <span>Pick a date</span>}
-//         </Button>
-//       </PopoverTrigger>
-//       <PopoverContent className="w-auto p-0" align="start">
-//         <Calendar
-//           mode="single"
-//           selected={date}
-//           onSelect={onChange}
-//           initialFocus
-//         />
-//       </PopoverContent>
-//     </Popover>
-//   )
-// }
-
-// Add this type near your other type definitions
-// type SourceType = keyof typeof sourceConfig;
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([])
@@ -349,6 +320,7 @@ export default function LeadsPage() {
   // Add debounced search for better performance
   const debouncedSearch = useDebounce(filters.search, 500); // 500ms delay
   const [isSearching, setIsSearching] = useState(false);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   // Track when search is happening
   useEffect(() => {
@@ -403,25 +375,6 @@ export default function LeadsPage() {
 
   // State to hold the CSV data and column mappings
   const [csvData, setCsvData] = useState<string[][]>([]);
-  // const [columnMapping, setColumnMapping] = useState<{ csvHeader: string; leadField: string }[]>([]);
-
-  // Function to handle CSV file upload and parsing
-  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const selectedFile = e.target.files?.[0];
-  //   if (selectedFile) {
-  //     const reader = new FileReader();
-  //     reader.onload = (event) => {
-  //       const csv = event.target?.result as string;
-  //       const lines = csv.split('\n').map(line => line.split(',').map(cell => cell.trim()));
-  //       setCsvData(lines);
-  //       // Initialize column mapping based on CSV headers
-  //       const headers = lines[0];
-  //       const initialMapping = headers.map(header => ({ csvHeader: header, leadField: 'skip' }));
-  //       setColumnMapping(initialMapping);
-  //     };
-  //     reader.readAsText(selectedFile);
-  //   }
-  // };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -553,7 +506,8 @@ export default function LeadsPage() {
       const response = await getLeads(params);
 
       if (response?.data && Array.isArray(response.data)) {
-        setLeads(response.data);
+        // Appending pages is mobile infinite-scroll behavior; desktop pagination replaces the page
+        setLeads(prev => (currentPage === 1 || !isMobile) ? response.data : [...prev, ...response.data]);
         setTotalItems(response.total || response.meta?.total || 0);
         setTotalPages(response.last_page || response.meta?.last_page || 1);
       } else {
@@ -574,14 +528,12 @@ export default function LeadsPage() {
     fetchLeads();
   }, [currentPage, itemsPerPage, debouncedSearch, filters.status, filters.stage, filters.source, filters.dateRange, filters.createdAt]);
 
-  // Prefill deal value when dialog opens
   useEffect(() => {
     if (showDealValue && editingLead) {
       setDealValueAmount(editingLead.deal_value?.toString() || '');
     }
   }, [showDealValue, editingLead]);
 
-  // Update handleAddLead
   const handleAddLead = async () => {
     try {
       setIsSubmitting(true);
@@ -600,13 +552,11 @@ export default function LeadsPage() {
         notes: newLead.notes || ''
       });
 
-      // Refresh leads list
       await fetchLeads();
 
       setShowNewLead(false);
       toast.success("Lead created successfully");
 
-      // Reset form
       setNewLead({
         name: '',
         email: '',
@@ -624,13 +574,13 @@ export default function LeadsPage() {
     }
   };
 
-  // Update bulk actions
   const handleBulkDelete = async () => {
     if (!confirm('Are you sure you want to delete the selected leads?')) return
 
     try {
       await bulkDeleteLeads(selectedLeads)
-      await fetchLeads() // Refresh the list
+      setCurrentPage(1)
+      await fetchLeads()
       setSelectedLeads([])
       toast.success("Leads deleted successfully")
     } catch (error: any) {
@@ -641,7 +591,8 @@ export default function LeadsPage() {
   const handleBulkStageChange = async (newStage: string) => {
     try {
       await bulkUpdateLeadStage(selectedLeads, newStage)
-      await fetchLeads() // Refresh the list
+      setCurrentPage(1)
+      await fetchLeads()
       setSelectedLeads([])
       setShowStageChange(false)
       setSelectedStage(null)
@@ -651,7 +602,6 @@ export default function LeadsPage() {
     }
   }
 
-  // Update single lead delete
   const handleDelete = (lead: Lead) => {
     setDeleteConfirmation({
       isOpen: true,
@@ -660,12 +610,12 @@ export default function LeadsPage() {
     });
   };
 
-  // Add this new function to handle the actual deletion
   const confirmDelete = async () => {
     if (!deleteConfirmation.leadId) return;
 
     try {
       await deleteLead(deleteConfirmation.leadId);
+      setCurrentPage(1)
       await fetchLeads();
 
       toast.success("Lead deleted successfully");
@@ -708,7 +658,19 @@ export default function LeadsPage() {
   };
 
   const handleCallClick = (lead: Lead) => {
-    window.open(`tel:${lead.phone}`, '_self');
+    if (!lead.phone) return;
+    
+    let cleanPhone = lead.phone.replace(/\D/g, '');
+    const hasPlus = lead.phone.includes('+') || (cleanPhone.length === 12 && cleanPhone.startsWith('91'));
+    
+    // Android dialers sometimes strip the literal '+' because they parse it as a space. Encode it as %2B.
+    if (hasPlus) cleanPhone = '%2B' + cleanPhone;
+
+    const a = document.createElement('a');
+    a.href = `tel:${cleanPhone}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const handleDealValueClick = (lead: Lead) => {
@@ -724,38 +686,6 @@ export default function LeadsPage() {
           : mapping
       )
     )
-  }
-
-  const validateRow = (row: string[], csvHeaders: string[], rowIndex: number): ImportError[] => {
-    const errors: ImportError[] = []
-
-    columnMapping.forEach((mapping) => {
-      if (mapping.leadField !== 'skip') {
-        const value = row[csvHeaders.indexOf(mapping.csvHeader)]
-
-        // Validate required fields
-        if (['name'].includes(mapping.leadField) && !value) {
-          errors.push({
-            row: rowIndex + 2, // Add 2 to account for 1-based indexing and header row
-            field: mapping.leadField,
-            value: value,
-            reason: `${mapping.leadField} is required`
-          })
-        }
-
-        // Validate email format
-        if (mapping.leadField === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          errors.push({
-            row: rowIndex + 2,
-            field: 'email',
-            value: value,
-            reason: 'Invalid email format'
-          })
-        }
-      }
-    })
-
-    return errors
   }
 
   const handleImport = async () => {
@@ -813,7 +743,6 @@ export default function LeadsPage() {
             return lead;
           });
 
-          // Send to backend
           const response = await importLeads({ leads });
 
           setImportStats({
@@ -826,7 +755,7 @@ export default function LeadsPage() {
               .map(m => m.csvHeader)
           });
 
-          // Refresh leads list
+          setCurrentPage(1)
           await fetchLeads();
 
           toast.success(`Successfully imported ${response.successful} leads`);
@@ -877,11 +806,8 @@ export default function LeadsPage() {
     fileInputRef.current?.click()
   }
 
-  // Pagination controls with per-page selector
   const PaginationControls = () => (
     <div className="flex items-center justify-between px-0 sm:px-2 gap-2 flex-wrap sm:flex-nowrap">
-
-      {/* Left: results summary + per-page */}
       <div className="flex items-center gap-2 text-[10px] sm:text-xs text-slate-500 dark:text-slate-400">
         <span className="hidden sm:inline">
           {totalItems > 0
@@ -905,7 +831,6 @@ export default function LeadsPage() {
         </div>
       </div>
 
-      {/* Right: page navigation */}
       <div className="flex items-center gap-0.5 sm:gap-1">
         <span className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mr-1 sm:mr-2">
           {currentPage}/{totalPages}
@@ -985,13 +910,7 @@ export default function LeadsPage() {
       }
 
       await updateLeadStage(leadId, newStage);
-
-      // Update the lead locally instead of fetching
-      setLeads(prev => prev.map(lead =>
-        lead.id === leadId
-          ? { ...lead, stage: newStage }
-          : lead
-      ));
+      await fetchLeads()
 
       setShowStageChange(false);
       setEditingLead(null);
@@ -1011,10 +930,8 @@ export default function LeadsPage() {
     try {
       const amount = parseFloat(dealValueAmount);
 
-      // 1. Update lead stage and deal value
       await updateLeadStage(editingLead.id, 'Deal Closed', amount);
 
-      // 2. Create initial payment if requested
       if (recordInitialPayment && initialPaymentAmount) {
         await createPayment({
           lead_id: editingLead.id,
@@ -1025,12 +942,7 @@ export default function LeadsPage() {
         });
       }
 
-      // Update local state
-      setLeads(prev => prev.map(lead =>
-        lead.id === editingLead.id
-          ? { ...lead, stage: 'Deal Closed', deal_value: amount }
-          : lead
-      ));
+      await fetchLeads()
 
       toast.success(recordInitialPayment ? "Deal closed and payment recorded!" : "Deal closed successfully");
       setShowDealValue(false);
@@ -1130,20 +1042,15 @@ export default function LeadsPage() {
         new_note: (updatedLead as any).new_note || '',
       })
 
-      // Update local state with response from server
-      setLeads(prev => prev.map(lead =>
-        lead.id === response.id ? response : lead
-      ))
+      await fetchLeads()
 
       toast.success("Lead updated successfully")
       setShowEditLead(false)
       setEditedLead(null)
 
-      // Trigger deal value dialog if stage changed to closed and it wasn't closed before
       const originalLead = leads.find(l => l.id === updatedLead.id);
       if ((updatedLead.stage === 'Deal Closed' || updatedLead.stage === 'Closed Won') &&
         originalLead && originalLead.stage !== 'Deal Closed' && originalLead.stage !== 'Closed Won') {
-        // Find the lead in the updated list to ensure we have the latest data
         setEditingLead(response);
         setShowDealValue(true);
       }
@@ -1154,7 +1061,6 @@ export default function LeadsPage() {
     }
   }
 
-  // Add this function to handle bulk selection
   const handleSelectAll = () => {
     if (selectedLeads.length === leads.length) {
       setSelectedLeads([]);
@@ -1163,7 +1069,6 @@ export default function LeadsPage() {
     }
   };
 
-  // Add this function to handle individual selection
   const handleSelectLead = (leadId: number) => {
     setSelectedLeads(prev =>
       prev.includes(leadId)
@@ -1172,53 +1077,39 @@ export default function LeadsPage() {
     );
   };
 
-  // Add this before the return statement
-
   const [formErrors, setFormErrors] = useState<LeadFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const validateAndSubmit = async () => {
-    // Reset errors
     setFormErrors({});
-
-    // Validate required fields
     const errors: LeadFormErrors = {};
-
     if (!newLead.name?.trim()) {
       errors.name = 'Name is required';
     }
-
     if (!newLead.email?.trim()) {
       errors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newLead.email)) {
       errors.email = 'Invalid email format';
     }
-
     if (newLead.phone && !/^\+?[\d\s-]{10,}$/.test(newLead.phone)) {
       errors.phone = 'Invalid phone number format';
     }
-
-    // If there are errors, show them and stop
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
     }
 
-    // Submit the form
     setIsSubmitting(true);
     try {
       await handleAddLead();
-      // Success! Modal will be closed by handleAddLead
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to add lead");
-      // Error handling is done in handleAddLead
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Add export handler
   const handleExport = async (exportAll: boolean = false) => {
     try {
       setIsExporting(true);
@@ -1234,7 +1125,6 @@ export default function LeadsPage() {
     }
   };
 
-  // Add function to extract variables from template
   const extractVariables = (template: MessageTemplate) => {
     const variableRegex = /{{([^}]+)}}/g
     const variables = new Set<string>()
@@ -1251,7 +1141,6 @@ export default function LeadsPage() {
     return Array.from(variables)
   }
 
-  // Add function to handle broadcast
   const handleBroadcast = async () => {
     if (!selectedTemplate || selectedLeads.length === 0) return;
 
@@ -1259,7 +1148,6 @@ export default function LeadsPage() {
     setBroadcastResponse(null);
 
     try {
-      // Prepare the data to be sent
       const broadcastData = {
         template_id: String(selectedTemplate.id),
         lead_ids: selectedLeads,
@@ -1267,8 +1155,7 @@ export default function LeadsPage() {
         variable_column_mapping: variableColumnMapping
       };
 
-      // Call your API to send broadcast
-      const response = await integrationApi.sendBroadcast(broadcastData);
+      await integrationApi.sendBroadcast(broadcastData);
 
       setBroadcastResponse({
         success: true,
@@ -1285,13 +1172,11 @@ export default function LeadsPage() {
     }
   };
 
-  // Facebook Lead Retrieval Functions
   const fetchFacebookForms = async () => {
     try {
       const response = await integrationApi.getFacebookLeadForms();
       setFacebookForms(response.forms || []);
 
-      // Show debug info if no forms found
       if (response.forms && response.forms.length === 0 && response.debug_info) {
         toast.error(`${response.message} (Found ${response.debug_info.total_integrations} total integrations, types: ${response.debug_info.integration_types.join(', ')})`);
       }
@@ -1324,7 +1209,6 @@ export default function LeadsPage() {
       setProgress(0);
       setProgressMessage('Connecting to Facebook API...');
 
-      // Simulate progress updates
       const progressInterval = setInterval(() => {
         setProgress(prev => {
           if (prev >= 90) return prev;
@@ -1354,20 +1238,17 @@ export default function LeadsPage() {
         date_to: dateTo || undefined,
       });
 
-      // Clear intervals and set final progress
       clearInterval(progressInterval);
       clearInterval(messageInterval);
       setProgress(100);
       setProgressMessage('Sync completed successfully!');
 
-      // Wait a moment to show completion
       setTimeout(() => {
         setRetrievalResults(response.data);
         setShowProgress(false);
         setShowResults(true);
       }, 1000);
 
-      // Refresh leads list
       await fetchLeads();
 
       toast.success(response.message || "Leads synced successfully");
@@ -1392,16 +1273,12 @@ export default function LeadsPage() {
     fetchFacebookForms();
   };
 
-
-
-  // Add useEffect to fetch templates when dialog opens
   useEffect(() => {
     if (showBroadcastDialog) {
       fetchTemplates();
     }
   }, [showBroadcastDialog]);
 
-  // Add function to fetch templates
   const fetchTemplates = async () => {
     setIsLoadingTemplates(true);
     try {
@@ -1419,6 +1296,68 @@ export default function LeadsPage() {
   };
 
   const isMobile = useMediaQuery('(max-width: 768px)');
+
+  // Mobile: infinite scroll + pull-to-refresh
+  const mobileScrollRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const pullStartY = useRef<number | null>(null);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !isLoading && currentPage < totalPages) {
+        setCurrentPage(prev => prev + 1);
+      }
+    }, { rootMargin: '200px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isMobile, isLoading, currentPage, totalPages, leads.length]);
+
+  const handlePullTouchStart = (e: React.TouchEvent) => {
+    if ((mobileScrollRef.current?.scrollTop ?? 1) <= 0) {
+      pullStartY.current = e.touches[0].clientY;
+    } else {
+      pullStartY.current = null;
+    }
+  };
+
+  const handlePullTouchMove = (e: React.TouchEvent) => {
+    if (pullStartY.current === null || isRefreshing) return;
+    const dy = e.touches[0].clientY - pullStartY.current;
+    if (dy > 0 && (mobileScrollRef.current?.scrollTop ?? 1) <= 0) {
+      setPullDistance(Math.min(90, dy * 0.5));
+    } else {
+      setPullDistance(0);
+    }
+  };
+
+  const handlePullTouchEnd = async () => {
+    if (pullStartY.current === null) return;
+    const shouldRefresh = pullDistance > 60;
+    pullStartY.current = null;
+    if (!shouldRefresh) {
+      setPullDistance(0);
+      return;
+    }
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(10);
+    setIsRefreshing(true);
+    setPullDistance(48);
+    try {
+      if (currentPage === 1) {
+        await fetchLeads();
+      } else {
+        // Resetting the page refetches page 1 via the currentPage effect
+        setCurrentPage(1);
+      }
+    } finally {
+      setIsRefreshing(false);
+      setPullDistance(0);
+    }
+  };
 
   return (
     <RoleGuard allowedFeatures={['leads']}>
@@ -1439,11 +1378,12 @@ export default function LeadsPage() {
           stages={stages}
           viewMode={viewMode}
           setViewMode={setViewMode}
+          onOpenMobileFilters={() => setIsMobileFilterOpen(true)}
         />
       </div>
 
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
-        {leads.length > 0 && selectedLeads.length > 0 && (
+        {leads.length > 0 && selectedLeads.length > 0 && !isMobile && (
           <div className="mx-2 mb-2 flex items-center justify-between p-2.5 rounded-[var(--r-xl)] border bg-[var(--crm-surface-1)] animate-in fade-in slide-in-from-top-1 duration-300" style={{ borderColor: 'var(--crm-border)' }}>
             <div className="flex items-center gap-2.5 px-1">
               <div className="flex h-5 w-5 items-center justify-center rounded-[var(--r-pill)] bg-[var(--crm-accent)] text-white text-[10px] font-black">
@@ -1476,10 +1416,36 @@ export default function LeadsPage() {
         )}
 
         {isMobile ? (
-          <div className="flex-1 overflow-y-auto no-scrollbar">
+          <div
+            ref={mobileScrollRef}
+            className="flex-1 overflow-y-auto no-scrollbar"
+            onTouchStart={handlePullTouchStart}
+            onTouchMove={handlePullTouchMove}
+            onTouchEnd={handlePullTouchEnd}
+          >
+            {/* Pull-to-refresh indicator */}
+            <div
+              style={{ height: pullDistance }}
+              className="flex items-end justify-center overflow-hidden bg-[var(--crm-surface-2)]/50"
+            >
+              <div className="mb-2 h-8 w-8 rounded-full bg-[var(--crm-surface-1)] border border-[var(--crm-border)] shadow-sm flex items-center justify-center">
+                <i
+                  className={`ti ti-refresh text-[16px] text-[var(--crm-accent)] ${(isRefreshing || pullDistance > 60) ? 'animate-spin' : ''}`}
+                  style={{ transform: `rotate(${pullDistance * 2}deg)` }}
+                />
+              </div>
+            </div>
+            {/* Total lead count — sticky while the list scrolls */}
+            {!error && totalItems > 0 && (
+              <div className="sticky top-0 z-20 px-4 py-2 text-[12px] font-medium text-[var(--crm-text-tertiary)] bg-[var(--crm-surface-1)]/95 backdrop-blur-sm border-b border-[var(--crm-border)]">
+                {leads.length < totalItems
+                  ? `Showing ${leads.length} of ${totalItems.toLocaleString('en-IN')} leads`
+                  : `${totalItems.toLocaleString('en-IN')} lead${totalItems === 1 ? '' : 's'}`}
+              </div>
+            )}
             <LeadsMobileView
               leads={leads}
-              isLoading={isLoading}
+              isLoading={isLoading && currentPage === 1 && !isRefreshing}
               error={error}
               selectedLeads={selectedLeads}
               handleSelectLead={handleSelectLead}
@@ -1490,8 +1456,28 @@ export default function LeadsPage() {
               handleDealValueClick={handleDealValueClick}
               handleAssignAgentClick={handleAssignAgentClick}
               handleCardClick={(id) => router.push(`/leads/${id}`)}
+              handleStageChange={handleStageChange}
               stages={stages}
+              onRetry={() => fetchLeads()}
+              onAddLead={() => setShowNewLead(true)}
+              hasActiveFilters={
+                filters.search !== '' ||
+                filters.status.length > 0 ||
+                filters.stage.length > 0 ||
+                filters.source.length > 0 ||
+                !!filters.dateRange ||
+                !!filters.createdAt
+              }
+              onClearFilters={clearFilters}
             />
+            {/* Infinite-scroll sentinel */}
+            {leads.length > 0 && currentPage < totalPages && (
+              <div ref={loadMoreRef} className="py-5 flex items-center justify-center">
+                {isLoading && currentPage > 1 && (
+                  <i className="ti ti-loader-2 animate-spin text-[20px] text-[var(--crm-text-tertiary)]" />
+                )}
+              </div>
+            )}
           </div>
         ) : viewMode === 'kanban' ? (
           <KanbanBoard
@@ -1528,13 +1514,14 @@ export default function LeadsPage() {
             stages={stages}
           />
         )}
-        <div className="shrink-0 mt-2 border-t border-[var(--crm-border)] pt-3">
-          <PaginationControls />
-        </div>
+        {!isMobile && (
+          <div className="shrink-0 mt-2 border-t border-[var(--crm-border)] pt-3">
+            <PaginationControls />
+          </div>
+        )}
         </div>
       </div>
 
-      {/* Refactored Dialog Components */}
       <StageManagerDialog
         isOpen={showStageManager}
         onOpenChange={setShowStageManager}
@@ -1647,6 +1634,38 @@ export default function LeadsPage() {
         onConfirm={confirmDelete}
         onCancel={() => setDeleteConfirmation({ isOpen: false, leadId: null, leadName: '' })}
       />
+
+      <MobileFilterBottomSheet
+        isOpen={isMobileFilterOpen}
+        onOpenChange={setIsMobileFilterOpen}
+        filters={filters}
+        handleFilterChange={handleFilterChange}
+        clearFilters={clearFilters}
+        stages={stages}
+      />
+      
+      {isMobile && (
+        <MobileBulkActionBar
+          selectedCount={selectedLeads.length}
+          totalCount={leads.length}
+          onClearSelection={() => setSelectedLeads([])}
+          onSelectAll={() => setSelectedLeads(leads.map(lead => lead.id))}
+          onBroadcast={() => setShowBroadcastDialog(true)}
+          onChangeStage={() => setShowStageChange(true)}
+          onDelete={handleBulkDelete}
+        />
+      )}
+
+      {/* Mobile floating Add Lead button — hidden while bulk selection bar is up */}
+      {isMobile && selectedLeads.length === 0 && (
+        <button
+          onClick={() => setShowNewLead(true)}
+          aria-label="Add lead"
+          className="fixed bottom-6 right-4 z-40 h-14 w-14 rounded-full bg-[#E84C3A] text-white shadow-lg shadow-[#E84C3A]/30 flex items-center justify-center active:scale-95 transition-transform"
+        >
+          <i className="ti ti-plus text-[24px]" />
+        </button>
+      )}
 
       <BroadcastMessageDialog
         isOpen={showBroadcastDialog}

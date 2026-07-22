@@ -120,6 +120,7 @@ export default function BookingPage() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [bookingError, setBookingError] = useState<string | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingSlots, setIsLoadingSlots] = useState(false)
@@ -473,8 +474,8 @@ export default function BookingPage() {
       const data = await response.json();
       
       if (!response.ok) {
-        if (data.message === "This time slot is no longer available" || data.message === "This group slot is already full" || response.status === 422) {
-          toast.error("This slot was just taken. Please choose another.");
+        if (data.message === "This time slot is no longer available" || data.message === "This group slot is already full") {
+          setBookingError(data.message);
           setStep(1);
           
           // Eagerly remove the slot from the UI so it hides instantly
@@ -485,6 +486,12 @@ export default function BookingPage() {
           if (selectedDate) {
              fetchAvailableSlots(selectedDate);
           }
+          return;
+        } else if (response.status === 422) {
+          // Booking limit error or other validation error
+          setBookingError(data.message || "The data provided is invalid.");
+          setStep(1);
+          setSelectedTime(null);
           return;
         }
         throw new Error(data.message || 'Failed to create booking');
@@ -509,9 +516,10 @@ export default function BookingPage() {
         }, 2500); 
       }
       
-    } catch (error) {
-      console.error('Error creating booking:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create booking');
+    } catch (err: any) {
+      console.error('Submission error:', err);
+      setIsSubmitting(false);
+      setBookingError(err instanceof Error ? err.message : 'Failed to create booking');
     } finally {
       setIsSubmitting(false)
     }
@@ -985,6 +993,29 @@ export default function BookingPage() {
         </div>
       )}
       </div>
+      <Dialog open={!!bookingError} onOpenChange={(open) => !open && setBookingError(null)}>
+        <DialogContent className="sm:max-w-md rounded-2xl p-6 bg-white dark:bg-slate-900 shadow-2xl border-none">
+          <div className="flex flex-col items-center justify-center text-center space-y-4">
+            <div className="h-12 w-12 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center">
+              <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+            </div>
+            <div>
+              <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                Booking Issue
+              </DialogTitle>
+              <DialogDescription className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                {bookingError}
+              </DialogDescription>
+            </div>
+            <Button 
+              onClick={() => setBookingError(null)}
+              className="w-full bg-[var(--lb-navy)] hover:opacity-90 text-white rounded-xl h-11 font-medium mt-2"
+            >
+              Understood
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 } 

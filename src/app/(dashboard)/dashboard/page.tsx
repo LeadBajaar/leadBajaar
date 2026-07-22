@@ -183,7 +183,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex flex-col gap-3 px-0 pb-3 pt-2 overflow-x-hidden">
+    <div className="flex flex-col gap-3 px-3 sm:px-4 pb-3 pt-2 overflow-x-hidden">
 
       {/* ── Stale / refresh-failed banner ────────────────── */}
       {isStale && data && (

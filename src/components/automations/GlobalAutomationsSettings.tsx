@@ -61,10 +61,10 @@ export default function GlobalAutomationsSettings() {
     }
   }
 
-  const saveWelcomeSettings = async () => {
+  const saveWelcomeSettings = async (settingsToSave = welcomeSettings) => {
     try {
       setIsSavingSettings(true)
-      await companyApi.updateSettings(welcomeSettings)
+      await companyApi.updateSettings(settingsToSave)
       toast({
         title: "Success",
         description: "Automation settings saved successfully",
@@ -89,7 +89,11 @@ export default function GlobalAutomationsSettings() {
         </div>
         <Switch
           checked={welcomeSettings.whatsapp_welcome_enabled}
-          onCheckedChange={(checked) => setWelcomeSettings(prev => ({ ...prev, whatsapp_welcome_enabled: checked }))}
+          onCheckedChange={(checked) => {
+            const newSettings = { ...welcomeSettings, whatsapp_welcome_enabled: checked };
+            setWelcomeSettings(newSettings);
+            saveWelcomeSettings(newSettings);
+          }}
           className="data-[state=checked]:bg-primary shadow-sm"
         />
       </div>
@@ -191,7 +195,7 @@ export default function GlobalAutomationsSettings() {
 
           <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
             <Button 
-              onClick={saveWelcomeSettings} 
+              onClick={() => saveWelcomeSettings()} 
               disabled={isSavingSettings}
               className="bg-primary hover:bg-primary/90 text-white font-black px-10 h-12 rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] gap-2"
             >
@@ -219,7 +223,11 @@ export default function GlobalAutomationsSettings() {
         </div>
         <Switch
           checked={welcomeSettings.whatsapp_meeting_enabled}
-          onCheckedChange={(checked) => setWelcomeSettings(prev => ({ ...prev, whatsapp_meeting_enabled: checked }))}
+          onCheckedChange={(checked) => {
+            const newSettings = { ...welcomeSettings, whatsapp_meeting_enabled: checked };
+            setWelcomeSettings(newSettings);
+            saveWelcomeSettings(newSettings);
+          }}
           className="data-[state=checked]:bg-emerald-600 shadow-sm"
         />
       </div>
@@ -321,7 +329,7 @@ export default function GlobalAutomationsSettings() {
 
           <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
             <Button 
-              onClick={saveWelcomeSettings} 
+              onClick={() => saveWelcomeSettings()} 
               disabled={isSavingSettings}
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-10 h-12 rounded-xl shadow-xl shadow-emerald-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] gap-2"
             >

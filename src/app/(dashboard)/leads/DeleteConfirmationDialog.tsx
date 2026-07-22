@@ -28,18 +28,18 @@ export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> =
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[400px]">
-        <DialogHeader>
+      <DialogContent className="max-w-[400px] max-sm:max-w-[calc(100vw-2rem)] max-sm:rounded-2xl">
+        <DialogHeader className="max-sm:text-left">
           <DialogTitle>Delete Lead</DialogTitle>
           <DialogDescription>
             Are you sure you want to delete {leadName}? This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={onCancel}>
+          <Button variant="outline" onClick={onCancel} className="max-sm:h-11">
             Cancel
           </Button>
-          <Button variant="destructive" onClick={onConfirm}>
+          <Button variant="destructive" onClick={onConfirm} className="max-sm:h-11">
             Delete
           </Button>
         </DialogFooter>

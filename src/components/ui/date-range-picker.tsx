@@ -21,6 +21,8 @@ interface DateRangePickerProps {
   disabled?: boolean
   isIconTriggerOnly?: boolean
   isHoverExpand?: boolean
+  /** Set true when rendered inside a modal Dialog so the popover stays interactive */
+  modalPopover?: boolean
 }
 
 export function DateRangePicker({
@@ -31,6 +33,7 @@ export function DateRangePicker({
   disabled = false,
   isIconTriggerOnly = false,
   isHoverExpand = false,
+  modalPopover = false,
   icon
 }: DateRangePickerProps & { icon?: React.ReactNode }) {
   const [isOpen, setIsOpen] = React.useState(false)
@@ -265,7 +268,7 @@ export function DateRangePicker({
 
   return (
     <div className={cn("grid gap-2", className)}>
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <Popover open={isOpen} onOpenChange={setIsOpen} modal={modalPopover}>
         <PopoverTrigger asChild>
           <Button
             id="date"

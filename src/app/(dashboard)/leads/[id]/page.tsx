@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { getLead, Lead, updateLead, teamApi } from '@/lib/api'
+import { getLead, Lead, updateLead, deleteLead, teamApi } from '@/lib/api'
 import { 
   ChevronLeft, 
   Phone, 
@@ -31,6 +31,8 @@ import { RoleGuard } from '@/components/RoleGuard'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getAgentColor } from '@/utils/agentColors'
 import { useTheme } from 'next-themes'
+import { EditLeadDialog } from '../EditLeadDialog'
+import { DeleteConfirmationDialog } from '../DeleteConfirmationDialog'
 
 export default function LeadDetailsPage() {
   const { id } = useParams()
@@ -39,6 +41,10 @@ export default function LeadDetailsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [teamMembers, setTeamMembers] = useState<any[]>([])
   const [isAssigning, setIsAssigning] = useState(false)
+  const [editingLead, setEditingLead] = useState<Lead | null>(null)
+  const [showEditLead, setShowEditLead] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false })
   const { theme, resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark' || theme === 'dark'
 
@@ -87,6 +93,59 @@ export default function LeadDetailsPage() {
     }
   }
 
+  const handleEdit = (lead: Lead) => {
+    setEditingLead(lead)
+    setShowEditLead(true)
+  }
+
+  const handleUpdateSubmit = async (updatedData: Lead | null) => {
+    if (!updatedData) return
+    try {
+      setIsUpdating(true)
+      const { id, ...data } = updatedData
+      await updateLead(id, data)
+      toast.success('Lead updated successfully')
+      
+      const freshLead = await getLead(id)
+      setLead(freshLead)
+      setEditingLead(null)
+      setShowEditLead(false)
+    } catch (error) {
+      toast.error('Failed to update lead')
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const confirmDelete = async () => {
+    if (!lead) return
+    try {
+      await deleteLead(lead.id)
+      toast.success("Lead deleted successfully")
+      router.push('/leads')
+    } catch (error) {
+      toast.error('Failed to delete lead')
+    } finally {
+      setDeleteConfirmation({ isOpen: false })
+    }
+  }
+
+  const handleCall = () => {
+    if (!lead?.phone) return;
+    
+    let cleanPhone = lead.phone.replace(/\D/g, '');
+    const hasPlus = lead.phone.includes('+') || (cleanPhone.length === 12 && cleanPhone.startsWith('91'));
+    
+    // Android dialers sometimes strip the literal '+' because they parse it as a space. Encode it as %2B.
+    if (hasPlus) cleanPhone = '%2B' + cleanPhone;
+
+    const a = document.createElement('a');
+    a.href = `tel:${cleanPhone}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col h-full bg-white dark:bg-slate-950">
@@ -121,79 +180,79 @@ export default function LeadDetailsPage() {
   }
 
   const temp = (temperatureConfig as any)[lead.status] || temperatureConfig.Cold;
-  const stage = (defaultStages as any)[lead.stage] || { color: 'bg-slate-100 text-slate-600', icon: User };
+  const stage = (defaultStages as any)[lead.stage] || { color: 'bg-slate-200/50 text-slate-600 dark:bg-slate-800 dark:text-slate-300', icon: User };
 
   return (
     <RoleGuard allowedFeatures={['leads']}>
-      <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:h-full bg-[var(--crm-bg)] overflow-hidden z-10">
+      <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:h-full bg-[var(--crm-surface-1)] overflow-hidden z-10">
       {/* Subtle Header */}
-      <div className="relative z-20 shrink-0 px-4 py-3 flex items-center justify-between border-b border-[var(--crm-border)] bg-[var(--crm-bg)]/80 backdrop-blur-md">
+      <div className="relative z-20 shrink-0 px-4 py-3 flex items-center justify-between border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]/80 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <button
             onClick={() => router.back()}
-            className="rounded-xl h-10 w-10 hover:bg-slate-50 dark:hover:bg-slate-900"
+            className="flex items-center justify-center rounded-full h-10 w-10 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
           >
-            <ChevronLeft className="h-6 w-6 text-slate-500" />
-          </Button>
+            <ChevronLeft className="h-6 w-6 text-[var(--crm-text-secondary)]" />
+          </button>
           <div className="min-w-0">
             <h1 className="text-[10px] font-bold uppercase tracking-widest text-[var(--crm-text-secondary)] mb-0.5">Lead Profile</h1>
             <p className="text-sm font-bold text-[var(--crm-text-primary)] leading-none truncate max-w-[150px]">{lead.name}</p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Button variant="ghost" size="icon" className="h-9 w-9 text-[var(--crm-text-secondary)] hover:text-primary rounded-[var(--r-lg)] transition-all">
-            <Edit2 className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9 text-[var(--crm-text-secondary)] hover:text-rose-500 rounded-[var(--r-lg)] transition-all">
-            <Trash2 className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center gap-1">
+          <button onClick={() => handleEdit(lead)} className="flex items-center justify-center h-10 w-10 rounded-full text-[var(--crm-text-secondary)] hover:text-primary transition-all bg-transparent hover:bg-transparent">
+            <Edit2 className="h-5 w-5" />
+          </button>
+          <button onClick={() => setDeleteConfirmation({ isOpen: true })} className="flex items-center justify-center h-10 w-10 rounded-full text-[var(--crm-text-secondary)] hover:text-rose-500 transition-all bg-transparent hover:bg-transparent">
+            <Trash2 className="h-5 w-5" />
+          </button>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto relative z-10 no-scrollbar pb-32">
         {/* Profile Header Area - Edge to Edge */}
-        <div className="px-5 pt-6 pb-8 border-b border-[var(--crm-border)] bg-[var(--crm-bg)]">
+        <div className="px-5 pt-6 pb-8 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
           <div className="flex flex-col sm:flex-row sm:items-center gap-5">
             <div className="flex-1 min-w-0">
-              <h2 className="text-2xl font-black text-[var(--crm-text-primary)] mb-3 truncate tracking-tight">{lead.name}</h2>
-              <div className="flex flex-wrap gap-2.5 items-center">
-                <Badge variant="secondary" className={cn("px-3 py-1 rounded-[var(--r-pill)] text-[11px] font-bold uppercase tracking-wider border-none shadow-none", stage.color)}>
-                  {lead.stage}
-                </Badge>
-                <div className={cn("inline-flex items-center px-3 py-1 rounded-[var(--r-pill)] text-[11px] font-bold uppercase tracking-wider", temp.color)}>
-                   {lead.status}
-                </div>
+              <h2 className="text-2xl font-bold text-[var(--crm-text-primary)] mb-2.5 truncate">{lead.name}</h2>
+              <div className="flex flex-wrap gap-2 items-center">
+                <span className={cn("px-2.5 py-0.5 rounded-full text-[11px] font-medium border-none shadow-none", stage.tonalClass || stage.color)}>
+                  {lead.stage || 'Unknown Stage'}
+                </span>
+                {lead.status && (
+                  <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium", temp.color)}>
+                     {lead.status}
+                  </span>
+                )}
               </div>
             </div>
           </div>
         </div>
 
         {/* Core Info Grid */}
-        <div className="p-0 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-0 sm:gap-6">
+        <div className="p-3 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
           {/* Quick Stats Section */}
-          <div className="bg-[var(--crm-surface-1)] sm:rounded-[var(--r-2xl)] border-b sm:border border-[var(--crm-border)]">
-            <div className="px-5 py-4 border-b border-[var(--crm-border)]">
-              <h3 className="text-[11px] font-black uppercase tracking-widest text-[var(--crm-text-secondary)]">Overview</h3>
+          <div className="bg-[var(--crm-surface-1)] rounded-[var(--r-2xl)] border border-[var(--crm-border)]/60 shadow-sm">
+            <div className="px-5 py-4 border-b border-[var(--crm-border)]/60">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Overview</h3>
             </div>
-            <div className="divide-y divide-[var(--crm-border)]">
+            <div className="divide-y divide-[var(--crm-border)]/60">
               <div className="p-4 flex items-center justify-between hover:bg-[var(--crm-surface-2)] transition-colors">
                 <div className="flex items-center gap-3 text-[var(--crm-text-secondary)]">
-                  <Wallet className="h-4 w-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Deal Value</span>
+                  <Wallet className="h-4 w-4 opacity-70" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Deal Value</span>
                 </div>
-                <div className="flex items-center gap-1 text-lg font-black text-[var(--crm-text-primary)]">
+                <div className="flex items-center gap-1 text-lg font-bold text-[var(--crm-text-primary)]">
                   <IndianRupee className="h-4 w-4 text-emerald-500/80" />
                   {lead.deal_value || 0}
                 </div>
               </div>
               <div className="p-4 flex items-center justify-between hover:bg-[var(--crm-surface-2)] transition-colors">
                 <div className="flex items-center gap-3 text-[var(--crm-text-secondary)]">
-                  <CheckCircle className="h-4 w-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Paid Amount</span>
+                  <CheckCircle className="h-4 w-4 opacity-70" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Paid Amount</span>
                 </div>
-                <div className="flex items-center gap-1 text-lg font-black text-emerald-600 dark:text-emerald-400">
+                <div className="flex items-center gap-1 text-lg font-bold text-emerald-600 dark:text-emerald-400">
                   <IndianRupee className="h-4 w-4 opacity-60" />
                   {lead.paid_amount || 0}
                 </div>
@@ -237,14 +296,14 @@ export default function LeadDetailsPage() {
           </div>
 
           {/* Contact Details */}
-          <div className="bg-[var(--crm-surface-1)] sm:rounded-[var(--r-2xl)] border-b sm:border border-[var(--crm-border)]">
-            <div className="px-5 py-4 border-b border-[var(--crm-border)] flex items-center justify-between">
-              <h3 className="text-[11px] font-black uppercase tracking-widest text-[var(--crm-text-secondary)]">Contact Details</h3>
+          <div className="bg-[var(--crm-surface-1)] rounded-[var(--r-2xl)] border border-[var(--crm-border)]/60 shadow-sm">
+            <div className="px-5 py-4 border-b border-[var(--crm-border)]/60 flex items-center justify-between">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Contact Details</h3>
               <Globe className="h-4 w-4 text-[var(--crm-text-secondary)] opacity-50" />
             </div>
             
-            <div className="divide-y divide-[var(--crm-border)]">
-              <div className="p-4 flex items-center gap-3 group cursor-pointer hover:bg-[var(--crm-surface-2)] transition-colors" onClick={() => window.open(`tel:${lead.phone}`, '_self')}>
+            <div className="divide-y divide-[var(--crm-border)]/60">
+              <div className="p-4 flex items-center gap-3 group cursor-pointer hover:bg-[var(--crm-surface-2)] transition-colors" onClick={handleCall}>
                 <Phone className="h-5 w-5 text-[var(--crm-text-secondary)] group-hover:text-primary transition-all shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tight mb-0.5">Personal Phone</p>
@@ -271,13 +330,13 @@ export default function LeadDetailsPage() {
           </div>
 
           {/* Background Info */}
-          <div className="bg-[var(--crm-surface-1)] sm:rounded-[var(--r-2xl)] border-b sm:border border-[var(--crm-border)]">
-            <div className="px-5 py-4 border-b border-[var(--crm-border)] flex items-center justify-between">
-              <h3 className="text-[11px] font-black uppercase tracking-widest text-[var(--crm-text-secondary)]">Background</h3>
+          <div className="bg-[var(--crm-surface-1)] rounded-[var(--r-2xl)] border border-[var(--crm-border)]/60 shadow-sm">
+            <div className="px-5 py-4 border-b border-[var(--crm-border)]/60 flex items-center justify-between">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Background</h3>
               <Briefcase className="h-4 w-4 text-[var(--crm-text-secondary)] opacity-50" />
             </div>
             
-            <div className="divide-y divide-[var(--crm-border)]">
+            <div className="divide-y divide-[var(--crm-border)]/60">
               <div className="p-4 flex items-center gap-3 hover:bg-[var(--crm-surface-2)] transition-colors">
                 <Briefcase className="h-5 w-5 text-[var(--crm-text-secondary)] shrink-0" />
                 <div className="flex-1 min-w-0">
@@ -307,9 +366,9 @@ export default function LeadDetailsPage() {
 
         {/* Notes Section */}
         {lead.notes && (
-          <div className="bg-[var(--crm-surface-1)] sm:rounded-[var(--r-2xl)] border-b sm:border border-[var(--crm-border)] mt-0 sm:mt-6">
-            <div className="px-5 py-4 border-b border-[var(--crm-border)] flex items-center justify-between">
-              <h3 className="text-[11px] font-black uppercase tracking-widest text-[var(--crm-text-secondary)]">Internal Notes</h3>
+          <div className="mx-3 sm:mx-6 mb-3 sm:mb-6 bg-[var(--crm-surface-1)] rounded-[var(--r-2xl)] border border-[var(--crm-border)]/60 shadow-sm mt-0 sm:mt-0">
+            <div className="px-5 py-4 border-b border-[var(--crm-border)]/60 flex items-center justify-between">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Internal Notes</h3>
               <MessageSquare className="h-4 w-4 text-[var(--crm-text-secondary)] opacity-50" />
             </div>
             <div className="p-6">
@@ -352,11 +411,11 @@ export default function LeadDetailsPage() {
       </div>
 
       {/* Floating Action Bar - Ultra Clean */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 px-5 pb-6 pt-4 bg-gradient-to-t from-[var(--crm-bg)] via-[var(--crm-bg)] to-transparent pointer-events-none">
+      <div className="fixed bottom-0 left-0 right-0 z-50 px-5 pb-6 pt-4 bg-gradient-to-t from-[var(--crm-surface-1)] via-[var(--crm-surface-1)] to-transparent pointer-events-none">
         <div className="flex items-center justify-center gap-4 w-full max-w-sm mx-auto pointer-events-auto">
-          <Button 
-            className="h-14 w-14 p-0 text-white rounded-full flex items-center justify-center transition-all active:scale-95 shrink-0 border-none"
-            style={{ backgroundColor: '#25D366', boxShadow: '0 10px 15px -3px rgba(37, 211, 102, 0.3)' }}
+          <button 
+            className="h-14 w-14 p-0 text-white rounded-full flex items-center justify-center transition-all hover:opacity-90 active:scale-95 shrink-0 shadow-lg"
+            style={{ backgroundColor: '#25D366', boxShadow: '0 8px 16px -4px rgba(37, 211, 102, 0.3)' }}
             onClick={() => {
               const phone = lead.phone.replace(/\D/g, '');
               window.open(`https://wa.me/${phone}`, '_blank');
@@ -365,16 +424,34 @@ export default function LeadDetailsPage() {
             <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7 text-white">
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
             </svg>
-          </Button>
-          <Button 
-            variant="outline"
-            className="h-14 w-14 p-0 border-[var(--crm-border)] text-[var(--crm-text-primary)] rounded-full hover:bg-[var(--crm-surface-2)] transition-all active:scale-95 flex items-center justify-center bg-[var(--crm-surface-1)] shadow-lg shadow-slate-200/20 shrink-0"
-            onClick={() => window.open(`tel:${lead.phone}`, '_self')}
+          </button>
+          <button 
+            className="h-14 w-14 p-0 border border-[var(--crm-border)]/60 text-[var(--crm-text-primary)] rounded-full hover:bg-[var(--crm-surface-2)] transition-all active:scale-95 flex items-center justify-center bg-[var(--crm-surface-1)] shadow-sm shrink-0"
+            onClick={handleCall}
           >
             <Phone className="h-6 w-6" />
-          </Button>
+          </button>
         </div>
       </div>
+
+      <EditLeadDialog
+        isOpen={showEditLead}
+        onOpenChange={setShowEditLead}
+        lead={editingLead as any}
+        setLead={setEditingLead as any}
+        stages={defaultStages}
+        isUpdating={isUpdating}
+        onUpdate={handleUpdateSubmit as any}
+        onCancel={() => setShowEditLead(false)}
+      />
+
+      <DeleteConfirmationDialog
+        isOpen={deleteConfirmation.isOpen}
+        onOpenChange={(isOpen) => setDeleteConfirmation({ isOpen })}
+        leadName={lead.name}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirmation({ isOpen: false })}
+      />
     </div>
     </RoleGuard>
   )

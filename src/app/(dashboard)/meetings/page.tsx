@@ -128,6 +128,14 @@ function MeetingsSkeleton() {
   )
 }
 
+const formatPhoneForDialer = (phone?: string) => {
+  if (!phone) return '';
+  let cleanPhone = phone.replace(/\D/g, '');
+  const hasPlus = phone.includes('+') || (cleanPhone.length === 12 && cleanPhone.startsWith('91'));
+  if (hasPlus) cleanPhone = '%2B' + cleanPhone;
+  return cleanPhone;
+};
+
 // ─── Time Slot Picker ──────────────────────────────────────────────────────────
 
 const TIME_SLOTS = Array.from({ length: 96 }, (_, i) => {
@@ -294,7 +302,7 @@ function MeetingDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-16px)] sm:w-full max-w-4xl p-0 bg-white dark:bg-slate-900 border-none shadow-[0_24px_80px_-16px_rgba(30,45,107,0.35)] rounded-[20px] sm:rounded-[24px] gap-0 [&>button]:hidden">
+      <DialogContent className="w-screen h-[100dvh] max-w-none sm:w-full sm:max-w-4xl sm:h-auto p-0 bg-white dark:bg-slate-900 border-none shadow-none sm:shadow-[0_24px_80px_-16px_rgba(30,45,107,0.35)] rounded-none sm:rounded-[24px] gap-0 [&>button]:hidden flex flex-col">
 
         {/* Tinted Gradient Header */}
         <div className="relative p-4 sm:p-6 sm:pb-7 bg-gradient-to-br from-primary/10 via-primary/[0.04] to-transparent dark:from-primary/20 dark:via-primary/[0.06] border-b border-[var(--crm-border)]">
@@ -335,7 +343,7 @@ function MeetingDetailDialog({
         </div>
 
         {/* 2-Column Body — scrolls on mobile, dual-column fixed-height on desktop */}
-        <div className="p-3 sm:p-5 max-h-[80vh] overflow-y-auto lg:overflow-hidden lg:h-[min(680px,80vh)] lg:max-h-none custom-scrollbar">
+        <div className="flex-1 sm:flex-none p-3 sm:p-5 sm:max-h-[80vh] overflow-y-auto lg:overflow-hidden lg:h-[min(680px,80vh)] lg:max-h-none custom-scrollbar">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-5 lg:h-full">
 
             {/* Left Column: Details (scrolls independently on desktop) */}
@@ -720,13 +728,14 @@ function MeetingDetailDialog({
 
 // ─── Meeting Card (Upcoming) ───────────────────────────────────────────────────
 
-function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Meeting) => void }) {
+function MeetingCard({ meeting, team, onSelect, onUpdate }: { meeting: Meeting; team: TeamMember[]; onSelect: (m: Meeting) => void; onUpdate: (m: Meeting) => Promise<void> }) {
   const { theme, resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark' || theme === 'dark'
   const typeInfo = meetingTypeConfig[meeting.type] ?? meetingTypeConfig.video
   const TypeIcon = typeInfo.icon
   const statusInfo = statusConfig[meeting.status] ?? statusConfig.confirmed
   const initials = (name?: string | null) => (name || '').split(' ').filter(Boolean).map(n => n[0].toUpperCase()).join('')
+  const [isUpdatingHost, setIsUpdatingHost] = useState(false)
 
   return (
     <div
@@ -770,19 +779,46 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
             <Clock className="h-3 w-3 shrink-0" />
             <span>{meeting.time} · {meeting.duration}</span>
           </div>
-          {meeting.agent && (
-            <div
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border"
-              style={{
-                backgroundColor: isDark ? getAgentColor(meeting.agent.id).bgDark : getAgentColor(meeting.agent.id).bg,
-                color: isDark ? getAgentColor(meeting.agent.id).textDark : getAgentColor(meeting.agent.id).text,
-                borderColor: isDark ? getAgentColor(meeting.agent.id).borderDark : getAgentColor(meeting.agent.id).border,
+          <div onClick={(e) => e.stopPropagation()} className="inline-flex">
+            <Select
+              value={meeting.agent ? team.find(t => t.id === meeting.agent?.id)?.email : undefined}
+              onValueChange={async (v) => {
+                const newHost = team.find(t => t.email === v)
+                if (!newHost || newHost.id === meeting.agent?.id) return
+                setIsUpdatingHost(true)
+                try {
+                  await onUpdate({ ...meeting, assignedTo: newHost, agent: { id: newHost.id, name: newHost.name } })
+                } finally {
+                  setIsUpdatingHost(false)
+                }
               }}
+              disabled={isUpdatingHost}
             >
-              <Users className="h-3 w-3 opacity-70" />
-              <span>Host: {meeting.agent.name}</span>
-            </div>
-          )}
+              <SelectTrigger
+                className="h-auto py-0.5 px-2 rounded-md focus:ring-0 shadow-none text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1 w-auto hover:brightness-95 transition-all outline-none"
+                style={{
+                  backgroundColor: meeting.agent ? (isDark ? getAgentColor(meeting.agent.id).bgDark : getAgentColor(meeting.agent.id).bg) : (isDark ? 'var(--crm-surface-2)' : '#f1f5f9'),
+                  color: meeting.agent ? (isDark ? getAgentColor(meeting.agent.id).textDark : getAgentColor(meeting.agent.id).text) : 'var(--crm-text-secondary)',
+                  border: `1px solid ${meeting.agent ? (isDark ? getAgentColor(meeting.agent.id).borderDark : getAgentColor(meeting.agent.id).border) : 'var(--crm-border)'}`,
+                }}
+              >
+                {isUpdatingHost ? <Loader2 className="h-3 w-3 animate-spin opacity-70 shrink-0" /> : <Users className="h-3 w-3 opacity-70 shrink-0" />}
+                <span className="truncate max-w-[120px]">Host: {meeting.agent?.name || 'Unassigned'}</span>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-[var(--crm-border)] z-[200]" position="popper">
+                {team.filter(m => !m.status || m.status.toLowerCase() !== 'invited').map(m => (
+                  <SelectItem key={m.id} value={m.email} className="rounded-lg py-1.5 cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <div className="h-5 w-5 rounded-full flex items-center justify-center text-white text-[9px] font-bold" style={{ backgroundColor: getAgentColor(m.id).bg }}>
+                        {initials(m.name)}
+                      </div>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">{m.name || m.email}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -805,7 +841,7 @@ function MeetingCard({ meeting, onSelect }: { meeting: Meeting; onSelect: (m: Me
           {meeting.lead.phone && (
             <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
               <a
-                href={`tel:${meeting.lead.phone}`}
+                href={`tel:${formatPhoneForDialer(meeting.lead.phone)}`}
                 className="flex items-center justify-center h-7 w-7 rounded-full border border-indigo-100 dark:border-indigo-800/50 bg-primary/5 hover:bg-primary/20 text-primary dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-400 transition-all duration-200 shadow-sm"
                 title={`Call ${meeting.lead.name}`}
               >
@@ -1305,7 +1341,7 @@ export default function MeetingsPage() {
                         </div>
                         <div className="space-y-3">
                           {dayMeetings.map(m => (
-                            <MeetingCard key={m.id} meeting={m} onSelect={openMeeting} />
+                            <MeetingCard key={m.id} meeting={m} team={team} onSelect={openMeeting} onUpdate={handleMeetingUpdate} />
                           ))}
                         </div>
                       </div>
@@ -1378,7 +1414,7 @@ export default function MeetingsPage() {
                                       {m.lead.phone && (
                                         <div className="flex items-center gap-1 inline-flex shrink-0">
                                           <a
-                                            href={`tel:${m.lead.phone}`}
+                                            href={`tel:${formatPhoneForDialer(m.lead.phone)}`}
                                             className="flex items-center justify-center p-1 rounded-full text-[var(--crm-text-tertiary)] hover:text-primary hover:bg-primary/10 dark:hover:bg-indigo-900/30 transition-colors"
                                             title={`Call ${m.lead.name}`}
                                           >

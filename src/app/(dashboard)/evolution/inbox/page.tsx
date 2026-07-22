@@ -15,7 +15,7 @@ import {
   CheckCheck, MessageSquare, AlertCircle,
   ChevronLeft,
   Sparkles, Zap, ShieldCheck,
-  Paperclip, Smile, ExternalLink
+  Paperclip, Smile, ExternalLink, Trash2
 } from 'lucide-react'
 import {
   evolutionApi
@@ -47,6 +47,7 @@ interface Message {
 interface ChatUser {
   id: string | number;
   name: string;
+  phone?: string;
   email: string;
   avatar: string;
   company: string;
@@ -69,6 +70,7 @@ export default function LiveChatPage() {
   const [message, setMessage] = useState('')
   const [chats, setChats] = useState<Chat[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoadingChats, setIsLoadingChats] = useState(true)
@@ -145,6 +147,7 @@ export default function LiveChatPage() {
         user: {
           id: contact?.id as string | number || '',
           name: (contact?.name || contact?.phone || 'Unknown') as string,
+          phone: (contact?.phone || '') as string,
           email: '',
           avatar: (contact?.profile_picture || '') as string,
           company: contact?.is_business ? 'Business' : 'WhatsApp Contact',
@@ -241,6 +244,26 @@ export default function LiveChatPage() {
       ))
     } finally {
       setIsSending(false)
+    }
+  }
+
+  const handleDeleteConversation = async () => {
+    if (!activeChat) return
+    
+    const confirmDelete = window.confirm("Are you sure you want to delete this conversation? This action cannot be undone.")
+    if (!confirmDelete) return
+
+    try {
+      setIsDeleting(true)
+      await evolutionApi.deleteConversation(Number(activeChat.id))
+      toast.success('Conversation deleted successfully')
+      setActiveChat(null)
+      fetchActiveConversations()
+    } catch (error) {
+      console.error('Error deleting conversation:', error)
+      toast.error('Failed to delete conversation')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -450,8 +473,19 @@ export default function LiveChatPage() {
                       <Button variant="outline" size="icon" className="h-9 w-9 rounded-[var(--r-md)] border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)]">
                         <Phone className="h-4 w-4 text-[var(--crm-text-secondary)]" />
                       </Button>
-                      <Button variant="outline" size="icon" className="h-9 w-9 rounded-[var(--r-md)] border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)]">
-                        <Video className="h-4 w-4 text-[var(--crm-text-secondary)]" />
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={handleDeleteConversation}
+                        disabled={isDeleting}
+                        className="h-9 w-9 rounded-[var(--r-md)] border-[var(--crm-border)] hover:bg-red-50 hover:border-red-200 hover:text-red-600 group transition-colors"
+                        title="Delete Conversation"
+                      >
+                        {isDeleting ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-red-500" />
+                        ) : (
+                          <Trash2 className="h-4 w-4 text-[var(--crm-text-secondary)] group-hover:text-red-500" />
+                        )}
                       </Button>
                       <Separator orientation="vertical" className="h-6 mx-1 bg-[var(--crm-border)]" />
                     </div>
@@ -731,6 +765,10 @@ export default function LiveChatPage() {
                     </div>
 
                     <div className="space-y-3">
+                      <div className="space-y-0.5">
+                        <Label className="text-[10px] uppercase tracking-widest text-[var(--crm-text-tertiary)]">Phone Number</Label>
+                        <p className="text-[13px] font-medium text-[var(--crm-text-primary)]">{activeChat.user.phone || 'N/A'}</p>
+                      </div>
                       <div className="space-y-0.5">
                         <Label className="text-[10px] uppercase tracking-widest text-[var(--crm-text-tertiary)]">Email Address</Label>
                         <p className="text-[13px] font-medium text-[var(--crm-text-primary)] truncate">{activeChat.user.email || 'N/A'}</p>

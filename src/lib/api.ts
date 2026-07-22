@@ -2248,6 +2248,10 @@ export const evolutionApi = {
     });
     return response.data;
   },
+  deleteConversation: async (conversationId: number) => {
+    const response = await api.delete(`/evolution/inbox/conversations/${conversationId}`);
+    return response.data;
+  },
   clearSession: async (conversationId: number) => {
     const response = await api.post('/evolution/inbox/session/clear', {
       conversation_id: conversationId,

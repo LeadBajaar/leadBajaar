@@ -8,11 +8,11 @@ export function ModeToggle() {
 
   return (
     <button
-      className="flex items-center justify-center h-9 w-9 rounded-full border border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] transition-all"
+      className="flex items-center justify-center h-10 w-10 rounded-full text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] transition-all bg-transparent hover:bg-transparent"
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
       aria-label="Toggle theme"
     >
-      <i className={`ti ${theme === 'dark' ? 'ti-sun' : 'ti-moon'} text-base`} aria-hidden="true" />
+      <i className={`ti ${theme === 'dark' ? 'ti-sun' : 'ti-moon'} text-[22px]`} aria-hidden="true" />
     </button>
   )
 }

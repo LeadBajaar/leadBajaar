@@ -50,14 +50,14 @@ export const DealValueDialog: React.FC<DealValueDialogProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[450px]">
-        <DialogHeader>
+      <DialogContent className="max-w-[450px] max-sm:!max-w-none max-sm:w-full max-sm:h-[100dvh] max-sm:!max-h-[100dvh] max-sm:!rounded-none max-sm:border-0 max-sm:!left-0 max-sm:!top-0 max-sm:!translate-x-0 max-sm:!translate-y-0 max-sm:flex max-sm:flex-col max-sm:overflow-y-auto">
+        <DialogHeader className="max-sm:text-left">
           <DialogTitle>Contract Details</DialogTitle>
           <DialogDescription>
             Set the agreement details for {leadName}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-6 py-4">
+        <div className="grid gap-6 py-4 max-sm:flex-1 max-sm:content-start">
           <div className="grid gap-2">
             <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Deal Amount (Contract Value)</Label>
             <div className="relative">
@@ -118,14 +118,14 @@ export const DealValueDialog: React.FC<DealValueDialogProps> = ({
             </div>
           )}
         </div>
-        <DialogFooter className="gap-2 sm:gap-0 border-t pt-4">
-          <Button variant="outline" onClick={onCancel}>
+        <DialogFooter className="gap-2 sm:gap-0 border-t pt-4 max-sm:mt-auto">
+          <Button variant="outline" onClick={onCancel} className="max-sm:h-11">
             Cancel
           </Button>
           <Button
             onClick={onSave}
             disabled={!dealValueAmount || isSaving}
-            className="bg-primary hover:bg-primary/90 font-bold"
+            className="bg-primary hover:bg-primary/90 font-bold max-sm:h-11"
           >
             {isSaving ? (
               <>

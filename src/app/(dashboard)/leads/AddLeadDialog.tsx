@@ -47,7 +47,7 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[500px] max-h-[85vh] flex flex-col p-0 overflow-hidden bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-[var(--r-xl)] shadow-lg">
+      <DialogContent className="max-w-[500px] max-h-[85vh] max-sm:!max-w-none max-sm:w-full max-sm:h-[100dvh] max-sm:!max-h-[100dvh] max-sm:!rounded-none max-sm:border-0 max-sm:!left-0 max-sm:!top-0 max-sm:!translate-x-0 max-sm:!translate-y-0 flex flex-col p-0 overflow-hidden bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-[var(--r-xl)] shadow-lg">
         <DialogHeader className="px-6 py-4 border-b border-[var(--crm-border)]">
           <DialogTitle>Add New Lead</DialogTitle>
           <DialogDescription>

@@ -41,8 +41,8 @@ export function AssignAgentDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[400px] max-sm:!max-w-none max-sm:w-full max-sm:h-[100dvh] max-sm:!max-h-[100dvh] max-sm:!rounded-none max-sm:border-0 max-sm:!left-0 max-sm:!top-0 max-sm:!translate-x-0 max-sm:!translate-y-0 max-sm:flex max-sm:flex-col max-sm:overflow-y-auto">
+        <DialogHeader className="max-sm:text-left">
           <DialogTitle className="flex items-center gap-2">
             <UserCheck className="h-5 w-5 text-purple-500" />
             Assign Lead to Agent
@@ -52,11 +52,11 @@ export function AssignAgentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4 py-4 max-sm:flex-1 max-sm:content-start">
           <div className="space-y-2">
             <Label htmlFor="agent">Select Agent</Label>
             <Select onValueChange={setSelectedAgent} value={selectedAgent}>
-              <SelectTrigger id="agent">
+              <SelectTrigger id="agent" className="max-sm:h-11">
                 <SelectValue placeholder="Choose an agent..." />
               </SelectTrigger>
               <SelectContent>
@@ -94,14 +94,14 @@ export function AssignAgentDialog({
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>
+        <DialogFooter className="max-sm:mt-auto max-sm:gap-2">
+          <Button variant="outline" onClick={onCancel} className="max-sm:h-11">
             Cancel
           </Button>
-          <Button 
-            onClick={() => onAssign(selectedAgent)} 
+          <Button
+            onClick={() => onAssign(selectedAgent)}
             disabled={!selectedAgent || isAssigning}
-            className="bg-purple-600 hover:bg-purple-700"
+            className="bg-purple-600 hover:bg-purple-700 max-sm:h-11"
           >
             {isAssigning ? (
               <>

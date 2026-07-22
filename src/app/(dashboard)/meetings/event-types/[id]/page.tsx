@@ -377,7 +377,7 @@ export default function EventTypeForm() {
                    <QuestionsTab eventType={eventType} setEventType={setEventType} addQuestion={addQuestion} updateQuestion={(index: number, field: string, value: any) => updateQuestion(index, field as keyof Question, value)} removeQuestion={removeQuestion} handleQuestionDragEnd={handleQuestionDragEnd} sensors={sensors} />
                 </TabsContent>
                 <TabsContent value="scheduling" className="m-0">
-                   <SchedulingTab eventType={eventType} updateScheduling={(field: string, value: any) => updateScheduling(field as keyof SchedulingSettings, value)} />
+                   <SchedulingTab eventType={eventType} updateScheduling={(field: string, value: any) => updateScheduling(field as keyof SchedulingSettings, value)} updateEventField={(field: string, value: any) => setEventType({ ...eventType, [field]: value })} />
                 </TabsContent>
                 <TabsContent value="team" className="m-0">
                    <TeamTab eventType={eventType} toggleTeamMember={toggleTeamMember} />

@@ -41,6 +41,7 @@ interface LeadsFiltersProps {
   stages: Record<string, any>;
   viewMode: 'table' | 'kanban';
   setViewMode: (mode: 'table' | 'kanban') => void;
+  onOpenMobileFilters?: () => void;
 }
 
 export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
@@ -57,8 +58,16 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
   openFacebookRetrieval,
   stages,
   viewMode,
-  setViewMode
+  setViewMode,
+  onOpenMobileFilters
 }) => {
+  const mobileActiveFiltersCount =
+    (filters.status.length > 0 ? 1 : 0) +
+    (filters.stage.length > 0 ? 1 : 0) +
+    (filters.source.length > 0 ? 1 : 0) +
+    (filters.dateRange ? 1 : 0) +
+    (filters.createdAt ? 1 : 0);
+
   return (
     <div className="shrink-0 flex flex-col border-b" style={{ borderColor: 'var(--crm-border)' }}>
       {/* Row 1: Search and Main Actions */}
@@ -75,17 +84,33 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
                 placeholder="Search leads..."
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="crm-input !pl-8 h-8 text-[12px]"
+                className="crm-input !pl-8 h-10 sm:h-8 text-[16px] sm:text-[12px] rounded-xl sm:rounded-[var(--r-md)] pr-8 sm:bg-[var(--crm-surface-2)] bg-transparent border border-[var(--crm-border)]/60 sm:border-transparent"
               />
+              {filters.search && (
+                <button
+                  onClick={() => handleFilterChange('search', '')}
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full bg-[var(--crm-surface-3)] flex items-center justify-center text-[var(--crm-text-tertiary)] hover:text-[var(--crm-text-primary)] transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
             </div>
 
-            {/* Mobile-only Add Lead button */}
-            <button
-              onClick={() => setShowNewLead?.(true)}
-              className="btn btn-primary sm:hidden shrink-0 w-9 h-9 p-0 justify-center"
-            >
-              <i className="ti ti-plus" />
-            </button>
+            {/* Mobile-only filter button (Add Lead lives in the floating action button) */}
+            <div className="sm:hidden flex items-center shrink-0">
+              <button
+                onClick={() => onOpenMobileFilters?.()}
+                className="relative btn btn-ghost w-11 h-11 p-0 justify-center rounded-full text-[var(--crm-text-secondary)]"
+              >
+                <Filter className="h-[22px] w-[22px]" />
+                {mobileActiveFiltersCount > 0 && (
+                  <span className="absolute top-0 right-0 h-4 min-w-4 px-0.5 rounded-full bg-[var(--crm-accent)] text-white text-[9px] font-bold flex items-center justify-center">
+                    {mobileActiveFiltersCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Desktop Actions */}
@@ -393,6 +418,36 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
         </div>
       </div>
 
+      {/* Mobile-only quick actions row */}
+      <div className="sm:hidden flex items-center gap-2 px-3 pb-2 overflow-x-auto no-scrollbar">
+        {setShowExportDialog && (
+          <button
+            onClick={() => setShowExportDialog(true)}
+            className="h-9 px-3.5 rounded-full bg-[var(--crm-surface-2)] text-[12px] font-medium text-[var(--crm-text-primary)] flex items-center gap-1.5 whitespace-nowrap shrink-0 active:scale-[0.97] transition-transform"
+          >
+            <i className="ti ti-download text-[15px] text-[var(--crm-text-tertiary)]" />
+            Export
+          </button>
+        )}
+        {handleImportClick && (
+          <button
+            onClick={() => handleImportClick()}
+            className="h-9 px-3.5 rounded-full bg-[var(--crm-surface-2)] text-[12px] font-medium text-[var(--crm-text-primary)] flex items-center gap-1.5 whitespace-nowrap shrink-0 active:scale-[0.97] transition-transform"
+          >
+            <i className="ti ti-upload text-[15px] text-[var(--crm-text-tertiary)]" />
+            Import
+          </button>
+        )}
+        {setShowStageManager && (
+          <button
+            onClick={() => setShowStageManager(true)}
+            className="h-9 px-3.5 rounded-full bg-[var(--crm-surface-2)] text-[12px] font-medium text-[var(--crm-text-primary)] flex items-center gap-1.5 whitespace-nowrap shrink-0 active:scale-[0.97] transition-transform"
+          >
+            <i className="ti ti-settings text-[15px] text-[var(--crm-text-tertiary)]" />
+            Stages
+          </button>
+        )}
+      </div>
     </div>
   )
 }
