@@ -8,6 +8,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -48,7 +56,7 @@ export function NotificationBell() {
   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [activePromotion, setActivePromotion] = useState<any>(null);
+  const [activePromotions, setActivePromotions] = useState<any[]>([]);
   const hasShownModalThisMount = useRef(false);
 
   // Check if subscription is expired or suspended
@@ -94,12 +102,24 @@ export function NotificationBell() {
     }
   };
 
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    description: "",
+    onConfirm: () => {},
+  });
+
   const markAsRead = async (notificationIds: number[]) => {
     try {
       await api.post('/notifications/mark-read', { notification_ids: notificationIds });
-      setNotifications(prev =>
-        prev.map((n: Notification) => notificationIds.includes(n.id) ? { ...n, is_read: true } : n)
-      );
+      setNotifications(prev => prev.map(n => 
+        notificationIds.includes(n.id) ? { ...n, is_read: true } : n
+      ));
       setUnreadCount(prev => Math.max(0, prev - notificationIds.length));
     } catch (error) {
       console.error('Error marking notifications as read:', error);
@@ -109,14 +129,14 @@ export function NotificationBell() {
   const markAllAsRead = async () => {
     try {
       await api.post('/notifications/mark-all-read');
-      setNotifications(prev => prev.map((n: Notification) => ({ ...n, is_read: true })));
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
       setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
   };
 
-  const deleteNotification = async (notificationId: number) => {
+  const executeDeleteNotification = async (notificationId: number) => {
     try {
       await api.delete(`/notifications/${notificationId}`);
       setNotifications(prev => {
@@ -129,7 +149,16 @@ export function NotificationBell() {
     }
   };
 
-  const clearAllNotifications = async () => {
+  const deleteNotification = (notificationId: number) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Notification",
+      description: "Are you sure you want to delete this notification?",
+      onConfirm: () => executeDeleteNotification(notificationId)
+    });
+  };
+
+  const executeClearAllNotifications = async () => {
     try {
       await api.delete('/notifications/clear-all');
       setNotifications([]);
@@ -139,6 +168,15 @@ export function NotificationBell() {
     }
   };
 
+  const clearAllNotifications = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Clear All Notifications",
+      description: "Are you sure you want to clear all notifications? This action cannot be undone.",
+      onConfirm: () => executeClearAllNotifications()
+    });
+  };
+
   useEffect(() => {
     fetchNotifications(true);
     intervalRef.current = setInterval(() => fetchNotifications(false), 30000);
@@ -146,45 +184,43 @@ export function NotificationBell() {
   }, []);
 
   useEffect(() => {
-    if (loading || notifications.length === 0 || activePromotion) return;
+    if (loading || notifications.length === 0 || activePromotions.length > 0) return;
 
     const modalNotifications = notifications.filter(n => n.type === 'platform_modal' && !n.is_read);
     
     if (modalNotifications.length > 0) {
-      const latestModal = modalNotifications[0];
-      const data = latestModal.data || {};
-      const frequency = data.frequency || 'once';
-      const storageKey = `promo_shown_${latestModal.id}`;
+      const validPromotions: any[] = [];
       
-      if (frequency === 'session') {
-        if (!sessionStorage.getItem(storageKey)) {
-          setActivePromotion(latestModal);
-          sessionStorage.setItem(storageKey, 'true');
+      modalNotifications.forEach(modal => {
+        const data = modal.data || {};
+        const frequency = data.frequency || 'once';
+        const storageKey = `promo_shown_${modal.id}`;
+        
+        if (frequency === 'session') {
+          if (!sessionStorage.getItem(storageKey)) {
+            validPromotions.push(modal);
+            sessionStorage.setItem(storageKey, 'true');
+          }
+        } else if (frequency === 'always') {
+          // 'always' modals show every time the bell mounts
+          validPromotions.push(modal);
+        } else {
+          // 'once'
+          validPromotions.push(modal);
         }
-      } else if (frequency === 'always') {
+      });
+      
+      if (validPromotions.length > 0) {
         if (!hasShownModalThisMount.current) {
-          setActivePromotion(latestModal);
-          hasShownModalThisMount.current = true;
+           hasShownModalThisMount.current = true;
         }
-      } else {
-        // 'once'
-        setActivePromotion(latestModal);
+        setActivePromotions(validPromotions);
       }
     }
   }, [notifications, loading]);
 
   const handleClosePromotion = () => {
-    if (activePromotion) {
-      const data = activePromotion.data || {};
-      const frequency = data.frequency || 'once';
-      
-      // If it's a 'once' promotion, mark as read in DB so it doesn't show again
-      if (frequency === 'once') {
-        markAsRead([activePromotion.id]);
-      }
-      
-      setActivePromotion(null);
-    }
+    setActivePromotions([]);
   };
 
   const getNotificationConfig = (type: string) => {
@@ -375,13 +411,43 @@ export function NotificationBell() {
         </div>
       </PopoverContent>
     </Popover>
-    {activePromotion && (
-      <PromotionModal 
-        notification={activePromotion} 
-        onClose={handleClosePromotion} 
-      />
-    )}
+      {activePromotions.length > 0 && (
+        <PromotionModal 
+          notifications={activePromotions} 
+          onClose={handleClosePromotion}
+          onMarkAsRead={(id) => markAsRead([id])}
+        />
+      )}
+
+      <Dialog open={confirmModal.isOpen} onOpenChange={(open) => setConfirmModal(prev => ({ ...prev, isOpen: open }))}>
+        <DialogContent className="sm:max-w-[400px] bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-xl">
+          <DialogHeader>
+            <DialogTitle className="text-[var(--crm-text-primary)] font-black">{confirmModal.title}</DialogTitle>
+            <DialogDescription className="text-[var(--crm-text-secondary)] mt-2">
+              {confirmModal.description}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+              className="rounded-lg text-[10px] font-bold uppercase tracking-wider"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                confirmModal.onConfirm();
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+              }}
+              className="rounded-lg text-[10px] font-bold uppercase tracking-wider bg-red-500 hover:bg-red-600 text-white"
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
-

@@ -10,7 +10,7 @@ export interface EventType {
   type?: 'one_on_one' | 'group'
   max_invitees?: number | null
   max_bookings_per_invitee?: number | null
-  invitee_booking_limit_timeframe?: 'ACTIVE' | 'PER_WEEK' | 'PER_MONTH'
+  invitee_booking_limit_timeframe?: 'ACTIVE' | 'PER_DAY' | 'PER_WEEK' | 'PER_MONTH'
   color?: string
   questions: Question[]
   scheduling: {

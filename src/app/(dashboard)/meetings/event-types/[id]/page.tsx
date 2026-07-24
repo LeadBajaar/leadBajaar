@@ -188,6 +188,8 @@ export default function EventTypeForm() {
           location: data.location || 'video',
           type: data.type || 'one_on_one',
           max_invitees: data.max_invitees || null,
+          max_bookings_per_invitee: data.max_bookings_per_invitee || null,
+          invitee_booking_limit_timeframe: data.invitee_booking_limit_timeframe || 'ACTIVE',
           questions: data.questions || [],
           scheduling: {
             bufferBefore: data.scheduling?.bufferBefore || 0,

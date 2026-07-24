@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { adminApi, integrationApi } from '@/lib/api'
 import { RoleGuard } from '@/components/RoleGuard'
+import { PromotionModal } from '@/components/promotion-modal'
 import {
   Card,
   CardContent,
@@ -91,7 +92,11 @@ import {
   UserPlus,
   Calendar,
   Megaphone,
-  Image as ImageIcon
+  Image as ImageIcon,
+  AlertCircle,
+  Send,
+  Eye,
+  Info
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -231,6 +236,12 @@ export default function SuperAdminPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [plans, setPlans] = useState<PlanDefinition[]>(initialPlans)
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Preview broadcast modal state
+  const [previewBroadcast, setPreviewBroadcast] = useState<any>(null)
+  
+  // Details broadcast modal state
+  const [detailsBroadcast, setDetailsBroadcast] = useState<any>(null)
   const [activeTab, setActiveTab] = useState('companies')
   const [editingPlan, setEditingPlan] = useState<PlanDefinition | null>(null)
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false)
@@ -289,7 +300,8 @@ export default function SuperAdminPage() {
   const [broadcastData, setBroadcastData] = useState({
     title: '',
     message: '',
-    type: 'info',
+    category: 'Announcement',
+    type: 'info' as 'info' | 'warning' | 'success',
     target: 'all' as 'all' | 'company',
     company_ids: [] as number[],
     image_url: '',
@@ -297,7 +309,8 @@ export default function SuperAdminPage() {
     frequency: 'once' as 'once' | 'session' | 'always',
     cta_text: '',
     cta_link: '',
-    expires_at: ''
+    expires_at: '',
+    allow_snooze: true
   })
   const [isSendingBroadcast, setIsSendingBroadcast] = useState(false)
   const [broadcastHistory, setBroadcastHistory] = useState<any[]>([])
@@ -343,6 +356,7 @@ export default function SuperAdminPage() {
       setBroadcastData({
         title: '',
         message: '',
+        category: 'Announcement',
         type: 'info',
         target: 'all',
         company_ids: [],
@@ -351,7 +365,8 @@ export default function SuperAdminPage() {
         frequency: 'once',
         cta_text: '',
         cta_link: '',
-        expires_at: ''
+        expires_at: '',
+        allow_snooze: true
       })
       
       fetchData()
@@ -359,6 +374,27 @@ export default function SuperAdminPage() {
       toast.error("Broadcast Failed", { description: error.message })
     } finally {
       setIsSendingBroadcast(false)
+    }
+  }
+
+  const handleToggleBroadcastStatus = async (id: number) => {
+    try {
+      await adminApi.toggleBroadcastStatus(id);
+      toast.success("Broadcast Status Updated", { description: "The broadcast has been stopped." });
+      fetchData();
+    } catch (error: any) {
+      toast.error("Status Update Failed", { description: error.message });
+    }
+  }
+
+  const handleDeleteBroadcast = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this broadcast? This will remove all associated unread notifications.")) return;
+    try {
+      await adminApi.deleteBroadcast(id);
+      toast.success("Broadcast Deleted", { description: "The broadcast has been successfully deleted." });
+      fetchData();
+    } catch (error: any) {
+      toast.error("Delete Failed", { description: error.message });
     }
   }
 
@@ -1677,9 +1713,9 @@ export default function SuperAdminPage() {
                             <TableCell colSpan={5} className="py-10 text-center text-[var(--crm-text-secondary)] italic font-medium">No billing history found matching current criteria.</TableCell>
                           </TableRow>
                         )}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
+                        </TableBody>
+                      </Table>
+                    </CardContent>
                   {billingMeta && (
                     <CardFooter className="bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)] py-4 px-6">
                       <PaginationSection
@@ -2067,7 +2103,7 @@ export default function SuperAdminPage() {
                         <Label className="text-xs font-black uppercase text-[var(--crm-text-secondary)] tracking-wider">Alert Level</Label>
                         <Select
                           value={broadcastData.type}
-                          onValueChange={(val) => setBroadcastData({ ...broadcastData, type: val })}
+                          onValueChange={(val) => setBroadcastData({ ...broadcastData, type: val as 'info' | 'warning' | 'success' })}
                         >
                           <SelectTrigger className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] font-bold">
                             <SelectValue />
@@ -2076,6 +2112,23 @@ export default function SuperAdminPage() {
                             <SelectItem value="info">Information</SelectItem>
                             <SelectItem value="warning">Warning</SelectItem>
                             <SelectItem value="success">Success</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-black uppercase text-[var(--crm-text-secondary)] tracking-wider">Category</Label>
+                        <Select
+                          value={broadcastData.category}
+                          onValueChange={(val) => setBroadcastData({ ...broadcastData, category: val })}
+                        >
+                          <SelectTrigger className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] font-bold">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Announcement">Announcement</SelectItem>
+                            <SelectItem value="New feature">New feature</SelectItem>
+                            <SelectItem value="Maintenance">Maintenance</SelectItem>
+                            <SelectItem value="Alert">Alert</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -2170,6 +2223,17 @@ export default function SuperAdminPage() {
                       />
                     </div>
 
+                    <div className="flex items-center justify-between p-4 bg-[var(--crm-surface-1)] rounded-2xl border border-[var(--crm-border)] mt-4">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-black text-[var(--crm-text-primary)]">Allow 'Remind me later'</Label>
+                        <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium">Give users the option to snooze this announcement.</p>
+                      </div>
+                      <Switch 
+                        checked={broadcastData.allow_snooze}
+                        onCheckedChange={(val) => setBroadcastData({ ...broadcastData, allow_snooze: val })}
+                      />
+                    </div>
+
                     {broadcastData.is_modal && (
                       <div className="space-y-5 p-4 bg-[var(--crm-surface-2)] rounded-2xl border border-[var(--crm-border)] animate-in fade-in zoom-in-95 duration-200 mt-4">
                         <div className="grid grid-cols-2 gap-4">
@@ -2223,20 +2287,36 @@ export default function SuperAdminPage() {
                       </div>
                     )}
 
-                    <Button
-                      onClick={handleSendBroadcast}
-                      disabled={isSendingBroadcast}
-                      className="w-full h-12 rounded-xl bg-[var(--crm-accent)] hover:opacity-90 text-white font-black uppercase tracking-widest shadow-lg shadow-primary/20 mt-4 group"
-                    >
-                      {isSendingBroadcast ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <>
-                          <ArrowRight className="h-4 w-4 mr-2 group-hover:translate-x-1 transition-transform" />
-                          Dispatch Broadcast
-                        </>
-                      )}
-                    </Button>
+                    <div className="flex gap-3 mt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (!broadcastData.title || !broadcastData.message) {
+                            toast.error("Preview Error", { description: "Please provide at least a title and message." })
+                            return
+                          }
+                          setPreviewBroadcast({ id: 0, ...broadcastData } as any)
+                        }}
+                        className="w-1/3 h-12 rounded-xl border-[var(--crm-border)] text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)] font-black uppercase tracking-widest group"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Preview
+                      </Button>
+                      <Button
+                        onClick={handleSendBroadcast}
+                        disabled={isSendingBroadcast}
+                        className="w-2/3 h-12 rounded-xl bg-[var(--crm-accent)] hover:opacity-90 text-white font-black uppercase tracking-widest shadow-lg shadow-primary/20 group"
+                      >
+                        {isSendingBroadcast ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <>
+                            <ArrowRight className="h-4 w-4 mr-2 group-hover:translate-x-1 transition-transform" />
+                            Dispatch
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -2256,10 +2336,10 @@ export default function SuperAdminPage() {
                       <Table>
                         <TableHeader className="bg-[var(--crm-surface-2)] sticky top-0 z-10">
                           <TableRow>
-                            <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4 pl-6">Timestamp & Subject</TableHead>
-                            <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4">Audience</TableHead>
-                            <TableHead className="font-bold text-[var(--crm-text-secondary)] py-4">Type</TableHead>
-                            <TableHead className="text-right font-bold text-[var(--crm-text-secondary)] py-4 pr-6">Status</TableHead>
+                            <TableHead className="w-[45%] font-bold text-[var(--crm-text-secondary)] py-4 pl-6">Timestamp & Subject</TableHead>
+                            <TableHead className="w-[20%] font-bold text-[var(--crm-text-secondary)] py-4">Audience</TableHead>
+                            <TableHead className="w-[10%] font-bold text-[var(--crm-text-secondary)] py-4">Type</TableHead>
+                            <TableHead className="w-[25%] text-right font-bold text-[var(--crm-text-secondary)] py-4 pr-6">Status</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -2308,9 +2388,60 @@ export default function SuperAdminPage() {
                                   </Badge>
                                 </TableCell>
                                 <TableCell className="text-right pr-6">
-                                  <div className="flex items-center justify-end gap-2 text-emerald-500 font-bold text-xs">
-                                    <CheckCircle2 className="h-4 w-4" />
-                                    Delivered
+                                  <div className="flex items-center justify-end gap-3">
+                                    {log.status === 'stopped' ? (
+                                      <div className="flex items-center gap-2 text-slate-500 font-bold text-xs">
+                                        <span className="h-2 w-2 rounded-full bg-slate-400"></span>
+                                        Stopped
+                                      </div>
+                                    ) : log.frequency !== 'once' ? (
+                                      <div className="flex items-center gap-2">
+                                        <div className="text-emerald-500 font-bold text-xs flex items-center gap-1">
+                                          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                          Active
+                                        </div>
+                                        <Button 
+                                          variant="outline" 
+                                          size="sm" 
+                                          onClick={() => handleToggleBroadcastStatus(log.id)}
+                                          className="h-7 px-3 text-[10px] font-bold uppercase border-amber-200 text-amber-600 hover:bg-amber-50"
+                                        >
+                                          Stop
+                                        </Button>
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center gap-2 text-emerald-500 font-bold text-xs">
+                                        <CheckCircle2 className="h-4 w-4" />
+                                        Delivered
+                                      </div>
+                                    )}
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => setDetailsBroadcast(log)}
+                                      className="h-7 w-7 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg"
+                                      title="View Details"
+                                    >
+                                      <Info className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => setPreviewBroadcast(log)}
+                                      className="h-7 w-7 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                                      title="Preview Broadcast"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleDeleteBroadcast(log.id)}
+                                      className="h-7 w-7 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                                      title="Delete Broadcast"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
                                   </div>
                                 </TableCell>
                               </TableRow>
@@ -3089,6 +3220,106 @@ export default function SuperAdminPage() {
                 "Yes, Terminate Node"
             }
           />
+
+          {/* Preview Broadcast Modal */}
+          {previewBroadcast && (
+            <PromotionModal
+              notifications={[{
+                id: previewBroadcast.id,
+                title: previewBroadcast.title,
+                message: previewBroadcast.message,
+                data: {
+                  category: previewBroadcast.category,
+                  cta_link: previewBroadcast.cta_link,
+                  cta_text: previewBroadcast.cta_text,
+                  image_url: previewBroadcast.image_url,
+                  allow_snooze: previewBroadcast.allow_snooze
+                }
+              }]}
+              onClose={() => setPreviewBroadcast(null)}
+              onMarkAsRead={() => setPreviewBroadcast(null)}
+            />
+          )}
+
+          {/* Broadcast Details Modal */}
+          <Dialog open={!!detailsBroadcast} onOpenChange={(open) => !open && setDetailsBroadcast(null)}>
+            <DialogContent className="max-w-md bg-[var(--crm-surface-1)] border border-[var(--crm-border)]">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-black text-[var(--crm-text-primary)]">Broadcast Details</DialogTitle>
+                <DialogDescription className="text-[var(--crm-text-secondary)] font-medium">
+                  Configuration and metadata for this broadcast.
+                </DialogDescription>
+              </DialogHeader>
+              
+              {detailsBroadcast && (
+                <div className="space-y-4 py-2">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase mb-1">Status</p>
+                      <Badge variant="outline" className={cn("text-[10px] font-black uppercase px-2 py-0 h-5",
+                        detailsBroadcast.status === 'stopped' ? 'bg-slate-50 text-slate-500' :
+                        detailsBroadcast.frequency === 'once' ? 'bg-emerald-50 text-emerald-600' :
+                        'bg-emerald-50 text-emerald-500 border-emerald-200'
+                      )}>
+                        {detailsBroadcast.status === 'stopped' ? 'Stopped' : (detailsBroadcast.frequency === 'once' ? 'Delivered' : 'Active')}
+                      </Badge>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase mb-1">Type / Category</p>
+                      <Badge variant="outline" className="bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] font-bold text-[10px] uppercase border-[var(--crm-border)]">
+                        {detailsBroadcast.type} / {detailsBroadcast.category || 'Announcement'}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase mb-1">Target Audience</p>
+                    <div className="text-sm font-medium text-[var(--crm-text-primary)]">
+                      {detailsBroadcast.target === 'all' ? 'All Platform Workspaces' : (detailsBroadcast.company?.name || 'Specific Node')}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase mb-1">Frequency</p>
+                    <div className="text-sm font-medium text-[var(--crm-text-primary)] capitalize">
+                      {detailsBroadcast.frequency}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase mb-1">Modal Type</p>
+                    <div className="text-sm font-medium text-[var(--crm-text-primary)]">
+                      {detailsBroadcast.is_modal ? 'Center Screen Modal' : 'Notification Bell Only'}
+                    </div>
+                  </div>
+
+                  {(detailsBroadcast.cta_text || detailsBroadcast.cta_link) && (
+                    <div className="bg-[var(--crm-surface-2)] p-3 rounded-lg border border-[var(--crm-border)]">
+                      <p className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase mb-2">Call to Action Configuration</p>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div><span className="text-[var(--crm-text-secondary)] font-medium">Text:</span> {detailsBroadcast.cta_text || '—'}</div>
+                        <div className="truncate"><span className="text-[var(--crm-text-secondary)] font-medium">Link:</span> {detailsBroadcast.cta_link ? <a href={detailsBroadcast.cta_link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{detailsBroadcast.cta_link}</a> : '—'}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {detailsBroadcast.expires_at && (
+                    <div>
+                      <p className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase mb-1">Expiration Date</p>
+                      <div className="text-sm font-medium text-[var(--crm-text-primary)]">
+                        {new Date(detailsBroadcast.expires_at).toLocaleString()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDetailsBroadcast(null)} className="h-9 font-bold">
+                  Close
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </RoleGuard>

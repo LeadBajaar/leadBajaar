@@ -473,7 +473,7 @@ export default function LeadsPage() {
       const members = await teamApi.getMembers();
       setTeamMembers(members);
     } catch (error) {
-      console.error('Failed to fetch team members:', error);
+      console.error('Failed to fetch team members:', (error as any)?.message || error);
     }
   };
 

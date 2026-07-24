@@ -1,95 +1,154 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Megaphone, ExternalLink, MegaphoneOff } from 'lucide-react'
+import { Megaphone, ExternalLink, X, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { api } from '@/lib/api'
+import { toast } from 'sonner'
 
 interface PromotionModalProps {
-  notification: any
+  notifications: any[]
   onClose: () => void
+  onMarkAsRead: (id: number) => void
 }
 
-export function PromotionModal({ notification, onClose }: PromotionModalProps) {
-  if (!notification) return null
-
-  const data = notification.data || {}
-  const type = data.alert_type || 'info'
+export function PromotionModal({ notifications, onClose, onMarkAsRead }: PromotionModalProps) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isSnoozing, setIsSnoozing] = useState(false)
   
-  const getColors = () => {
-    switch (type) {
-      case 'warning': return { primary: 'bg-amber-600', light: 'bg-amber-50', text: 'text-amber-900', icon: 'text-amber-600' }
-      case 'success': return { primary: 'bg-emerald-600', light: 'bg-emerald-50', text: 'text-emerald-900', icon: 'text-emerald-600' }
-      default: return { primary: 'bg-primary', light: 'bg-primary/10', text: 'text-indigo-900', icon: 'text-primary' }
+  if (!notifications || notifications.length === 0) return null
+  
+  const notification = notifications[currentIndex]
+  const data = notification.data || {}
+  const category = data.category || 'Announcement'
+  
+  const handleNextOrClose = () => {
+    if (currentIndex < notifications.length - 1) {
+      setCurrentIndex(prev => prev + 1)
+    } else {
+      onClose()
     }
   }
 
-  const colors = getColors()
+  const handleGotIt = () => {
+    onMarkAsRead(notification.id)
+    handleNextOrClose()
+  }
+
+  const handleSnooze = async () => {
+    try {
+      setIsSnoozing(true)
+      await api.post(`/notifications/${notification.id}/snooze`)
+      handleNextOrClose()
+    } catch (error) {
+      toast.error('Failed to snooze notification')
+    } finally {
+      setIsSnoozing(false)
+    }
+  }
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-none rounded-[32px] shadow-2xl bg-white dark:bg-slate-900">
+      <DialogContent hideCloseButton className="sm:max-w-[420px] p-0 overflow-hidden rounded-xl border border-[var(--crm-border)] shadow-xl bg-[var(--crm-surface-1)]">
         <DialogTitle className="sr-only">{notification.title}</DialogTitle>
         <DialogDescription className="sr-only">{notification.message}</DialogDescription>
         
-        {notification.image_url ? (
-          <div className="relative h-[280px] w-full overflow-hidden">
-            <img src={notification.image_url} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            <div className="absolute bottom-6 left-8 right-8">
-               <div className={cn("px-2.5 py-1 text-white text-[10px] font-black uppercase rounded-lg w-fit mb-3 shadow-lg", colors.primary)}>
-                 Announcement
-               </div>
-               <h2 className="text-2xl font-black text-white leading-tight tracking-tight drop-shadow-md">
-                 {notification.title}
-               </h2>
-            </div>
-          </div>
-        ) : (
-          <div className={cn("p-8 pb-4 flex items-center gap-4", colors.light, "dark:bg-slate-800/50")}>
-            <div className={cn("p-3 rounded-2xl bg-white dark:bg-slate-900 shadow-sm")}>
-              <Megaphone className={cn("h-7 w-7", colors.icon)} />
-            </div>
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-              {notification.title}
-            </h2>
+        {/* Close Button Top Right */}
+        <button 
+          onClick={onClose}
+          className="absolute right-4 top-4 text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] transition-colors rounded-sm opacity-70 ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 z-10 bg-white/50 dark:bg-black/50 p-1 backdrop-blur-sm"
+          aria-label="Close"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        {/* Image Header (if exists) */}
+        {data.image_url && (
+          <div className="w-full aspect-video bg-[var(--crm-surface-2)] overflow-hidden">
+            <img src={data.image_url} alt="Announcement Media" className="w-full h-full object-cover" />
           </div>
         )}
-        
-        <div className="p-8 pt-6">
-          <div className="space-y-4">
-            <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed text-sm">
+
+        {/* Padding Container */}
+        <div className="px-5 pt-5 pb-4">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-9 w-9 rounded-lg bg-[#E84C3A]/10 flex items-center justify-center shrink-0">
+              <Megaphone className="h-4 w-4 text-[#E84C3A]" />
+            </div>
+            <div className="px-2 py-0.5 rounded-full bg-[#E84C3A]/10 text-[#E84C3A] text-[11px] font-bold uppercase tracking-wider">
+              {category}
+            </div>
+          </div>
+
+          {/* Body */}
+          <div className="space-y-1.5 mb-4">
+            <h2 className="text-[17px] font-bold text-[var(--crm-text-primary)] leading-snug truncate pr-6">
+              {notification.title}
+            </h2>
+            <p className="text-[14px] text-[var(--crm-text-secondary)] leading-[1.6] line-clamp-4">
               {notification.message}
             </p>
           </div>
 
-          <div className="mt-8 flex flex-col sm:flex-row gap-3">
-            {data.cta_link && (
-              <Button 
-                onClick={() => {
-                   window.open(data.cta_link, '_blank')
-                   onClose()
-                }}
-                className={cn("flex-1 text-white font-black uppercase tracking-widest h-12 rounded-2xl shadow-lg transition-all active:scale-95", colors.primary)}
+          {/* Learn More Link */}
+          {data.cta_link && (
+            <div className="mb-1">
+              <a 
+                href={data.cta_link} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-[13px] font-bold text-[#E84C3A] hover:opacity-80 transition-opacity"
               >
-                {data.cta_text || 'Learn More'} <ExternalLink className="ml-2 h-4 w-4" />
-              </Button>
-            )}
-            <Button 
-              variant="outline" 
-              onClick={onClose}
-              className="flex-1 border-slate-200 dark:border-slate-800 text-slate-500 font-bold uppercase tracking-widest h-12 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95"
-            >
-              Dismiss
-            </Button>
+                {data.cta_text || 'Learn more'} 
+                <ChevronRight className="ml-0.5 h-3.5 w-3.5" />
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-3.5 border-t border-[var(--crm-border)] bg-[var(--crm-surface-1)] flex items-center justify-between">
+          {/* Pagination Dots */}
+          <div className="flex items-center gap-1.5">
+            {notifications.length > 1 && notifications.map((_, idx) => (
+              <div 
+                key={idx} 
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full transition-colors",
+                  idx === currentIndex ? "bg-[#E84C3A]" : "bg-[var(--crm-border)]"
+                )}
+                aria-label={`Announcement ${idx + 1} of ${notifications.length}`}
+              />
+            ))}
           </div>
           
-          <p className="mt-6 text-[10px] text-center text-slate-400 font-bold uppercase tracking-widest opacity-50">
-            Platform Announcement &bull; {new Date(notification.created_at).toLocaleDateString()}
-          </p>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            {data.allow_snooze !== false && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSnooze}
+                disabled={isSnoozing}
+                className="h-8 px-3 text-[12px] font-bold border-[var(--crm-border)] text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-2)] hover:text-[var(--crm-text-primary)] shadow-none"
+              >
+                Remind me later
+              </Button>
+            )}
+            <Button
+              size="sm"
+              onClick={handleGotIt}
+              className="h-8 px-3 text-[12px] font-bold bg-[#E84C3A] text-white hover:bg-[#D64332] shadow-sm"
+            >
+              Got it
+            </Button>
+          </div>
         </div>
+
       </DialogContent>
     </Dialog>
   )

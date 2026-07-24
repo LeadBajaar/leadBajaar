@@ -290,6 +290,7 @@ export const SchedulingTab = ({ eventType, updateScheduling, updateEventField }:
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
                       <SelectItem value="ACTIVE" className="text-[10px] font-medium">Active (At a time)</SelectItem>
+                      <SelectItem value="PER_DAY" className="text-[10px] font-medium">Per Day</SelectItem>
                       <SelectItem value="PER_WEEK" className="text-[10px] font-medium">Per Week</SelectItem>
                       <SelectItem value="PER_MONTH" className="text-[10px] font-medium">Per Month</SelectItem>
                     </SelectContent>

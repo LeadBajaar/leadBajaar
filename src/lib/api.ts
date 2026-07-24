@@ -1858,18 +1858,19 @@ export const adminApi = {
   },
 
   sendBroadcast: async (data: {
-    title: string,
-    message: string,
-    type: string,
-    target?: 'all' | 'company',
-    company_id?: number,
-    company_ids?: number[],
-    image_url?: string,
-    is_modal?: boolean,
-    frequency?: 'once' | 'session' | 'always',
-    cta_text?: string,
-    cta_link?: string,
-    expires_at?: string
+    title: string;
+    message: string;
+    type: 'info' | 'warning' | 'success';
+    category?: string;
+    target: 'all' | 'company';
+    image_url?: string;
+    company_id?: number;
+    company_ids?: number[];
+    is_modal?: boolean;
+    frequency?: 'once' | 'session' | 'always';
+    cta_text?: string;
+    cta_link?: string;
+    expires_at?: string;
   }) => {
     try {
       const response = await api.post('/admin/broadcast', data);
@@ -1879,12 +1880,39 @@ export const adminApi = {
     }
   },
 
+  toggleBroadcastStatus: async (id: number) => {
+    try {
+      const response = await api.post(`/admin/broadcast/${id}/toggle-status`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to toggle broadcast status');
+    }
+  },
+
   getBroadcastHistory: async () => {
     try {
       const response = await api.get('/admin/broadcast/history');
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch broadcast history');
+    }
+  },
+
+  deleteBroadcast: async (id: number) => {
+    try {
+      const response = await api.delete(`/admin/broadcast/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to delete broadcast');
+    }
+  },
+
+  snoozeNotification: async (id: number) => {
+    try {
+      const response = await api.post(`/notifications/${id}/snooze`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to snooze notification');
     }
   },
 
