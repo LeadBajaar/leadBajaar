@@ -2,7 +2,6 @@ import React from 'react'
 import { TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import {
@@ -38,46 +37,27 @@ export const SchedulingTab = ({ eventType, updateScheduling, updateEventField }:
 
           <Card className="border-[var(--crm-border)] shadow-sm rounded-xl overflow-hidden bg-[var(--crm-surface-1)]">
             <CardContent className="p-4 space-y-6">
-              <div className="flex items-center space-x-2 border border-[var(--crm-border)] p-1 rounded-lg w-fit mb-4 bg-[var(--crm-surface-2)]">
-                <Button
-                  variant={eventType.scheduling.availabilityType !== 'specific_dates' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => updateScheduling('availabilityType', 'recurring')}
-                  className={cn(
-                    "text-xs h-8 px-4 rounded-md transition-all",
-                    eventType.scheduling.availabilityType !== 'specific_dates' 
-                      ? "bg-[var(--crm-surface-1)] text-[var(--crm-text-primary)] shadow-sm" 
-                      : "text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-1)]"
-                  )}
-                >
-                  Weekly Recurring
-                </Button>
-                <Button
-                  variant={eventType.scheduling.availabilityType === 'specific_dates' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => updateScheduling('availabilityType', 'specific_dates')}
-                  className={cn(
-                    "text-xs h-8 px-4 rounded-md transition-all",
-                    eventType.scheduling.availabilityType === 'specific_dates' 
-                      ? "bg-[var(--crm-surface-1)] text-[var(--crm-text-primary)] shadow-sm" 
-                      : "text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-1)]"
-                  )}
-                >
-                  Specific Dates
-                </Button>
-              </div>
-
-              {eventType.scheduling.availabilityType !== 'specific_dates' ? (
+              <div>
+                <Label className={labelStyle}>Weekly Hours</Label>
+                <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium tracking-tight -mt-1 mb-2">
+                  Bookable every week on these days/hours.
+                </p>
                 <TimeSlotManager
                   slots={eventType.scheduling.timeSlots || []}
                   onSlotsChange={(slots) => updateScheduling('timeSlots', slots)}
                 />
-              ) : (
+              </div>
+
+              <div className="pt-3.5 border-t border-[var(--crm-border)]">
+                <Label className={labelStyle}>Date Overrides</Label>
+                <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium tracking-tight -mt-1 mb-2">
+                  Give specific dates their own hours — these replace the weekly hours above for that date only.
+                </p>
                 <SpecificDateManager
                   slots={eventType.scheduling.specificDates || []}
                   onSlotsChange={(slots) => updateScheduling('specificDates', slots)}
                 />
-              )}
+              </div>
 
               <div className="pt-3.5 border-t border-[var(--crm-border)]">
                 <div className="flex items-center justify-between gap-4 mb-3.5">
@@ -238,6 +218,21 @@ export const SchedulingTab = ({ eventType, updateScheduling, updateEventField }:
                       min="0"
                       value={eventType.scheduling.dailyLimit || ''}
                       onChange={(e) => updateScheduling('dailyLimit', parseInt(e.target.value))}
+                      className={cn(inputStyle, "w-16 text-center font-bold")}
+                      placeholder="∞"
+                    />
+                    <span className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest">Count</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={labelStyle}>Weekly Limit</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={eventType.scheduling.weeklyLimit || ''}
+                      onChange={(e) => updateScheduling('weeklyLimit', parseInt(e.target.value))}
                       className={cn(inputStyle, "w-16 text-center font-bold")}
                       placeholder="∞"
                     />

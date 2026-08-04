@@ -116,7 +116,7 @@ export function CouponsTab() {
 
   return (
     <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <CardTitle>Discount Coupons</CardTitle>
           <CardDescription>Manage promotional codes and discounts.</CardDescription>
@@ -131,7 +131,7 @@ export function CouponsTab() {
         ) : coupons.length === 0 ? (
           <div className="text-center p-8 text-[var(--crm-text-secondary)]">No coupons found.</div>
         ) : (
-          <div className="border border-[var(--crm-border)] rounded-md overflow-hidden">
+          <div className="border border-[var(--crm-border)] rounded-md overflow-x-auto no-scrollbar">
             <Table>
               <TableHeader className="bg-[var(--crm-surface-active)]">
                 <TableRow>

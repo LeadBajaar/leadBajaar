@@ -119,7 +119,7 @@ export default function AdminEmailPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-[1400px] mx-auto w-full pb-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[var(--crm-text-primary)]">Email Infrastructure Monitoring</h1>
@@ -129,7 +129,7 @@ export default function AdminEmailPage() {
           variant="outline" 
           onClick={() => fetchStats(searchTerm, page, limit, filterStatus)} 
           disabled={isRefreshing}
-          className="gap-2 bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]"
+          className="w-full sm:w-auto gap-2 bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]"
         >
           <RefreshCw className={isRefreshing ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
           {isRefreshing ? 'Refreshing...' : 'Refresh Stats'}
@@ -137,7 +137,7 @@ export default function AdminEmailPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card className="bg-card border-[var(--crm-border)] shadow-md overflow-hidden relative group transition-all hover:shadow-lg">
            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
               <Mail className="h-12 w-12 text-primary" />

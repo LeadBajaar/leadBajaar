@@ -11,9 +11,9 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Plus, Pencil, Trash, CheckCircle, X, RefreshCcw } from 'lucide-react'
+import { Plus, Pencil, Trash, CheckCircle2, X, RefreshCcw, Layers } from 'lucide-react'
 import { cn } from "@/lib/utils"
+import { useModalHistory } from '@/hooks/use-modal-history'
 
 interface StageManagerDialogProps {
   isOpen: boolean;
@@ -56,41 +56,52 @@ export const StageManagerDialog: React.FC<StageManagerDialogProps> = ({
   handleDeleteStage,
   onSyncDefault
 }) => {
+  const handleOpenChange = useModalHistory(isOpen, onOpenChange, 'stageManagerDialog');
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-sm:!max-w-none max-sm:w-full max-sm:h-[100dvh] max-sm:!max-h-[100dvh] max-sm:!rounded-none max-sm:border-0 max-sm:!left-0 max-sm:!top-0 max-sm:!translate-x-0 max-sm:!translate-y-0 flex flex-col overflow-hidden">
-        <DialogHeader className="text-left space-y-1.5">
-          <div className="flex items-center justify-between gap-2 pr-8">
-            <DialogTitle>Manage Lead Stages</DialogTitle>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-[500px] sm:max-h-[85vh] max-sm:!max-w-none max-sm:w-full max-sm:h-[100dvh] max-sm:!max-h-[100dvh] max-sm:!rounded-none max-sm:border-0 max-sm:!left-0 max-sm:!top-0 max-sm:!translate-x-0 max-sm:!translate-y-0 flex flex-col overflow-hidden bg-[var(--crm-surface-1)] p-0 shadow-2xl">
+        <DialogHeader className="px-4 py-4 sm:px-6 sm:py-5 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)] shrink-0">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                <Layers className="h-5 w-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-[16px] font-medium text-[var(--crm-text-primary)]">Manage stages</DialogTitle>
+                <DialogDescription className="text-[13px] text-[var(--crm-text-secondary)] mt-0.5">
+                  Customize your sales pipeline
+                </DialogDescription>
+              </div>
+            </div>
             {onSyncDefault && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={onSyncDefault}
-                className="h-8 sm:h-7 text-[11px] sm:text-[10px] gap-1 border-primary/20 text-primary hover:bg-primary/10 shrink-0"
+                aria-label="Reset defaults"
+                className="h-8 w-8 p-0 text-[var(--crm-text-secondary)] hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 shrink-0 rounded-lg"
               >
-                <RefreshCcw className="h-3 w-3" />
-                Sync Defaults
+                <RefreshCcw className="h-4 w-4" />
               </Button>
             )}
           </div>
-          <DialogDescription className="text-left">
-            Create and manage your lead stages to track your sales pipeline.
-          </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 min-h-0 flex flex-col space-y-4 py-4">
-          <div className="flex flex-col sm:flex-row gap-2">
+
+        <div className="flex-1 min-h-0 flex flex-col bg-[var(--crm-surface-1)]">
+          <div className="p-4 sm:p-6 pb-4 sm:pb-5 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
+            <div className="flex flex-col sm:flex-row gap-3">
             <div className="sm:flex-1">
               <Input
-                placeholder="New stage name"
+                placeholder="Enter new stage name..."
                 value={newStageName}
                 onChange={(e) => setNewStageName(e.target.value)}
-                className="h-11 sm:h-9 text-[16px] sm:text-xs"
+                className="h-11 sm:h-10 text-[15px] sm:text-[13px] bg-[var(--crm-surface-2)] border-[var(--crm-border)] rounded-xl"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Select value={selectedColor} onValueChange={setSelectedColor}>
-                <SelectTrigger className="flex-1 sm:flex-none sm:w-[110px] h-11 sm:h-9 text-[14px] sm:text-xs">
+                <SelectTrigger className="flex-1 sm:flex-none sm:w-[120px] h-11 sm:h-10 text-[14px] sm:text-[13px] bg-[var(--crm-surface-2)] border-[var(--crm-border)] rounded-xl">
                   <SelectValue placeholder="Color" />
                 </SelectTrigger>
                 <SelectContent>
@@ -104,34 +115,41 @@ export const StageManagerDialog: React.FC<StageManagerDialogProps> = ({
                   ))}
                 </SelectContent>
               </Select>
-              <Button onClick={handleAddStage} size="sm" className="h-11 sm:h-9 px-5 sm:px-4">
+              <Button 
+                onClick={handleAddStage} 
+                disabled={!newStageName.trim()}
+                className="h-11 sm:h-10 px-6 rounded-xl bg-[var(--crm-blue)] hover:opacity-90 font-bold shadow-md shadow-blue-500/20 text-white transition-all active:scale-95"
+              >
                 <Plus className="h-4 w-4 mr-1.5" />
                 Add
               </Button>
             </div>
           </div>
+        </div>
 
-          <div className="border rounded-xl overflow-hidden bg-slate-50/30 dark:bg-slate-900/10 flex-1 min-h-0 sm:flex-none flex flex-col">
-            <div className="flex-1 min-h-0 sm:max-h-[400px] overflow-y-auto no-scrollbar">
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="flex-1 overflow-y-auto no-scrollbar">
+            <div className="divide-y divide-[var(--crm-border)]">
                 {Object.entries(stages).map(([name, config]) => (
                   <div
                     key={name}
                     className={cn(
-                      "flex items-center justify-between p-3.5 transition-colors",
-                      editingStage === name ? "bg-primary/5 dark:bg-indigo-900/10" : "hover:bg-slate-50/50 dark:hover:bg-slate-800/20"
+                      "flex items-center justify-between px-4 sm:px-6 py-3.5 transition-all",
+                      editingStage === name 
+                        ? "bg-blue-50/50 dark:bg-blue-900/10" 
+                        : "bg-[var(--crm-surface-1)] hover:bg-[var(--crm-surface-2)]"
                     )}
                   >
                     {editingStage === name ? (
-                      <div className="flex flex-wrap items-center gap-2 flex-1 animate-in fade-in duration-200">
+                      <div className="flex flex-col sm:flex-row gap-3 w-full animate-in fade-in duration-200">
                         <Input
                           value={editedStageName}
                           onChange={(e) => setEditedStageName(e.target.value)}
-                          className="h-10 sm:h-8 text-[16px] sm:text-xs flex-1 min-w-[140px] sm:flex-none sm:max-w-[180px]"
+                          className="h-11 sm:h-10 text-[15px] sm:text-[13px] bg-[var(--crm-surface-1)] flex-1 rounded-lg"
                           autoFocus
                         />
-                        <Select value={editedStageColor} onValueChange={setEditedStageColor}>
-                          <SelectTrigger className="w-[110px] sm:w-[100px] h-10 sm:h-8 text-[14px] sm:text-xs">
+                        <div className="flex items-center gap-3">
+                          <Select value={editedStageColor} onValueChange={setEditedStageColor}>
+                            <SelectTrigger className="w-full sm:w-[120px] h-11 sm:h-10 text-[14px] sm:text-[13px] bg-[var(--crm-surface-1)] rounded-lg">
                             <SelectValue placeholder="Color" />
                           </SelectTrigger>
                           <SelectContent>
@@ -143,64 +161,70 @@ export const StageManagerDialog: React.FC<StageManagerDialogProps> = ({
                                 </div>
                               </SelectItem>
                             ))}
-                          </SelectContent>
-                        </Select>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-10 w-10 sm:h-8 sm:w-8 p-0 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                            onClick={handleUpdateStage}
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-10 w-10 sm:h-8 sm:w-8 p-0 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            onClick={() => setEditingStage(null)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                            </SelectContent>
+                          </Select>
+                          <div className="flex items-center gap-1 shrink-0 ml-auto">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-10 w-10 rounded-full p-0 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+                              onClick={handleUpdateStage}
+                            >
+                              <CheckCircle2 className="h-5 w-5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-10 w-10 rounded-full p-0 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                              onClick={() => setEditingStage(null)}
+                            >
+                              <X className="h-5 w-5" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ) : (
                       <>
                         <div className="flex items-center gap-3">
-                          <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700", config.color.split(' ')[0])}>
+                          <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg shadow-sm border border-[var(--crm-border)]", config.color.split(' ')[0])}>
                             {React.createElement(config.icon, { className: "h-4 w-4" })}
                           </div>
-                          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{name}</span>
+                          <span className="text-sm font-semibold text-[var(--crm-text-primary)]">{name}</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <Badge className={cn("pointer-events-none px-2.5 py-0.5 border-none font-bold text-[10px] uppercase tracking-wider hidden sm:inline-flex", config.color)}>
-                            Example
-                          </Badge>
+                        <div className="flex items-center gap-1 -mr-2">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-10 w-10 sm:h-8 sm:w-8 p-0 text-slate-400 hover:text-primary hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            className="h-9 w-9 rounded-full p-0 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                             onClick={() => handleEditStage(name)}
                           >
-                            <Pencil className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-10 w-10 sm:h-8 sm:w-8 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            className="h-9 w-9 rounded-full p-0 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                             onClick={() => handleDeleteStage(name)}
                             disabled={Object.keys(stages).length <= 1}
                           >
-                            <Trash className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                            <Trash className="h-4 w-4" />
                           </Button>
                         </div>
                       </>
                     )}
                   </div>
                 ))}
-              </div>
             </div>
           </div>
+        </div>
+
+        <div className="px-4 py-4 sm:px-6 sm:py-4 border-t border-[var(--crm-border)] bg-[var(--crm-surface-1)] flex max-sm:flex-row max-sm:gap-3 flex-row items-center sm:justify-end gap-2 shrink-0">
+          <Button
+            onClick={() => handleOpenChange(false)}
+            className="w-full max-sm:h-12 max-sm:rounded-xl font-bold sm:w-auto sm:min-w-[120px] sm:h-10 bg-[var(--crm-blue)] hover:opacity-90 text-white shadow-md shadow-blue-500/20 transition-all active:scale-95"
+          >
+            Done
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

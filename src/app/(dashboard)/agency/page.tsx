@@ -228,7 +228,7 @@ export default function AgencyPortalPage() {
 
   return (
     <RoleGuard allowedTypes={['agency', 'super_admin']} allowedFeatures={['agency_management']}>
-      <div className="flex flex-col flex-1 gap-4 sm:gap-5">
+      <div className="flex flex-col gap-4 sm:gap-6 max-w-[1400px] mx-auto w-full pb-10">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
           <div>
@@ -350,9 +350,9 @@ export default function AgencyPortalPage() {
                       </div>
                     </div>
                   </div>
-                  <DialogFooter>
-                    <Button variant="ghost" className="rounded-xl h-11 font-bold text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)]" onClick={() => setIsOnboardingOpen(false)}>Cancel</Button>
-                    <Button onClick={handleOnboard} className="bg-[var(--crm-accent)] hover:opacity-90 text-white font-black rounded-xl h-11 px-8 shadow-xl">Complete Onboarding</Button>
+                  <DialogFooter className="mt-4 sm:mt-6 gap-3 sm:gap-2">
+                    <Button variant="ghost" className="rounded-xl h-11 sm:h-10 font-bold text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)] w-full sm:w-auto" onClick={() => setIsOnboardingOpen(false)}>Cancel</Button>
+                    <Button onClick={handleOnboard} className="bg-[var(--crm-accent)] hover:opacity-90 text-white font-bold rounded-xl h-11 sm:h-10 px-6 shadow-md w-full sm:w-auto">Complete Onboarding</Button>
                   </DialogFooter>
                 </>
               )}
@@ -361,24 +361,21 @@ export default function AgencyPortalPage() {
         </div>
 
         {/* Portfolio Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 shrink-0">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 shrink-0 lg:max-w-3xl">
           {[
-            { label: 'Managed Clients', value: stats?.total_clients || '0', icon: Building2, color: 'indigo', sub: 'Total onboarded orgs' },
-            { label: 'Total Leads Managed', value: stats?.total_leads_managed || '0', icon: TrendingUp, color: 'emerald', sub: 'Aggregate across all clients' },
-            { label: 'Portfolio Engagement', value: stats?.active_chats || '0', icon: PieChart, color: 'blue', sub: 'Live chat sessions active' }
+            { label: 'Managed Clients', value: stats?.total_clients || '0', icon: Building2, color: 'indigo' },
+            { label: 'Total Leads', value: stats?.total_leads_managed || '0', icon: TrendingUp, color: 'emerald' },
+            { label: 'Active Chats', value: stats?.active_chats || '0', icon: PieChart, color: 'blue' }
           ].map((stat, i) => (
-            <Card key={i} className="border-none shadow-sm rounded-2xl ring-1 ring-[var(--crm-border)] overflow-hidden group bg-[var(--crm-surface-1)]">
-              <CardContent className="p-4 relative flex items-center gap-4">
-                <div className={cn("absolute top-0 right-0 -mt-4 -mr-4 h-16 w-16 rounded-full blur-2xl opacity-10", `bg-${stat.color}-500 group-hover:opacity-20 transition-opacity`)} />
-                <div className={cn("h-10 w-10 shrink-0 rounded-xl flex items-center justify-center", `bg-${stat.color}-50 text-${stat.color}-600`)}>
-                  <stat.icon className="h-5 w-5" />
+            <Card key={i} className="border-none shadow-sm rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden group bg-[var(--crm-surface-1)]">
+              <CardContent className="p-3 relative flex items-center gap-3">
+                <div className={cn("absolute top-0 right-0 -mt-2 -mr-2 h-12 w-12 rounded-full blur-xl opacity-10", `bg-${stat.color}-500 group-hover:opacity-20 transition-opacity`)} />
+                <div className={cn("h-8 w-8 shrink-0 rounded-lg flex items-center justify-center", `bg-${stat.color}-50 dark:bg-${stat.color}-500/10 text-${stat.color}-600 dark:text-${stat.color}-400`)}>
+                  <stat.icon className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest truncate mb-0.5">{stat.label}</p>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-xl sm:text-2xl font-black text-[var(--crm-text-primary)] leading-none">{stat.value}</p>
-                    <p className="hidden xl:block text-[9px] text-[var(--crm-text-secondary)] font-medium italic truncate">{stat.sub}</p>
-                  </div>
+                  <p className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider truncate mb-0.5">{stat.label}</p>
+                  <p className="text-lg font-black text-[var(--crm-text-primary)] leading-none">{stat.value}</p>
                 </div>
               </CardContent>
             </Card>
@@ -402,9 +399,11 @@ export default function AgencyPortalPage() {
               />
             </div>
           </CardHeader>
-          <CardContent className="p-0 overflow-x-auto no-scrollbar">
-            <Table className="min-w-[800px]">
-              <TableHeader className="bg-[var(--crm-surface-2)]">
+          {/* Desktop Table View */}
+          <CardContent className="hidden md:block p-0">
+            <div className="max-h-[calc(100vh-320px)] min-h-[400px] overflow-auto relative">
+              <Table className="min-w-[800px] relative">
+                <TableHeader className="bg-[var(--crm-surface-2)] sticky top-0 z-20 shadow-sm border-b border-[var(--crm-border)]">
                 <TableRow>
                   <TableHead className="font-bold py-5 pl-6 text-xs uppercase text-[var(--crm-text-secondary)]">Client / Owner</TableHead>
                   <TableHead className="font-bold py-5 text-xs uppercase text-[var(--crm-text-secondary)]">Plan & Expiry</TableHead>
@@ -518,7 +517,74 @@ export default function AgencyPortalPage() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           </CardContent>
+
+          {/* Mobile Card View */}
+          <CardContent className="md:hidden p-4 space-y-4 bg-[var(--crm-surface-2)]/30">
+            {isLoading ? (
+              [1,2,3].map(i => (
+                <div key={i} className="h-32 rounded-2xl bg-[var(--crm-surface-2)] animate-pulse" />
+              ))
+            ) : filteredClients.length === 0 ? (
+              <div className="flex flex-col items-center justify-center space-y-3 opacity-40 py-10">
+                <Users className="h-10 w-10" />
+                <p className="font-bold text-sm">You haven't onboarded any clients yet.</p>
+              </div>
+            ) : filteredClients.map((client) => (
+              <div key={client.id} className="bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-[var(--crm-surface-3)] flex items-center justify-center font-black text-[var(--crm-text-secondary)] text-sm">
+                      {client.name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-bold text-[14px] text-[var(--crm-text-primary)] leading-tight">{client.name}</p>
+                      <p className="text-[11px] text-[var(--crm-text-secondary)] mt-0.5">{client.owner?.name || 'Unassigned'}</p>
+                    </div>
+                  </div>
+                  <Badge className={cn("text-[9px] font-bold px-1.5 py-0.5 shrink-0", client.status === 'Active' ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700")}>
+                    {client.status}
+                  </Badge>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-[var(--crm-border)]">
+                  <div>
+                    <p className="text-[9px] text-[var(--crm-text-secondary)] uppercase font-bold mb-1">Plan & Expiry</p>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-[9px] font-black uppercase text-[var(--crm-accent)] bg-[var(--crm-accent-soft)] border-indigo-100 px-1 py-0">
+                        {client.plan}
+                      </Badge>
+                      <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium">
+                        {client.expires_at ? new Date(client.expires_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'Never'}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-[var(--crm-text-secondary)] uppercase font-bold mb-1">Leads</p>
+                    <span className="font-bold text-[var(--crm-text-primary)] text-[13px]">{client.leads_count || 0}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between mt-1 pt-3 border-t border-[var(--crm-border)]">
+                  <Button 
+                    onClick={() => handleOpenPanel(client.id)}
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 rounded-lg text-xs font-black bg-[var(--crm-accent)]/10 hover:bg-[var(--crm-accent)]/20 text-[var(--crm-accent)] px-3"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Open
+                  </Button>
+                  <div className="flex gap-1 border border-[var(--crm-border)] rounded-lg p-0.5 bg-[var(--crm-surface-2)]">
+                    <Button onClick={() => handleViewHistory(client.id, client.name)} variant="ghost" size="sm" className="h-7 w-7 rounded-md hover:bg-white dark:hover:bg-slate-800 p-0 text-[var(--crm-text-secondary)]"><History className="h-3.5 w-3.5" /></Button>
+                    <Button onClick={() => setRenewModal({ isOpen: true, clientId: client.id, clientName: client.name })} variant="ghost" size="sm" className="h-7 w-7 rounded-md hover:bg-emerald-50 dark:hover:bg-emerald-500/20 p-0 text-emerald-600"><RefreshCw className="h-3.5 w-3.5" /></Button>
+                    <Button onClick={() => setDeleteModal({ isOpen: true, clientId: client.id, clientName: client.name })} variant="ghost" size="sm" className="h-7 w-7 rounded-md hover:bg-red-50 dark:hover:bg-red-500/20 p-0 text-red-500"><Trash2 className="h-3.5 w-3.5" /></Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+
           <CardFooter className="bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)] py-4 px-6">
             <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium">Data is isolated to your agency and sub-companies. Only you can access client dashboards.</p>
           </CardFooter>

@@ -13,7 +13,7 @@ import {
   Send, Phone, Video, Search, Loader2,
   MoreVertical, Info, Clock,
   CheckCheck, MessageSquare, AlertCircle,
-  ChevronLeft,
+  ChevronLeft, X,
   Sparkles, Zap, ShieldCheck,
   Paperclip, Smile, ExternalLink, Trash2
 } from 'lucide-react'
@@ -75,7 +75,7 @@ export default function LiveChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoadingChats, setIsLoadingChats] = useState(true)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
-  const [showUserDetails, setShowUserDetails] = useState(true)
+  const [showUserDetails, setShowUserDetails] = useState(false)
   const unreadMessages = chats.reduce((acc, chat) => acc + (chat.user.unread_count || 0), 0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -169,10 +169,6 @@ export default function LiveChatPage() {
       })
 
       setChats(formattedChats)
-      if (!activeChat && formattedChats.length > 0) {
-        setActiveChat(formattedChats[0])
-        fetchChatMessages(formattedChats[0].id)
-      }
     } catch (error) {
       console.error('Error fetching conversations:', error)
     } finally {
@@ -444,7 +440,7 @@ export default function LiveChatPage() {
                         variant="ghost"
                         size="icon"
                         onClick={() => setActiveChat(null)}
-                        className="h-9 w-9 -ml-1 lg:hidden rounded-xl bg-[var(--crm-surface-2)]"
+                        className="h-9 w-9 -ml-1 lg:hidden rounded-full bg-[var(--crm-surface-2)] hover:bg-[var(--crm-surface-3)] transition-colors"
                       >
                       <ChevronLeft className="h-5 w-5" />
                     </Button>
@@ -505,7 +501,7 @@ export default function LiveChatPage() {
               </div>
 
               {/* Messages & Sidebar Wrapper */}
-              <div className="flex-1 flex flex-row min-h-0 overflow-hidden">
+              <div className="flex-1 flex flex-row min-h-0 overflow-hidden relative">
                 <div className="flex-1 flex flex-col min-w-0">
                   <ScrollArea className="flex-1 px-5 py-6">
                     {isLoadingMessages ? (
@@ -705,14 +701,14 @@ export default function LiveChatPage() {
                   </ScrollArea>
 
                   {/* Input Area */}
-                  <div className="p-3 bg-[var(--crm-surface-1)] border-t border-[var(--crm-border)]">
-                    <div className="relative flex items-end gap-2 p-2 bg-[var(--crm-surface-2)] rounded-[var(--r-md)] border border-transparent focus-within:border-[var(--crm-border-hover)] transition-all">
-                      <div className="flex shrink-0 pb-1.5 pl-1.5 gap-1">
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)] hover:bg-[var(--crm-surface-3)] transition-all">
-                          <Paperclip className="h-4 w-4" />
+                  <div className="p-3 lg:p-4 bg-[var(--crm-surface-1)] border-t border-[var(--crm-border)]">
+                    <div className="relative flex items-end gap-2 p-1.5 bg-white dark:bg-[#12121a] rounded-[24px] border border-[var(--crm-accent)] shadow-sm focus-within:shadow-md transition-all duration-300">
+                      <div className="flex shrink-0 pb-0.5 pl-1 gap-0.5">
+                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)] hover:bg-[var(--crm-surface-3)] transition-all shrink-0">
+                          <Paperclip className="h-5 w-5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)] hover:bg-[var(--crm-surface-3)] transition-all">
-                          <Smile className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)] hover:bg-[var(--crm-surface-3)] transition-all shrink-0">
+                          <Smile className="h-5 w-5" />
                         </Button>
                       </div>
                       <textarea
@@ -723,7 +719,7 @@ export default function LiveChatPage() {
                           }
                         }}
                         placeholder="Write a message..."
-                        className="flex-1 bg-transparent border-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none resize-none py-2.5 px-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 min-h-[44px] max-h-32 overflow-y-auto w-full no-scrollbar"
+                        className="flex-1 bg-transparent border-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none resize-none py-3 px-1 text-[14.5px] text-[var(--crm-text-primary)] placeholder:text-[var(--crm-text-tertiary)] min-h-[44px] max-h-32 overflow-y-auto w-full no-scrollbar leading-relaxed"
                         value={message}
                         onChange={(e) => {
                           setMessage(e.target.value);
@@ -732,13 +728,13 @@ export default function LiveChatPage() {
                         }}
                         rows={1}
                       />
-                      <div className="flex shrink-0 pb-1.5 pr-1.5 gap-1">
+                      <div className="flex shrink-0 pb-0.5 pr-0.5 gap-1">
                         <Button
                           onClick={handleSend}
                           disabled={!message.trim() || isSending}
-                          className="h-9 w-9 p-0 bg-[var(--crm-accent)] hover:opacity-90 text-white rounded-[var(--r-md)] transition-all active:scale-95 disabled:opacity-50"
+                          className="h-10 w-10 p-0 bg-[var(--crm-accent)] hover:opacity-90 text-white rounded-full shadow-[0_2px_8px_rgba(var(--crm-accent-rgb),0.3)] transition-all active:scale-95 disabled:opacity-50 disabled:shadow-none flex items-center justify-center shrink-0"
                         >
-                          {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                          {isSending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-4 w-4 ml-0.5" />}
                         </Button>
                       </div>
                     </div>
@@ -758,7 +754,13 @@ export default function LiveChatPage() {
 
                 {/* User Detailed Sidebar */}
                 {showUserDetails && (
-                  <div className="w-[280px] shrink-0 border-l border-[var(--crm-border)] bg-[var(--crm-surface-2)] p-4 flex flex-col gap-4 overflow-y-auto animate-in slide-in-from-right-4 duration-300">
+                  <div className="absolute lg:relative right-0 top-0 h-full w-full lg:w-[280px] z-20 shrink-0 border-l border-[var(--crm-border)] bg-white dark:bg-[#12121a] lg:bg-[var(--crm-surface-2)] p-4 flex flex-col gap-4 overflow-y-auto animate-in slide-in-from-right-4 duration-300">
+                    <div className="lg:hidden flex items-center justify-between pb-2 border-b border-[var(--crm-border)]">
+                      <h3 className="font-bold text-[14px] text-[var(--crm-text-primary)]">Contact Details</h3>
+                      <Button variant="ghost" size="icon" onClick={() => setShowUserDetails(false)} className="h-8 w-8 rounded-full bg-[var(--crm-surface-3)]">
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <div className="text-center">
                       <h3 className="font-bold text-[15px] text-[var(--crm-text-primary)] mt-2">{activeChat.user.name}</h3>
                       <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium">{activeChat.user.company}</p>

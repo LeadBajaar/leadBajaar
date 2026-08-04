@@ -165,7 +165,7 @@ export default function TeamManagementPage() {
 
   return (
     <RoleGuard allowedFeatures={['team_management']}>
-      <div className="flex flex-col flex-1 gap-4 sm:gap-5">
+      <div className="flex flex-col gap-4 sm:gap-6 max-w-[1400px] mx-auto w-full pb-10">
         <div className="w-full">
           {/* Header Actions */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 mb-4 sm:mb-6">
@@ -252,9 +252,9 @@ export default function TeamManagementPage() {
                     </Select>
                   </div>
                 </div>
-                <DialogFooter>
-                  <Button variant="ghost" onClick={() => setIsInviteModalOpen(false)} className="rounded-xl h-11 font-bold" disabled={isInviting}>Cancel</Button>
-                  <Button onClick={handleInvite} className="rounded-xl h-11 font-black bg-[var(--crm-accent)] hover:opacity-90 text-white px-8" disabled={!inviteEmail || isInviting}>
+                <DialogFooter className="mt-4 sm:mt-6 gap-3 sm:gap-2">
+                  <Button variant="ghost" onClick={() => setIsInviteModalOpen(false)} className="rounded-xl h-11 sm:h-10 font-bold text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)] w-full sm:w-auto" disabled={isInviting}>Cancel</Button>
+                  <Button onClick={handleInvite} className="rounded-xl h-11 sm:h-10 font-black bg-[var(--crm-accent)] hover:opacity-90 text-white px-6 shadow-md w-full sm:w-auto" disabled={!inviteEmail || isInviting}>
                     {isInviting ? (
                       <>
                         <div className="h-4 w-4 border-2 border-slate-400 border-t-white rounded-full animate-spin mr-2" />
@@ -339,17 +339,18 @@ export default function TeamManagementPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-0 overflow-x-auto no-scrollbar">
-                <Table className="min-w-[800px]">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4 pl-6">User</TableHead>
-                      <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4">Role</TableHead>
-                      <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4">Status</TableHead>
-                      <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4">Last Active</TableHead>
-                      <TableHead className="text-right font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4 pr-6">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
+              <CardContent className="hidden md:block p-0">
+                <div className="max-h-[calc(100vh-320px)] min-h-[400px] overflow-auto relative">
+                  <Table className="min-w-[800px] relative">
+                    <TableHeader className="bg-[var(--crm-surface-2)] sticky top-0 z-20 shadow-sm border-b border-[var(--crm-border)]">
+                      <TableRow>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4 pl-6">User</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4">Role</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4">Status</TableHead>
+                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4">Last Active</TableHead>
+                        <TableHead className="text-right font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4 pr-6">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
                   <TableBody>
                     {filteredMembers.length > 0 ? (
                       filteredMembers.map((member) => (
@@ -431,6 +432,83 @@ export default function TeamManagementPage() {
                     )}
                   </TableBody>
                 </Table>
+                </div>
+              </CardContent>
+
+              {/* Mobile Card View */}
+              <CardContent className="md:hidden p-4 space-y-4 bg-[var(--crm-surface-2)]/30">
+                {filteredMembers.length > 0 ? (
+                  filteredMembers.map((member) => (
+                    <div key={member.id} className="bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
+                      <div className="flex justify-between items-start gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-indigo-100 to-blue-50 flex items-center justify-center text-[var(--crm-accent)] font-bold text-sm ring-1 ring-white shadow-sm">
+                            {member.name ? member.name.charAt(0) : member.email.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-bold text-[14px] text-[var(--crm-text-primary)] leading-tight">{member.name || 'Invited User'}</p>
+                            <p className="text-[11px] text-[var(--crm-text-secondary)] mt-0.5 truncate max-w-[150px]">{member.email}</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className={cn(`font-bold border px-1.5 py-0.5 text-[9px] shadow-sm flex items-center gap-1 shrink-0`, getRoleBadgeColor(member.role))}>
+                          {getRoleIcon(member.role)}
+                          {member.role}
+                        </Badge>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-[var(--crm-border)]">
+                        <div>
+                          <p className="text-[9px] text-[var(--crm-text-secondary)] uppercase font-bold mb-1">Status</p>
+                          <div className="flex items-center gap-1.5">
+                            <div className={cn("h-2 w-2 rounded-full", member.status === 'Active' ? 'bg-emerald-500' : member.status === 'Invited' ? 'bg-amber-400' : 'bg-red-500')} />
+                            <span className="text-[11px] font-bold text-[var(--crm-text-primary)]">{member.status}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[9px] text-[var(--crm-text-secondary)] uppercase font-bold mb-1">Last Active</p>
+                          <span className="text-[11px] font-medium text-[var(--crm-text-secondary)]">{member.lastActive}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end mt-1 pt-3 border-t border-[var(--crm-border)] gap-2">
+                        <Button 
+                          onClick={() => {
+                            setEditingMember({...member})
+                            setIsEditModalOpen(true)
+                          }}
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 rounded-lg text-xs font-black bg-[var(--crm-surface-2)] text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-3)]"
+                        >
+                          <Edit className="h-3.5 w-3.5 mr-1.5" /> Edit Role
+                        </Button>
+                        {member.status === 'Invited' && (
+                          <Button 
+                            onClick={() => handleResendInvite(member.id)}
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 rounded-lg text-xs font-black bg-blue-50 text-blue-600 hover:bg-blue-100"
+                          >
+                            <Mail className="h-3.5 w-3.5 mr-1.5" /> Resend
+                          </Button>
+                        )}
+                        <Button 
+                          onClick={() => handleDelete(member.id)}
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 w-8 p-0 rounded-lg text-red-500 bg-red-50 hover:bg-red-100 shrink-0"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center space-y-3 opacity-40 py-10">
+                    <Users className="h-10 w-10" />
+                    <p className="font-bold text-sm">No team members found matching your search.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -571,9 +649,9 @@ export default function TeamManagementPage() {
                 </Select>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="rounded-lg h-10 font-bold border-[var(--crm-border)] bg-[var(--crm-surface-2)] hover:bg-[var(--crm-surface-3)] text-[var(--crm-text-primary)]" disabled={isUpdating}>Cancel</Button>
-              <Button onClick={handleUpdateRole} className="rounded-lg h-10 font-bold btn-primary" disabled={isUpdating}>
+            <DialogFooter className="mt-4 sm:mt-6 gap-3 sm:gap-2">
+              <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="rounded-xl h-11 sm:h-10 font-bold border-[var(--crm-border)] bg-[var(--crm-surface-2)] hover:bg-[var(--crm-surface-3)] text-[var(--crm-text-primary)] w-full sm:w-auto" disabled={isUpdating}>Cancel</Button>
+              <Button onClick={handleUpdateRole} className="rounded-xl h-11 sm:h-10 font-bold bg-[var(--crm-accent)] hover:opacity-90 text-white px-6 shadow-md w-full sm:w-auto border-none" disabled={isUpdating}>
                 {isUpdating ? (
                   <>
                     <div className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />

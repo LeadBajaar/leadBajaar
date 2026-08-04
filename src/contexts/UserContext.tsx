@@ -31,6 +31,7 @@ interface User {
         id: number;
         name: string;
         features: string[];
+        price?: number;
       };
     };
 }

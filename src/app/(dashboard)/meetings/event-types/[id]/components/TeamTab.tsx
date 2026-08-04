@@ -6,23 +6,17 @@ import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Users, UserPlus, CheckCircle2 } from 'lucide-react'
 import { cn } from "@/lib/utils"
-
-interface TeamMember {
-  id: number
-  name: string
-  email: string
-  avatar: string
-  role: string
-}
+import { TeamMember } from '@/types/events'
 
 interface Props {
   eventType: any
   toggleTeamMember: (member: TeamMember) => void
+  availableMembers: TeamMember[]
 }
 
 const labelStyle = "text-[10px] font-black uppercase tracking-[0.2em] text-[var(--crm-text-secondary)] mb-0"
 
-export const TeamTab = ({ eventType, toggleTeamMember }: Props) => {
+export const TeamTab = ({ eventType, toggleTeamMember, availableMembers }: Props) => {
   return (
     <TabsContent value="team" className="mt-0 outline-none">
       <div className="space-y-6">
@@ -40,7 +34,7 @@ export const TeamTab = ({ eventType, toggleTeamMember }: Props) => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {eventType.teamMembers.map((member: TeamMember) => {
+          {availableMembers.map((member: TeamMember) => {
             const isSelected = eventType.teamMembers.some((m: any) => m.id === member.id)
             return (
               <div
@@ -54,7 +48,7 @@ export const TeamTab = ({ eventType, toggleTeamMember }: Props) => {
                 )}
               >
                 {isSelected && (
-                  <div className="absolute top-3 right-3 animate-in zoom-in duration-300">
+                  <div data-testid="member-selected-indicator" className="absolute top-3 right-3 animate-in zoom-in duration-300">
                     <CheckCircle2 className="h-4 w-4 text-primary fill-indigo-50" />
                   </div>
                 )}
@@ -105,7 +99,7 @@ export const TeamTab = ({ eventType, toggleTeamMember }: Props) => {
 
 
         {/* Empty state if no team members are available to select */}
-        {eventType.teamMembers.length === 0 && (
+        {availableMembers.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-[var(--crm-border)] rounded-[2rem] bg-[var(--crm-surface-2)]">
             <div className="h-16 w-16 bg-[var(--crm-surface-1)] rounded-3xl flex items-center justify-center shadow-xl border border-[var(--crm-border)] mb-6">
               <Users className="h-8 w-8 text-slate-200" />

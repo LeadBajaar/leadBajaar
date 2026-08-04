@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Loader2, AlertCircle } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { NewLead, temperatureConfig, sourceConfig, TemperatureType } from './types'
+import { useModalHistory } from '@/hooks/use-modal-history'
 
 interface AddLeadDialogProps {
   isOpen: boolean;
@@ -45,9 +46,19 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
   onCancel,
   stages
 }) => {
+  const handleOpenChange = useModalHistory(isOpen, onOpenChange, 'addLeadDialog');
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[500px] max-h-[85vh] max-sm:!max-w-none max-sm:w-full max-sm:h-[100dvh] max-sm:!max-h-[100dvh] max-sm:!rounded-none max-sm:border-0 max-sm:!left-0 max-sm:!top-0 max-sm:!translate-x-0 max-sm:!translate-y-0 flex flex-col p-0 overflow-hidden bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-[var(--r-xl)] shadow-lg">
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent 
+        className="max-w-[500px] max-h-[85vh] max-sm:!max-w-none max-sm:w-full max-sm:h-[100dvh] max-sm:!max-h-[100dvh] max-sm:!rounded-none max-sm:border-0 max-sm:!left-0 max-sm:!top-0 max-sm:!translate-x-0 max-sm:!translate-y-0 flex flex-col p-0 overflow-hidden bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-[var(--r-xl)] shadow-lg"
+        onInteractOutside={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest('[data-radix-popper-content-wrapper]')) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader className="px-6 py-4 border-b border-[var(--crm-border)]">
           <DialogTitle>Add New Lead</DialogTitle>
           <DialogDescription>
@@ -245,15 +256,15 @@ export const AddLeadDialog: React.FC<AddLeadDialogProps> = ({
           </div>
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t border-[var(--crm-border)] bg-[var(--crm-surface-2)]/30">
-          <Button variant="outline" size="sm" onClick={onCancel} disabled={isSubmitting}>
+        <DialogFooter className="px-6 py-4 border-t border-[var(--crm-border)] bg-[var(--crm-surface-2)]/30 flex max-sm:flex-row max-sm:gap-3 flex-row items-center sm:justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={() => { onCancel(); handleOpenChange(false); }} disabled={isSubmitting} className="max-sm:flex-1 max-sm:h-12 max-sm:rounded-xl">
             Cancel
           </Button>
           <Button
             size="sm"
             onClick={onSave}
             disabled={isSubmitting}
-            className="bg-[var(--crm-blue)] hover:opacity-90 font-bold"
+            className="bg-[var(--crm-blue)] hover:opacity-90 font-bold max-sm:flex-1 max-sm:h-12 max-sm:rounded-xl"
           >
             {isSubmitting ? (
               <>

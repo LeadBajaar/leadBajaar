@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { X, CheckCircle2, Loader2, FileSpreadsheet, AlertCircle, XCircle } from 'lucide-react'
 import { ColumnMapping, ImportError, ImportStats } from './types'
+import { useModalHistory } from '@/hooks/use-modal-history'
 
 interface ImportLeadsDialogProps {
   showMapping: boolean;
@@ -39,9 +40,19 @@ export const ImportLeadsDialog: React.FC<ImportLeadsDialogProps> = ({
   importStats,
   showGeneratingReport
 }) => {
+  const handleOpenChange = useModalHistory(showMapping, (open) => !open && resetImport(), 'importLeadsDialog');
+
   return (
-    <Dialog open={showMapping} onOpenChange={(open) => !open && resetImport()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden sm:rounded-2xl border-slate-200 dark:border-slate-800 shadow-2xl">
+    <Dialog open={showMapping} onOpenChange={handleOpenChange}>
+      <DialogContent 
+        className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden sm:rounded-2xl border-slate-200 dark:border-slate-800 shadow-2xl"
+        onInteractOutside={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest('[data-radix-popper-content-wrapper]')) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 dark:bg-indigo-900/30 text-primary dark:text-indigo-400 shrink-0">
@@ -175,15 +186,15 @@ export const ImportLeadsDialog: React.FC<ImportLeadsDialogProps> = ({
           </div>
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 gap-3 sm:gap-0 shrink-0">
-          <Button variant="ghost" onClick={resetImport} disabled={isImporting} className="rounded-xl font-semibold text-slate-500">
+        <DialogFooter className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex max-sm:flex-row max-sm:gap-3 flex-row items-center sm:justify-end gap-2 shrink-0">
+          <Button variant="ghost" onClick={() => { resetImport(); handleOpenChange(false); }} disabled={isImporting} className="rounded-xl font-semibold text-slate-500 max-sm:flex-1 max-sm:h-12 max-sm:border max-sm:border-slate-200">
             {importStats ? 'Close' : 'Cancel'}
           </Button>
           {!importStats && (
             <Button
               onClick={handleImport}
               disabled={isImporting || columnMapping.length === 0}
-              className="min-w-[140px] bg-primary hover:bg-primary/90 h-10 rounded-xl shadow-lg shadow-primary/20 dark:shadow-none font-bold text-sm transition-all active:scale-95"
+              className="min-w-[140px] bg-primary hover:bg-primary/90 h-10 rounded-xl shadow-lg shadow-primary/20 dark:shadow-none font-bold text-sm transition-all active:scale-95 max-sm:flex-1 max-sm:h-12"
             >
               {isImporting ? (
                 <>

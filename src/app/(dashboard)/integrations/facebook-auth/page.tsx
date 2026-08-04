@@ -43,6 +43,22 @@ export default function FacebookAuthPage() {
     }
   }, [searchParams]);
 
+  const metaStatus = searchParams.get("meta_connected");
+  const errorMsg   = searchParams.get("message");
+
+  // Bypass RoleGuard if we are in the OAuth callback popup window,
+  // to prevent it from redirecting to /signin before window.close() can run.
+  if (metaStatus === "success" || errorMsg) {
+    return (
+      <div className="flex h-[100dvh] w-full items-center justify-center bg-background">
+        <div className="text-center p-6">
+          <h2 className="text-xl font-semibold">Finalizing Connection...</h2>
+          <p className="text-sm text-muted-foreground mt-2">Please wait, this window will close automatically.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <RoleGuard allowedFeatures={['integrations']}>
       <div className="flex flex-col flex-1 gap-4 sm:gap-5">

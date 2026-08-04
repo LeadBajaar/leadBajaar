@@ -37,6 +37,7 @@ import { cn } from '@/lib/utils'
 import { RoleGuard } from '@/components/RoleGuard'
 import { getAgentColor } from '@/utils/agentColors'
 import { useTheme } from 'next-themes'
+import { toTelHref, toWhatsAppPhone } from '@/lib/phone'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -128,14 +129,6 @@ function MeetingsSkeleton() {
   )
 }
 
-const formatPhoneForDialer = (phone?: string) => {
-  if (!phone) return '';
-  let cleanPhone = phone.replace(/\D/g, '');
-  const hasPlus = phone.includes('+') || (cleanPhone.length === 12 && cleanPhone.startsWith('91'));
-  if (hasPlus) cleanPhone = '%2B' + cleanPhone;
-  return cleanPhone;
-};
-
 // ─── Time Slot Picker ──────────────────────────────────────────────────────────
 
 const TIME_SLOTS = Array.from({ length: 96 }, (_, i) => {
@@ -204,6 +197,13 @@ function MeetingDetailDialog({
   const [newDate, setNewDate] = useState<Date | undefined>(undefined)
   const [newTime, setNewTime] = useState('')
   const [popoverOpen, setPopoverOpen] = useState(false)
+
+  // A meeting whose end time has already passed can't be rescheduled or cancelled.
+  const isMeetingPast = React.useMemo(() => {
+    if (!meeting?.start_time) return false
+    const endTime = new Date(meeting.start_time).getTime() + (meeting.duration_minutes ?? 0) * 60000
+    return endTime < Date.now()
+  }, [meeting?.start_time, meeting?.duration_minutes])
 
   const resetReschedule = () => {
     if (meeting?.start_time) {
@@ -701,7 +701,10 @@ function MeetingDetailDialog({
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      <Button className="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm shadow-lg shadow-primary/25 transition-all hover:shadow-primary/35" onClick={() => setIsRescheduling(true)} disabled={(meeting.attendees?.length ?? 0) > 0}>
+                      {isMeetingPast && (
+                        <p className="text-[11px] font-medium text-slate-400 text-center pb-1">This meeting has already happened and can no longer be changed.</p>
+                      )}
+                      <Button className="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm shadow-lg shadow-primary/25 transition-all hover:shadow-primary/35" onClick={() => setIsRescheduling(true)} disabled={isMeetingPast || (meeting.attendees?.length ?? 0) > 0}>
                         <CalendarRange className="h-4 w-4 mr-2" /> Reschedule Meeting
                       </Button>
                       <div className="flex items-center gap-3 px-1">
@@ -709,7 +712,7 @@ function MeetingDetailDialog({
                         <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">or</span>
                         <span className="h-px flex-1 bg-[var(--crm-border)]" />
                       </div>
-                      <Button variant="outline" className="w-full h-11 rounded-xl font-bold text-sm text-red-600 dark:text-red-400 border-red-200/70 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/15 hover:text-red-700 bg-white dark:bg-slate-900" onClick={handleDeleteClick} disabled={(meeting.attendees?.length ?? 0) > 0}>
+                      <Button variant="outline" className="w-full h-11 rounded-xl font-bold text-sm text-red-600 dark:text-red-400 border-red-200/70 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/15 hover:text-red-700 bg-white dark:bg-slate-900" onClick={handleDeleteClick} disabled={isMeetingPast || (meeting.attendees?.length ?? 0) > 0}>
                         Cancel Meeting
                       </Button>
                     </div>
@@ -841,14 +844,14 @@ function MeetingCard({ meeting, team, onSelect, onUpdate }: { meeting: Meeting; 
           {meeting.lead.phone && (
             <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
               <a
-                href={`tel:${formatPhoneForDialer(meeting.lead.phone)}`}
+                href={toTelHref(meeting.lead.phone)}
                 className="flex items-center justify-center h-7 w-7 rounded-full border border-indigo-100 dark:border-indigo-800/50 bg-primary/5 hover:bg-primary/20 text-primary dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-400 transition-all duration-200 shadow-sm"
                 title={`Call ${meeting.lead.name}`}
               >
                 <Phone className="h-3.5 w-3.5" />
               </a>
               <a
-                href={`https://wa.me/${meeting.lead.phone.replace(/\D/g, '').length === 10 ? '91' + meeting.lead.phone.replace(/\D/g, '') : meeting.lead.phone.replace(/\D/g, '')}`}
+                href={`https://wa.me/${toWhatsAppPhone(meeting.lead.phone)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center h-7 w-7 rounded-full border border-emerald-100 dark:border-emerald-800/50 bg-emerald-50/50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-400 transition-all duration-200 shadow-sm"
@@ -1182,10 +1185,16 @@ export default function MeetingsPage() {
 
   const handleMeetingDelete = async (id: number) => {
     try {
-      await deleteBooking(id)
+      const response = await deleteBooking(id)
+      const freshBooking = response.data.booking
+
+      // Cancelling marks the booking's status rather than deleting the row, so patch
+      // it in place (same pattern as update/reschedule) instead of removing it from
+      // the list — it should keep showing up with its "Cancelled" badge.
+      const patchRaw = (rows: any[]) => rows.map(b => b.id === id ? { ...b, ...freshBooking } : b)
       setRawBookings(prev => ({
-        upcoming: prev.upcoming.filter((b: any) => b.id !== id),
-        history: prev.history.filter((b: any) => b.id !== id),
+        upcoming: patchRaw(prev.upcoming),
+        history: patchRaw(prev.history),
       }))
       toast.success('Meeting canceled successfully')
     } catch (err) {
@@ -1414,14 +1423,14 @@ export default function MeetingsPage() {
                                       {m.lead.phone && (
                                         <div className="flex items-center gap-1 inline-flex shrink-0">
                                           <a
-                                            href={`tel:${formatPhoneForDialer(m.lead.phone)}`}
+                                            href={toTelHref(m.lead.phone)}
                                             className="flex items-center justify-center p-1 rounded-full text-[var(--crm-text-tertiary)] hover:text-primary hover:bg-primary/10 dark:hover:bg-indigo-900/30 transition-colors"
                                             title={`Call ${m.lead.name}`}
                                           >
                                             <Phone className="h-3 w-3" />
                                           </a>
                                           <a
-                                            href={`https://wa.me/${m.lead.phone.replace(/\D/g, '').length === 10 ? '91' + m.lead.phone.replace(/\D/g, '') : m.lead.phone.replace(/\D/g, '')}`}
+                                            href={`https://wa.me/${toWhatsAppPhone(m.lead.phone)}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="flex items-center justify-center p-1 rounded-full text-[var(--crm-text-tertiary)] hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors"

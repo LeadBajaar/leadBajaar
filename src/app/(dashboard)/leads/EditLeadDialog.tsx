@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { IndianRupee, Wallet, MessageSquare, Loader2 } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { Lead, temperatureConfig, sourceConfig, TemperatureType } from './types'
+import { useModalHistory } from '@/hooks/use-modal-history'
 
 interface EditLeadDialogProps {
   isOpen: boolean;
@@ -41,6 +42,8 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
 }) => {
   const [newNote, setNewNote] = React.useState('')
 
+  const handleOpenChange = useModalHistory(isOpen, onOpenChange, 'editLeadDialog');
+
   const handleUpdate = () => {
     if (lead) {
       // Pass the new note separately in the payload
@@ -50,8 +53,16 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-none h-[100dvh] sm:max-w-[500px] sm:h-[90vh] p-0 flex flex-col bg-[var(--crm-surface-1)] border-0 sm:border sm:border-[var(--crm-border)] rounded-none sm:rounded-[var(--r-xl)] shadow-lg sm:shadow-lg mt-0 mb-0">
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent 
+        className="w-full max-w-none h-[100dvh] sm:max-w-[500px] sm:h-[90vh] p-0 flex flex-col bg-[var(--crm-surface-1)] border-0 sm:border sm:border-[var(--crm-border)] rounded-none sm:rounded-[var(--r-xl)] shadow-lg sm:shadow-lg mt-0 mb-0"
+        onInteractOutside={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest('[data-radix-popper-content-wrapper]')) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader className="px-6 py-4 border-b border-[var(--crm-border)]">
           <DialogTitle>Edit Lead</DialogTitle>
           <DialogDescription>
@@ -258,15 +269,15 @@ export const EditLeadDialog: React.FC<EditLeadDialogProps> = ({
             </div>
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-[var(--crm-border)] bg-[var(--crm-surface-2)]/30 flex flex-row items-center justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={onCancel} disabled={isUpdating}>
+        <div className="px-6 py-4 border-t border-[var(--crm-border)] bg-[var(--crm-surface-2)]/30 flex max-sm:flex-row max-sm:gap-3 flex-row items-center sm:justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={() => { onCancel(); handleOpenChange(false); }} disabled={isUpdating} className="max-sm:flex-1 max-sm:h-12 max-sm:rounded-xl">
             Cancel
           </Button>
           <Button
             size="sm"
             onClick={handleUpdate}
             disabled={isUpdating}
-            className="bg-[var(--crm-blue)] hover:opacity-90 font-bold"
+            className="bg-[var(--crm-blue)] hover:opacity-90 font-bold max-sm:flex-1 max-sm:h-12 max-sm:rounded-xl"
           >
             {isUpdating ? (
                <>

@@ -90,7 +90,7 @@ export default function ErrorMonitoringPage() {
 
   return (
     <RoleGuard allowedFeatures={['error_logs']}>
-      <div className="p-6 md:p-10 space-y-8 flex-1">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-[1400px] mx-auto w-full pb-10">
         {/* Header section with glass effect */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--crm-border)] pb-8">
           <div>
@@ -124,7 +124,7 @@ export default function ErrorMonitoringPage() {
         </div>
 
         {/* Stats Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
           <Card className="border-none shadow-sm bg-[var(--crm-surface-1)]">
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -220,7 +220,7 @@ export default function ErrorMonitoringPage() {
                 </div>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto no-scrollbar">
                 <Table>
                   <TableHeader className="bg-[var(--crm-surface-2)]">
                     <TableRow className="border-[var(--crm-border)] hover:bg-transparent">

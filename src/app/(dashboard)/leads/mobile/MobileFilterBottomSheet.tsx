@@ -1,12 +1,13 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from '@/components/ui/button'
 import { X, Filter } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sourceConfig } from '../types'
 import { addDays, endOfDay, format, isSameDay, startOfDay } from 'date-fns'
+import { useModalHistory } from '@/hooks/use-modal-history'
 
 interface MobileFilterBottomSheetProps {
   isOpen: boolean;
@@ -49,6 +50,8 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
   clearFilters,
   stages
 }) => {
+  const handleOpenChange = useModalHistory(isOpen, onOpenChange, 'filterBottomSheet');
+
   const toggleValue = (key: 'status' | 'stage' | 'source', value: string) => {
     const current: string[] = filters[key] || [];
     handleFilterChange(
@@ -65,7 +68,7 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
     (filters.createdAt ? 1 : 0);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent
         className="fixed !top-auto !bottom-0 !left-0 !right-0 !translate-x-0 !translate-y-0 w-full sm:w-full rounded-t-3xl rounded-b-none border-t border-[var(--crm-border)] bg-[var(--crm-surface-1)] p-0 m-0 max-w-none max-h-[85vh] flex flex-col slide-in-from-bottom-[100%] duration-300 [&>button.absolute]:hidden"
       >
@@ -87,7 +90,7 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
                 </span>
               )}
             </div>
-            <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="h-8 w-8 rounded-full">
+            <Button variant="ghost" size="icon" onClick={() => handleOpenChange(false)} className="h-8 w-8 rounded-full">
               <X className="h-5 w-5 text-[var(--crm-text-tertiary)]" />
             </Button>
           </div>
@@ -220,14 +223,14 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
             className="flex-1 h-12 rounded-full text-[var(--crm-text-primary)] border-[var(--crm-border)] font-medium"
             onClick={() => {
               clearFilters();
-              onOpenChange(false);
+              handleOpenChange(false);
             }}
           >
             Clear All
           </Button>
           <Button
             className="flex-1 h-12 rounded-full bg-[var(--crm-accent)] hover:opacity-90 text-white font-medium"
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleOpenChange(false)}
           >
             Apply Filters
           </Button>

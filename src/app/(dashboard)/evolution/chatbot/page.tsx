@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { ChatbotFlow, chatbotService } from '@/services/chatbot'
-import { PlusCircle, Edit2, Copy, Trash, Zap, ZapOff, Loader2 } from 'lucide-react'
+import { PlusCircle, Edit2, Copy, Trash, Zap, Loader2, Workflow, MessageSquare, GitFork } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { Badge } from '@/components/ui/badge'
 import { RoleGuard } from '@/components/RoleGuard'
@@ -99,127 +98,133 @@ export default function EvolutionChatbotPage() {
 
   return (
     <RoleGuard allowedFeatures={['chatbot']}>
-      <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-500">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-[var(--crm-text-primary)]">Evolution Chatbots</h1>
-            <p className="text-[var(--crm-text-secondary)] mt-1">
-              Build and manage automated conversation flows for Evolution API.
-            </p>
-          </div>
-          <Button onClick={() => router.push('/evolution/chatbot/builder/new')} className="gap-2 bg-[var(--crm-blue)] hover:bg-[var(--crm-blue-hover)] text-white shadow-lg hover:shadow-xl hover:shadow-[var(--crm-blue)]/20 transition-all">
-            <PlusCircle className="h-4 w-4" />
-            Create Flow
-          </Button>
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-[var(--crm-blue)]" />
-          </div>
-        ) : flows.length === 0 ? (
-          <Card className="flex flex-col items-center justify-center py-20 text-center border-dashed border-2 bg-gradient-to-b from-[var(--crm-bg)] to-[var(--crm-surface-1)]">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-500/20 to-purple-500/20 flex items-center justify-center mb-6 ring-8 ring-blue-500/10">
-              <Zap className="h-10 w-10 text-[var(--crm-blue)]" />
+      <div className="flex flex-col gap-6 max-w-[1400px] mx-auto w-full pb-10">
+          
+          {/* Page Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[var(--crm-border)] pb-6 mb-2">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-[12px] bg-[var(--crm-accent)]/10 flex items-center justify-center shrink-0">
+                <Workflow className="h-6 w-6 text-[var(--crm-accent)]" />
+              </div>
+              <div>
+                <h1 className="text-[20px] font-bold text-[var(--crm-text-primary)]">Evolution Chatbots</h1>
+                <p className="text-[13px] text-[var(--crm-text-secondary)] mt-0.5">Build and manage automated conversation flows for Evolution API.</p>
+              </div>
             </div>
-            <h3 className="text-2xl font-bold text-[var(--crm-text-primary)] mb-2">No flows created yet</h3>
-            <p className="text-[var(--crm-text-secondary)] max-w-sm mb-8">
-              Create your first chatbot flow to automate conversations on Evolution API.
-            </p>
-            <Button onClick={() => router.push('/evolution/chatbot/builder/new')} size="lg" className="gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
-              <PlusCircle className="h-5 w-5" />
-              Build Your First Flow
+            <Button 
+              onClick={() => router.push('/evolution/chatbot/builder/new')}
+              className="w-full sm:w-auto bg-[var(--crm-accent)] text-white hover:opacity-90 rounded-[var(--r-md)] shadow-sm font-semibold h-10 px-5 transition-all active:scale-95 shrink-0"
+            >
+              <PlusCircle className="w-4 h-4 mr-2" /> 
+              Create Flow
             </Button>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {flows.map(flow => (
-              <Card key={flow.id} className={cn(
-                "group hover:shadow-xl hover:border-[var(--crm-blue)]/50 transition-all duration-300 overflow-hidden relative",
-                !flow.is_active && "opacity-75 hover:opacity-100"
-              )}>
-                {/* Active Indicator Strip */}
-                <div className={cn(
-                  "absolute top-0 left-0 w-full h-1 transition-colors duration-300",
-                  flow.is_active ? "bg-gradient-to-r from-emerald-500 to-emerald-400" : "bg-zinc-300 dark:bg-zinc-700"
-                )} />
-                
-                <CardHeader className="pb-4">
-                  <div className="flex justify-between items-start gap-4">
-                    <div className="space-y-1">
-                      <CardTitle className="text-xl leading-tight group-hover:text-[var(--crm-blue)] transition-colors line-clamp-1">
-                        {flow.name}
-                      </CardTitle>
-                      <CardDescription className="line-clamp-2">
-                        {flow.description || 'No description provided'}
-                      </CardDescription>
-                    </div>
-                    <Badge variant={flow.is_active ? "default" : "secondary"} className={cn(
-                      "shrink-0",
-                      flow.is_active ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/20" : ""
-                    )}>
-                      {flow.is_active ? 'Active' : 'Draft'}
-                    </Badge>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="pb-6">
-                  <div className="flex flex-wrap gap-2 text-sm text-[var(--crm-text-secondary)] bg-[var(--crm-surface-1)] p-3 rounded-lg border border-[var(--crm-border)]/50">
-                    <div className="flex items-center gap-1.5 w-full">
-                      <Zap className="h-4 w-4 text-amber-500" />
-                      <span className="font-medium text-[var(--crm-text-primary)]">Trigger:</span>
-                      <span className="truncate">{flow.trigger}</span>
-                    </div>
-                  </div>
-                </CardContent>
-
-                <CardFooter className="flex justify-between gap-2 pt-4 border-t bg-[var(--crm-surface-1)]/50">
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={flow.is_active}
-                      onCheckedChange={() => handleToggle(flow)}
-                      disabled={togglingId === flow.id}
-                      className={cn(
-                        "data-[state=checked]:bg-emerald-500",
-                        togglingId === flow.id && "opacity-50"
-                      )}
-                    />
-                    <span className="text-sm font-medium text-[var(--crm-text-secondary)]">
-                      {togglingId === flow.id ? 'Updating...' : flow.is_active ? 'On' : 'Off'}
-                    </span>
-                  </div>
-                  
-                  <div className="flex gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => router.push(`/evolution/chatbot/builder/${flow.id}`)}
-                      className="hover:text-[var(--crm-blue)] hover:bg-[var(--crm-blue)]/10"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => handleDuplicate(flow.id)}
-                      className="hover:text-emerald-500 hover:bg-emerald-500/10"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => handleDelete(flow.id)}
-                      className="hover:text-red-500 hover:bg-red-500/10"
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardFooter>
-              </Card>
-            ))}
           </div>
-        )}
+
+          {/* Content area */}
+          {loading ? (
+            <div className="flex justify-center items-center h-[400px]">
+              <Loader2 className="w-8 h-8 animate-spin text-[var(--crm-accent)]" />
+            </div>
+          ) : (
+            <>
+              {flows.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-24 bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-[var(--r-xl)] shadow-sm">
+                  <div className="h-20 w-20 mb-5 rounded-full bg-[var(--crm-surface-2)] flex items-center justify-center text-[var(--crm-text-tertiary)] border border-[var(--crm-border)] border-dashed">
+                    <Zap className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-xl font-bold text-[var(--crm-text-primary)]">No flows created yet</h3>
+                  <p className="text-[14px] text-[var(--crm-text-secondary)] mb-8 text-center max-w-md mt-2 leading-relaxed">
+                    Automate your inbound conversations, qualify leads, and provide instant support on Evolution API by building your first flow.
+                  </p>
+                  <Button 
+                    onClick={() => router.push('/evolution/chatbot/builder/new')}
+                    className="bg-[var(--crm-accent)] text-white hover:opacity-90 rounded-[var(--r-md)] h-11 px-6 shadow-md"
+                  >
+                    <PlusCircle className="w-4 h-4 mr-2" /> Build Your First Flow
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                  {flows.map((flow) => (
+                    <div
+                      key={flow.id}
+                      className={cn(
+                        'flex flex-col bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-[var(--r-xl)] shadow-sm transition-all duration-300 overflow-hidden group hover:shadow-md hover:border-[var(--crm-border-hover)]',
+                        !flow.is_active && 'opacity-75 grayscale-[0.3]'
+                      )}
+                    >
+                      <div className="p-5 flex-1 flex flex-col relative">
+                        <div className="flex gap-4 items-start mb-4">
+                          <div className="h-10 w-10 shrink-0 rounded-full bg-[var(--crm-surface-2)] border border-[var(--crm-border)] flex items-center justify-center group-hover:bg-[var(--crm-surface-3)] transition-colors">
+                            <MessageSquare className="h-4 w-4 text-[var(--crm-text-secondary)]" />
+                          </div>
+                          <div className="flex-1 min-w-0 pt-0.5">
+                            <h3 className="text-[15px] font-bold text-[var(--crm-text-primary)] truncate" title={flow.name}>{flow.name}</h3>
+                            <p className="text-[12px] text-[var(--crm-text-secondary)] line-clamp-2 mt-1 leading-snug">
+                              {flow.description || 'No description provided.'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 mb-5">
+                           <Badge className="bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] border-[var(--crm-border)] font-semibold text-[10px] uppercase tracking-wider px-2 py-0.5">
+                             {flow.trigger}
+                           </Badge>
+                           <Badge className="bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] border-[var(--crm-border)] font-semibold text-[10px] uppercase tracking-wider px-2 py-0.5 flex items-center gap-1">
+                             <GitFork className="h-3 w-3" /> {flow.nodes?.length || 0} Nodes
+                           </Badge>
+                        </div>
+
+                        {/* Status Toggle */}
+                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-[var(--crm-border)]">
+                          <div className="flex items-center gap-2">
+                            {flow.is_active
+                              ? <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                              : <div className="h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-600" />
+                            }
+                            <span className={cn(
+                              'font-bold text-[11px] uppercase tracking-wider',
+                              flow.is_active ? 'text-emerald-600 dark:text-emerald-400' : 'text-[var(--crm-text-tertiary)]'
+                            )}>
+                              {togglingId === flow.id ? 'Updating...' : flow.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                          <Switch
+                            checked={flow.is_active}
+                            disabled={togglingId === flow.id}
+                            onCheckedChange={() => handleToggle(flow)}
+                            aria-label={`Toggle ${flow.name}`}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex border-t border-[var(--crm-border)] bg-[var(--crm-surface-2)]/50 divide-x divide-[var(--crm-border)]">
+                        <button
+                          className="flex-1 flex items-center justify-center gap-1.5 py-3.5 text-[12px] font-semibold text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)] transition-colors"
+                          onClick={() => router.push(`/evolution/chatbot/builder/${flow.id}`)}
+                        >
+                          <Edit2 className="w-3.5 h-3.5" /> Edit
+                        </button>
+                        <button
+                          className="flex-1 flex items-center justify-center gap-1.5 py-3.5 text-[12px] font-semibold text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)] transition-colors"
+                          onClick={() => handleDuplicate(flow.id)}
+                        >
+                          <Copy className="w-3.5 h-3.5" /> Copy
+                        </button>
+                        <button
+                          className="flex-1 flex items-center justify-center gap-1.5 py-3.5 text-[12px] font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+                          onClick={() => handleDelete(flow.id)}
+                        >
+                          <Trash className="w-3.5 h-3.5" /> Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
       </div>
     </RoleGuard>
   )

@@ -61,9 +61,9 @@ export default function SettingsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
 
-  const [paymentAmount, setPaymentAmount] = useState<string>('1000')
+  const [paymentAmount, setPaymentAmount] = useState<string>('1500')
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
-  const [minPaymentAmount, setMinPaymentAmount] = useState<number>(999)
+  const [minPaymentAmount, setMinPaymentAmount] = useState<number>(1500)
   
   const [couponCode, setCouponCode] = useState('')
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false)
@@ -101,6 +101,11 @@ export default function SettingsPage() {
       
       // Initialize notification settings
       setLocalNotificationSettings(user.notification_settings || {})
+
+      if (user.company?.plan_details?.price) {
+        setPaymentAmount(user.company.plan_details.price.toString())
+        setMinPaymentAmount(user.company.plan_details.price)
+      }
     }
   }, [user])
 
@@ -110,11 +115,13 @@ export default function SettingsPage() {
       try {
         const res = await subscriptionApi.getSettings()
         if (res?.min_payment_amount) {
-          setMinPaymentAmount(res.min_payment_amount)
-          setPaymentAmount(res.min_payment_amount.toString())
+          setMinPaymentAmount((prev) => {
+            // If the user already has a plan price set, don't override it
+            return prev === 1500 ? res.min_payment_amount : prev;
+          })
         }
-      } catch (err) {
-        console.error('Failed to load minimum payment limit')
+      } catch (err: any) {
+        console.warn('Failed to load minimum payment limit:', err.message)
       }
     }
     fetchSubSettings()

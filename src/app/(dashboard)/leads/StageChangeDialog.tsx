@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { CheckCircle2 } from 'lucide-react'
 import { cn } from "@/lib/utils"
+import { useModalHistory } from '@/hooks/use-modal-history'
 
 interface StageChangeDialogProps {
   isOpen: boolean;
@@ -36,8 +37,10 @@ export const StageChangeDialog: React.FC<StageChangeDialogProps> = ({
   onConfirm,
   onCancel
 }) => {
+  const handleOpenChange = useModalHistory(isOpen, onOpenChange, 'stageChangeDialog');
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-[400px]">
         <DialogHeader>
           <DialogTitle>Change Lead Stage</DialogTitle>
@@ -70,15 +73,15 @@ export const StageChangeDialog: React.FC<StageChangeDialogProps> = ({
             ))}
           </div>
         </div>
-        <DialogFooter className="gap-2 sm:gap-0 border-t pt-4 mt-2">
-          <Button variant="outline" size="sm" onClick={onCancel}>
+        <DialogFooter className="border-t pt-4 mt-2 flex max-sm:flex-row max-sm:gap-3 flex-row items-center sm:justify-end gap-2 px-4 pb-4 sm:px-0 sm:pb-0">
+          <Button variant="outline" size="sm" onClick={() => { onCancel(); handleOpenChange(false); }} className="max-sm:flex-1 max-sm:h-12 max-sm:rounded-xl">
             Cancel
           </Button>
           <Button
             size="sm"
             disabled={!selectedStage}
             onClick={onConfirm}
-            className="bg-primary hover:bg-primary/90 font-bold"
+            className="bg-primary hover:bg-primary/90 font-bold max-sm:flex-1 max-sm:h-12 max-sm:rounded-xl"
           >
             Save Changes
           </Button>

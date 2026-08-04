@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from "@/components/ui/separator"
 import {
   Search, Loader2, Thermometer, Tag, Globe, RefreshCcw, Plus,
-  Settings2, FileDown, FileUp, Facebook, Filter, ChevronDown, X
+  Settings2, FileDown, FileUp, Facebook, SlidersHorizontal, ChevronDown, X
 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu"
@@ -71,46 +71,44 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
   return (
     <div className="shrink-0 flex flex-col border-b" style={{ borderColor: 'var(--crm-border)' }}>
       {/* Row 1: Search and Main Actions */}
-      <div className="px-3 py-1.5">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 flex-1 max-w-md">
-            <div className="relative flex-1">
-              {isSearching ? (
-                <i className="ti ti-loader absolute left-2.5 top-1/2 -translate-y-1/2 text-[14px] text-[var(--crm-text-tertiary)] animate-spin" />
-              ) : (
-                <i className="ti ti-search absolute left-2.5 top-1/2 -translate-y-1/2 text-[14px] text-[var(--crm-text-tertiary)]" />
-              )}
-              <input
-                placeholder="Search leads..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="crm-input !pl-8 h-10 sm:h-8 text-[16px] sm:text-[12px] rounded-xl sm:rounded-[var(--r-md)] pr-8 sm:bg-[var(--crm-surface-2)] bg-transparent border border-[var(--crm-border)]/60 sm:border-transparent"
-              />
-              {filters.search && (
-                <button
-                  onClick={() => handleFilterChange('search', '')}
-                  aria-label="Clear search"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full bg-[var(--crm-surface-3)] flex items-center justify-center text-[var(--crm-text-tertiary)] hover:text-[var(--crm-text-primary)] transition-colors"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              )}
-            </div>
-
-            {/* Mobile-only filter button (Add Lead lives in the floating action button) */}
-            <div className="sm:hidden flex items-center shrink-0">
+      <div className="px-4 py-3">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            {isSearching ? (
+              <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-tertiary)] animate-spin" />
+            ) : (
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-tertiary)]" />
+            )}
+            <input
+              placeholder="Search leads..."
+              value={filters.search}
+              onChange={(e) => handleFilterChange('search', e.target.value)}
+              className="w-full pl-9 pr-8 h-10 text-[14px] rounded-lg bg-[var(--crm-surface-2)] hover:bg-[var(--crm-surface-3)] focus:bg-[var(--crm-surface-1)] border border-[var(--crm-border)] focus:border-[var(--crm-blue)] focus:ring-1 focus:ring-[var(--crm-blue)] text-[var(--crm-text-primary)] placeholder:text-[var(--crm-text-tertiary)] outline-none transition-all"
+            />
+            {filters.search && (
               <button
-                onClick={() => onOpenMobileFilters?.()}
-                className="relative btn btn-ghost w-11 h-11 p-0 justify-center rounded-full text-[var(--crm-text-secondary)]"
+                onClick={() => handleFilterChange('search', '')}
+                aria-label="Clear search"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 h-5 w-5 rounded-md hover:bg-[var(--crm-surface-3)] flex items-center justify-center text-[var(--crm-text-tertiary)] hover:text-[var(--crm-text-primary)] transition-colors"
               >
-                <Filter className="h-[22px] w-[22px]" />
-                {mobileActiveFiltersCount > 0 && (
-                  <span className="absolute top-0 right-0 h-4 min-w-4 px-0.5 rounded-full bg-[var(--crm-accent)] text-white text-[9px] font-bold flex items-center justify-center">
-                    {mobileActiveFiltersCount}
-                  </span>
-                )}
+                <X className="h-3 w-3" />
               </button>
-            </div>
+            )}
+          </div>
+
+          {/* Mobile-only filter button */}
+          <div className="sm:hidden flex items-center shrink-0">
+            <button
+              onClick={() => onOpenMobileFilters?.()}
+              className="relative flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--crm-border)] bg-[var(--crm-surface-2)] hover:bg-[var(--crm-surface-3)] text-[var(--crm-text-primary)] transition-colors"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {mobileActiveFiltersCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-1 rounded-full bg-[var(--crm-blue)] text-white text-[10px] font-bold flex items-center justify-center shadow-sm">
+                  {mobileActiveFiltersCount}
+                </span>
+              )}
+            </button>
           </div>
 
           {/* Desktop Actions */}
@@ -419,31 +417,31 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
       </div>
 
       {/* Mobile-only quick actions row */}
-      <div className="sm:hidden flex items-center gap-2 px-3 pb-2 overflow-x-auto no-scrollbar">
+      <div className="sm:hidden grid grid-cols-3 gap-2 px-4 pb-4">
         {setShowExportDialog && (
           <button
             onClick={() => setShowExportDialog(true)}
-            className="h-9 px-3.5 rounded-full bg-[var(--crm-surface-2)] text-[12px] font-medium text-[var(--crm-text-primary)] flex items-center gap-1.5 whitespace-nowrap shrink-0 active:scale-[0.97] transition-transform"
+            className="h-10 rounded-lg border border-[var(--crm-border)] bg-[var(--crm-surface-2)] hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:border-emerald-200 dark:hover:border-emerald-800 hover:text-emerald-700 dark:hover:text-emerald-400 text-[13px] font-medium text-[var(--crm-text-primary)] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all"
           >
-            <i className="ti ti-download text-[15px] text-[var(--crm-text-tertiary)]" />
+            <FileDown className="h-4 w-4 text-emerald-500" />
             Export
           </button>
         )}
         {handleImportClick && (
           <button
             onClick={() => handleImportClick()}
-            className="h-9 px-3.5 rounded-full bg-[var(--crm-surface-2)] text-[12px] font-medium text-[var(--crm-text-primary)] flex items-center gap-1.5 whitespace-nowrap shrink-0 active:scale-[0.97] transition-transform"
+            className="h-10 rounded-lg border border-[var(--crm-border)] bg-[var(--crm-surface-2)] hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-200 dark:hover:border-blue-800 hover:text-blue-700 dark:hover:text-blue-400 text-[13px] font-medium text-[var(--crm-text-primary)] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all"
           >
-            <i className="ti ti-upload text-[15px] text-[var(--crm-text-tertiary)]" />
+            <FileUp className="h-4 w-4 text-blue-500" />
             Import
           </button>
         )}
         {setShowStageManager && (
           <button
             onClick={() => setShowStageManager(true)}
-            className="h-9 px-3.5 rounded-full bg-[var(--crm-surface-2)] text-[12px] font-medium text-[var(--crm-text-primary)] flex items-center gap-1.5 whitespace-nowrap shrink-0 active:scale-[0.97] transition-transform"
+            className="h-10 rounded-lg border border-[var(--crm-border)] bg-[var(--crm-surface-2)] hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-200 dark:hover:border-purple-800 hover:text-purple-700 dark:hover:text-purple-400 text-[13px] font-medium text-[var(--crm-text-primary)] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all"
           >
-            <i className="ti ti-settings text-[15px] text-[var(--crm-text-tertiary)]" />
+            <Settings2 className="h-4 w-4 text-purple-500" />
             Stages
           </button>
         )}

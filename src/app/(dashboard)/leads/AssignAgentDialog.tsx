@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, UserCheck, User } from 'lucide-react'
 import { getAgentColor } from '@/utils/agentColors'
 import { useTheme } from 'next-themes'
+import { useModalHistory } from '@/hooks/use-modal-history'
 
 interface AssignAgentDialogProps {
   isOpen: boolean;
@@ -39,9 +40,19 @@ export function AssignAgentDialog({
   const isDark = resolvedTheme === 'dark' || theme === 'dark'
   const [selectedAgent, setSelectedAgent] = useState<string>('')
 
+  const handleOpenChange = useModalHistory(isOpen, onOpenChange, 'assignAgentDialog');
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px] max-sm:!max-w-none max-sm:w-full max-sm:h-[100dvh] max-sm:!max-h-[100dvh] max-sm:!rounded-none max-sm:border-0 max-sm:!left-0 max-sm:!top-0 max-sm:!translate-x-0 max-sm:!translate-y-0 max-sm:flex max-sm:flex-col max-sm:overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent 
+        className="sm:max-w-[400px] max-sm:!max-w-none max-sm:w-full max-sm:h-[100dvh] max-sm:!max-h-[100dvh] max-sm:!rounded-none max-sm:border-0 max-sm:!left-0 max-sm:!top-0 max-sm:!translate-x-0 max-sm:!translate-y-0 max-sm:flex max-sm:flex-col max-sm:overflow-y-auto"
+        onInteractOutside={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest('[data-radix-popper-content-wrapper]')) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader className="max-sm:text-left">
           <DialogTitle className="flex items-center gap-2">
             <UserCheck className="h-5 w-5 text-purple-500" />
@@ -94,14 +105,14 @@ export function AssignAgentDialog({
           </div>
         </div>
 
-        <DialogFooter className="max-sm:mt-auto max-sm:gap-2">
-          <Button variant="outline" onClick={onCancel} className="max-sm:h-11">
+        <DialogFooter className="border-t pt-4 max-sm:mt-auto flex max-sm:flex-row max-sm:gap-3 flex-row items-center sm:justify-end gap-2 px-4 pb-4 sm:px-0 sm:pb-0">
+          <Button variant="outline" onClick={() => { onCancel(); handleOpenChange(false); }} className="max-sm:flex-1 max-sm:h-12 max-sm:rounded-xl">
             Cancel
           </Button>
           <Button
             onClick={() => onAssign(selectedAgent)}
             disabled={!selectedAgent || isAssigning}
-            className="bg-purple-600 hover:bg-purple-700 max-sm:h-11"
+            className="bg-purple-600 hover:bg-purple-700 max-sm:flex-1 max-sm:h-12 max-sm:rounded-xl"
           >
             {isAssigning ? (
               <>
@@ -109,7 +120,7 @@ export function AssignAgentDialog({
                 Assigning...
               </>
             ) : (
-              'Confirm Assignment'
+              'Confirm'
             )}
           </Button>
         </DialogFooter>

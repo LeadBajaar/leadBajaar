@@ -10,6 +10,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { useModalHistory } from '@/hooks/use-modal-history'
 
 interface DeleteConfirmationDialogProps {
   isOpen: boolean;
@@ -26,8 +27,10 @@ export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> =
   onConfirm,
   onCancel
 }) => {
+  const handleOpenChange = useModalHistory(isOpen, onOpenChange, 'deleteConfirmDialog');
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-[400px] max-sm:max-w-[calc(100vw-2rem)] max-sm:rounded-2xl">
         <DialogHeader className="max-sm:text-left">
           <DialogTitle>Delete Lead</DialogTitle>
@@ -35,11 +38,11 @@ export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> =
             Are you sure you want to delete {leadName}? This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={onCancel} className="max-sm:h-11">
+        <DialogFooter className="border-t pt-4 mt-2 flex max-sm:flex-row max-sm:gap-3 flex-row items-center sm:justify-end gap-2 px-4 pb-4 sm:px-0 sm:pb-0">
+          <Button variant="outline" onClick={() => { onCancel(); handleOpenChange(false); }} className="max-sm:flex-1 max-sm:h-12 max-sm:rounded-xl">
             Cancel
           </Button>
-          <Button variant="destructive" onClick={onConfirm} className="max-sm:h-11">
+          <Button variant="destructive" onClick={onConfirm} className="max-sm:flex-1 max-sm:h-12 max-sm:rounded-xl">
             Delete
           </Button>
         </DialogFooter>

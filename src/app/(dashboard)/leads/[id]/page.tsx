@@ -33,6 +33,7 @@ import { getAgentColor } from '@/utils/agentColors'
 import { useTheme } from 'next-themes'
 import { EditLeadDialog } from '../EditLeadDialog'
 import { DeleteConfirmationDialog } from '../DeleteConfirmationDialog'
+import { toTelHref, toWhatsAppPhone } from '@/lib/phone'
 
 export default function LeadDetailsPage() {
   const { id } = useParams()
@@ -132,15 +133,9 @@ export default function LeadDetailsPage() {
 
   const handleCall = () => {
     if (!lead?.phone) return;
-    
-    let cleanPhone = lead.phone.replace(/\D/g, '');
-    const hasPlus = lead.phone.includes('+') || (cleanPhone.length === 12 && cleanPhone.startsWith('91'));
-    
-    // Android dialers sometimes strip the literal '+' because they parse it as a space. Encode it as %2B.
-    if (hasPlus) cleanPhone = '%2B' + cleanPhone;
 
     const a = document.createElement('a');
-    a.href = `tel:${cleanPhone}`;
+    a.href = toTelHref(lead.phone);
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -417,8 +412,7 @@ export default function LeadDetailsPage() {
             className="h-14 w-14 p-0 text-white rounded-full flex items-center justify-center transition-all hover:opacity-90 active:scale-95 shrink-0 shadow-lg"
             style={{ backgroundColor: '#25D366', boxShadow: '0 8px 16px -4px rgba(37, 211, 102, 0.3)' }}
             onClick={() => {
-              const phone = lead.phone.replace(/\D/g, '');
-              window.open(`https://wa.me/${phone}`, '_blank');
+              window.open(`https://wa.me/${toWhatsAppPhone(lead.phone)}`, '_blank');
             }}
           >
             <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7 text-white">

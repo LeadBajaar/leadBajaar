@@ -224,9 +224,9 @@ export function Sidebar({ mobileOpen, setMobileOpen, isCollapsed = false, setIsC
           )}
           <button
             onClick={() => setMobileOpen?.(false)}
-            className="lg:hidden ml-auto text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]"
+            className="lg:hidden ml-auto p-1.5 -mr-1.5 text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] transition-colors"
           >
-            <i className="ti ti-x" />
+            <i className="ti ti-x text-[22px]" />
           </button>
         </div>
 

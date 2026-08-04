@@ -143,8 +143,8 @@ export default function PaymentsPage() {
 
   return (
     <RoleGuard allowedTypes={['super_admin']} allowedFeatures={['system_admin']}>
-      <div className="flex flex-col flex-1 gap-4 sm:gap-5">
-        <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:gap-6 max-w-[1400px] mx-auto w-full pb-10">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-[var(--crm-text-primary)]">Payments & Billing</h1>
             <p className="text-[var(--crm-text-secondary)]">Manage custom payments, approvals, and view billing history.</p>
@@ -188,11 +188,11 @@ export default function PaymentsPage() {
 
           <TabsContent value="pending" className="mt-0 outline-none">
             <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden">
-              <CardHeader>
+              <CardHeader className="p-4 sm:p-6">
                 <CardTitle>Payments Awaiting Approval</CardTitle>
                 <CardDescription>Accounts will be fully activated upon your approval.</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0 sm:p-6 sm:pt-0">
                 {isPendingLoading ? (
                   <div className="flex items-center justify-center p-8">
                     <Loader2 className="h-8 w-8 animate-spin text-[var(--crm-text-secondary)]" />
@@ -204,7 +204,7 @@ export default function PaymentsPage() {
                     <p className="text-sm">All caught up!</p>
                   </div>
                 ) : (
-                  <div className="border border-[var(--crm-border)] rounded-md overflow-hidden">
+                  <div className="border-y sm:border border-x-0 border-[var(--crm-border)] sm:rounded-md overflow-x-auto no-scrollbar">
                     <Table>
                       <TableHeader className="bg-[var(--crm-surface-active)]">
                         <TableRow>
@@ -219,10 +219,10 @@ export default function PaymentsPage() {
                       <TableBody>
                         {pendingPayments.map((p) => (
                           <TableRow key={p.id}>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap">
                               {format(new Date(p.created_at), 'MMM dd, yyyy HH:mm')}
                             </TableCell>
-                            <TableCell className="font-medium">
+                            <TableCell className="font-medium whitespace-nowrap">
                               {p.company?.name || 'Unknown'}
                               {p.company?.status === 'Temporary Active' && (
                                 <Badge variant="outline" className="ml-2 text-amber-500 border-amber-500/20 bg-amber-50">
@@ -230,8 +230,8 @@ export default function PaymentsPage() {
                                 </Badge>
                               )}
                             </TableCell>
-                            <TableCell>₹{p.amount}</TableCell>
-                            <TableCell>{p.plan_name}</TableCell>
+                            <TableCell className="whitespace-nowrap">₹{p.amount}</TableCell>
+                            <TableCell className="whitespace-nowrap">{p.plan_name}</TableCell>
                             <TableCell className="max-w-[300px] truncate" title={p.notes}>
                               {p.notes}
                             </TableCell>
@@ -255,8 +255,8 @@ export default function PaymentsPage() {
                     </Table>
                     
                     {pendingMeta && pendingMeta.last_page > 1 && (
-                      <div className="flex items-center justify-between p-4 border-t border-[var(--crm-border)]">
-                        <p className="text-sm text-[var(--crm-text-secondary)]">
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-[var(--crm-border)]">
+                        <p className="text-sm text-[var(--crm-text-secondary)] text-center sm:text-left">
                           Showing {pendingMeta.from} to {pendingMeta.to} of {pendingMeta.total} entries
                         </p>
                         <Pagination className="justify-end mx-0 w-auto">
@@ -317,11 +317,11 @@ export default function PaymentsPage() {
 
           <TabsContent value="all" className="mt-0 outline-none">
             <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden">
-              <CardHeader>
+              <CardHeader className="p-4 sm:p-6">
                 <CardTitle>Billing History</CardTitle>
                 <CardDescription>A comprehensive log of all payment transactions.</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0 sm:p-6 sm:pt-0">
                 {isAllLoading ? (
                   <div className="flex items-center justify-center p-8">
                     <Loader2 className="h-8 w-8 animate-spin text-[var(--crm-text-secondary)]" />
@@ -332,7 +332,7 @@ export default function PaymentsPage() {
                     <p>No billing history found.</p>
                   </div>
                 ) : (
-                  <div className="border border-[var(--crm-border)] rounded-md overflow-hidden">
+                  <div className="border-y sm:border border-x-0 border-[var(--crm-border)] sm:rounded-md overflow-x-auto no-scrollbar">
                     <Table>
                       <TableHeader className="bg-[var(--crm-surface-active)]">
                         <TableRow>
@@ -350,18 +350,18 @@ export default function PaymentsPage() {
                             <TableCell className="whitespace-nowrap">
                               {format(new Date(p.created_at), 'MMM dd, yyyy HH:mm')}
                             </TableCell>
-                            <TableCell className="font-medium">
+                            <TableCell className="font-medium whitespace-nowrap">
                               {p.company?.name || 'Unknown'}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap">
                               <Badge variant="outline" className="bg-[var(--crm-surface-active)]">
                                 {p.type || 'Standard'}
                               </Badge>
                             </TableCell>
-                            <TableCell className="font-semibold text-[var(--crm-text-primary)]">
+                            <TableCell className="font-semibold text-[var(--crm-text-primary)] whitespace-nowrap">
                               ₹{p.amount}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap">
                               {p.status === 'pending' ? (
                                 <Badge variant="outline" className="text-amber-500 border-amber-500/20 bg-amber-50">Pending</Badge>
                               ) : p.status === 'approved' ? (
@@ -370,7 +370,7 @@ export default function PaymentsPage() {
                                 <Badge variant="outline">{p.status || 'Success'}</Badge>
                               )}
                             </TableCell>
-                            <TableCell className="text-[var(--crm-text-secondary)] text-sm">
+                            <TableCell className="text-[var(--crm-text-secondary)] text-sm whitespace-nowrap">
                               {p.processor ? p.processor.name : 'System'}
                             </TableCell>
                           </TableRow>
@@ -379,8 +379,8 @@ export default function PaymentsPage() {
                     </Table>
                     
                     {allMeta && allMeta.last_page > 1 && (
-                      <div className="flex items-center justify-between p-4 border-t border-[var(--crm-border)]">
-                        <p className="text-sm text-[var(--crm-text-secondary)]">
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-[var(--crm-border)]">
+                        <p className="text-sm text-[var(--crm-text-secondary)] text-center sm:text-left">
                           Showing {allMeta.from} to {allMeta.to} of {allMeta.total} entries
                         </p>
                         <Pagination className="justify-end mx-0 w-auto">

@@ -174,9 +174,9 @@ export default function AutomationsPage() {
 
   return (
     <RoleGuard allowedTypes={['agency', 'super_admin', 'individual']} allowedFeatures={['automations']}>
-      <div className="flex flex-col flex-1 gap-4 sm:gap-5">
+      <div className="flex flex-col gap-4 sm:gap-6 max-w-[1400px] mx-auto w-full pb-10">
       {/* Authentic LeadBajaar Header */}
-      <div className="shrink-0">
+      <div className="shrink-0 w-full">
         <CardHeader className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 space-y-0 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
           <div>
             <CardTitle className="text-lg font-bold text-[var(--crm-text-primary)]">Automations</CardTitle>
@@ -214,34 +214,32 @@ export default function AutomationsPage() {
           </div>
 
           <TabsContent value="sequences" className="flex-1 p-6 m-0 outline-none space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="border border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] rounded-xl overflow-hidden">
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-lg bg-[var(--crm-accent-soft)] flex items-center justify-center">
-                      <CheckCircle2 className="h-5 w-5 text-[var(--crm-accent)]" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-[var(--crm-text-secondary)] uppercase tracking-wider">Active Sequences</p>
-                      <p className="text-xl font-bold text-[var(--crm-text-primary)]">
-                        {sequences.filter(s => s.is_active).length}
-                      </p>
-                    </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 shrink-0 lg:max-w-2xl mb-2">
+              <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden group">
+                <CardContent className="p-3 relative flex items-center gap-3">
+                  <div className="absolute top-0 right-0 -mt-2 -mr-2 h-12 w-12 rounded-full blur-xl opacity-10 bg-indigo-500 group-hover:opacity-20 transition-opacity" />
+                  <div className="h-8 w-8 shrink-0 rounded-lg flex items-center justify-center bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+                    <CheckCircle2 className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider truncate mb-0.5">Active Sequences</p>
+                    <p className="text-lg font-black text-[var(--crm-text-primary)] leading-none">
+                      {sequences.filter(s => s.is_active).length}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] rounded-xl overflow-hidden">
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-                      <Play className="h-5 w-5 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-[var(--crm-text-secondary)] uppercase tracking-wider">Total Enrollments</p>
-                      <p className="text-xl font-bold text-[var(--crm-text-primary)]">
-                        {sequences.reduce((acc, s) => acc + (s.enrollments_count || 0), 0)}
-                      </p>
-                    </div>
+              <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden group">
+                <CardContent className="p-3 relative flex items-center gap-3">
+                  <div className="absolute top-0 right-0 -mt-2 -mr-2 h-12 w-12 rounded-full blur-xl opacity-10 bg-emerald-500 group-hover:opacity-20 transition-opacity" />
+                  <div className="h-8 w-8 shrink-0 rounded-lg flex items-center justify-center bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                    <Play className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider truncate mb-0.5">Total Enrollments</p>
+                    <p className="text-lg font-black text-[var(--crm-text-primary)] leading-none">
+                      {sequences.reduce((acc, s) => acc + (s.enrollments_count || 0), 0)}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -559,9 +557,9 @@ export default function AutomationsPage() {
               </div>
             </div>
 
-            <DialogFooter className="mt-12 sticky bottom-0 bg-[var(--crm-surface-1)] pt-4 border-t border-[var(--crm-border)]">
-              <Button variant="ghost" className="rounded-xl h-12 px-6 font-bold" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-              <Button className="rounded-xl h-12 px-8 font-bold bg-[var(--crm-accent)] hover:opacity-90 shadow-lg shadow-indigo-100" onClick={saveSequence}>
+            <DialogFooter className="mt-8 sm:mt-12 sticky bottom-0 bg-[var(--crm-surface-1)] pt-4 border-t border-[var(--crm-border)] gap-3 sm:gap-2">
+              <Button variant="ghost" className="rounded-xl h-11 font-bold w-full sm:w-auto hover:bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+              <Button className="rounded-xl h-11 px-8 font-bold bg-[var(--crm-accent)] hover:opacity-90 shadow-lg shadow-indigo-100 w-full sm:w-auto text-white border-none" onClick={saveSequence}>
                 <ArrowRight className="h-5 w-5 mr-1.5" /> Launch Sequence
               </Button>
             </DialogFooter>

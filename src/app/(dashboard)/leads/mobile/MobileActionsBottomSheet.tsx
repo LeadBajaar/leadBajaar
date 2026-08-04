@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Edit2, Tag, IndianRupee, User, Trash2, X, Phone, Check, ChevronLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Lead } from '../types'
+import { useModalHistory } from '@/hooks/use-modal-history'
 
 interface MobileActionsBottomSheetProps {
   isOpen: boolean;
@@ -38,12 +39,14 @@ export const MobileActionsBottomSheet: React.FC<MobileActionsBottomSheetProps> =
     if (isOpen) setView('menu');
   }, [isOpen]);
 
+  const handleOpenChange = useModalHistory(isOpen, onOpenChange, 'actionsBottomSheet');
+
   if (!lead) return null;
 
   const stageConfig = stages[lead.stage] || { color: 'bg-slate-100 text-slate-500' };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent
         className="fixed !top-auto !bottom-0 !left-0 !right-0 !translate-x-0 !translate-y-0 w-full sm:w-full rounded-t-3xl rounded-b-none border-t border-[var(--crm-border)] bg-[var(--crm-surface-1)] p-0 m-0 max-w-none slide-in-from-bottom-[100%] duration-300 [&>button.absolute]:hidden"
       >
@@ -71,7 +74,7 @@ export const MobileActionsBottomSheet: React.FC<MobileActionsBottomSheetProps> =
                 )}
               </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="h-8 w-8 rounded-full shrink-0">
+            <Button variant="ghost" size="icon" onClick={() => handleOpenChange(false)} className="h-8 w-8 rounded-full shrink-0">
               <X className="h-5 w-5 text-[var(--crm-text-tertiary)]" />
             </Button>
           </div>
@@ -81,7 +84,7 @@ export const MobileActionsBottomSheet: React.FC<MobileActionsBottomSheetProps> =
               <Button
                 variant="ghost"
                 className="w-full justify-start h-14 px-4 font-medium text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)] rounded-xl"
-                onClick={() => { onOpenChange(false); onEdit(lead); }}
+                onClick={() => { handleOpenChange(false); onEdit(lead); }}
               >
                 <Edit2 className="h-5 w-5 mr-4 text-[var(--crm-text-tertiary)]" />
                 Edit Lead
@@ -97,7 +100,7 @@ export const MobileActionsBottomSheet: React.FC<MobileActionsBottomSheetProps> =
               <Button
                 variant="ghost"
                 className="w-full justify-start h-14 px-4 font-medium text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)] rounded-xl"
-                onClick={() => { onOpenChange(false); onDealValue(lead); }}
+                onClick={() => { handleOpenChange(false); onDealValue(lead); }}
               >
                 <IndianRupee className="h-5 w-5 mr-4 text-[var(--crm-text-tertiary)]" />
                 Deal Value
@@ -105,7 +108,7 @@ export const MobileActionsBottomSheet: React.FC<MobileActionsBottomSheetProps> =
               <Button
                 variant="ghost"
                 className="w-full justify-start h-14 px-4 font-medium text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)] rounded-xl"
-                onClick={() => { onOpenChange(false); onAssign(lead); }}
+                onClick={() => { handleOpenChange(false); onAssign(lead); }}
               >
                 <User className="h-5 w-5 mr-4 text-[var(--crm-text-tertiary)]" />
                 Assign Rep
@@ -116,7 +119,7 @@ export const MobileActionsBottomSheet: React.FC<MobileActionsBottomSheetProps> =
               <Button
                 variant="ghost"
                 className="w-full justify-start h-14 px-4 font-medium text-[var(--crm-red)] hover:bg-[var(--crm-red-soft)] rounded-xl"
-                onClick={() => { onOpenChange(false); onDelete(lead); }}
+                onClick={() => { handleOpenChange(false); onDelete(lead); }}
               >
                 <Trash2 className="h-5 w-5 mr-4" />
                 Delete Lead
@@ -145,7 +148,7 @@ export const MobileActionsBottomSheet: React.FC<MobileActionsBottomSheetProps> =
                           ? "bg-[var(--crm-accent-soft)] text-[var(--crm-accent)] opacity-100"
                           : "text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)]"
                       )}
-                      onClick={() => { onOpenChange(false); onStageSelect(lead, stageName); }}
+                      onClick={() => { handleOpenChange(false); onStageSelect(lead, stageName); }}
                     >
                       {stageName}
                       {isCurrent && <Check className="h-4 w-4" />}

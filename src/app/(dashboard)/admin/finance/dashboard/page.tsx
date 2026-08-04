@@ -45,8 +45,8 @@ export default function FinanceDashboardPage() {
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n ?? 0)
 
   if (loading) return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="space-y-4 sm:space-y-6 max-w-[1400px] mx-auto w-full pb-10">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
       </div>
       <Skeleton className="h-72 rounded-xl" />
@@ -56,14 +56,14 @@ export default function FinanceDashboardPage() {
   const { revenue, expenses, pnl, payroll, highlights, burn_trend, projections } = data ?? {}
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 max-w-[1400px] mx-auto w-full pb-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold">P&amp;L Dashboard</h2>
           <p className="text-sm text-[var(--crm-text-secondary)]">Financial overview for the selected period</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <Select value={String(month)} onValueChange={v => setMonth(Number(v))}>
             <SelectTrigger className="w-28 h-8 text-xs">
               <SelectValue />
@@ -91,10 +91,10 @@ export default function FinanceDashboardPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Revenue */}
         <Card className="border-emerald-200/50 bg-gradient-to-br from-emerald-50/50">
-          <CardContent className="pt-5">
+          <CardContent className="p-3 sm:p-6 pt-4 sm:pt-5">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-[var(--crm-text-secondary)] font-medium uppercase tracking-wider">Revenue</span>
               <div className="h-7 w-7 rounded-lg bg-emerald-100 flex items-center justify-center">
@@ -108,7 +108,7 @@ export default function FinanceDashboardPage() {
 
         {/* Total Expenses */}
         <Card className="border-red-200/50 bg-gradient-to-br from-red-50/50">
-          <CardContent className="pt-5">
+          <CardContent className="p-3 sm:p-6 pt-4 sm:pt-5">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-[var(--crm-text-secondary)] font-medium uppercase tracking-wider">Total Burn</span>
               <div className="h-7 w-7 rounded-lg bg-red-100 flex items-center justify-center">
@@ -122,7 +122,7 @@ export default function FinanceDashboardPage() {
 
         {/* Net P&L */}
         <Card className={`border-2 ${pnl?.is_profitable ? 'border-emerald-200/60 bg-gradient-to-br from-emerald-50/30' : 'border-red-200/60 bg-gradient-to-br from-red-50/30'}`}>
-          <CardContent className="pt-5">
+          <CardContent className="p-3 sm:p-6 pt-4 sm:pt-5">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-[var(--crm-text-secondary)] font-medium uppercase tracking-wider">Net P&amp;L</span>
               <div className={`h-7 w-7 rounded-lg flex items-center justify-center ${pnl?.is_profitable ? 'bg-emerald-100' : 'bg-red-100'}`}>
@@ -140,7 +140,7 @@ export default function FinanceDashboardPage() {
 
         {/* Payroll Status */}
         <Card className="border-primary/10 bg-gradient-to-br from-indigo-50/50">
-          <CardContent className="pt-5">
+          <CardContent className="p-3 sm:p-6 pt-4 sm:pt-5">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-[var(--crm-text-secondary)] font-medium uppercase tracking-wider">Payroll</span>
               <div className="h-7 w-7 rounded-lg bg-primary/20 flex items-center justify-center">
@@ -173,8 +173,8 @@ export default function FinanceDashboardPage() {
               P&amp;L Statement — {MONTHS[month - 1]} {year}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-1 text-sm font-mono">
+          <CardContent className="p-3 sm:p-6 overflow-x-auto no-scrollbar">
+            <div className="space-y-1 text-sm font-mono min-w-[280px]">
               <div className="flex justify-between py-1.5 border-b font-semibold text-[var(--crm-text-primary)]/70 text-xs uppercase tracking-wider">
                 <span>Revenue</span><span></span>
               </div>

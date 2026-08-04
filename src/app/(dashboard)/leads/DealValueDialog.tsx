@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Loader2, IndianRupee, Wallet } from 'lucide-react'
+import { useModalHistory } from '@/hooks/use-modal-history'
 
 interface DealValueDialogProps {
   isOpen: boolean;
@@ -48,9 +49,19 @@ export const DealValueDialog: React.FC<DealValueDialogProps> = ({
   onSave,
   onCancel
 }) => {
+  const handleOpenChange = useModalHistory(isOpen, onOpenChange, 'dealValueDialog');
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[450px] max-sm:!max-w-none max-sm:w-full max-sm:h-[100dvh] max-sm:!max-h-[100dvh] max-sm:!rounded-none max-sm:border-0 max-sm:!left-0 max-sm:!top-0 max-sm:!translate-x-0 max-sm:!translate-y-0 max-sm:flex max-sm:flex-col max-sm:overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent 
+        className="max-w-[450px] max-sm:!max-w-none max-sm:w-full max-sm:h-[100dvh] max-sm:!max-h-[100dvh] max-sm:!rounded-none max-sm:border-0 max-sm:!left-0 max-sm:!top-0 max-sm:!translate-x-0 max-sm:!translate-y-0 max-sm:flex max-sm:flex-col max-sm:overflow-y-auto"
+        onInteractOutside={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest('[data-radix-popper-content-wrapper]')) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader className="max-sm:text-left">
           <DialogTitle>Contract Details</DialogTitle>
           <DialogDescription>
@@ -118,14 +129,14 @@ export const DealValueDialog: React.FC<DealValueDialogProps> = ({
             </div>
           )}
         </div>
-        <DialogFooter className="gap-2 sm:gap-0 border-t pt-4 max-sm:mt-auto">
-          <Button variant="outline" onClick={onCancel} className="max-sm:h-11">
+        <DialogFooter className="border-t pt-4 max-sm:mt-auto flex max-sm:flex-row max-sm:gap-3 flex-row items-center sm:justify-end gap-2 px-4 pb-4 sm:px-0 sm:pb-0">
+          <Button variant="outline" onClick={() => { onCancel(); handleOpenChange(false); }} className="max-sm:flex-1 max-sm:h-12 max-sm:rounded-xl">
             Cancel
           </Button>
           <Button
             onClick={onSave}
             disabled={!dealValueAmount || isSaving}
-            className="bg-primary hover:bg-primary/90 font-bold max-sm:h-11"
+            className="bg-primary hover:bg-primary/90 font-bold max-sm:flex-1 max-sm:h-12 max-sm:rounded-xl"
           >
             {isSaving ? (
               <>
@@ -133,7 +144,7 @@ export const DealValueDialog: React.FC<DealValueDialogProps> = ({
                 Saving...
               </>
             ) : (
-              'Confirm Contract & Payment'
+              'Confirm Contract'
             )}
           </Button>
         </DialogFooter>

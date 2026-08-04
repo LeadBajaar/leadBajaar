@@ -946,7 +946,7 @@ export default function SuperAdminPage() {
 
   return (
     <RoleGuard allowedFeatures={['system_admin']}>
-      <div className="flex flex-col flex-1 gap-4 sm:gap-5">
+      <div className="flex flex-col gap-4 sm:gap-6 max-w-[1400px] mx-auto w-full pb-10">
         <div className="space-y-6 w-full">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -969,7 +969,7 @@ export default function SuperAdminPage() {
           </div>
 
           {/* Global Summary */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {[
               {
                 label: 'Total Revenue',
@@ -1164,7 +1164,7 @@ export default function SuperAdminPage() {
               </div>
 
               <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-2xl ring-1 ring-slate-200 overflow-hidden">
-                <CardContent className="p-0">
+                <CardContent className="p-0 overflow-x-auto no-scrollbar">
                   <Table>
                     <TableHeader className="bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)]">
                       <TableRow className="hover:bg-transparent">
@@ -1468,7 +1468,7 @@ export default function SuperAdminPage() {
 
               {/* Companies Table */}
               <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-2xl ring-1 ring-slate-200 overflow-hidden">
-                <CardContent className="p-0">
+                <CardContent className="p-0 overflow-x-auto no-scrollbar">
                   <Table>
                     <TableHeader className="bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)]">
                       <TableRow className="hover:bg-transparent">
@@ -1671,7 +1671,7 @@ export default function SuperAdminPage() {
                   <CardHeader className="border-b border-[var(--crm-border)]">
                     <CardTitle className="text-lg font-bold">Recent Invoices</CardTitle>
                   </CardHeader>
-                  <CardContent className="p-0">
+                  <CardContent className="p-0 overflow-x-auto no-scrollbar">
                     <Table>
                       <TableHeader className="bg-[var(--crm-surface-2)]">
                         <TableRow>
@@ -1958,7 +1958,7 @@ export default function SuperAdminPage() {
               </div>
 
               <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-2xl ring-1 ring-slate-200 overflow-hidden">
-                <CardContent className="p-0">
+                <CardContent className="p-0 overflow-x-auto no-scrollbar">
                   <Table>
                     <TableHeader className="bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)]">
                       <TableRow className="hover:bg-transparent">
@@ -2483,7 +2483,7 @@ export default function SuperAdminPage() {
               </div>
 
               <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-2xl ring-1 ring-slate-200 overflow-hidden">
-                <CardContent className="p-0">
+                <CardContent className="p-0 overflow-x-auto no-scrollbar">
                   <Table>
                     <TableHeader className="bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)]">
                       <TableRow className="hover:bg-transparent">
@@ -2690,14 +2690,14 @@ export default function SuperAdminPage() {
                 <Button
                   variant="outline"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="rounded-xl h-11 font-bold border-[var(--crm-border)]"
+                  className="rounded-xl h-11 font-bold border-[var(--crm-border)] w-full sm:w-auto"
                   disabled={isUpdatingCompany}
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleUpdateCompany}
-                  className={cn("rounded-xl h-11 font-black px-8 shadow-lg transition-all",
+                  className={cn("rounded-xl h-11 font-black px-8 shadow-lg transition-all w-full sm:w-auto",
                     isUpdatingCompany ? "bg-slate-400" : "bg-[var(--crm-accent)] hover:opacity-90 shadow-primary/20"
                   )}
                   disabled={isUpdatingCompany}
@@ -2915,18 +2915,18 @@ export default function SuperAdminPage() {
                   </div>
                 </div>
 
-                <DialogFooter className="p-6 border-t border-[var(--crm-border)] bg-[var(--crm-surface-2)] flex items-center justify-end gap-3">
+                <DialogFooter className="p-6 border-t border-[var(--crm-border)] bg-[var(--crm-surface-2)] flex flex-col sm:flex-row items-center justify-end gap-3">
                   <Button 
                     variant="ghost" 
                     onClick={() => setIsPlanModalOpen(false)} 
-                    className="rounded-xl h-11 font-bold text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-3)]" 
+                    className="rounded-xl h-11 font-bold text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-3)] w-full sm:w-auto" 
                     disabled={isUpdatingPlan}
                   >
                     Discard Changes
                   </Button>
                   <Button
                     onClick={handleSavePlan}
-                    className="rounded-xl h-11 font-black bg-[var(--crm-accent)] hover:opacity-90 text-white px-10 shadow-xl shadow-primary/20"
+                    className="rounded-xl h-11 font-black bg-[var(--crm-accent)] hover:opacity-90 text-white px-10 shadow-xl shadow-primary/20 w-full sm:w-auto"
                     disabled={isUpdatingPlan}
                   >
                     {isUpdatingPlan ? (
@@ -2974,9 +2974,9 @@ export default function SuperAdminPage() {
                   />
                 </div>
               </div>
-              <DialogFooter>
-                <Button variant="ghost" onClick={() => setRenewModal({ ...renewModal, isOpen: false })} className="rounded-xl h-11 font-bold">Cancel</Button>
-                <Button onClick={handleRenewCompany} className="rounded-xl h-11 font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20">Apply Extension</Button>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button variant="ghost" onClick={() => setRenewModal({ ...renewModal, isOpen: false })} className="rounded-xl h-11 font-bold w-full sm:w-auto">Cancel</Button>
+                <Button onClick={handleRenewCompany} className="rounded-xl h-11 font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20 w-full sm:w-auto">Apply Extension</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -2987,23 +2987,23 @@ export default function SuperAdminPage() {
               <div className="p-6 bg-[var(--crm-accent)] text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 -mt-8 -mr-8 h-32 w-32 rounded-full bg-[var(--crm-surface-1)]/5 blur-3xl"></div>
                 <div className="relative z-10">
-                  <DialogTitle className="text-xl font-black flex items-center gap-2">
-                    <History className="h-5 w-5 text-indigo-400" />
+                  <DialogTitle className="text-xl font-black flex items-center gap-2 text-white">
+                    <History className="h-5 w-5 text-indigo-300" />
                     Subscription Audit Trail
                   </DialogTitle>
-                  <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-widest mt-1">Workspace: {historyModal.companyName}</p>
+                  <p className="text-[10px] text-indigo-100 font-bold uppercase tracking-widest mt-1">Workspace: {historyModal.companyName}</p>
                 </div>
               </div>
 
-              <div className="max-h-[500px] overflow-y-auto">
+              <div className="max-h-[500px] overflow-y-auto overflow-x-auto no-scrollbar">
                 <Table>
                   <TableHeader className="bg-[var(--crm-surface-2)] sticky top-0 z-10 border-b border-[var(--crm-border)]">
                     <TableRow>
-                      <TableHead className="text-[10px] uppercase font-black py-4 pl-6">Timestamp</TableHead>
-                      <TableHead className="text-[10px] uppercase font-black py-4">Event Node</TableHead>
-                      <TableHead className="text-[10px] uppercase font-black py-4">Processor</TableHead>
-                      <TableHead className="text-[10px] uppercase font-black py-4">New Expiry</TableHead>
-                      <TableHead className="text-[10px] uppercase font-black py-4 pr-6">Narrative</TableHead>
+                      <TableHead className="text-[10px] uppercase font-black py-4 pl-6 whitespace-nowrap">Timestamp</TableHead>
+                      <TableHead className="text-[10px] uppercase font-black py-4 whitespace-nowrap">Event Node</TableHead>
+                      <TableHead className="text-[10px] uppercase font-black py-4 whitespace-nowrap">Processor</TableHead>
+                      <TableHead className="text-[10px] uppercase font-black py-4 whitespace-nowrap">New Expiry</TableHead>
+                      <TableHead className="text-[10px] uppercase font-black py-4 pr-6 whitespace-nowrap">Narrative</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -3019,10 +3019,10 @@ export default function SuperAdminPage() {
                     ) : (
                       historyModal.logs.map((log) => (
                         <TableRow key={log.id} className="hover:bg-[var(--crm-surface-3)] transition-colors">
-                          <TableCell className="text-xs font-bold text-[var(--crm-text-secondary)] py-4 pl-6">
+                          <TableCell className="text-xs font-bold text-[var(--crm-text-secondary)] py-4 pl-6 whitespace-nowrap">
                             {new Date(log.created_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="whitespace-nowrap">
                             <Badge variant="outline" className={cn("text-[8px] font-black uppercase px-2",
                               log.type === 'RENEWAL' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
                                 log.type === 'ADJUSTMENT' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)]'
@@ -3030,13 +3030,13 @@ export default function SuperAdminPage() {
                               {log.type}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-xs font-bold text-[var(--crm-text-primary)]">
+                          <TableCell className="text-xs font-bold text-[var(--crm-text-primary)] whitespace-nowrap">
                             {log.processor?.name || 'System Auto'}
                           </TableCell>
-                          <TableCell className="text-xs font-black text-[var(--crm-accent)]">
+                          <TableCell className="text-xs font-black text-[var(--crm-accent)] whitespace-nowrap">
                             {log.new_expiry ? new Date(log.new_expiry).toLocaleDateString() : '—'}
                           </TableCell>
-                          <TableCell className="text-[10px] text-[var(--crm-text-secondary)] font-medium pr-6 max-w-[200px] truncate italic">
+                          <TableCell className="text-[10px] text-[var(--crm-text-secondary)] font-medium pr-6 max-w-[200px] sm:max-w-none truncate italic">
                             {log.notes || 'No narrative provided.'}
                           </TableCell>
                         </TableRow>
@@ -3045,9 +3045,9 @@ export default function SuperAdminPage() {
                   </TableBody>
                 </Table>
               </div>
-              <div className="p-4 bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)] flex justify-between items-center px-6">
+              <div className="p-4 bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)] flex flex-col sm:flex-row justify-between items-center px-6 gap-3 sm:gap-0">
                 <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase">End of audit log</p>
-                <Button onClick={() => setHistoryModal({ ...historyModal, isOpen: false })} className="rounded-xl font-bold bg-[var(--crm-accent)] px-8 h-10">Close Audit</Button>
+                <Button onClick={() => setHistoryModal({ ...historyModal, isOpen: false })} className="rounded-xl font-bold bg-[var(--crm-accent)] px-8 h-10 w-full sm:w-auto">Close Audit</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -3180,14 +3180,14 @@ export default function SuperAdminPage() {
                 <Button
                   variant="ghost"
                   onClick={() => setIsUserModalOpen(false)}
-                  className="rounded-xl font-bold h-11 border-transparent"
+                  className="rounded-xl font-bold h-11 border-transparent w-full sm:w-auto"
                   disabled={isUpdatingUser}
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleUpdateUser}
-                  className="rounded-xl font-black bg-[var(--crm-accent)] hover:opacity-90 text-white shadow-lg shadow-primary/20 px-8 h-11 transition-all active:scale-95"
+                  className="rounded-xl font-black bg-[var(--crm-accent)] hover:opacity-90 text-white shadow-lg shadow-primary/20 px-8 h-11 transition-all active:scale-95 w-full sm:w-auto"
                   disabled={isUpdatingUser}
                 >
                   {isUpdatingUser ? (

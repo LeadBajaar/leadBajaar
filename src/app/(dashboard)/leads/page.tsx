@@ -93,6 +93,7 @@ import { DealValueDialog } from './DealValueDialog'
 import { EditLeadDialog } from './EditLeadDialog'
 import { AddLeadDialog } from './AddLeadDialog'
 import { AssignAgentDialog } from './AssignAgentDialog'
+import { toTelHref, toWhatsAppPhone } from '@/lib/phone'
 
 const ErrorAlert = ({ message }: { message: string }) => (
   <Alert variant="destructive" className="mb-4">
@@ -284,6 +285,7 @@ export default function LeadsPage() {
   // Add state for export dialog
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportSuccess, setIsExportSuccess] = useState(false);
 
   // Team members state
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
@@ -633,8 +635,7 @@ export default function LeadsPage() {
   };
 
   const handleWhatsAppClick = (lead: Lead) => {
-    const phone = lead.phone.replace(/\D/g, '');
-    window.open(`https://wa.me/${phone}`, '_blank');
+    window.open(`https://wa.me/${toWhatsAppPhone(lead.phone)}`, '_blank');
   };
 
   const handleAssignAgentClick = (lead: Lead) => {
@@ -659,15 +660,9 @@ export default function LeadsPage() {
 
   const handleCallClick = (lead: Lead) => {
     if (!lead.phone) return;
-    
-    let cleanPhone = lead.phone.replace(/\D/g, '');
-    const hasPlus = lead.phone.includes('+') || (cleanPhone.length === 12 && cleanPhone.startsWith('91'));
-    
-    // Android dialers sometimes strip the literal '+' because they parse it as a space. Encode it as %2B.
-    if (hasPlus) cleanPhone = '%2B' + cleanPhone;
 
     const a = document.createElement('a');
-    a.href = `tel:${cleanPhone}`;
+    a.href = toTelHref(lead.phone);
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1116,8 +1111,11 @@ export default function LeadsPage() {
       await exportLeads(exportAll ? undefined : selectedLeads);
 
       toast.success("Leads exported successfully");
-
-      setShowExportDialog(false);
+      setIsExportSuccess(true);
+      setTimeout(() => {
+        setIsExportSuccess(false);
+        setShowExportDialog(false);
+      }, 2000);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to export leads");
     } finally {
@@ -1623,6 +1621,7 @@ export default function LeadsPage() {
         onOpenChange={setShowExportDialog}
         selectedCount={selectedLeads.length}
         isExporting={isExporting}
+        isExportSuccess={isExportSuccess}
         onExport={handleExport}
         onCancel={() => setShowExportDialog(false)}
       />

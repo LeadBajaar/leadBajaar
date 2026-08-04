@@ -60,26 +60,9 @@ import { SchedulingTab } from './components/SchedulingTab'
 import { TeamTab } from './components/TeamTab'
 import { eventTypeService } from '@/services/event-types'
 import { useUser } from '@/contexts/UserContext'
+import { teamApi } from '@/lib/api'
 
 import { EventType, Question, QuestionSection, SchedulingSettings, TimeSlot, TeamMember } from '@/types/events'
-
-// ... (teamMembers constant remains)
-const teamMembers = [
-  {
-    id: 1,
-    name: "Alex Thompson",
-    email: "alex@example.com",
-    avatar: "https://www.svgrepo.com/show/65453/avatar.svg",
-    role: "Sales Representative"
-  },
-  {
-    id: 2,
-    name: "Sarah Johnson",
-    email: "sarah@example.com",
-    avatar: "https://www.svgrepo.com/show/65453/avatar.svg",
-    role: "Senior Sales Executive"
-  },
-]
 
 export default function EventTypeForm() {
   const params = useParams()
@@ -95,62 +78,38 @@ export default function EventTypeForm() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({})
   const [showErrorDialog, setShowErrorDialog] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [availableMembers, setAvailableMembers] = useState<TeamMember[]>([])
 
   const [eventType, setEventType] = useState<EventType>({
     id: isNew ? 'new' : '', // Satisfy interface
-    title: isNew ? `30 Minutes with ${user?.name || 'Coach'} Health & Wellness Coach` : '',
-    description: isNew ? 'Take out 30 minutes for your health. Sit in a comfortable, less noise area and make sure you have a stable internet connection.' : '',
+    title: '',
+    description: isNew ? 'A quick meeting to discuss your needs.' : '',
     duration: 30,
     slot_interval: 30,
     location: 'video',
     type: isNew ? defaultType : 'one_on_one',
     max_invitees: (isNew && defaultType === 'group') ? 2 : null,
     questions: isNew ? [
-      { id: 'q-name', question: 'NAME', type: 'text', required: true, isLocked: true },
-      { id: 'q-phone', question: 'PHONE', type: 'text', required: true, isLocked: true },
-      { id: 'q-reason', question: 'What is the reason for the call?', type: 'text', required: true },
-      { 
-        id: 'q-tried', 
-        question: 'Have you tried anything before for your weight loss/weight gain?', 
-        type: 'radio', 
-        required: true,
-        options: ['Yes', 'No']
-      },
-      { id: 'q-describe', question: 'If YES, then describe shortly.', type: 'text', required: false },
-      { 
-        id: 'q-health', 
-        question: 'What are your current health problems?', 
-        type: 'checkbox', 
-        required: true,
-        options: ['Tiredness', 'Belly fat', 'Poor digestion', 'PCOD', 'Stress', 'Hyper tension']
-      },
-      { 
-        id: 'q-confirm', 
-        question: "Do you 100% confirm that you'll be available for the call at the selected date and time in a noise-free environment?", 
-        type: 'radio', 
-        required: true,
-        options: ['Yes', 'No']
-      }
+      { id: 'invitee_name', question: 'Name', type: 'text', required: true, isLocked: true },
+      { id: 'invitee_email', question: 'Email', type: 'email', required: true, isLocked: true },
+      { id: 'invitee_phone', question: 'Phone Number', type: 'phone', required: true, isLocked: true },
     ] as Question[] : [] as Question[],
     scheduling: {
       bufferBefore: 0,
       bufferAfter: 0,
-      minimumNotice: 4,
+      minimumNotice: 24,
       dailyLimit: 0,
       weeklyLimit: 0,
-      availableDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-      dateRange: 7,
+      availableDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      dateRange: 60,
       timezone: 'Asia/Kolkata',
       timeSlots: [
         {
           id: 'default-1',
           startTime: '09:00',
           endTime: '17:00',
-          daysOfWeek: [1, 2, 3, 4, 5, 6], // Mon-Sat
-          breaks: [
-            { id: 'break-1', label: 'Lunch Break', startTime: '15:00', endTime: '16:30' },
-            { id: 'break-2', label: 'Lunch Break', startTime: '19:00', endTime: '20:30' }
-          ]
+          daysOfWeek: [1, 2, 3, 4, 5], // Mon-Fri
+          breaks: []
         }
       ],
       recurring: null
@@ -223,13 +182,17 @@ export default function EventTypeForm() {
   }, [isNew, params.id])
 
   useEffect(() => {
-    if (isNew && user?.name && !eventType.title) {
-      setEventType(prev => ({
-        ...prev,
-        title: `30 Minutes with ${user.name} Health & Wellness Coach`
-      }))
+    const loadTeamRoster = async () => {
+      try {
+        const members = await teamApi.getMembers()
+        setAvailableMembers(members || [])
+      } catch (error) {
+        // Non-fatal: the Team tab just shows an empty roster if this fails.
+        setAvailableMembers([])
+      }
     }
-  }, [isNew, user?.name])
+    loadTeamRoster()
+  }, [])
 
   // Use specific skeletons instead of a full-page loading spinner
   // if (loading) return <LoadingSpinner />
@@ -382,7 +345,7 @@ export default function EventTypeForm() {
                    <SchedulingTab eventType={eventType} updateScheduling={(field: string, value: any) => updateScheduling(field as keyof SchedulingSettings, value)} updateEventField={(field: string, value: any) => setEventType({ ...eventType, [field]: value })} />
                 </TabsContent>
                 <TabsContent value="team" className="m-0">
-                   <TeamTab eventType={eventType} toggleTeamMember={toggleTeamMember} />
+                   <TeamTab eventType={eventType} toggleTeamMember={toggleTeamMember} availableMembers={availableMembers} />
                 </TabsContent>
               </>
             )}
