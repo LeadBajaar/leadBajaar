@@ -270,9 +270,9 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
           <div key={slot.id} className="relative group/slot">
             <Card className="border-[var(--crm-border)] shadow-sm rounded-xl overflow-hidden bg-[var(--crm-surface-1)] transition-all hover:border-primary/10">
               <CardContent className="p-0">
-                <div className="grid lg:grid-cols-12">
+                <div>
                   {/* Time Range */}
-                  <div className="lg:col-span-4 p-4 sm:p-5 border-b lg:border-b-0 lg:border-r border-[var(--crm-border)] space-y-4">
+                  <div className="p-4 sm:p-5 border-b border-[var(--crm-border)] space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
                         <Label className={labelStyle}>Start</Label>
@@ -306,7 +306,7 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
                   </div>
 
                   {/* Days and Breaks */}
-                  <div className="lg:col-span-8 p-4 sm:p-5 space-y-6 bg-[var(--crm-surface-2)]">
+                  <div className="p-4 sm:p-5 space-y-6 bg-[var(--crm-surface-2)]">
                     <div className="space-y-2.5">
                       <Label className={labelStyle}>Active Days</Label>
                       <div className="grid grid-cols-7 gap-1 sm:gap-1.5 w-full">

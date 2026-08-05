@@ -61,6 +61,7 @@ import { TeamTab } from './components/TeamTab'
 import { eventTypeService } from '@/services/event-types'
 import { useUser } from '@/contexts/UserContext'
 import { teamApi } from '@/lib/api'
+import { WIZARD_DRAFT_STORAGE_KEY } from '@/lib/eventTypeWizard'
 
 import { EventType, Question, QuestionSection, SchedulingSettings, TimeSlot, TeamMember } from '@/types/events'
 
@@ -80,44 +81,70 @@ export default function EventTypeForm() {
   const [errorMessage, setErrorMessage] = useState('')
   const [availableMembers, setAvailableMembers] = useState<TeamMember[]>([])
 
-  const [eventType, setEventType] = useState<EventType>({
-    id: isNew ? 'new' : '', // Satisfy interface
-    title: '',
-    description: isNew ? 'A quick meeting to discuss your needs.' : '',
-    duration: 30,
-    slot_interval: 30,
-    location: 'video',
-    type: isNew ? defaultType : 'one_on_one',
-    max_invitees: (isNew && defaultType === 'group') ? 2 : null,
-    questions: isNew ? [
-      { id: 'invitee_name', question: 'Name', type: 'text', required: true, isLocked: true },
-      { id: 'invitee_email', question: 'Email', type: 'email', required: true, isLocked: true },
-      { id: 'invitee_phone', question: 'Phone Number', type: 'phone', required: true, isLocked: true },
-    ] as Question[] : [] as Question[],
-    scheduling: {
-      bufferBefore: 0,
-      bufferAfter: 0,
-      minimumNotice: 24,
-      dailyLimit: 0,
-      weeklyLimit: 0,
-      availableDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-      dateRange: 60,
-      timezone: 'Asia/Kolkata',
-      timeSlots: [
-        {
-          id: 'default-1',
-          startTime: '09:00',
-          endTime: '17:00',
-          daysOfWeek: [1, 2, 3, 4, 5], // Mon-Fri
-          breaks: []
+  const [eventType, setEventType] = useState<EventType>(() => {
+    const base: EventType = {
+      id: isNew ? 'new' : '', // Satisfy interface
+      title: '',
+      description: isNew ? 'A quick meeting to discuss your needs.' : '',
+      duration: 30,
+      slot_interval: 30,
+      location: 'video',
+      video_platform: '',
+      location_details: '',
+      active: true,
+      type: isNew ? defaultType : 'one_on_one',
+      max_invitees: (isNew && defaultType === 'group') ? 2 : null,
+      questions: isNew ? [
+        { id: 'invitee_name', question: 'Name', type: 'text', required: true, isLocked: true },
+        { id: 'invitee_email', question: 'Email', type: 'email', required: true, isLocked: true },
+        { id: 'invitee_phone', question: 'Phone Number', type: 'phone', required: true, isLocked: true },
+      ] as Question[] : [] as Question[],
+      scheduling: {
+        bufferBefore: 0,
+        bufferAfter: 0,
+        minimumNotice: 24,
+        dailyLimit: 0,
+        weeklyLimit: 0,
+        availableDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        dateRange: 60,
+        timezone: 'Asia/Kolkata',
+        timeSlots: [
+          {
+            id: 'default-1',
+            startTime: '09:00',
+            endTime: '17:00',
+            daysOfWeek: [1, 2, 3, 4, 5], // Mon-Fri
+            breaks: []
+          }
+        ],
+        recurring: null
+      },
+      slots: [] as TimeSlot[],
+      teamMembers: [] as TeamMember[],
+      sections: [] as QuestionSection[],
+      redirect_url: '',
+    }
+
+    // If the guided wizard just handed us a pre-filled draft, use it instead of
+    // the plain defaults above — the user still reviews everything here before saving.
+    if (isNew && typeof window !== 'undefined') {
+      const raw = sessionStorage.getItem(WIZARD_DRAFT_STORAGE_KEY)
+      if (raw) {
+        sessionStorage.removeItem(WIZARD_DRAFT_STORAGE_KEY)
+        try {
+          const draft = JSON.parse(raw)
+          return {
+            ...base,
+            ...draft,
+            scheduling: { ...base.scheduling, ...draft.scheduling },
+          }
+        } catch {
+          // Malformed/stale draft — fall through to the plain defaults.
         }
-      ],
-      recurring: null
-    },
-    slots: [] as TimeSlot[],
-    teamMembers: [] as TeamMember[],
-    sections: [] as QuestionSection[],
-    redirect_url: '',
+      }
+    }
+
+    return base
   })
 
   // ... (sensors, useEffect remain same)
@@ -145,6 +172,9 @@ export default function EventTypeForm() {
           duration: data.duration || 30,
           slot_interval: data.slot_interval || data.duration || 30,
           location: data.location || 'video',
+          video_platform: data.video_platform || '',
+          location_details: data.location_details || '',
+          active: data.active ?? true,
           type: data.type || 'one_on_one',
           max_invitees: data.max_invitees || null,
           max_bookings_per_invitee: data.max_bookings_per_invitee || null,

@@ -34,7 +34,7 @@ describe('TeamTab', () => {
 
   it('shows the assigned count from eventType.teamMembers, not the available pool', () => {
     renderTeamTab({ eventType: { teamMembers: [alex] } })
-    expect(screen.getByText('1 Assigned')).toBeInTheDocument()
+    expect(screen.getByText('1 assigned')).toBeInTheDocument()
   })
 
   it('calls toggleTeamMember with the clicked member', () => {
@@ -54,11 +54,11 @@ describe('TeamTab', () => {
 
   it('shows an empty state when there is no company roster to pick from', () => {
     renderTeamTab({ availableMembers: [] })
-    expect(screen.getByText('No Team Members Found')).toBeInTheDocument()
+    expect(screen.getByText('No team members found')).toBeInTheDocument()
   })
 
   it('does not show the empty state once a roster is available, even with nobody assigned yet', () => {
     renderTeamTab({ eventType: { teamMembers: [] } })
-    expect(screen.queryByText('No Team Members Found')).not.toBeInTheDocument()
+    expect(screen.queryByText('No team members found')).not.toBeInTheDocument()
   })
 })

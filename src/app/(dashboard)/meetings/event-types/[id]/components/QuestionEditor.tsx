@@ -119,10 +119,10 @@ export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: P
 
   return (
     <div className="bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl overflow-hidden shadow-lg animate-in fade-in zoom-in-95 duration-200 z-50">
-      <div className="flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
-        
+      <div className="flex flex-col divide-y divide-slate-100">
+
         {/* Editor (Left Column) */}
-        <div className="lg:w-3/5 p-5 sm:p-6 space-y-6">
+        <div className="p-5 sm:p-6 space-y-6">
           <div className="flex items-center justify-between gap-4">
             <h4 className="text-xs font-black uppercase tracking-[0.1em] text-[var(--crm-text-primary)]">Question Configuration</h4>
             <div className="flex items-center gap-2">
@@ -257,7 +257,7 @@ export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: P
         </div>
 
         {/* Live Preview (Right Column) */}
-        <div className="lg:w-2/5 p-5 sm:p-6 bg-[var(--crm-surface-2)]">
+        <div className="p-5 sm:p-6 bg-[var(--crm-surface-2)]">
           <div className="flex items-center gap-2 mb-4">
             <div className="h-1 w-1 rounded-full bg-indigo-400" />
             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/80">Live Preview</h4>

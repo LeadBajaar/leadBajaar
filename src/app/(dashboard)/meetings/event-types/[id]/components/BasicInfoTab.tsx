@@ -173,8 +173,8 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
                 <div className="space-y-1.5 sm:col-span-2 animate-in fade-in slide-in-from-top-1 duration-200">
                   <Label className={labelStyle}>Video Platform</Label>
                   <Select
-                    value={eventType.videoPlatform}
-                    onValueChange={(value) => setEventType({ ...eventType, videoPlatform: value })}
+                    value={eventType.video_platform}
+                    onValueChange={(value) => setEventType({ ...eventType, video_platform: value })}
                   >
                     <SelectTrigger className={inputStyle}>
                       <SelectValue placeholder="Select video platform" />
@@ -192,8 +192,8 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
                 <div className="space-y-1.5 sm:col-span-2 animate-in fade-in slide-in-from-top-1 duration-200">
                   <Label className={labelStyle}>Location Details</Label>
                   <Textarea
-                    value={eventType.locationDetails}
-                    onChange={(e) => setEventType({ ...eventType, locationDetails: e.target.value })}
+                    value={eventType.location_details}
+                    onChange={(e) => setEventType({ ...eventType, location_details: e.target.value })}
                     placeholder="Enter the meeting location details"
                     className={cn(inputStyle, "min-h-[60px] py-2 no-scrollbar resize-none")}
                   />

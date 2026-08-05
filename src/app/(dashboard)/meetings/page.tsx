@@ -20,11 +20,10 @@ import {
 import {
   CalendarDays, Clock, Video, MapPin, Phone,
   FileText, Edit, Save, X, Users, User, UserCircle, CheckCircle2,
-  CalendarCheck, CircleDot, Settings2,
+  CalendarCheck, CircleDot,
   ChevronRight, ChevronDown, Mail, Building2, AlignLeft, Loader2,
   Trash2, CalendarRange, Search
 } from 'lucide-react'
-import Link from 'next/link'
 import { formatInTimeZone } from 'date-fns-tz'
 import { format } from 'date-fns'
 import { getBookings, deleteBooking, rescheduleBooking, updateBooking, teamApi } from '@/lib/api'
@@ -38,6 +37,7 @@ import { RoleGuard } from '@/components/RoleGuard'
 import { getAgentColor } from '@/utils/agentColors'
 import { useTheme } from 'next-themes'
 import { toTelHref, toWhatsAppPhone } from '@/lib/phone'
+import { EventTypesTab } from './components/EventTypesTab'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1013,7 +1013,7 @@ const mapBooking = (booking: any, defaultStatus: string): Meeting => {
 export default function MeetingsPage() {
   const { theme, resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark' || theme === 'dark'
-  const [activeTab, setActiveTab] = useState<'all' | 'upcoming' | 'history'>('upcoming')
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'history' | 'event-types'>('upcoming')
   // Raw booking rows from the API, deduped by id. Meetings shown in the UI are
   // derived from these (grouped + mapped) so that pagination overlaps and group
   // events split across page boundaries can never render the same meeting twice.
@@ -1250,45 +1250,43 @@ export default function MeetingsPage() {
     <RoleGuard allowedFeatures={['meetings']}>
       <div className="flex flex-col flex-1 h-full overflow-hidden">
         <div className="shrink-0">
-          {/* Header: Search + Event Types button */}
-          <div className="flex items-center gap-2 pb-3 sm:pb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-[var(--crm-text-tertiary)]" />
-              <Input
-                placeholder="Search by name, phone..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 h-8 text-[12px] bg-[var(--crm-surface-2)] border-[var(--crm-border)] focus-visible:ring-[var(--lb-navy)]"
-              />
-            </div>
-            <Link href="/meetings/event-types" className="shrink-0">
-              <Button size="sm" className="h-8 px-2 sm:px-3 text-[12px] bg-[var(--lb-navy)] hover:opacity-90 text-white shadow-sm transition-opacity">
-                <Settings2 className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Event Types</span>
-              </Button>
-            </Link>
-          </div>
-
-          {/* KPI Row — 2-col grid on mobile, horizontal scroll on desktop */}
-          <div className="grid grid-cols-2 sm:flex sm:overflow-x-auto gap-2 sm:gap-3 shrink-0 pb-3 border-b border-[var(--crm-border)] no-scrollbar mb-2">
-            {[
-              { label: 'Upcoming', value: totalUpcoming, color: 'text-primary dark:text-indigo-400', bg: 'bg-primary/10 dark:bg-primary/10 border-indigo-100 dark:border-primary/20' },
-              { label: 'Confirmed', value: totalConfirmed, color: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20' },
-              { label: 'Completed', value: totalCompleted, color: 'text-sky-700 dark:text-sky-400', bg: 'bg-sky-50 dark:bg-sky-500/10 border-sky-100 dark:border-sky-500/20' },
-              { label: 'Total', value: totalUpcoming + totalHistory, color: 'text-violet-700 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-500/10 border-violet-100 dark:border-violet-500/20' },
-            ].map(({ label, value, color, bg }) => (
-              <div key={label} className={cn("flex items-center justify-between sm:justify-start sm:gap-2 px-3 py-2 rounded-lg border shadow-sm", bg)}>
-                <span className={cn("font-medium text-xs opacity-80", color)}>{label}</span>
-                <span className={cn("font-bold text-sm", color)}>
-                  {isLoading ? <Skeleton className="h-4 w-6 inline-block bg-current/20" /> : value}
-                </span>
+          {/* Header: Search (hidden on the Event types tab — it has its own search) */}
+          {activeTab !== 'event-types' && (
+            <div className="flex items-center gap-2 pb-3 sm:pb-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-[var(--crm-text-tertiary)]" />
+                <Input
+                  placeholder="Search by name, phone..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 h-8 text-[12px] bg-[var(--crm-surface-2)] border-[var(--crm-border)] focus-visible:ring-[var(--lb-navy)]"
+                />
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {/* KPI Row — meeting-specific, so hidden on the Event types tab */}
+          {activeTab !== 'event-types' && (
+            <div className="grid grid-cols-2 sm:flex sm:overflow-x-auto gap-2 sm:gap-3 shrink-0 pb-3 border-b border-[var(--crm-border)] no-scrollbar mb-2">
+              {[
+                { label: 'Upcoming', value: totalUpcoming, color: 'text-primary dark:text-indigo-400', bg: 'bg-primary/10 dark:bg-primary/10 border-indigo-100 dark:border-primary/20' },
+                { label: 'Confirmed', value: totalConfirmed, color: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20' },
+                { label: 'Completed', value: totalCompleted, color: 'text-sky-700 dark:text-sky-400', bg: 'bg-sky-50 dark:bg-sky-500/10 border-sky-100 dark:border-sky-500/20' },
+                { label: 'Total', value: totalUpcoming + totalHistory, color: 'text-violet-700 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-500/10 border-violet-100 dark:border-violet-500/20' },
+              ].map(({ label, value, color, bg }) => (
+                <div key={label} className={cn("flex items-center justify-between sm:justify-start sm:gap-2 px-3 py-2 rounded-lg border shadow-sm", bg)}>
+                  <span className={cn("font-medium text-xs opacity-80", color)}>{label}</span>
+                  <span className={cn("font-bold text-sm", color)}>
+                    {isLoading ? <Skeleton className="h-4 w-6 inline-block bg-current/20" /> : value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
-          <Tabs defaultValue="upcoming" className="flex-1 flex flex-col min-h-0">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="flex-1 flex flex-col min-h-0">
             <div className="flex items-center justify-between border-b border-[var(--crm-border)] shrink-0 bg-transparent">
               <TabsList className="h-11 bg-transparent p-0 gap-2 sm:gap-4">
                 <TabsTrigger value="upcoming" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--lb-navy)] data-[state=active]:text-[var(--lb-navy)] data-[state=active]:shadow-none data-[state=active]:bg-transparent px-1 sm:px-2 text-xs sm:text-sm font-semibold">
@@ -1304,22 +1302,27 @@ export default function MeetingsPage() {
                   <span className="hidden sm:inline">Past Meetings</span>
                   <span className="sm:hidden">Past</span>
                 </TabsTrigger>
+                <TabsTrigger value="event-types" className="h-full rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--lb-navy)] data-[state=active]:text-[var(--lb-navy)] data-[state=active]:shadow-none data-[state=active]:bg-transparent px-1 sm:px-2 text-xs sm:text-sm font-semibold">
+                  Event types
+                </TabsTrigger>
               </TabsList>
-              <div className="py-2">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-8 w-[110px] sm:w-[140px] border-[var(--crm-border)] bg-[var(--crm-surface-2)] text-xs sm:text-sm">
-                    <SelectValue placeholder="Filter" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="confirmed">Confirmed</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                    <SelectItem value="rescheduled">Rescheduled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {activeTab !== 'event-types' && (
+                <div className="py-2">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="h-8 w-[110px] sm:w-[140px] border-[var(--crm-border)] bg-[var(--crm-surface-2)] text-xs sm:text-sm">
+                      <SelectValue placeholder="Filter" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="confirmed">Confirmed</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="rescheduled">Rescheduled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
 
             {/* ── Upcoming Tab ── */}
@@ -1491,6 +1494,11 @@ export default function MeetingsPage() {
                   </div>
                 </div>
               )}
+            </TabsContent>
+
+            {/* ── Event types Tab ── */}
+            <TabsContent value="event-types" className="flex-1 data-[state=active]:flex flex-col min-h-0 m-0 mt-0 overflow-hidden outline-none">
+              <EventTypesTab />
             </TabsContent>
           </Tabs>
           <MeetingDetailDialog

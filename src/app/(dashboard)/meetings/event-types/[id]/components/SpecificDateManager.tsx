@@ -159,9 +159,9 @@ export const SpecificDateManager = ({ slots, onSlotsChange }: Props) => {
           <div key={slot.id} className="relative group/slot">
             <Card className="border-[var(--crm-border)] shadow-sm rounded-xl overflow-hidden bg-[var(--crm-surface-1)] transition-all hover:border-emerald-200/50">
               <CardContent className="p-0">
-                <div className="grid lg:grid-cols-12">
+                <div>
                   {/* Time Range & Date */}
-                  <div className="lg:col-span-4 p-4 sm:p-5 border-b lg:border-b-0 lg:border-r border-[var(--crm-border)] space-y-4">
+                  <div className="p-4 sm:p-5 border-b border-[var(--crm-border)] space-y-4">
                     <div className="space-y-1.5">
                       <Label className={labelStyle}>Date</Label>
                       <Input
@@ -204,7 +204,7 @@ export const SpecificDateManager = ({ slots, onSlotsChange }: Props) => {
                   </div>
 
                   {/* Breaks */}
-                  <div className="lg:col-span-8 p-4 sm:p-5 space-y-6 bg-[var(--crm-surface-2)]">
+                  <div className="p-4 sm:p-5 space-y-6 bg-[var(--crm-surface-2)]">
                     <div className="space-y-3">
                       <div className="flex justify-between items-center bg-[var(--crm-surface-3)] p-2.5 rounded-lg border border-[var(--crm-border)] shadow-sm">
                         <div className="flex items-center gap-2">

@@ -6,6 +6,9 @@ export interface EventType {
   duration: number
   slot_interval?: number
   location: string
+  video_platform?: string
+  location_details?: string
+  active?: boolean
   redirect_url?: string
   type?: 'one_on_one' | 'group'
   max_invitees?: number | null
@@ -47,6 +50,8 @@ export interface Question {
   placeholder?: string
   description?: string
   isLocked?: boolean
+  active?: boolean
+  allowOther?: boolean
 }
 
 export interface QuestionSection {

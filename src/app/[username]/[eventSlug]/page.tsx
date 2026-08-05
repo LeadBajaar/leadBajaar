@@ -115,6 +115,8 @@ export default function BookingPage() {
   const [step, setStep] = useState(1)
   const [answers, setAnswers] = useState<Record<string, any>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [otherActive, setOtherActive] = useState<Record<string, boolean>>({})
+  const [otherText, setOtherText] = useState<Record<string, string>>({})
   const [eventType, setEventType] = useState<EventType | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>()
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
@@ -155,7 +157,7 @@ export default function BookingPage() {
           description: data.description,
           duration: data.duration,
           location: data.location,
-          questions: data.questions || [],
+          questions: (data.questions || []).filter((q: any) => q.active !== false),
           scheduling: {
             bufferBefore: data.scheduling?.bufferBefore || data.buffer_before || 0,
             bufferAfter: data.scheduling?.bufferAfter || data.buffer_after || 0,
@@ -383,31 +385,63 @@ export default function BookingPage() {
           </div>
         )
 
-      case 'radio':
+      case 'radio': {
+        const isOtherActive = otherActive[question.id] ||
+          (typeof answers[question.id] === 'string' && answers[question.id] !== '' && !question.options.includes(answers[question.id]))
         return (
-          <RadioGroup
-            value={answers[question.id] || ''}
-            onValueChange={(value) => handleAnswerChange(question.id, value, 'radio')}
-          >
-            {question.options.map((option: string) => (
-              <div key={option} className="flex items-center space-x-2 py-1.5 sm:py-0">
-                <RadioGroupItem value={option} id={`${question.id}-${option}`} />
-                <Label htmlFor={`${question.id}-${option}`}>{option}</Label>
-              </div>
-            ))}
-          </RadioGroup>
+          <div>
+            <RadioGroup
+              value={isOtherActive ? '__other__' : (answers[question.id] || '')}
+              onValueChange={(value) => {
+                if (value === '__other__') {
+                  setOtherActive(prev => ({ ...prev, [question.id]: true }))
+                  handleAnswerChange(question.id, otherText[question.id] || '', 'radio')
+                } else {
+                  setOtherActive(prev => ({ ...prev, [question.id]: false }))
+                  handleAnswerChange(question.id, value, 'radio')
+                }
+              }}
+            >
+              {question.options.map((option: string) => (
+                <div key={option} className="flex items-center space-x-2 py-1.5 sm:py-0">
+                  <RadioGroupItem value={option} id={`${question.id}-${option}`} />
+                  <Label htmlFor={`${question.id}-${option}`}>{option}</Label>
+                </div>
+              ))}
+              {question.allowOther && (
+                <div className="flex items-center space-x-2 py-1.5 sm:py-0">
+                  <RadioGroupItem value="__other__" id={`${question.id}-other`} />
+                  <Label htmlFor={`${question.id}-other`}>Other</Label>
+                </div>
+              )}
+            </RadioGroup>
+            {question.allowOther && isOtherActive && (
+              <Input
+                value={answers[question.id] || ''}
+                onChange={(e) => {
+                  setOtherText(prev => ({ ...prev, [question.id]: e.target.value }))
+                  handleAnswerChange(question.id, e.target.value, 'radio')
+                }}
+                placeholder="Please specify"
+                className="mt-2 h-10 text-[13px]"
+              />
+            )}
+          </div>
         )
+      }
 
-      case 'checkbox':
+      case 'checkbox': {
+        const currentAnswers: string[] = answers[question.id] || []
+        const isOtherChecked = otherActive[question.id] || currentAnswers.some(a => !question.options.includes(a))
+        const currentOtherValue = currentAnswers.find(a => !question.options.includes(a)) || otherText[question.id] || ''
         return (
           <div className="space-y-2">
             {question.options.map((option: string) => (
               <div key={option} className="flex items-center space-x-2 py-1.5 sm:py-0">
                 <Checkbox
                   id={`${question.id}-${option}`}
-                  checked={(answers[question.id] || []).includes(option)}
+                  checked={currentAnswers.includes(option)}
                   onCheckedChange={(checked) => {
-                    const currentAnswers = answers[question.id] || []
                     const newAnswers = checked
                       ? [...currentAnswers, option]
                       : currentAnswers.filter((a: string) => a !== option)
@@ -417,8 +451,36 @@ export default function BookingPage() {
                 <Label htmlFor={`${question.id}-${option}`}>{option}</Label>
               </div>
             ))}
+            {question.allowOther && (
+              <div className="flex items-center space-x-2 py-1.5 sm:py-0">
+                <Checkbox
+                  id={`${question.id}-other`}
+                  checked={isOtherChecked}
+                  onCheckedChange={(checked) => {
+                    setOtherActive(prev => ({ ...prev, [question.id]: !!checked }))
+                    const withoutOther = currentAnswers.filter(a => question.options.includes(a))
+                    const newAnswers = checked && currentOtherValue ? [...withoutOther, currentOtherValue] : withoutOther
+                    handleAnswerChange(question.id, newAnswers, 'checkbox')
+                  }}
+                />
+                <Label htmlFor={`${question.id}-other`}>Other</Label>
+              </div>
+            )}
+            {question.allowOther && isOtherChecked && (
+              <Input
+                value={currentOtherValue}
+                onChange={(e) => {
+                  setOtherText(prev => ({ ...prev, [question.id]: e.target.value }))
+                  const withoutOther = currentAnswers.filter(a => question.options.includes(a))
+                  handleAnswerChange(question.id, e.target.value ? [...withoutOther, e.target.value] : withoutOther, 'checkbox')
+                }}
+                placeholder="Please specify"
+                className="mt-1 h-10 text-[13px]"
+              />
+            )}
           </div>
         )
+      }
 
       default:
         return null

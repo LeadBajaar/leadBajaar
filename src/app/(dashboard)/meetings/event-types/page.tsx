@@ -10,7 +10,7 @@ import {
   Clock, Video, MapPin, Phone, Users,
   Link as LinkIcon, Plus, Calendar, Copy, ExternalLink,
   ChevronRight, MoreHorizontal, Globe2, Trash2, Edit2, Share2,
-  CalendarCheck, ArrowRight, Zap, X, AlertCircle, Loader2, ArrowLeft
+  CalendarCheck, ArrowRight, Zap, X, AlertCircle, Loader2, ArrowLeft, Sparkles
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -170,6 +170,14 @@ export default function EventTypesPage() {
             <DropdownMenuContent align="end" className="w-64 bg-[var(--crm-surface-1)]">
               <DropdownMenuItem onClick={() => {
                 if (!user?.name) { toast.error("User profile name is required to create an event type."); return; }
+                router.push('/meetings/event-types/wizard')
+              }} className="cursor-pointer flex flex-col items-start py-2.5 gap-0.5">
+                <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-[var(--crm-accent)]" /><span className="font-medium">Guided Setup</span></div>
+                <span className="text-xs text-[var(--crm-text-secondary)]">Answer a few questions and we'll set it up</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => {
+                if (!user?.name) { toast.error("User profile name is required to create an event type."); return; }
                 router.push('/meetings/event-types/new?type=one_on_one')
               }} className="cursor-pointer flex flex-col items-start py-2.5 gap-0.5">
                 <div className="flex items-center gap-2"><Users className="h-4 w-4" /><span className="font-medium">One-on-One Event</span></div>
@@ -226,6 +234,14 @@ export default function EventTypesPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center" className="w-64 bg-[var(--crm-surface-1)]">
+                <DropdownMenuItem onClick={() => {
+                  if (!user?.name) { toast.error("User profile name is required to create an event type."); return; }
+                  router.push('/meetings/event-types/wizard')
+                }} className="cursor-pointer flex flex-col items-start py-2.5 gap-0.5">
+                  <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-[var(--crm-accent)]" /><span className="font-medium">Guided Setup</span></div>
+                  <span className="text-xs text-[var(--crm-text-secondary)]">Answer a few questions and we'll set it up</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => {
                   if (!user?.name) { toast.error("User profile name is required to create an event type."); return; }
                   router.push('/meetings/event-types/new?type=one_on_one')
@@ -345,6 +361,14 @@ export default function EventTypesPage() {
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center" className="w-64 bg-[var(--crm-surface-1)]">
+                <DropdownMenuItem onClick={() => {
+                  if (!user?.name) { toast.error("User profile name is required to create an event type."); return; }
+                  router.push('/meetings/event-types/wizard')
+                }} className="cursor-pointer flex flex-col items-start py-2.5 gap-0.5">
+                  <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-[var(--crm-accent)]" /><span className="font-medium">Guided Setup</span></div>
+                  <span className="text-xs text-[var(--crm-text-secondary)]">Answer a few questions and we'll set it up</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => {
                   if (!user?.name) { toast.error("User profile name is required to create an event type."); return; }
                   router.push('/meetings/event-types/new?type=one_on_one')
