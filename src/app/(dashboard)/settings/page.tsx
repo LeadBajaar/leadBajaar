@@ -20,7 +20,7 @@ import {
   User, Bell, Shield, Mail,
   Settings, ChevronRight, Camera,
   Check, Info, LucideIcon, Globe,
-  Briefcase, Phone, CreditCard, Lock
+  Briefcase, Phone, CreditCard, Lock, Download
 } from 'lucide-react'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -102,12 +102,21 @@ export default function SettingsPage() {
       // Initialize notification settings
       setLocalNotificationSettings(user.notification_settings || {})
 
-      if (user.company?.plan_details?.price) {
-        setPaymentAmount(user.company.plan_details.price.toString())
-        setMinPaymentAmount(user.company.plan_details.price)
+      // If they have an expiry date or start date, they are an existing customer (admin might have set them up)
+      const isExistingCustomer = user.company?.subscription_started_at || user.company?.expires_at;
+      let defaultPrice = user.company?.plan_details?.price || 1500;
+      
+      if (user.company?.custom_setup_fee && !isExistingCustomer) {
+        defaultPrice = user.company.custom_setup_fee;
+      } else if (user.company?.custom_renewal_fee && isExistingCustomer) {
+        defaultPrice = user.company.custom_renewal_fee;
       }
+      setPaymentAmount(defaultPrice.toString())
+      setMinPaymentAmount(defaultPrice)
     }
   }, [user])
+
+  const [invoices, setInvoices] = useState<any[]>([])
 
   useEffect(() => {
     // Fetch global subscription settings
@@ -124,8 +133,37 @@ export default function SettingsPage() {
         console.warn('Failed to load minimum payment limit:', err.message)
       }
     }
+    const fetchInvoices = async () => {
+      try {
+        const res = await subscriptionApi.getInvoices()
+        if (res?.invoices) setInvoices(res.invoices)
+      } catch (err: any) {
+        console.warn('Failed to load invoices:', err.message)
+      }
+    }
     fetchSubSettings()
+    fetchInvoices()
   }, [])
+
+  const handleDownloadInvoice = async (invoiceId: number) => {
+    try {
+      const toastId = toast.loading('Generating invoice...')
+      const response = await api.get(`/invoices/${invoiceId}/download`, {
+        responseType: 'blob'
+      })
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `invoice-${invoiceId}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+      toast.success('Invoice downloaded', { id: toastId })
+    } catch (error) {
+      toast.error('Failed to download invoice')
+    }
+  }
 
   const handleApplyCoupon = async () => {
     if (!couponCode) {
@@ -262,8 +300,8 @@ export default function SettingsPage() {
         window.location.reload()
       }
     } catch (error: any) {
-      console.error('Failed to update profile:', error)
       const message = error.response?.data?.message || 'Failed to update profile settings'
+      console.error('Failed to update profile:', message)
       toast.error(message)
     } finally {
       setIsSaving(false)
@@ -749,6 +787,61 @@ export default function SettingsPage() {
                     </div>
                     <p className="text-[11px] text-[var(--crm-text-secondary)] mt-2">Emails are sent via AWS SES and include full tracking. Count resets on the 1st of every month.</p>
                   </div>
+                </div>
+              </Card>
+
+              <Card className="border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] p-8 rounded-3xl ring-1 ring-[var(--crm-border)]">
+                <div className="space-y-6">
+                  <h3 className="text-lg font-bold text-[var(--crm-text-primary)]">Billing History & Invoices</h3>
+                  {invoices.length === 0 ? (
+                    <p className="text-sm text-[var(--crm-text-secondary)]">No previous invoices found.</p>
+                  ) : (
+                    <div className="overflow-x-auto rounded-xl border border-[var(--crm-border)]">
+                      <table className="w-full text-sm text-left">
+                        <thead className="text-xs text-[var(--crm-text-secondary)] uppercase bg-[var(--crm-surface-2)] border-b border-[var(--crm-border)]">
+                          <tr>
+                            <th className="px-4 py-3">Date</th>
+                            <th className="px-4 py-3">Amount</th>
+                            <th className="px-4 py-3">Plan</th>
+                            <th className="px-4 py-3">Status</th>
+                            <th className="px-4 py-3">Notes</th>
+                            <th className="px-4 py-3 text-right">Invoice</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {invoices.map((inv) => (
+                            <tr key={inv.id} className="border-b border-[var(--crm-border)] last:border-0 hover:bg-[var(--crm-surface-2)]/50 transition-colors">
+                              <td className="px-4 py-4 font-medium text-[var(--crm-text-primary)] whitespace-nowrap">{inv.date}</td>
+                              <td className="px-4 py-4 font-bold text-[var(--crm-text-primary)] whitespace-nowrap">₹{inv.amount}</td>
+                              <td className="px-4 py-4 capitalize whitespace-nowrap">{inv.plan_name || '-'}</td>
+                              <td className="px-4 py-4 whitespace-nowrap">
+                                <Badge variant="outline" className={cn(
+                                  "text-[10px] uppercase font-bold",
+                                  (!inv.status || inv.status.toLowerCase() === 'success' || inv.status.toLowerCase() === 'approved') 
+                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200' 
+                                    : 'bg-amber-50 text-amber-600 border-amber-200'
+                                )}>
+                                  {inv.status || 'Success'}
+                                </Badge>
+                              </td>
+                              <td className="px-4 py-4 text-xs text-[var(--crm-text-secondary)] min-w-[200px]">{inv.notes || '-'}</td>
+                              <td className="px-4 py-4 text-right">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => handleDownloadInvoice(inv.id)}
+                                  className="text-[var(--crm-primary)] hover:text-[var(--crm-primary-dark)] hover:bg-[var(--crm-primary)]/10"
+                                >
+                                  <Download className="w-4 h-4 mr-2" />
+                                  Download
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </Card>
             </div>

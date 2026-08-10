@@ -18,7 +18,7 @@ import { Question } from '@/types/events'
 
 interface Props {
   question: Question
-  updateQuestion: (field: keyof Question, value: any) => void
+  updateQuestion: (field: keyof Question | Partial<Question>, value?: any) => void
   onSave: () => void
   onCancel: () => void
 }
@@ -40,12 +40,37 @@ export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: P
     { value: 'time', label: 'Time', icon: <Clock className="h-4 w-4" /> }
   ]
 
+  const [optionErrors, setOptionErrors] = useState<number[]>([])
+  const [isSaving, setIsSaving] = useState(false)
+
+  const handleSaveClick = async () => {
+    if (['radio', 'checkbox', 'dropdown'].includes(question.type)) {
+      const options = question.options || []
+      const errors: number[] = []
+      options.forEach((opt, idx) => {
+        if (!opt.trim()) errors.push(idx)
+      })
+      
+      if (errors.length > 0) {
+        setOptionErrors(errors)
+        return
+      }
+    }
+    
+    setIsSaving(true)
+    await new Promise(resolve => setTimeout(resolve, 600))
+    onSave()
+  }
+
   const handleAddOption = () => {
     const currentOptions = question.options || []
     updateQuestion('options', [...currentOptions, ''])
   }
 
   const handleUpdateOption = (index: number, value: string) => {
+    if (optionErrors.includes(index)) {
+      setOptionErrors(optionErrors.filter(i => i !== index))
+    }
     const currentOptions = [...(question.options || [])]
     currentOptions[index] = value
     updateQuestion('options', currentOptions)
@@ -118,13 +143,13 @@ export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: P
   }
 
   return (
-    <div className="bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl overflow-hidden shadow-lg animate-in fade-in zoom-in-95 duration-200 z-50">
-      <div className="flex flex-col divide-y divide-slate-100">
+    <div className="bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl overflow-hidden shadow-sm animate-in fade-in zoom-in-95 duration-200 z-50">
+      <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-[var(--crm-border)]">
 
         {/* Editor (Left Column) */}
-        <div className="p-5 sm:p-6 space-y-6">
+        <div className="flex-1 p-5 sm:p-6 space-y-6">
           <div className="flex items-center justify-between gap-4">
-            <h4 className="text-xs font-black uppercase tracking-[0.1em] text-[var(--crm-text-primary)]">Question Configuration</h4>
+            <h4 className="text-[11px] font-bold uppercase tracking-widest text-[var(--crm-text-secondary)]">Question Configuration</h4>
             <div className="flex items-center gap-2">
               <Switch
                 id="required-editor"
@@ -156,7 +181,15 @@ export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: P
                 <Label className={labelStyle}>Answer Type</Label>
                 <Select
                   value={question.type}
-                  onValueChange={(value: Question['type']) => updateQuestion('type', value)}
+                  onValueChange={(value: Question['type']) => {
+                    const updates: Partial<Question> = { type: value }
+                    if (['radio', 'checkbox', 'dropdown'].includes(value)) {
+                      if (!question.options || question.options.length === 0) {
+                        updates.options = ['Option 1', 'Option 2']
+                      }
+                    }
+                    updateQuestion(updates)
+                  }}
                   disabled={question.isLocked}
                 >
                   <SelectTrigger className={inputStyle}>
@@ -203,22 +236,26 @@ export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: P
                 
                 <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
                   {(question.options || []).map((option, idx) => (
-                    <div key={idx} className="flex items-center gap-2 group animate-in slide-in-from-left-1 duration-200">
-                      <Input
-                        value={option}
-                        onChange={(e) => handleUpdateOption(idx, e.target.value)}
-                        placeholder={`Option ${idx + 1}`}
-                        className={cn(inputStyle, "flex-1")}
-                        autoFocus={idx === (question.options?.length || 0) - 1 && option === ''}
-                      />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveOption(idx)}
-                        className="h-8 w-8 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                    <div key={idx} className="flex flex-col gap-1 w-full animate-in slide-in-from-left-1 duration-200">
+                      <div className="flex items-center gap-2 group w-full">
+                        <Input
+                          value={option}
+                          onChange={(e) => handleUpdateOption(idx, e.target.value)}
+                          placeholder={`Option ${idx + 1}`}
+                          className={cn(inputStyle, "flex-1", optionErrors.includes(idx) && "border-red-500 focus:border-red-500 ring-1 ring-red-500/20")}
+                          autoFocus={idx === (question.options?.length || 0) - 1 && option === ''}
+                        />
+                        <button
+                          onClick={() => handleRemoveOption(idx)}
+                          className="text-[var(--crm-text-secondary)] hover:text-red-500 transition-colors p-2 shrink-0"
+                          title="Remove option"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                      {optionErrors.includes(idx) && (
+                        <p className="text-[10px] text-red-500 font-bold ml-1">Option cannot be empty</p>
+                      )}
                     </div>
                   ))}
                   
@@ -246,25 +283,30 @@ export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: P
               Cancel
             </Button>
             <Button
-              onClick={onSave}
-              className="h-9 px-5 bg-[var(--crm-accent)] hover:opacity-90 text-white font-bold text-[10px] uppercase tracking-widest rounded-lg gap-2 shadow-sm"
-              disabled={!question.question.trim()}
+              onClick={handleSaveClick}
+              className="h-9 px-5 bg-[var(--crm-accent)] hover:opacity-90 text-white font-bold text-[10px] uppercase tracking-widest rounded-lg gap-2 shadow-sm transition-all"
+              disabled={!question.question.trim() || isSaving}
             >
-              <Save className="h-3.5 w-3.5" />
-              Store Question
+              {isSaving ? (
+                <>
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Saved!
+                </>
+              ) : (
+                <>
+                  <Save className="h-3.5 w-3.5" />
+                  Store Question
+                </>
+              )}
             </Button>
           </div>
         </div>
 
         {/* Live Preview (Right Column) */}
-        <div className="p-5 sm:p-6 bg-[var(--crm-surface-2)]">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="h-1 w-1 rounded-full bg-indigo-400" />
-            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/80">Live Preview</h4>
-          </div>
+        <div className="hidden md:flex w-[320px] shrink-0 p-6 bg-[var(--crm-surface-2)] flex-col">
+          <h4 className="text-[11px] font-bold uppercase tracking-widest text-[var(--crm-text-secondary)] mb-4">Live Preview</h4>
 
-          <div className="bg-[var(--crm-surface-1)] border border-[var(--crm-border)] shadow-sm rounded-xl p-5 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1.5 h-full bg-[var(--crm-accent-soft)]0/10" />
+          <div className="bg-[var(--crm-surface-1)] border border-[var(--crm-border)] shadow-sm rounded-xl p-5">
             <div className="space-y-4">
               <div>
                 <Label className="text-[13px] font-bold text-[var(--crm-text-primary)] leading-tight mb-1">
@@ -272,7 +314,7 @@ export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: P
                   {question.required && <span className="text-red-500 ml-1 font-black">*</span>}
                 </Label>
                 {question.description && (
-                  <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium leading-relaxed font-sans tracking-tight mt-1">{question.description}</p>
+                  <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium leading-relaxed mt-1">{question.description}</p>
                 )}
               </div>
               
@@ -280,15 +322,6 @@ export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: P
                 {renderPreviewInput()}
               </div>
             </div>
-          </div>
-          
-          <div className="mt-8 flex items-center gap-2.5 p-3 bg-[var(--crm-surface-1)]/40 rounded-lg border border-[var(--crm-border)]">
-            <div className="h-7 w-7 bg-[var(--crm-accent-soft)] rounded-full flex items-center justify-center shrink-0">
-              <Info className="h-3.5 w-3.5 text-primary" />
-            </div>
-            <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium leading-tight">
-              Questions will be displayed to invitees during the booking process.
-            </p>
           </div>
         </div>
       </div>

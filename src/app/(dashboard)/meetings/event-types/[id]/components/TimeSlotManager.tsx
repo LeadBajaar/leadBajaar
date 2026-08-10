@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { useState, useRef } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
-import { Plus, Trash2, Clock, Calendar, Info } from 'lucide-react'
+import { Plus, Trash2, Clock, Calendar, Info, Check } from 'lucide-react'
 import { 
   Dialog,
   DialogContent,
@@ -167,6 +167,8 @@ const BreakEditorDialog = ({ slot, breakItem, onSave, onRemove }: { slot: TimeSl
 
 export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const [isAdding, setIsAdding] = useState(false)
+  const slotsEndRef = useRef<HTMLDivElement>(null)
 
   const addSlot = () => {
     const newSlot: TimeSlot = {
@@ -177,6 +179,15 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
       breaks: []
     }
     onSlotsChange([...slots, newSlot])
+    
+    setIsAdding(true)
+    setTimeout(() => {
+      setIsAdding(false)
+    }, 1000)
+    
+    setTimeout(() => {
+      slotsEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }, 100)
   }
 
   const updateSlot = (id: string, field: keyof TimeSlot, value: any) => {
@@ -246,147 +257,129 @@ export const TimeSlotManager = ({ slots, onSlotsChange }: Props) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 bg-[var(--crm-surface-2)] p-3.5 rounded-xl border border-[var(--crm-border)]">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 shrink-0 bg-[var(--crm-surface-1)] rounded-lg flex items-center justify-center shadow-sm border border-[var(--crm-border)]">
-            <Calendar className="h-4 w-4 text-primary" />
-          </div>
-          <div>
-            <Label className="text-[11px] font-black uppercase tracking-widest text-[var(--crm-text-primary)] mb-0 leading-none">Availability Windows</Label>
-            <p className="text-[9px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-tighter mt-1">Set your working hours</p>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <div>
+          <Label className="text-[11px] font-black uppercase tracking-widest text-[var(--crm-text-primary)] mb-0 leading-none">Weekly Hours</Label>
+          <p className="text-xs text-[var(--crm-text-secondary)] mt-1">Repeating availability — applies every week on the selected days.</p>
         </div>
         <Button 
           onClick={addSlot} 
-          className="w-full sm:w-auto h-9 sm:h-8 px-4 sm:px-3.5 bg-[var(--crm-accent)] hover:opacity-90 text-white rounded-lg font-bold text-[10px] sm:text-[9px] uppercase tracking-widest gap-2 transition-all shadow-sm shrink-0"
+          variant="outline"
+          disabled={isAdding}
+          className={cn(
+            "w-full sm:w-auto h-9 sm:h-8 px-4 sm:px-3.5 gap-2 transition-all shadow-sm shrink-0",
+            isAdding && "bg-emerald-50 text-emerald-600 border-emerald-200"
+          )}
         >
-          <Plus className="h-3 w-3" />
-          Add Window
+          {isAdding ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+          {isAdding ? "Added" : "Add Window"}
         </Button>
       </div>
 
       <div className="space-y-4">
         {slots.map((slot) => (
           <div key={slot.id} className="relative group/slot">
-            <Card className="border-[var(--crm-border)] shadow-sm rounded-xl overflow-hidden bg-[var(--crm-surface-1)] transition-all hover:border-primary/10">
-              <CardContent className="p-0">
-                <div>
-                  {/* Time Range */}
-                  <div className="p-4 sm:p-5 border-b border-[var(--crm-border)] space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label className={labelStyle}>Start</Label>
-                        <Input
-                          type="time"
-                          value={slot.startTime}
-                          onChange={(e) => updateSlot(slot.id, 'startTime', e.target.value)}
-                          className={cn(inputStyle, "pl-1.5 h-11 sm:h-10")}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className={labelStyle}>End</Label>
-                        <Input
-                          type="time"
-                          value={slot.endTime}
-                          onChange={(e) => updateSlot(slot.id, 'endTime', e.target.value)}
-                          className={cn(inputStyle, "pl-1.5 h-11 sm:h-10")}
-                        />
-                      </div>
-                    </div>
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeSlot(slot.id)}
-                      className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 font-bold text-[10px] sm:text-[9px] uppercase tracking-[0.1em] gap-1.5 rounded-lg h-9 sm:h-8 transition-all"
+            <Card className="border-[var(--crm-border)] shadow-sm rounded-xl overflow-hidden bg-[var(--crm-surface-1)] transition-all hover:border-primary/10 relative">
+              <div className="absolute top-4 right-4 z-10">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeSlot(slot.id)}
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50 h-8 w-8 rounded-lg transition-all"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+              <CardContent className="p-4 sm:p-5 space-y-6">
+                <div className="space-y-2.5 pr-10">
+                  <Label className={labelStyle}>Active Days</Label>
+                  <div className="grid grid-cols-7 gap-1 sm:gap-1.5 w-full">
+                    {daysOfWeek.map((day, index) => {
+                      const isActive = slot.daysOfWeek.includes(index)
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => toggleDay(slot.id, index)}
+                          className={cn(
+                            "h-10 sm:h-8 w-full rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-tight transition-all duration-200 border",
+                            isActive 
+                              ? "bg-[var(--crm-accent)] border-[var(--crm-accent)] text-white shadow-sm" 
+                              : "bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-secondary)] hover:border-indigo-300 hover:text-[var(--crm-accent)]"
+                          )}
+                        >
+                          {day.charAt(0)}
+                          <span className="hidden sm:inline">{day.slice(1)}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 max-w-sm">
+                  <div className="space-y-1.5">
+                    <Label className={labelStyle}>Start</Label>
+                    <Input
+                      type="time"
+                      value={slot.startTime}
+                      onChange={(e) => updateSlot(slot.id, 'startTime', e.target.value)}
+                      className={cn(inputStyle, "pl-1.5 h-11 sm:h-10")}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={labelStyle}>End</Label>
+                    <Input
+                      type="time"
+                      value={slot.endTime}
+                      onChange={(e) => updateSlot(slot.id, 'endTime', e.target.value)}
+                      className={cn(inputStyle, "pl-1.5 h-11 sm:h-10")}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3 pt-5 border-t border-[var(--crm-border)]">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.1em] text-[var(--crm-text-secondary)] mb-0">Break Sequences</Label>
+                    <button 
+                      type="button"
+                      onClick={() => addBreak(slot.id)} 
+                      className="text-[9px] font-black uppercase tracking-widest text-[var(--crm-accent)] hover:underline flex items-center gap-1"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Discard Window
-                    </Button>
+                      <Plus className="h-2.5 w-2.5" />
+                      Add Break
+                    </button>
                   </div>
 
-                  {/* Days and Breaks */}
-                  <div className="p-4 sm:p-5 space-y-6 bg-[var(--crm-surface-2)]">
-                    <div className="space-y-2.5">
-                      <Label className={labelStyle}>Active Days</Label>
-                      <div className="grid grid-cols-7 gap-1 sm:gap-1.5 w-full">
-                        {daysOfWeek.map((day, index) => {
-                          const isActive = slot.daysOfWeek.includes(index)
-                          return (
-                            <button
-                              key={day}
-                              type="button"
-                              onClick={() => toggleDay(slot.id, index)}
-                              className={cn(
-                                "h-10 sm:h-8 w-full rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-tight transition-all duration-200 border shadow-sm",
-                                isActive 
-                                  ? "bg-[var(--crm-accent)] border-[var(--crm-accent)] text-white shadow-sm" 
-                                  : "bg-[var(--crm-surface-1)]  border-[var(--crm-border)]  text-[var(--crm-text-secondary)] hover:border-indigo-300 hover:text-[var(--crm-accent)]"
-                              )}
-                            >
-                              {day.charAt(0)}
-                              <span className="hidden sm:inline">{day.slice(1)}</span>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center bg-[var(--crm-surface-3)] p-2.5 rounded-lg border border-[var(--crm-border)] shadow-sm">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-3 w-3 text-[var(--crm-text-secondary)]" />
-                          <Label className="text-[10px] font-black uppercase tracking-[0.1em] text-[var(--crm-text-secondary)] mb-0">Break Sequences</Label>
-                        </div>
-                        <Button 
-                          onClick={() => addBreak(slot.id)} 
-                          size="sm" 
-                          variant="ghost"
-                          className="h-6 px-2.5 text-[9px] font-black uppercase tracking-widest text-[var(--crm-accent)] hover:opacity-90 hover:bg-[var(--crm-accent-soft)] rounded-md gap-1.5"
-                        >
-                          <Plus className="h-2.5 w-2.5" />
-                          Add Break
-                        </Button>
-                      </div>
-
-                      <div className="grid gap-2">
-                        {slot.breaks?.map((breakItem) => (
-                          <BreakEditorDialog
-                            key={breakItem.id}
-                            slot={slot}
-                            breakItem={breakItem}
-                            onSave={(updated) => updateBreakComplete(slot.id, updated)}
-                            onRemove={() => removeBreak(slot.id, breakItem.id)}
-                          />
-                        ))}
-
-                        {(!slot.breaks || slot.breaks.length === 0) && (
-                          <div className="flex flex-col items-center justify-center py-4 border-2 border-dashed border-[var(--crm-border)] rounded-lg bg-[var(--crm-surface-3)]">
-                            <Clock className="h-5 w-5 text-slate-200 mb-1" />
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-300">No Breaks Active</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                  <div className="grid gap-2">
+                    {slot.breaks?.map((breakItem) => (
+                      <BreakEditorDialog
+                        key={breakItem.id}
+                        slot={slot}
+                        breakItem={breakItem}
+                        onSave={(updated) => updateBreakComplete(slot.id, updated)}
+                        onRemove={() => removeBreak(slot.id, breakItem.id)}
+                      />
+                    ))}
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
         ))}
+        <div ref={slotsEndRef} className="h-1 w-full shrink-0" />
 
         {slots.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-[var(--crm-border)] rounded-2xl bg-[var(--crm-surface-2)]">
-            <div className="h-12 w-12 bg-[var(--crm-surface-1)] rounded-2xl flex items-center justify-center shadow-md border border-[var(--crm-border)] mb-4">
-              <Calendar className="h-6 w-6 text-slate-200" />
-            </div>
+          <div className="flex flex-col items-center justify-center py-8 bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl">
             <p className="text-sm font-bold text-[var(--crm-text-primary)] uppercase tracking-widest mb-1">No Availability Windows</p>
-            <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium max-w-[200px] text-center mb-6">Define your first working window.</p>
+            <p className="text-[11px] text-[var(--crm-text-secondary)] font-medium mb-4">Define your first working window.</p>
             <Button 
               onClick={addSlot} 
-              className="bg-[var(--crm-accent)] hover:opacity-90 text-white rounded-lg px-6 font-bold uppercase tracking-widest h-10 text-xs"
+              variant="outline"
+              disabled={isAdding}
+              className={cn("gap-2 h-9 text-xs", isAdding && "bg-emerald-50 text-emerald-600 border-emerald-200")}
             >
-              Initialize Window
+              {isAdding ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+              {isAdding ? "Added" : "Initialize Window"}
             </Button>
           </div>
         )}

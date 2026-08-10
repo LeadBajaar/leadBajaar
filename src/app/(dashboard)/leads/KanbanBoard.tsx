@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
 import { Lead } from './types'
+import { Button } from '@/components/ui/button'
 import { cn } from "@/lib/utils"
 import { getAgentColor } from '@/utils/agentColors'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -158,17 +159,17 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                   <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <button onClick={(e) => { e.stopPropagation(); handleWhatsAppClick(lead); }} className="btn-icon w-6 h-6 hover:text-emerald-500">
+                                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleWhatsAppClick(lead); }} className="h-6 w-6 hover:text-emerald-500">
                                           <i className="ti ti-brand-whatsapp text-[13px]" />
-                                        </button>
+                                        </Button>
                                       </TooltipTrigger>
                                       <TooltipContent className="text-[10px]">WhatsApp</TooltipContent>
                                     </Tooltip>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <button onClick={(e) => { e.stopPropagation(); handleCallClick(lead); }} className="btn-icon w-6 h-6 hover:text-primary">
+                                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleCallClick(lead); }} className="h-6 w-6 hover:text-primary">
                                           <i className="ti ti-phone text-[13px]" />
-                                        </button>
+                                        </Button>
                                       </TooltipTrigger>
                                       <TooltipContent className="text-[10px]">Call</TooltipContent>
                                     </Tooltip>

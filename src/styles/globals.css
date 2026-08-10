@@ -145,7 +145,7 @@
   --crm-accent-soft: #ebedf5;
   --crm-accent-border: #cdd4ea;
 
-  /* Semantic — success/danger only, distinct from the coral brand accent. */
+  /* Semantic — success/warning/danger, distinct from the coral brand accent. */
   --crm-green: #15803D;
   --crm-green-soft: #ECFDF3;
   --crm-green-border: #A7F3D0;
@@ -157,6 +157,15 @@
   --crm-red: #DC2626;
   --crm-red-soft: #fef2f2;
   --crm-red-border: #fecaca;
+
+  /* Semantic Aliases */
+  --crm-warning: var(--crm-amber);
+  --crm-warning-soft: var(--crm-amber-soft);
+  --crm-warning-border: var(--crm-amber-border);
+
+  --crm-danger: var(--crm-red);
+  --crm-danger-soft: var(--crm-red-soft);
+  --crm-danger-border: var(--crm-red-border);
 
   /* Blue/purple kept only as categorical tag colors (e.g. stage badges) —
      not used as a UI/brand accent anywhere. See ai-context/design/tokens.md. */
@@ -180,28 +189,28 @@
 
   --crm-nav-active-icon: #1e2d6b;
 
-  /* ── BOOKING FLOW REDESIGN TOKENS ── */
-  --lb-navy:   #1e2d6b;
-  --lb-red:    #e84545;
-  --lb-bg:     #f0f2f8;
+  /* ── BOOKING FLOW REDESIGN TOKENS (Deprecated aliases, use --crm-* instead) ── */
+  --lb-navy:   var(--crm-accent);
+  --lb-red:    var(--crm-red);
+  --lb-bg:     var(--crm-bg);
   
-  --lb-s1: #ffffff;
-  --lb-s2: #f5f6fa;
-  --lb-s3: #eceef5;
+  --lb-s1: var(--crm-surface-1);
+  --lb-s2: var(--crm-surface-2);
+  --lb-s3: var(--crm-surface-3);
   
-  --lb-border:       rgba(30, 45, 107, 0.10);
-  --lb-border-hover: rgba(30, 45, 107, 0.18);
+  --lb-border:       var(--crm-border);
+  --lb-border-hover: var(--crm-border-hover);
   
-  --lb-t1: #111827;
-  --lb-t2: #4b5563;
-  --lb-t3: #9ca3af;
+  --lb-t1: var(--crm-text-primary);
+  --lb-t2: var(--crm-text-secondary);
+  --lb-t3: var(--crm-text-tertiary);
   
-  --lb-green:      #16a34a;
-  --lb-green-soft: #dcfce7;
-  --lb-green-border: rgba(22, 163, 74, 0.2);
+  --lb-green:      var(--crm-green);
+  --lb-green-soft: var(--crm-green-soft);
+  --lb-green-border: var(--crm-green-border);
 
-  --lb-navy-soft:   rgba(30, 45, 107, 0.08);
-  --lb-navy-border: rgba(30, 45, 107, 0.22);
+  --lb-navy-soft:   var(--crm-accent-soft);
+  --lb-navy-border: var(--crm-accent-border);
 }
 
 .dark {
@@ -240,6 +249,15 @@
   --crm-red-soft: rgba(220, 38, 38, 0.15);
   --crm-red-border: transparent;
 
+  /* Semantic Aliases */
+  --crm-warning: var(--crm-amber);
+  --crm-warning-soft: var(--crm-amber-soft);
+  --crm-warning-border: var(--crm-amber-border);
+
+  --crm-danger: var(--crm-red);
+  --crm-danger-soft: var(--crm-red-soft);
+  --crm-danger-border: var(--crm-red-border);
+
   /* Blue/purple kept only as categorical tag colors — not a UI accent. */
   --crm-blue: #3b82f6;
   --crm-blue-soft: rgba(59, 130, 246, 0.15);
@@ -254,8 +272,8 @@
 
   --crm-nav-active-icon: #3b82f6;
 
-  /* ── BOOKING FLOW DARK MODE FIXES ── */
-  --lb-navy: #3b82f6;
+  /* ── BOOKING FLOW DARK MODE FIXES (Deprecated aliases) ── */
+  --lb-navy: var(--crm-accent);
   --lb-bg: var(--crm-bg);
   --lb-s1: var(--crm-surface-1);
   --lb-s2: var(--crm-surface-2);
@@ -265,8 +283,8 @@
   --lb-t1: var(--crm-text-primary);
   --lb-t2: var(--crm-text-secondary);
   --lb-t3: var(--crm-text-tertiary);
-  --lb-navy-soft: rgba(59, 130, 246, 0.15);
-  --lb-navy-border: rgba(59, 130, 246, 0.35);
+  --lb-navy-soft: var(--crm-accent-soft);
+  --lb-navy-border: var(--crm-accent-border);
 }
 
 /* ── CENTRALIZED DARK MODE FIXES ────────────────────────────
@@ -325,6 +343,7 @@ body {
 }
 
 /* --- Buttons --- */
+/* DEPRECATED: Do not use these hand-rolled classes. Use <Button> from src/components/ui/button.tsx instead. */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -356,6 +375,7 @@ body {
 .btn-icon-sm { width: 24px; height: 24px; font-size: 12px; }
 
 /* --- Badges / Stage Pills --- */
+/* DEPRECATED: Do not use these hand-rolled classes. Use <Badge> from src/components/ui/badge.tsx instead. */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -375,6 +395,7 @@ body {
 .badge-neutral { background: var(--crm-surface-3);   color: var(--crm-text-secondary); border: 0.5px solid var(--crm-border); }
 
 /* --- Inputs --- */
+/* DEPRECATED: Do not use these hand-rolled classes. Use <Input>, <Select>, <Textarea> from src/components/ui instead. */
 .crm-input {
   background: var(--crm-surface-2);
   border: 0.5px solid var(--crm-border);
@@ -422,6 +443,7 @@ body {
 .crm-textarea.no-resize   { resize: none; }
 
 /* --- Cards --- */
+/* DEPRECATED: Do not use these hand-rolled classes. Use <Card> from src/components/ui/card.tsx instead. */
 .card {
   background: var(--crm-surface-1);
   border: 0.5px solid var(--crm-border);

@@ -1390,25 +1390,28 @@ export default function LeadsPage() {
               <span className="text-[13px] font-semibold text-[var(--crm-text-primary)]">Selected</span>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                className="btn btn-ghost text-emerald-600 border-none"
+              <Button
+                variant="ghost"
+                className="text-emerald-600 border-none"
                 onClick={() => setShowBroadcastDialog(true)}
               >
                 <i className="ti ti-message-circle mr-1" />
                 Broadcast
-              </button>
-              <button
-                className="btn btn-ghost text-[var(--crm-text-primary)] border-none"
+              </Button>
+              <Button
+                variant="ghost"
+                className="text-[var(--crm-text-primary)] border-none"
                 onClick={() => setShowStageChange(true)}
               >
                 Change Stage
-              </button>
-              <button
-                className="btn btn-ghost text-red-500 border-none"
+              </Button>
+              <Button
+                variant="ghost"
+                className="text-red-500 border-none"
                 onClick={handleBulkDelete}
               >
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         )}

@@ -1669,7 +1669,7 @@ export const adminApi = {
     }
   },
 
-  updateCompany: async (id: number, data: { plan?: string, status?: string, expires_at?: string, subscription_started_at?: string, is_email_enabled?: boolean }) => {
+  updateCompany: async (id: number, data: { plan?: string, status?: string, expires_at?: string, subscription_started_at?: string, is_email_enabled?: boolean, custom_setup_fee?: number | null, custom_renewal_fee?: number | null }) => {
     try {
       const response = await api.patch(`/admin/companies/${id}`, data);
       return response.data;
@@ -2228,6 +2228,15 @@ export const subscriptionApi = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to validate coupon');
+    }
+  },
+
+  getInvoices: async () => {
+    try {
+      const response = await api.get('/subscription/invoices');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch invoices');
     }
   }
 };

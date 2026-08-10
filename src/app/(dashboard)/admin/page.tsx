@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { adminApi, integrationApi } from '@/lib/api'
+import { api, adminApi, integrationApi } from '@/lib/api'
 import { RoleGuard } from '@/components/RoleGuard'
 import { PromotionModal } from '@/components/promotion-modal'
 import {
@@ -13,6 +13,7 @@ import {
   CardFooter
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
@@ -96,7 +97,8 @@ import {
   AlertCircle,
   Send,
   Eye,
-  Info
+  Info,
+  Save
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -139,6 +141,8 @@ interface Company {
   expires_at?: string | null
   tags?: string[]
   is_email_enabled?: boolean
+  custom_setup_fee?: number | null
+  custom_renewal_fee?: number | null
 }
 
 interface PlanFeature {
@@ -234,6 +238,7 @@ export default function SuperAdminPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [companyHistory, setCompanyHistory] = useState<any[]>([])
   const [plans, setPlans] = useState<PlanDefinition[]>(initialPlans)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -245,6 +250,19 @@ export default function SuperAdminPage() {
   const [activeTab, setActiveTab] = useState('companies')
   const [editingPlan, setEditingPlan] = useState<PlanDefinition | null>(null)
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false)
+
+  // Custom Invoice State
+  const [isCustomInvoiceModalOpen, setIsCustomInvoiceModalOpen] = useState(false)
+  const [customInvoiceItems, setCustomInvoiceItems] = useState([{ description: '', quantity: 1, price: 0 }])
+  const [customInvoiceDiscount, setCustomInvoiceDiscount] = useState(0)
+  const [customInvoiceNotes, setCustomInvoiceNotes] = useState('')
+  const [customInvoicePaymentMethod, setCustomInvoicePaymentMethod] = useState('')
+  const [customInvoiceTitle, setCustomInvoiceTitle] = useState('')
+  const [customInvoiceStatus, setCustomInvoiceStatus] = useState('paid')
+  const [customInvoiceDate, setCustomInvoiceDate] = useState('')
+  const [customInvoiceDueDate, setCustomInvoiceDueDate] = useState('')
+  const [customInvoiceTransactionId, setCustomInvoiceTransactionId] = useState('')
+  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false)
   const [isUserModalOpen, setIsUserModalOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
 
@@ -425,8 +443,21 @@ export default function SuperAdminPage() {
           } : null)
         }
       }
+
+      // Fetch Billing History
+      const fetchHistory = async () => {
+        try {
+          const res = await api.get(`/admin/companies/${editingCompany.id}/history`)
+          if (res.data) setCompanyHistory(res.data)
+        } catch (error) {
+          console.error('Failed to fetch company history', error)
+        }
+      }
+      fetchHistory()
+    } else {
+      setCompanyHistory([])
     }
-  }, [isEditModalOpen])
+  }, [isEditModalOpen, editingCompany?.id])
 
   const handleStartDateChange = (dateStr: string) => {
     const newStart = new Date(dateStr)
@@ -446,15 +477,83 @@ export default function SuperAdminPage() {
 
   const handleEndDateChange = (dateStr: string) => {
     const newEnd = new Date(dateStr)
-    const start = new Date(editingCompany?.subscription_started_at || new Date())
-    if (isNaN(newEnd.getTime()) || isNaN(start.getTime())) return
+    if (isNaN(newEnd.getTime())) return
 
-    const diffTime = newEnd.getTime() - start.getTime()
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    setEditingCompany((prev: Company | null) => {
+      if (!prev) return null
+      const newStart = prev.subscription_started_at ? new Date(prev.subscription_started_at) : new Date()
+      const diffTime = newEnd.getTime() - newStart.getTime()
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      setEditDays(diffDays > 0 ? diffDays : 0)
 
-    setEditDays(diffDays > 0 ? diffDays : 0)
-    setEditingCompany((prev: Company | null) => prev ? { ...prev, expires_at: newEnd.toISOString() } : null)
+      return {
+        ...prev,
+        expires_at: newEnd.toISOString()
+      }
+    })
   }
+
+  const handleAdminDownloadInvoice = async (invoiceId: number) => {
+    const toastId = toast.loading('Generating invoice...')
+    try {
+      const response = await api.get(`/invoices/${invoiceId}/download`, {
+        responseType: 'blob'
+      })
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `invoice-${invoiceId}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+      toast.success('Invoice downloaded', { id: toastId })
+    } catch (error) {
+      toast.error('Failed to download invoice', { id: toastId })
+    }
+  }
+
+  const handleGenerateCustomInvoice = async () => {
+    if (!editingCompany) return
+    if (customInvoiceItems.some(i => !i.description.trim() || i.price < 0 || i.quantity < 1)) {
+      toast.error('Please fill all line items properly.')
+      return
+    }
+    
+    setIsGeneratingInvoice(true)
+    try {
+      const res = await api.post(`/admin/companies/${editingCompany.id}/custom-invoice`, {
+        items: customInvoiceItems,
+        discount: customInvoiceDiscount,
+        payment_method: customInvoicePaymentMethod,
+        notes: customInvoiceNotes,
+        title: customInvoiceTitle,
+        status: customInvoiceStatus,
+        invoice_date: customInvoiceDate,
+        due_date: customInvoiceDueDate,
+        transaction_id: customInvoiceTransactionId
+      })
+      toast.success('Custom invoice generated successfully!')
+      setIsCustomInvoiceModalOpen(false)
+      setCustomInvoiceItems([{ description: '', quantity: 1, price: 0 }])
+      setCustomInvoiceDiscount(0)
+      setCustomInvoiceNotes('')
+      setCustomInvoicePaymentMethod('')
+      setCustomInvoiceTitle('')
+      setCustomInvoiceStatus('paid')
+      setCustomInvoiceDate('')
+      setCustomInvoiceDueDate('')
+      setCustomInvoiceTransactionId('')
+      // Refresh history
+      const histRes = await api.get(`/admin/companies/${editingCompany.id}/history`)
+      if (histRes.data) setCompanyHistory(histRes.data)
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to generate custom invoice')
+    } finally {
+      setIsGeneratingInvoice(false)
+    }
+  }
+
 
   const handleEditDaysChange = (days: number) => {
     setEditDays(days)
@@ -720,7 +819,9 @@ export default function SuperAdminPage() {
         status: editingCompany.status,
         expires_at: editingCompany.expires_at ? new Date(editingCompany.expires_at).toISOString() : undefined,
         subscription_started_at: editingCompany.subscription_started_at ? new Date(editingCompany.subscription_started_at).toISOString() : undefined,
-        is_email_enabled: editingCompany.is_email_enabled
+        is_email_enabled: editingCompany.is_email_enabled,
+        custom_setup_fee: editingCompany.custom_setup_fee,
+        custom_renewal_fee: editingCompany.custom_renewal_fee
       })
 
       toast.success("Global Sync Complete", {
@@ -2598,14 +2699,14 @@ export default function SuperAdminPage() {
 
           {/* Edit Company Modal */}
           <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-            <DialogContent className="sm:max-w-[425px] bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-3xl">
+            <DialogContent className="sm:max-w-[850px] bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-xl font-black text-[var(--crm-text-primary)]">Edit Company Billing</DialogTitle>
                 <DialogDescription className="text-[var(--crm-text-secondary)] font-medium">
                   Modify plan and subscription details for <strong>{editingCompany?.name}</strong>.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
+              <div className="grid md:grid-cols-2 gap-8 py-4">
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -2673,6 +2774,29 @@ export default function SuperAdminPage() {
                     />
                   </div>
 
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">Custom Setup Fee (₹)</Label>
+                      <Input
+                        type="number"
+                        placeholder="Default"
+                        value={editingCompany?.custom_setup_fee || ''}
+                        onChange={(e) => setEditingCompany(prev => prev ? { ...prev, custom_setup_fee: e.target.value ? parseFloat(e.target.value) : null } : null)}
+                        className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] font-bold"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase text-[var(--crm-text-secondary)]">Custom Renewal Fee (₹)</Label>
+                      <Input
+                        type="number"
+                        placeholder="Default"
+                        value={editingCompany?.custom_renewal_fee || ''}
+                        onChange={(e) => setEditingCompany(prev => prev ? { ...prev, custom_renewal_fee: e.target.value ? parseFloat(e.target.value) : null } : null)}
+                        className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)] font-bold"
+                      />
+                    </div>
+                  </div>
+
                   <div className="flex items-center justify-between p-4 bg-[var(--crm-accent-soft)] border border-indigo-100 rounded-2xl">
                     <div className="space-y-0.5">
                       <Label className="text-sm font-bold text-[var(--crm-text-primary)]">Email Feature</Label>
@@ -2684,6 +2808,78 @@ export default function SuperAdminPage() {
                       className="data-[state=checked]:bg-[var(--crm-accent)]"
                     />
                   </div>
+                </div>
+
+                {/* Right Column: Billing History Section */}
+                <div>
+                  {companyHistory.length > 0 ? (
+                    <div className="h-full flex flex-col">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-bold text-[var(--crm-text-primary)]">Billing History</h3>
+                        <Button 
+                          onClick={() => setIsCustomInvoiceModalOpen(true)}
+                          variant="outline" 
+                          size="sm" 
+                          className="h-7 text-xs bg-[var(--crm-surface-2)]"
+                        >
+                          <Plus className="w-3 h-3 mr-1" />
+                          Custom Invoice
+                        </Button>
+                      </div>
+                      <div className="flex-1 overflow-y-auto rounded-lg border border-[var(--crm-border)] bg-[var(--crm-surface-1)] max-h-[400px]">
+                        <Table>
+                          <TableHeader className="bg-[var(--crm-surface-2)]">
+                            <TableRow>
+                              <TableHead className="py-2 text-xs">Date</TableHead>
+                              <TableHead className="py-2 text-xs">Amount</TableHead>
+                              <TableHead className="py-2 text-xs">Type</TableHead>
+                              <TableHead className="py-2 text-xs text-right">Invoice</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {companyHistory.map((hist) => (
+                              <TableRow key={hist.id}>
+                                <TableCell className="py-2 text-xs font-medium">{new Date(hist.created_at).toLocaleDateString()}</TableCell>
+                                <TableCell className="py-2 text-xs font-bold text-[var(--crm-text-primary)]">₹{hist.amount}</TableCell>
+                                <TableCell className="py-2 text-xs">
+                                  <Badge variant="outline" className="text-[9px] uppercase font-bold bg-[var(--crm-surface-2)]">
+                                    {hist.type || 'PAID'}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="py-2 text-right">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    className="h-6 w-6 text-[var(--crm-primary)] hover:bg-[var(--crm-primary)]/10"
+                                    onClick={() => handleAdminDownloadInvoice(hist.id)}
+                                  >
+                                    <Download className="h-3 w-3" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-full flex items-center justify-center border-2 border-dashed border-[var(--crm-border)] rounded-xl bg-[var(--crm-surface-2)] min-h-[300px]">
+                      <div className="text-center p-6">
+                        <History className="w-8 h-8 mx-auto text-[var(--crm-text-secondary)] mb-2 opacity-50" />
+                        <h3 className="text-sm font-bold text-[var(--crm-text-primary)]">No Billing History</h3>
+                        <p className="text-xs text-[var(--crm-text-secondary)] mt-1">This company has not made any payments yet.</p>
+                        <Button 
+                          onClick={() => setIsCustomInvoiceModalOpen(true)}
+                          variant="default" 
+                          size="sm" 
+                          className="mt-4"
+                        >
+                          <Plus className="w-3 h-3 mr-1" />
+                          Generate Custom Invoice
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <DialogFooter className="gap-2 sm:gap-0">
@@ -3318,6 +3514,208 @@ export default function SuperAdminPage() {
                   Close
                 </Button>
               </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Custom Invoice Builder Modal */}
+          <Dialog open={isCustomInvoiceModalOpen} onOpenChange={setIsCustomInvoiceModalOpen}>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-[var(--crm-surface-1)] border-[var(--crm-border)] p-0 gap-0 shadow-2xl">
+              <div className="p-6 border-b border-[var(--crm-border)] flex items-center justify-between sticky top-0 bg-[var(--crm-surface-1)] z-10">
+                <div>
+                  <DialogTitle className="text-xl font-bold text-[var(--crm-text-primary)] tracking-tight">Create Custom Invoice</DialogTitle>
+                  <p className="text-xs font-medium text-[var(--crm-text-secondary)] mt-1 uppercase tracking-wider">
+                    {editingCompany?.name}
+                  </p>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-[var(--crm-accent)]/10 flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-[var(--crm-accent)]" />
+                </div>
+              </div>
+
+              <div className="p-6">
+                <div className="mb-6">
+                  <h3 className="text-sm font-bold text-[var(--crm-text-primary)] mb-4">Line Items</h3>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-12 gap-3 pb-2 border-b border-[var(--crm-border)] text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase px-2">
+                      <div className="col-span-6">Description</div>
+                      <div className="col-span-2 text-center">Qty</div>
+                      <div className="col-span-3 text-right">Price (₹)</div>
+                      <div className="col-span-1"></div>
+                    </div>
+                    {customInvoiceItems.map((item, index) => (
+                      <div key={index} className="grid grid-cols-12 gap-3 items-center group">
+                        <div className="col-span-6">
+                          <Input
+                            placeholder="e.g. Additional WhatsApp Credits"
+                            value={item.description}
+                            onChange={(e) => {
+                              const newItems = [...customInvoiceItems]
+                              newItems[index].description = e.target.value
+                              setCustomInvoiceItems(newItems)
+                            }}
+                            className="bg-[var(--crm-surface-2)]"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <Input
+                            type="number"
+                            min="1"
+                            value={item.quantity}
+                            onChange={(e) => {
+                              const newItems = [...customInvoiceItems]
+                              newItems[index].quantity = parseInt(e.target.value) || 1
+                              setCustomInvoiceItems(newItems)
+                            }}
+                            className="bg-[var(--crm-surface-2)] text-center"
+                          />
+                        </div>
+                        <div className="col-span-3">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={item.price}
+                            onChange={(e) => {
+                              const newItems = [...customInvoiceItems]
+                              newItems[index].price = parseFloat(e.target.value) || 0
+                              setCustomInvoiceItems(newItems)
+                            }}
+                            className="bg-[var(--crm-surface-2)] text-right"
+                          />
+                        </div>
+                        <div className="col-span-1 text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => {
+                              const newItems = [...customInvoiceItems]
+                              newItems.splice(index, 1)
+                              setCustomInvoiceItems(newItems)
+                            }}
+                            disabled={customInvoiceItems.length === 1}
+                            className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-2 text-xs border-dashed text-[var(--crm-text-secondary)] w-full"
+                      onClick={() => setCustomInvoiceItems([...customInvoiceItems, { description: '', quantity: 1, price: 0 }])}
+                    >
+                      <Plus className="w-3 h-3 mr-2" />
+                      Add Another Item
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-xs font-bold text-[var(--crm-text-primary)]">Invoice Title (Optional)</Label>
+                      <Input
+                        placeholder="e.g. Custom Development Services"
+                        value={customInvoiceTitle}
+                        onChange={(e) => setCustomInvoiceTitle(e.target.value)}
+                        className="mt-1 bg-[var(--crm-surface-2)]"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs font-bold text-[var(--crm-text-primary)]">Status</Label>
+                        <Select value={customInvoiceStatus} onValueChange={setCustomInvoiceStatus}>
+                          <SelectTrigger className="mt-1 bg-[var(--crm-surface-2)]">
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="paid">Paid</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="failed">Failed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs font-bold text-[var(--crm-text-primary)]">Invoice Date</Label>
+                        <Input
+                          type="date"
+                          value={customInvoiceDate}
+                          onChange={(e) => setCustomInvoiceDate(e.target.value)}
+                          className="mt-1 bg-[var(--crm-surface-2)]"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs font-bold text-[var(--crm-text-primary)]">Payment Method</Label>
+                        <Input
+                          placeholder="e.g. Razorpay, Bank Transfer"
+                          value={customInvoicePaymentMethod}
+                          onChange={(e) => setCustomInvoicePaymentMethod(e.target.value)}
+                          className="mt-1 bg-[var(--crm-surface-2)]"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-bold text-[var(--crm-text-primary)]">Transaction ID</Label>
+                        <Input
+                          placeholder="e.g. pay_XXXXX"
+                          value={customInvoiceTransactionId}
+                          onChange={(e) => setCustomInvoiceTransactionId(e.target.value)}
+                          className="mt-1 bg-[var(--crm-surface-2)]"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs font-bold text-[var(--crm-text-primary)]">Customer Facing Notes (Optional)</Label>
+                      <Textarea
+                        placeholder="e.g. Thanks for your business!"
+                        value={customInvoiceNotes}
+                        onChange={(e) => setCustomInvoiceNotes(e.target.value)}
+                        className="mt-1 bg-[var(--crm-surface-2)] resize-none"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-[var(--crm-surface-2)] rounded-lg p-5 border border-[var(--crm-border)] self-start sticky top-[100px]">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-[var(--crm-text-secondary)]">Subtotal</span>
+                        <span className="text-sm font-bold text-[var(--crm-text-primary)]">
+                          ₹{customInvoiceItems.reduce((acc, item) => acc + (item.price * item.quantity), 0).toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center pb-3 border-b border-[var(--crm-border)]">
+                        <span className="text-xs font-bold text-[var(--crm-text-secondary)] mt-2">Discount (₹)</span>
+                        <Input
+                          type="number"
+                          min="0"
+                          value={customInvoiceDiscount}
+                          onChange={(e) => setCustomInvoiceDiscount(parseFloat(e.target.value) || 0)}
+                          className="w-24 h-8 text-right bg-white text-xs"
+                        />
+                      </div>
+                      <div className="flex justify-between items-center pt-2">
+                        <span className="text-sm font-black text-[var(--crm-text-primary)]">Total Paid</span>
+                        <span className="text-lg font-black text-[var(--crm-accent)]">
+                          ₹{Math.max(0, customInvoiceItems.reduce((acc, item) => acc + (item.price * item.quantity), 0) - customInvoiceDiscount).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 border-t border-[var(--crm-border)] bg-[var(--crm-surface-2)] flex justify-end gap-3 sticky bottom-0">
+                <Button variant="outline" onClick={() => setIsCustomInvoiceModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleGenerateCustomInvoice} disabled={isGeneratingInvoice}>
+                  {isGeneratingInvoice ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                  Generate Invoice
+                </Button>
+              </div>
             </DialogContent>
           </Dialog>
         </div>

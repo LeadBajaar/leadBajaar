@@ -26,7 +26,10 @@ interface User {
       status?: string;
       type?: string;
       expires_at?: string;
+      subscription_started_at?: string;
       monthly_email_count?: number;
+      custom_setup_fee?: number;
+      custom_renewal_fee?: number;
       plan_details?: {
         id: number;
         name: string;

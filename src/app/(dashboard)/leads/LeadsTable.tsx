@@ -3,6 +3,7 @@
 import React from 'react'
 
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
@@ -101,13 +102,13 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
         <AlertCircle className="h-8 w-8 text-red-400 mb-3" />
         <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-1">Error Loading Leads</h3>
         <p className="text-xs mb-4">{error}</p>
-        <button
-          className="btn btn-primary"
+        <Button
+          variant="default"
           onClick={() => { setError(null); fetchLeads(); }}
         >
-          <RefreshCcw className="h-3 w-3" />
+          <RefreshCcw className="h-3 w-3 mr-1.5" />
           Try Again
-        </button>
+        </Button>
       </div>
     )
   }
@@ -180,33 +181,33 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <button onClick={() => handleEdit(lead)} className="btn-icon w-6 h-6">
+                                  <Button variant="ghost" size="icon" onClick={() => handleEdit(lead)} className="h-6 w-6">
                                     <i className="ti ti-edit text-[14px]" />
-                                  </button>
+                                  </Button>
                                 </TooltipTrigger>
                                 <TooltipContent className="text-[10px]">Edit</TooltipContent>
                               </Tooltip>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <button onClick={() => handleWhatsAppClick(lead)} className="btn-icon w-6 h-6">
+                                  <Button variant="ghost" size="icon" onClick={() => handleWhatsAppClick(lead)} className="h-6 w-6">
                                     <i className="ti ti-brand-whatsapp text-[14px]" />
-                                  </button>
+                                  </Button>
                                 </TooltipTrigger>
                                 <TooltipContent className="text-[10px]">WhatsApp</TooltipContent>
                               </Tooltip>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <button onClick={() => handleCallClick(lead)} className="btn-icon w-6 h-6">
+                                  <Button variant="ghost" size="icon" onClick={() => handleCallClick(lead)} className="h-6 w-6">
                                     <i className="ti ti-phone text-[14px]" />
-                                  </button>
+                                  </Button>
                                 </TooltipTrigger>
                                 <TooltipContent className="text-[10px]">Call</TooltipContent>
                               </Tooltip>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <button onClick={() => handleDealValueClick(lead)} className="btn-icon w-6 h-6">
+                                  <Button variant="ghost" size="icon" onClick={() => handleDealValueClick(lead)} className="h-6 w-6">
                                     <i className="ti ti-currency-rupee text-[14px]" />
-                                  </button>
+                                  </Button>
                                 </TooltipTrigger>
                                 <TooltipContent className="text-[10px]">Value</TooltipContent>
                               </Tooltip>
@@ -241,9 +242,9 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                               </Tooltip>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <button onClick={() => handleDelete(lead)} className="btn-icon w-6 h-6">
+                                  <Button variant="ghost" size="icon" onClick={() => handleDelete(lead)} className="h-6 w-6">
                                     <i className="ti ti-trash text-[14px]" />
-                                  </button>
+                                  </Button>
                                 </TooltipTrigger>
                                 <TooltipContent className="text-[10px]">Delete</TooltipContent>
                               </Tooltip>
@@ -274,13 +275,13 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                             </div>
                           </div>
                         ) : column.id === 'stage' ? (
-                          <span className={cn("badge", stages[lead.stage]?.color || 'badge-neutral')}>
+                          <Badge className={stages[lead.stage]?.color || 'border-[var(--crm-border)] bg-[var(--crm-surface-3)] text-[var(--crm-text-secondary)]'}>
                             {lead.stage}
-                          </span>
+                          </Badge>
                         ) : column.id === 'status' ? (
-                          <span className={cn("badge", (temperatureConfig as any)[lead.status]?.color || 'badge-neutral')}>
+                          <Badge className={(temperatureConfig as any)[lead.status]?.color || 'border-[var(--crm-border)] bg-[var(--crm-surface-3)] text-[var(--crm-text-secondary)]'}>
                             {lead.status}
-                          </span>
+                          </Badge>
                         ) : column.id === 'source' ? (
                           <div className="flex items-center gap-1.5 text-[12px] text-[var(--crm-text-secondary)]">
                             {(() => {

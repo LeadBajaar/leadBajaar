@@ -122,13 +122,14 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
             )}
 
             {setShowStageManager && (
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setShowStageManager(true)}
-                className="btn btn-secondary h-8 px-3 text-[12px]"
               >
                 <i className="ti ti-settings" />
                 <span className="hidden lg:inline">Manage Stages</span>
-              </button>
+              </Button>
             )}
 
             {(() => {
@@ -142,12 +143,14 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
               return (
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className={cn(
-                      "btn h-8 px-3 text-[12px] flex items-center gap-1.5 transition-all duration-200",
-                      activeFiltersCount > 0 
-                        ? "bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400" 
-                        : "btn-secondary"
-                    )}>
+                    <Button 
+                      variant={activeFiltersCount > 0 ? "outline" : "secondary"}
+                      size="sm"
+                      className={cn(
+                        "flex items-center gap-1.5 transition-all duration-200",
+                        activeFiltersCount > 0 && "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400"
+                      )}
+                    >
                       <i className="ti ti-filter" />
                       <span>Filters</span>
                       {activeFiltersCount > 0 && (
@@ -164,7 +167,7 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
                           <X className="h-3 w-3" />
                         </div>
                       )}
-                    </button>
+                    </Button>
                   </PopoverTrigger>
                   <PopoverContent align="end" className="w-80 p-4">
                 <div className="space-y-4">
@@ -363,9 +366,9 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="btn btn-secondary h-8 px-3 text-[12px]">
+                <Button variant="secondary" size="sm">
                   More Actions <i className="ti ti-chevron-down ml-1" />
-                </button>
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-40 rounded-lg p-1 text-xs">
                 <DropdownMenuItem onClick={() => setShowExportDialog?.(true)} className="gap-2 cursor-pointer">
@@ -380,13 +383,14 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <button
+            <Button
+              variant="default"
+              size="sm"
               onClick={() => setShowNewLead?.(true)}
-              className="btn btn-primary h-8 px-3 text-[12px]"
             >
               <i className="ti ti-plus" />
               Add Lead
-            </button>
+            </Button>
 
             <div className="w-[1px] h-4 bg-[var(--crm-border)] mx-1" />
 

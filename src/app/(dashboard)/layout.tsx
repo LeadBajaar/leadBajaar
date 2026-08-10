@@ -33,7 +33,7 @@ export default function DashboardLayout({
 
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
               <Header mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-              <main className="flex-1 flex flex-col overflow-y-auto relative lg:p-4 custom-scrollbar">
+              <main className="flex-1 flex flex-col overflow-y-auto relative custom-scrollbar">
                 {pathname === '/dashboard' || pathname.includes('/live-chat') || pathname.includes('/evolution/inbox') || pathname.includes('/builder') ? (
                   children
                 ) : (

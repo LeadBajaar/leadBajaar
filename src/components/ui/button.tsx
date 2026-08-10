@@ -10,15 +10,15 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "btn-primary",
+          "bg-[var(--crm-btn-primary-bg)] text-[var(--crm-btn-primary-text)] hover:opacity-90 border-transparent",
         destructive:
-          "btn-danger",
+          "bg-[var(--crm-red-soft)] text-[var(--crm-red)] border border-[rgba(239,68,68,0.25)] hover:opacity-90",
         outline:
-          "btn-secondary",
+          "bg-[var(--crm-surface-3)] text-[var(--crm-text-primary)] border-[0.5px] border-[var(--crm-border-hover)] hover:bg-[var(--crm-surface-4)]",
         secondary:
-          "btn-secondary",
-        ghost: "btn-ghost",
-        link: "text-[var(--crm-text-primary)] underline-offset-4 hover:underline",
+          "bg-[var(--crm-surface-3)] text-[var(--crm-text-primary)] border-[0.5px] border-[var(--crm-border-hover)] hover:bg-[var(--crm-surface-4)]",
+        ghost: "bg-transparent text-[var(--crm-text-secondary)] border-[0.5px] border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)]",
+        link: "text-[var(--crm-text-primary)] underline-offset-4 hover:underline border-transparent",
       },
       size: {
         default: "h-9 px-4 py-2",

@@ -71,12 +71,12 @@ export const QuestionSummary = ({ question, index, onEdit, onRemove }: Props) =>
           {question.required && <span className="text-red-500 text-[10px] font-black">*</span>}
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 text-[9px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest bg-[var(--crm-surface-2)] px-1.5 py-0.5 rounded-md border border-[var(--crm-border)]">
+          <div className="flex items-center gap-1 text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest">
             {getTypeIcon(question.type)}
             {question.type}
           </div>
           {question.description && (
-            <span className="text-[9px] text-[var(--crm-text-secondary)] font-medium truncate">• {question.description}</span>
+            <span className="text-[10px] text-[var(--crm-text-secondary)] font-medium truncate">• {question.description}</span>
           )}
         </div>
       </div>
