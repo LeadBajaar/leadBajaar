@@ -8,6 +8,8 @@ import { FacebookOAuthButton } from "@/components/facebook-oauth/FacebookOAuthBu
 import { FacebookDashboard } from "@/components/facebook-oauth/FacebookDashboard";
 import { RoleGuard } from "@/components/RoleGuard";
 import { toast } from "sonner";
+import { Facebook } from "lucide-react";
+import { PageHeader } from "@/components/page-header/PageHeader";
 
 export default function FacebookAuthPage() {
   const router = useRouter();
@@ -63,17 +65,11 @@ export default function FacebookAuthPage() {
     <RoleGuard allowedFeatures={['integrations']}>
       <div className="flex flex-col flex-1 gap-4 sm:gap-5">
         {/* ── Header ────────────────────────────────────────────────────────────── */}
-        <div className="shrink-0">
-          <div>
-            <h1 className="text-[18px] font-medium text-[var(--crm-text-primary)] flex items-center gap-2">
-              
-              Facebook Integration
-            </h1>
-            <p className="text-[12px] text-[var(--crm-text-secondary)] mt-0.5 ml-9">
-              Connect your Facebook accounts to manage pages and services.
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title="Facebook Integration"
+          description="Connect your Facebook accounts to manage pages and services."
+          icon={<Facebook className="h-6 w-6 text-primary" />}
+        />
 
         {/* ── Content ──────────────────────────────────────────────────────────── */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6">

@@ -16,7 +16,7 @@ export function useErrorHandler() {
   const handleError = (error: any, options?: ErrorOptions) => {
     return baseHandleError(error, {
       title: options?.title,
-      showToast: options?.showToast ? (msg) => toast.error(msg) : undefined,
+      silent: options?.showToast === false,
       showModal: (opts) => showError({ title: opts.title, message: opts.message })
     });
   };

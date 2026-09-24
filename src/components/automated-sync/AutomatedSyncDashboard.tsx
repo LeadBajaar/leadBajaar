@@ -150,7 +150,7 @@ export function AutomatedSyncDashboard() {
   const getHealthBadgeVariant = (score: number) => {
     if (score >= 90) return 'default'
     if (score >= 70) return 'secondary'
-    return 'destructive'
+    return 'danger'
   }
 
   if (isLoading) {

@@ -33,6 +33,7 @@ import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { format } from 'date-fns';
 import { RoleGuard } from '@/components/RoleGuard';
+import { PageHeader } from '@/components/page-header/PageHeader';
 
 interface AppErrorLog {
   time: string;
@@ -92,36 +93,32 @@ export default function ErrorMonitoringPage() {
     <RoleGuard allowedFeatures={['error_logs']}>
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-[1400px] mx-auto w-full pb-10">
         {/* Header section with glass effect */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--crm-border)] pb-8">
-          <div>
-            <h1 className="text-4xl font-extrabold text-[var(--crm-text-primary)] tracking-tight flex items-center gap-3">
-              <ShieldAlert className="h-10 w-10 text-red-600" />
-              Error Monitoring
-            </h1>
-            <p className="text-[var(--crm-text-secondary)] mt-2 text-lg">
-              Live tracking and analysis of application-wide errors and crashes.
-            </p>
-          </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <Button 
-              variant="outline" 
-              onClick={fetchLogs} 
-              className="flex-1 md:flex-none border-[var(--crm-border)] h-11"
-              disabled={isLoading}
-            >
-              <RefreshCcw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={clearLogs} 
-              className="flex-1 md:flex-none h-11 bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/20"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Clear Logs
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Error Monitoring"
+          description="Live tracking and analysis of application-wide errors and crashes."
+          icon={<ShieldAlert className="h-6 w-6 text-red-600" />}
+          actions={
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <Button 
+                variant="outline" 
+                onClick={fetchLogs} 
+                className="flex-1 md:flex-none border-[var(--crm-border)] h-11"
+                disabled={isLoading}
+              >
+                <RefreshCcw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={clearLogs} 
+                className="flex-1 md:flex-none h-11 bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/20"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear Logs
+              </Button>
+            </div>
+          }
+        />
 
         {/* Stats Summary Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">

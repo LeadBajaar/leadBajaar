@@ -15,6 +15,16 @@ import {
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { Question } from '@/types/events'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface Props {
   question: Question
@@ -42,6 +52,7 @@ export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: P
 
   const [optionErrors, setOptionErrors] = useState<number[]>([])
   const [isSaving, setIsSaving] = useState(false)
+  const [showEmailWarning, setShowEmailWarning] = useState(false)
 
   const handleSaveClick = async () => {
     if (['radio', 'checkbox', 'dropdown'].includes(question.type)) {
@@ -144,6 +155,23 @@ export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: P
 
   return (
     <div className="bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl overflow-hidden shadow-sm animate-in fade-in zoom-in-95 duration-200 z-50">
+      <AlertDialog open={showEmailWarning} onOpenChange={setShowEmailWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Make email optional?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Email is required to send meeting confirmation notifications. If you make it optional, some invitees may not receive calendar invites. Are you sure?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => updateQuestion('required', false)}>
+              Make Optional
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-[var(--crm-border)]">
 
         {/* Editor (Left Column) */}
@@ -154,13 +182,19 @@ export const QuestionEditor = ({ question, updateQuestion, onSave, onCancel }: P
               <Switch
                 id="required-editor"
                 checked={question.required}
-                onCheckedChange={(checked) => updateQuestion('required', checked)}
-                disabled={question.isLocked}
+                onCheckedChange={(checked) => {
+                  if (question.id === 'invitee_email' && !checked) {
+                    setShowEmailWarning(true)
+                  } else {
+                    updateQuestion('required', checked)
+                  }
+                }}
+                disabled={question.isLocked && question.id !== 'invitee_email'}
                 className="scale-75 data-[state=checked]:bg-[var(--crm-accent)]"
               />
               <Label htmlFor="required-editor" className={cn(
                 "text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-widest cursor-pointer select-none",
-                question.isLocked && "opacity-50 cursor-default"
+                (question.isLocked && question.id !== 'invitee_email') && "opacity-50 cursor-default"
               )}>Required</Label>
             </div>
           </div>

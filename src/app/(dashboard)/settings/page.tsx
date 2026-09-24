@@ -16,6 +16,7 @@ import { useUser } from '@/contexts/UserContext'
 import { api, subscriptionApi } from '@/lib/api'
 import { toast } from 'sonner'
 import { RoleGuard } from '@/components/RoleGuard'
+import { PageHeader } from '@/components/page-header/PageHeader'
 import {
   User, Bell, Shield, Mail,
   Settings, ChevronRight, Camera,
@@ -43,11 +44,16 @@ export default function SettingsPage() {
   const { user } = useUser()
   const [activeTab, setActiveTab] = useState('profile')
 
-  // Honor deep links like /settings?tab=billing (used by the dashboard's
-  // Renew button and SubscriptionGuard's renew flow).
   useEffect(() => {
-    const tab = new URLSearchParams(window.location.search).get('tab')
-    if (tab && SECTIONS.some(s => s.id === tab)) setActiveTab(tab)
+    const params = new URLSearchParams(window.location.search)
+    const tab = params.get('tab')
+    if (tab && SECTIONS.some(s => s.id === tab)) {
+      setActiveTab(tab)
+      const amount = params.get('amount')
+      if (amount && tab === 'billing') {
+        setPaymentAmount(amount)
+      }
+    }
   }, [])
   const [isSaving, setIsSaving] = useState(false)
   const [profileSettings, setProfileSettings] = useState({
@@ -399,13 +405,14 @@ export default function SettingsPage() {
 
       {/* ── Sidebar Navigation ── */}
       <div className="w-full lg:w-72 flex flex-col gap-4 lg:gap-6 shrink-0">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--crm-text-primary)]">Settings</h1>
-          <p className="text-sm text-[var(--crm-text-secondary)] mt-1">Configure your account preferences</p>
-        </div>
+        <PageHeader 
+          title="Settings" 
+          description="Configure your account preferences" 
+        />
 
         <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-x-visible no-scrollbar pb-2 lg:pb-0">
           {SECTIONS.map((section) => (
+            // TODO: Migrate raw button to shared <Button> component later (complex styling)
             <button
               key={section.id}
               onClick={() => setActiveTab(section.id)}
@@ -478,6 +485,7 @@ export default function SettingsPage() {
                         {profileSettings.name.split(' ').filter(Boolean).map(n => n[0].toUpperCase()).join('') || 'U'}
                       </AvatarFallback>
                     </Avatar>
+                    {/* TODO: Migrate raw button to shared <Button> component later (complex styling) */}
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       className="absolute inset-0 bg-black/40 rounded-full opacity-100 lg:opacity-0 lg:group-hover:opacity-100 flex items-center justify-center transition-all cursor-pointer backdrop-blur-[2px]"

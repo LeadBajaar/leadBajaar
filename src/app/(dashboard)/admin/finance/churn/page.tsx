@@ -12,6 +12,7 @@ import {
   ArrowRight, CheckCircle, Info, TrendingDown,
   Activity, Zap, UserMinus, Search,
 } from 'lucide-react'
+import { PageHeader } from '@/components/page-header/PageHeader'
 
 function fmt(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n ?? 0)
@@ -63,20 +64,21 @@ export default function ChurnPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">Churn & Retention</h2>
-          <p className="text-sm text-muted-foreground">Monitor lost customers and high-risk subscriptions</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleDetect} disabled={detecting} variant="outline" size="sm" className="h-9 gap-1">
-            <Search className="h-3.5 w-3.5" /> {detecting ? 'Detecting...' : 'Detect Churn'}
-          </Button>
-          <Button onClick={fetchData} variant="outline" size="sm" className="h-9">
-            <RefreshCw className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Churn & Retention"
+        description="Monitor lost customers and high-risk subscriptions"
+        icon={<UserMinus className="h-6 w-6 text-red-500" />}
+        actions={
+          <div className="flex gap-2">
+            <Button onClick={handleDetect} disabled={detecting} variant="outline" size="sm" className="h-9 gap-1">
+              <Search className="h-3.5 w-3.5" /> {detecting ? 'Detecting...' : 'Detect Churn'}
+            </Button>
+            <Button onClick={fetchData} variant="outline" size="sm" className="h-9">
+              <RefreshCw className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        }
+      />
 
       {/* Churn Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

@@ -133,11 +133,11 @@ function SetupAccount() {
               <div className="space-y-2">
                 <Label htmlFor="fullName" className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-0.5">Your Full Name</Label>
                 <div className="relative group transition-all">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                   <Input
                     id="fullName"
                     placeholder="E.g. Alex Johnson"
-                    className="h-12 pl-10 bg-slate-50/50 dark:bg-slate-950 border-slate-200/60 dark:border-slate-800 rounded-xl focus:ring-indigo-500/10 focus:border-primary transition-all text-sm font-medium"
+                    className="h-12 pl-10 bg-slate-50/50 dark:bg-slate-950 border-slate-200/60 dark:border-slate-800 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm font-medium"
                     {...register('fullName', { required: 'Name is required' })}
                   />
                 </div>
@@ -147,12 +147,12 @@ function SetupAccount() {
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-0.5">Set Password</Label>
                 <div className="relative group transition-all">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    className="h-12 pl-10 pr-10 bg-slate-50/50 dark:bg-slate-950 border-slate-200/60 dark:border-slate-800 rounded-xl focus:ring-indigo-500/10 focus:border-primary transition-all text-sm font-medium"
+                    className="h-12 pl-10 pr-10 bg-slate-50/50 dark:bg-slate-950 border-slate-200/60 dark:border-slate-800 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm font-medium"
                     {...register('password', { 
                       required: 'Password is required',
                       minLength: { value: 8, message: 'Must be at least 8 characters' }
@@ -172,12 +172,12 @@ function SetupAccount() {
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-0.5">Confirm Password</Label>
                 <div className="relative group transition-all">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                   <Input
                     id="confirmPassword"
                     type="password"
                     placeholder="••••••••"
-                    className="h-12 pl-10 bg-slate-50/50 dark:bg-slate-950 border-slate-200/60 dark:border-slate-800 rounded-xl focus:ring-indigo-500/10 focus:border-primary transition-all text-sm font-medium"
+                    className="h-12 pl-10 bg-slate-50/50 dark:bg-slate-950 border-slate-200/60 dark:border-slate-800 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm font-medium"
                     {...register('confirmPassword', { 
                       required: 'Please confirm your password',
                       validate: (val: string) => val === password || 'Passwords do not match'

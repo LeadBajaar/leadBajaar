@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import { Plus, Search, RefreshCw, Pencil, Trash2, Receipt, CalendarDays, RotateCcw, Upload, Eye, AlertCircle, X } from 'lucide-react'
+import { PageHeader } from '@/components/page-header/PageHeader'
 
 const DEPARTMENTS = ['engineering','sales','marketing','ops','management','shared']
 const PAID_BY     = ['company_card','upi','bank_transfer','cash','reimbursement']
@@ -108,15 +109,16 @@ export default function ExpensesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">Expense Tracker</h2>
-          <p className="text-sm text-muted-foreground">Log and manage all business expenses</p>
-        </div>
-        <Button onClick={() => { resetForm(); setShowAdd(true) }} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
-          <Plus className="h-4 w-4" /> Add Expense
-        </Button>
-      </div>
+      <PageHeader
+        title="Expense Tracker"
+        description="Log and manage all business expenses"
+        icon={<Receipt className="h-6 w-6 text-red-600" />}
+        actions={
+          <Button onClick={() => { resetForm(); setShowAdd(true) }} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
+            <Plus className="h-4 w-4" /> Add Expense
+          </Button>
+        }
+      />
 
       {/* Monthly Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

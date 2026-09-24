@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { PageHeader } from "@/components/page-header/PageHeader"
 
 import { useState, useEffect, Fragment } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -120,21 +121,22 @@ export default function AdminEmailPage() {
 
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-[1400px] mx-auto w-full pb-10">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--crm-text-primary)]">Email Infrastructure Monitoring</h1>
-          <p className="text-[var(--crm-text-secondary)] text-sm">Track platform-wide email usage, system SES health, and delivery issues.</p>
-        </div>
-        <Button 
-          variant="outline" 
-          onClick={() => fetchStats(searchTerm, page, limit, filterStatus)} 
-          disabled={isRefreshing}
-          className="w-full sm:w-auto gap-2 bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]"
-        >
-          <RefreshCw className={isRefreshing ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-          {isRefreshing ? 'Refreshing...' : 'Refresh Stats'}
-        </Button>
-      </div>
+      <PageHeader
+        title="Email Infrastructure Monitoring"
+        description="Track platform-wide email usage, system SES health, and delivery issues."
+        icon={<Mail className="h-5 w-5" />}
+        actions={
+          <Button 
+            variant="outline" 
+            onClick={() => fetchStats(searchTerm, page, limit, filterStatus)} 
+            disabled={isRefreshing}
+            className="w-full sm:w-auto gap-2 bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]"
+          >
+            <RefreshCw className={isRefreshing ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh Stats'}
+          </Button>
+        }
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -282,7 +284,7 @@ export default function AdminEmailPage() {
                           <TableCell className="text-right pr-6">
                              <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                 {!company.is_email_enabled && (
-                                  <Badge variant="destructive" className="text-[9px] h-5 font-bold uppercase tracking-tighter">DISABLED</Badge>
+                                  <Badge variant="danger" className="text-[9px] h-5 font-bold uppercase tracking-tighter">DISABLED</Badge>
                                 )}
                                 <Button
                                   variant="ghost"

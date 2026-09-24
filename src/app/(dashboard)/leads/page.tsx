@@ -80,19 +80,14 @@ import {
   columns, temperatureConfig, defaultStages, sourceConfig, iconMapping, LeadFormErrors, BroadcastResponse
 } from './types'
 import { LeadsHeader } from './LeadsHeader'
+import { LeadsDialogsRenderer } from './components/dialogs/LeadsDialogsRenderer'
+import { useLeadsPageDialogs } from './hooks/useLeadsPageDialogs'
+import { useLeadsBulkActions } from './hooks/useLeadsBulkActions'
+import { useLeadsData } from './hooks/useLeadsData'
+import { parseCSVContent, prepareImportData } from '@/lib/leads/csv-import'
 import { LeadsFilters } from './LeadsFilters'
 import { LeadsTable, LeadsTableSkeleton } from './LeadsTable'
-import { ImportLeadsDialog } from './ImportLeadsDialog'
-import { FacebookRetrievalDialog } from './FacebookRetrievalDialog'
-import { DeleteConfirmationDialog } from './DeleteConfirmationDialog'
-import { ExportLeadsDialog } from './ExportLeadsDialog'
-import { BroadcastMessageDialog } from './BroadcastMessageDialog'
-import { StageManagerDialog } from './StageManagerDialog'
-import { StageChangeDialog } from './StageChangeDialog'
-import { DealValueDialog } from './DealValueDialog'
-import { EditLeadDialog } from './EditLeadDialog'
-import { AddLeadDialog } from './AddLeadDialog'
-import { AssignAgentDialog } from './AssignAgentDialog'
+import { PaginationControls } from './components/PaginationControls'
 import { toTelHref, toWhatsAppPhone } from '@/lib/phone'
 
 const ErrorAlert = ({ message }: { message: string }) => (
@@ -105,74 +100,32 @@ const ErrorAlert = ({ message }: { message: string }) => (
   </Alert>
 )
 
-/**
- * Robustly parses a CSV line, respecting double quotes and trimming values.
- * Removes surrounding quotes from the resulting values.
- */
-const parseCSVLine = (line: string): string[] => {
-  const result: string[] = [];
-  let current = '';
-  let inQuotes = false;
-
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    if (char === '"') {
-      // Toggle quote state
-      if (inQuotes && line[i + 1] === '"') {
-        // Handle escaped quotes ""
-        current += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (char === ',' && !inQuotes) {
-      // End of field
-      result.push(current.trim());
-      current = '';
-    } else {
-      current += char;
-    }
-  }
-  result.push(current.trim());
-  return result;
-};
-
 export default function LeadsPage() {
-  const [leads, setLeads] = useState<Lead[]>([])
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [visibleColumns, setVisibleColumns] = useState([
-    'name',
-    'phone',
-    'stage',
-    // 'status',
-    'city',
-    'profession',
-    'notes',
-    // 'deal_value',
-    // 'paid_amount',
-    'created_at',
-    'actions'
-  ])
-
-  const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table')
-
-  // Add states for import functionality
-  const [file, setFile] = useState<File | null>(null)
-  const [preview, setPreview] = useState<string[][]>([])
-  const [showMapping, setShowMapping] = useState(false)
-  const [columnMapping, setColumnMapping] = useState<ColumnMapping[]>([])
-  const [importStats, setImportStats] = useState<ImportStats | null>(null)
-  const [importError, setImportError] = useState<string | null>(null)
-  const [isImporting, setIsImporting] = useState(false)
-  const [showGeneratingReport, setShowGeneratingReport] = useState(false)
-
-  const [currentPage, setCurrentPage] = useState(1)
-  const [isInitialLoading, setIsInitialLoading] = useState(true)
-  const [itemsPerPage, setItemsPerPage] = useState(25)
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  
+  const leadsData = useLeadsData(isMobile);
+  const {
+    leads, setLeads,
+    searchTerm, setSearchTerm,
+    statusFilter, setStatusFilter,
+    visibleColumns, setVisibleColumns,
+    viewMode, setViewMode,
+    currentPage, setCurrentPage,
+    isInitialLoading, setIsInitialLoading,
+    itemsPerPage, setItemsPerPage,
+    isLoading, setIsLoading,
+    totalItems, setTotalItems,
+    totalPages, setTotalPages,
+    error, setError,
+    filters, setFilters,
+    debouncedSearch,
+    isSearching, setIsSearching,
+    isMobileFilterOpen, setIsMobileFilterOpen,
+    handleFilterChange, clearFilters,
+    fetchLeads, fetchLeadsConfig
+  } = leadsData;
 
   // Add ref for file input
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const resultsSectionRef = useRef<HTMLDivElement>(null)
 
   // Sticky horizontal scrollbar refs
@@ -180,158 +133,18 @@ export default function LeadsPage() {
   const bottomScrollbarRef = useRef<HTMLDivElement>(null)
   const tableInnerRef = useRef<HTMLDivElement>(null)
 
-  // Add these states
-  const [stages, setStages] = useState<Record<string, { color: string; icon: LucideIcon; id?: number }>>(defaultStages)
-  const [stagesList, setStagesList] = useState<ApiStage[]>([])
-  const [showStageManager, setShowStageManager] = useState(false)
-  const [newStageName, setNewStageName] = useState('')
-  const [selectedColor, setSelectedColor] = useState('blue')
-  const [selectedIcon] = useState<keyof typeof iconMapping>('User')
-  const [editingLead, setEditingLead] = useState<Lead | null>(null)
-  const [selectedStage, setSelectedStage] = useState<string | null>(null)
-  const [showStageChange, setShowStageChange] = useState(false)
-
-  // Deal Value Dialog State
-  const [showDealValue, setShowDealValue] = useState(false);
-  const [dealValueAmount, setDealValueAmount] = useState('');
-  const [recordInitialPayment, setRecordInitialPayment] = useState(false);
-  const [initialPaymentAmount, setInitialPaymentAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('UPI');
-  const [isSavingDealValue, setIsSavingDealValue] = useState(false);
-
-  const [editingStage, setEditingStage] = useState<string | null>(null)
-  const [editedStageName, setEditedStageName] = useState('')
-  const [editedStageColor, setEditedStageColor] = useState('')
-  const [showEditLead, setShowEditLead] = useState(false)
-  const [editedLead, setEditedLead] = useState<Lead | null>(null)
-  const [showNewLead, setShowNewLead] = useState(false);
-  const [newLead, setNewLead] = useState<NewLead>({
-    name: '',
-    email: '',
-    phone: '',
-    company: '',
-    stage: 'New',
-    status: 'Warm',
-    source: 'Website',
-    city: '',
-    profession: ''
-  });
-  const [isUpdating, setIsUpdating] = useState(false);
-
-
-  // Add these to your state variables at the top of LeadsPage component
-  const [selectedLeads, setSelectedLeads] = useState<number[]>([]);
-  const [isLoading, setIsLoading] = useState(true)
-  const [totalItems, setTotalItems] = useState(0)
-  const [totalPages, setTotalPages] = useState(1)
-
-
-  // Add this at the top of your component
-  const fetchLeadsConfig = React.useMemo(() => ({
-    page: currentPage,
-    search: searchTerm,
-    status: statusFilter,
-    perPage: itemsPerPage
-  }), [currentPage, searchTerm, statusFilter, itemsPerPage]);
-
-  // Add this to your state variables
-  const [error, setError] = useState<string | null>(null);
-
-  const router = useRouter();
-
-  // Add this state for delete confirmation
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{
-    isOpen: boolean;
-    leadId: number | null;
-    leadName: string;
-  }>({
-    isOpen: false,
-    leadId: null,
-    leadName: ''
-  });
-
-  // Facebook Lead Retrieval States
-  const [showFacebookRetrieval, setShowFacebookRetrieval] = useState(false);
-  const [facebookForms, setFacebookForms] = useState<Array<{
-    id: string;
-    name: string;
-    status: string;
-    integration_id: number;
-    page_id: string;
-    source?: string;
-    error?: string;
-  }>>([]);
-  const [selectedForm, setSelectedForm] = useState<string>('');
-  const [dateFrom, setDateFrom] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [dateTo, setDateTo] = useState<string>(new Date().toISOString().split('T')[0]);
-
-  const [isRetrievingLeads, setIsRetrievingLeads] = useState(false);
-  const [retrievalResults, setRetrievalResults] = useState<{
-    total_processed: number;
-    new_leads: number;
-    existing_leads: number;
-    processed_leads: Array<{
-      facebook_lead_id: string;
-      status: 'created' | 'existing';
-      lead_id: number;
-      name: string;
-    }>;
-  } | null>(null);
-  const [showResults, setShowResults] = useState(false);
-  const [showProgress, setShowProgress] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [progressMessage, setProgressMessage] = useState('');
-
-  // Add state for export dialog
-  const [showExportDialog, setShowExportDialog] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [isExportSuccess, setIsExportSuccess] = useState(false);
-
-  // Team members state
-  const [teamMembers, setTeamMembers] = useState<any[]>([]);
-  const [showAssignAgent, setShowAssignAgent] = useState(false);
-  const [isAssigning, setIsAssigning] = useState(false);
 
   // Add new state variables
-  const [showBroadcastDialog, setShowBroadcastDialog] = useState(false)
-  const [templates, setTemplates] = useState<MessageTemplate[]>([])
-  const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | null>(null)
-  const [variables, setVariables] = useState<Record<string, string>>({})
-  const [variableColumnMapping, setVariableColumnMapping] = useState<Record<string, string>>({})
 
   // Add new state for templates loading
-  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
 
   // Add these new state variables at the top of your component
-  const [filters, setFilters] = useState<{
-    search: string;
-    status: string[];
-    stage: string[];
-    source: string[];
-    dateRange: DateRange | undefined;
-    createdAt: DateRange | undefined;
-  }>({
-    search: '',
-    status: [],
-    stage: [],
-    source: [],
-    dateRange: undefined,
-    createdAt: undefined
-  });
 
-  // Add debounced search for better performance
-  const debouncedSearch = useDebounce(filters.search, 500); // 500ms delay
-  const [isSearching, setIsSearching] = useState(false);
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-
-  // Track when search is happening
-  useEffect(() => {
-    if (filters.search !== debouncedSearch) {
-      setIsSearching(true);
-    } else {
-      setIsSearching(false);
-    }
-  }, [filters.search, debouncedSearch]);
+  const [stages, setStages] = useState<Record<string, { color: string; icon: LucideIcon; id?: number }>>(defaultStages);
+  const [stagesList, setStagesList] = useState<ApiStage[]>([]);
+  const [selectedLeads, setSelectedLeads] = useState<number[]>([]);
+  const router = useRouter();
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
 
   // Sync horizontal scroll between table body and sticky bottom scrollbar
   useEffect(() => {
@@ -372,80 +185,13 @@ export default function LeadsPage() {
   const { handleError } = useErrorHandler();
 
   // Add these state variables near your other states
-  const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
-  const [broadcastResponse, setBroadcastResponse] = useState<BroadcastResponse | null>(null);
 
   // State to hold the CSV data and column mappings
   const [csvData, setCsvData] = useState<string[][]>([]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    setImportError(null)
-    setImportStats(null)
 
-    if (!selectedFile) {
-      setImportError('No file selected')
-      return
-    }
-
-    if (!selectedFile.name.endsWith('.csv')) {
-      setImportError('Please select a CSV file')
-      return
-    }
-
-    setFile(selectedFile)
-    const reader = new FileReader()
-
-    reader.onload = (event) => {
-      try {
-        const csv = event.target?.result as string
-        const lines = csv.split('\n')
-
-        if (lines.length < 2) {
-          setImportError('CSV file is empty or has no data rows')
-          return
-        }
-
-        const result = lines.filter(l => l.trim()).map(line => parseCSVLine(line))
-        setPreview(result.slice(0, 5))
-
-        // Initialize column mapping
-        const csvHeaders = result[0]
-        setColumnMapping(csvHeaders.map(header => ({
-          csvHeader: header,
-          leadField: 'skip'
-        })))
-        setShowMapping(true)
-      } catch (err) {
-        console.error('Failed to read CSV file:', err)
-        setImportError('Failed to read CSV file. Please check the file format.')
-      }
-    }
-
-    reader.onerror = () => {
-      setImportError('Failed to read the file')
-    }
-
-    reader.readAsText(selectedFile)
-  }
 
   // Move all function definitions here
-  const handleFilterChange = (key: string, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-    setCurrentPage(1); // Reset page on filter change
-  };
-
-  const clearFilters = () => {
-    setFilters({
-      search: '',
-      status: [],
-      stage: [],
-      source: [],
-      dateRange: undefined,
-      createdAt: undefined
-    });
-    setCurrentPage(1);
-  };
  
   const fetchStagesData = async () => {
      try {
@@ -459,7 +205,7 @@ export default function LeadsPage() {
              id: s.id,
              color: s.color.startsWith('bg-') 
                ? s.color 
-               : `bg-${s.color}-100 text-${s.color}-800 dark:bg-${s.color}-900 dark:text-${s.color}-100`,
+               : `bg-${s.color}-500 text-white font-extrabold border-none hover:bg-${s.color}-600`,
              icon: iconMapping[s.icon as keyof typeof iconMapping] || User
            };
          });
@@ -479,50 +225,102 @@ export default function LeadsPage() {
     }
   };
 
-  const fetchLeads = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  const dialogs = useLeadsPageDialogs({
+    leads,
+    fetchLeads,
+    fetchStagesData,
+    handleError,
+    setCurrentPage,
+    selectedLeads,
+    stages
+  });
+  
+  const {
+    editingLead,
+    setEditingLead,
+    
+    // formDialogs
+    showNewLead, setShowNewLead,
+    newLead, setNewLead,
+    formErrors, setFormErrors,
+    isSubmitting, setIsSubmitting,
+    submitError, setSubmitError,
+    showEditLead, setShowEditLead,
+    editedLead, setEditedLead,
+    isUpdating, setIsUpdating,
+    handleAddLead, validateAndSubmit, handleEditLead, handleUpdateLead,
+    
+    // stageDialogs
+    showStageManager, setShowStageManager,
+    newStageName, setNewStageName,
+    selectedColor, setSelectedColor,
+    selectedIcon,
+    editingStage, setEditingStage,
+    editedStageName, setEditedStageName,
+    editedStageColor, setEditedStageColor,
+    showStageChange, setShowStageChange,
+    selectedStage, setSelectedStage,
+    showDealValue, setShowDealValue,
+    dealValueAmount, setDealValueAmount,
+    recordInitialPayment, setRecordInitialPayment,
+    initialPaymentAmount, setInitialPaymentAmount,
+    paymentMethod, setPaymentMethod,
+    isSavingDealValue, setIsSavingDealValue,
+    handleDealValueClick, handleSaveDealValue, handleStageChange,
+    handleAddStage, handleEditStage, handleUpdateStage, handleDeleteStage, handleSyncDefaultStages,
+    
+    // dataDialogs
+    fileInputRef,
+    file, setFile,
+    preview, setPreview,
+    showMapping, setShowMapping,
+    columnMapping, setColumnMapping,
+    importStats, setImportStats,
+    importError, setImportError,
+    isImporting, setIsImporting,
+    showGeneratingReport, setShowGeneratingReport,
+    showExportDialog, setShowExportDialog,
+    isExporting, setIsExporting,
+    isExportSuccess, setIsExportSuccess,
+    showFacebookRetrieval, setShowFacebookRetrieval,
+    facebookForms, setFacebookForms,
+    selectedForm, setSelectedForm,
+    dateFrom, setDateFrom,
+    dateTo, setDateTo,
+    isRetrievingLeads, setIsRetrievingLeads,
+    retrievalResults, setRetrievalResults,
+    showResults, setShowResults,
+    showProgress, setShowProgress,
+    progress, setProgress,
+    progressMessage, setProgressMessage,
+    handleFileChange, handleColumnMapChange, resetImport, handleImportClick, handleRetrieveLeads,
+    
+    // actionDialogs
+    deleteConfirmation, setDeleteConfirmation,
+    showAssignAgent, setShowAssignAgent,
+    isAssigning, setIsAssigning,
+    showBroadcastDialog, setShowBroadcastDialog,
+    templates, setTemplates,
+    selectedTemplate, setSelectedTemplate,
+    variables, setVariables,
+    variableColumnMapping, setVariableColumnMapping,
+    isLoadingTemplates, setIsLoadingTemplates,
+    isSendingBroadcast, setIsSendingBroadcast,
+    broadcastResponse, setBroadcastResponse,
+    handleDeleteLead, confirmDelete,
+    handleAssignAgentClick, handleAssignAgent,
+    handleBroadcast, extractVariables
+  } = dialogs;
 
-      const params = {
-        page: currentPage,
-        per_page: itemsPerPage,
-        ...(debouncedSearch && { search: debouncedSearch }),
-        ...(filters.status.length > 0 && { status: filters.status.join(',') }),
-        ...(filters.stage.length > 0 && { stage: filters.stage.join(',') }),
-        ...(filters.source.length > 0 && { source: filters.source.join(',') }),
-        ...(filters.dateRange?.from && {
-          last_contact_from: format(filters.dateRange.from, 'yyyy-MM-dd')
-        }),
-        ...(filters.dateRange?.to && {
-          last_contact_to: format(filters.dateRange.to, 'yyyy-MM-dd')
-        }),
-        ...(filters.createdAt?.from && {
-          created_from: format(filters.createdAt.from, 'yyyy-MM-dd')
-        }),
-        ...(filters.createdAt?.to && {
-          created_to: format(filters.createdAt.to, 'yyyy-MM-dd')
-        })
-      };
-
-      const response = await getLeads(params);
-
-      if (response?.data && Array.isArray(response.data)) {
-        // Appending pages is mobile infinite-scroll behavior; desktop pagination replaces the page
-        setLeads(prev => (currentPage === 1 || !isMobile) ? response.data : [...prev, ...response.data]);
-        setTotalItems(response.total || response.meta?.total || 0);
-        setTotalPages(response.last_page || response.meta?.last_page || 1);
-      } else {
-        throw new Error('Invalid response format from API');
-      }
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
-      setLeads([]);
-    } finally {
-      setIsLoading(false);
-      setIsInitialLoading(false);
-    }
-  };
+  const { handleBulkDelete, handleBulkStageChange } = useLeadsBulkActions({
+    selectedLeads,
+    setSelectedLeads,
+    fetchLeads,
+    setCurrentPage,
+    handleError,
+    setShowStageChange,
+    setSelectedStage
+  });
 
   useEffect(() => {
     fetchStagesData();
@@ -536,74 +334,6 @@ export default function LeadsPage() {
     }
   }, [showDealValue, editingLead]);
 
-  const handleAddLead = async () => {
-    try {
-      setIsSubmitting(true);
-      setSubmitError(null);
-
-      const response = await createLead({
-        name: newLead.name,
-        email: newLead.email,
-        phone: newLead.phone,
-        company: newLead.company,
-        stage: newLead.stage,
-        status: newLead.status,
-        source: newLead.source,
-        city: newLead.city || '',
-        profession: newLead.profession || '',
-        notes: newLead.notes || ''
-      });
-
-      await fetchLeads();
-
-      setShowNewLead(false);
-      toast.success("Lead created successfully");
-
-      setNewLead({
-        name: '',
-        email: '',
-        phone: '',
-        company: '',
-        stage: 'New',
-        status: 'Warm',
-        source: 'Website',
-        city: '',
-        profession: ''
-      });
-    } catch (error: any) {
-      handleError(error, { title: 'Lead Creation Failed' });
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleBulkDelete = async () => {
-    if (!confirm('Are you sure you want to delete the selected leads?')) return
-
-    try {
-      await bulkDeleteLeads(selectedLeads)
-      setCurrentPage(1)
-      await fetchLeads()
-      setSelectedLeads([])
-      toast.success("Leads deleted successfully")
-    } catch (error: any) {
-      handleError(error, { title: 'Batch Delete Failed' });
-    }
-  }
-
-  const handleBulkStageChange = async (newStage: string) => {
-    try {
-      await bulkUpdateLeadStage(selectedLeads, newStage)
-      setCurrentPage(1)
-      await fetchLeads()
-      setSelectedLeads([])
-      setShowStageChange(false)
-      setSelectedStage(null)
-      toast.success("Lead stages updated successfully")
-    } catch (error: any) {
-      handleError(error, { title: 'Bulk Update Failed' });
-    }
-  }
-
   const handleDelete = (lead: Lead) => {
     setDeleteConfirmation({
       isOpen: true,
@@ -612,21 +342,6 @@ export default function LeadsPage() {
     });
   };
 
-  const confirmDelete = async () => {
-    if (!deleteConfirmation.leadId) return;
-
-    try {
-      await deleteLead(deleteConfirmation.leadId);
-      setCurrentPage(1)
-      await fetchLeads();
-
-      toast.success("Lead deleted successfully");
-    } catch (error: any) {
-      handleError(error, { title: 'Delete Failed' });
-    } finally {
-      setDeleteConfirmation({ isOpen: false, leadId: null, leadName: '' });
-    }
-  };
 
   const handleEdit = (lead: Lead) => {
     setEditedLead({ ...lead });
@@ -638,25 +353,7 @@ export default function LeadsPage() {
     window.open(`https://wa.me/${toWhatsAppPhone(lead.phone)}`, '_blank');
   };
 
-  const handleAssignAgentClick = (lead: Lead) => {
-    setEditingLead(lead);
-    setShowAssignAgent(true);
-  };
 
-  const handleAssignAgent = async (agentId: string) => {
-    if (!editingLead) return;
-    try {
-      setIsAssigning(true);
-      await updateLead(editingLead.id, { user_id: parseInt(agentId) });
-      toast.success("Lead assigned successfully");
-      setShowAssignAgent(false);
-      fetchLeads();
-    } catch (error: any) {
-      handleError(error, { title: 'Assignment Failed' });
-    } finally {
-      setIsAssigning(false);
-    }
-  };
 
   const handleCallClick = (lead: Lead) => {
     if (!lead.phone) return;
@@ -668,20 +365,8 @@ export default function LeadsPage() {
     document.body.removeChild(a);
   };
 
-  const handleDealValueClick = (lead: Lead) => {
-    setEditingLead(lead);
-    setShowDealValue(true);
-  };
 
-  const handleColumnMapChange = (csvHeader: string, leadField: string) => {
-    setColumnMapping(current =>
-      current.map(mapping =>
-        mapping.csvHeader === csvHeader
-          ? { ...mapping, leadField }
-          : mapping
-      )
-    )
-  }
+
 
   const handleImport = async () => {
     if (!file || isImporting) return;
@@ -693,50 +378,23 @@ export default function LeadsPage() {
       const reader = new FileReader();
       reader.onload = async (event) => {
         try {
-          const csv = event.target?.result as string;
-          const lines = csv.split('\n').filter(line => line.trim());
-          if (lines.length === 0) return;
-
-          const headers = parseCSVLine(lines[0]);
-          const dataRows = lines.slice(1)
-            .map(line => parseCSVLine(line));
-
-          const leads = dataRows.map(row => {
-            const lead: CreateLeadDto = {
-              name: '',
-              email: '',
-              stage: 'New',
-              status: 'Warm',
-            };
-
-            columnMapping.forEach(mapping => {
-              if (mapping.leadField !== 'skip') {
-                const index = headers.indexOf(mapping.csvHeader);
-                if (index !== -1) {
-                  const value = row[index];
-                  switch (mapping.leadField) {
-                    case 'name':
-                    case 'email':
-                    case 'phone':
-                    case 'company':
-                    case 'stage':
-                    case 'source':
-                    case 'city':
-                    case 'profession':
-                      lead[mapping.leadField] = value;
-                      break;
-                    case 'status':
-                      if (['Hot', 'Warm', 'Cold'].includes(value)) {
-                        lead.status = value as 'Hot' | 'Warm' | 'Cold';
-                      }
-                      break;
-                  }
-                }
-              }
-            });
-
-            return lead;
-          });
+          let csv = '';
+          if (file.name.match(/\.xlsx?$/i)) {
+             const XLSX = await import('xlsx');
+             const data = new Uint8Array(event.target?.result as ArrayBuffer);
+             const workbook = XLSX.read(data, { type: 'array' });
+             csv = XLSX.utils.sheet_to_csv(workbook.Sheets[workbook.SheetNames[0]]);
+          } else {
+             csv = event.target?.result as string;
+          }
+          
+          const leads = prepareImportData(csv, columnMapping);
+          
+          if (leads.length === 0) {
+            setIsImporting(false);
+            setShowGeneratingReport(false);
+            return;
+          }
 
           const response = await importLeads({ leads });
 
@@ -770,7 +428,11 @@ export default function LeadsPage() {
         setShowGeneratingReport(false);
       };
 
-      reader.readAsText(file);
+      if (file.name.match(/\.xlsx?$/i)) {
+        reader.readAsArrayBuffer(file);
+      } else {
+        reader.readAsText(file);
+      }
 
     } catch (error: any) {
       console.error('Import failed:', error);
@@ -786,274 +448,6 @@ export default function LeadsPage() {
         ? current.filter(id => id !== columnId)
         : [...current, columnId]
     )
-  }
-
-  const resetImport = () => {
-    setFile(null);
-    setPreview([]);
-    setShowMapping(false);
-    setColumnMapping([]);
-    setImportError(null);
-    setImportStats(null);
-  };
-
-  const handleImportClick = () => {
-    fileInputRef.current?.click()
-  }
-
-  const PaginationControls = () => (
-    <div className="flex items-center justify-between px-0 sm:px-2 gap-2 flex-wrap sm:flex-nowrap">
-      <div className="flex items-center gap-2 text-[10px] sm:text-xs text-slate-500 dark:text-slate-400">
-        <span className="hidden sm:inline">
-          {totalItems > 0
-            ? `${(currentPage - 1) * itemsPerPage + 1}–${Math.min(currentPage * itemsPerPage, totalItems)} of ${totalItems}`
-            : '0'} leads
-        </span>
-        <div className="flex items-center gap-1">
-          <span className="text-slate-400 hidden sm:inline">Rows:</span>
-          <select
-            value={itemsPerPage}
-            onChange={e => {
-              setItemsPerPage(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            className="h-6 sm:h-7 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-[10px] sm:text-xs text-slate-700 dark:text-slate-300 px-1 sm:px-2 focus:outline-none focus:ring-1 focus:ring-indigo-400 cursor-pointer"
-          >
-            {[10, 25, 50, 100].map(n => (
-              <option key={n} value={n}>{n}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-0.5 sm:gap-1">
-        <span className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mr-1 sm:mr-2">
-          {currentPage}/{totalPages}
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-6 w-6 sm:h-7 sm:w-7 p-0"
-          onClick={() => setCurrentPage(1)}
-          disabled={currentPage === 1}
-        >
-          <ChevronsLeft className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-6 w-6 sm:h-7 sm:w-7 p-0"
-          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-          disabled={currentPage === 1}
-        >
-          <ChevronLeft className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-6 w-6 sm:h-7 sm:w-7 p-0"
-          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-          disabled={currentPage === totalPages || totalPages === 0}
-        >
-          <ChevronRight className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-6 w-6 sm:h-7 sm:w-7 p-0"
-          onClick={() => setCurrentPage(totalPages)}
-          disabled={currentPage === totalPages || totalPages === 0}
-        >
-          <ChevronsRight className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-
-    </div>
-  );
-
-  const handleAddStage = async () => {
-    if (newStageName && !stages[newStageName]) {
-      try {
-        await createStage({
-          name: newStageName,
-          color: selectedColor,
-          icon: selectedIcon,
-          order: Object.keys(stages).length + 1
-        });
-        await fetchStagesData();
-        setNewStageName('')
-        toast.success("Stage created successfully")
-      } catch (error) {
-        console.error('Failed to create stage:', error);
-        toast.error("Failed to create stage")
-      }
-    }
-  }
-
-  const handleStageChange = async (leadId: number | undefined, newStage: string) => {
-    if (typeof leadId !== 'number') return;
-
-    try {
-      if (newStage === 'Deal Closed' || newStage === 'Closed Won') {
-        const lead = leads.find(l => l.id === leadId);
-        if (lead && lead.stage !== 'Deal Closed' && lead.stage !== 'Closed Won') {
-          setEditingLead(lead || null);
-          setShowStageChange(false);
-          setShowDealValue(true);
-          return;
-        }
-      }
-
-      await updateLeadStage(leadId, newStage);
-      await fetchLeads()
-
-      setShowStageChange(false);
-      setEditingLead(null);
-      setSelectedStage(null);
-
-      toast.success("Lead stage has been updated successfully");
-
-    } catch (error: any) {
-      handleError(error, { title: 'Stage Update Failed' });
-    }
-  };
-
-  const handleSaveDealValue = async () => {
-    if (!editingLead || !dealValueAmount) return;
-
-    setIsSavingDealValue(true);
-    try {
-      const amount = parseFloat(dealValueAmount);
-
-      await updateLeadStage(editingLead.id, 'Deal Closed', amount);
-
-      if (recordInitialPayment && initialPaymentAmount) {
-        await createPayment({
-          lead_id: editingLead.id,
-          amount: parseFloat(initialPaymentAmount),
-          payment_method: paymentMethod,
-          status: 'Completed',
-          payment_date: new Date().toISOString().split('T')[0]
-        });
-      }
-
-      await fetchLeads()
-
-      toast.success(recordInitialPayment ? "Deal closed and payment recorded!" : "Deal closed successfully");
-      setShowDealValue(false);
-      setEditingLead(null);
-      setDealValueAmount('');
-      setInitialPaymentAmount('');
-      setRecordInitialPayment(false);
-
-    } catch (error: any) {
-      handleError(error, { title: 'Deal Update Failed' });
-    } finally {
-      setIsSavingDealValue(false);
-    }
-  };
-
-  const handleEditStage = (stageName: string) => {
-    setEditingStage(stageName)
-    setEditedStageName(stageName)
-    setEditedStageColor(stages[stageName].color.split(' ')[0].replace('bg-', '').replace('-100', ''))
-  }
-
-  const handleUpdateStage = async () => {
-    if (editedStageName && editingStage) {
-      const stageConfig = stages[editingStage]
-      if (!stageConfig.id) return
-
-      try {
-        await updateStage(stageConfig.id, {
-          name: editedStageName,
-          color: editedStageColor,
-        });
-        await fetchStagesData();
-        setEditingStage(null)
-        setEditedStageName('')
-        setEditedStageColor('')
-        toast.success("Stage updated successfully")
-      } catch (error: any) {
-        handleError(error, { title: 'Stage Config Error' });
-      }
-    }
-  }
-
-  const handleSyncDefaultStages = async () => {
-    try {
-      await syncDefaultStages();
-      await fetchStagesData();
-      toast.success("Default stages synced successfully");
-    } catch (error) {
-      console.error('Failed to sync default stages:', error);
-      toast.error("Failed to sync default stages");
-    }
-  };
-
-  const handleDeleteStage = async (stageName: string) => {
-    const stageConfig = stages[stageName]
-    if (!stageConfig.id) return
-
-    if (!confirm(`Are you sure you want to delete the stage "${stageName}"?`)) return
-
-    try {
-      await deleteStage(stageConfig.id);
-      await fetchStagesData();
-      toast.success("Stage deleted successfully")
-    } catch (error) {
-      console.error('Failed to delete stage:', error);
-      toast.error("Failed to delete stage")
-    }
-  }
-
-  const handleEditLead = (lead: Lead) => {
-    setEditedLead({ ...lead })
-    setShowEditLead(true)
-  }
-
-  const handleDeleteLead = (lead: Lead) => {
-    setDeleteConfirmation({ isOpen: true, leadId: lead.id, leadName: lead.name })
-  }
-
-  const handleUpdateLead = async (updatedLead: Lead | null) => {
-    if (!updatedLead) return
-
-    try {
-      setIsUpdating(true);
-      const response = await updateLead(updatedLead.id, {
-        name: updatedLead.name,
-        email: updatedLead.email,
-        phone: updatedLead.phone,
-        company: updatedLead.company,
-        stage: updatedLead.stage,
-        status: (updatedLead.status === 'Hot' || updatedLead.status === 'Warm' || updatedLead.status === 'Cold')
-          ? updatedLead.status
-          : 'Cold',
-        source: updatedLead.source,
-        city: updatedLead.city || '',
-        profession: updatedLead.profession || '',
-        notes: updatedLead.notes || '',
-        new_note: (updatedLead as any).new_note || '',
-      })
-
-      await fetchLeads()
-
-      toast.success("Lead updated successfully")
-      setShowEditLead(false)
-      setEditedLead(null)
-
-      const originalLead = leads.find(l => l.id === updatedLead.id);
-      if ((updatedLead.stage === 'Deal Closed' || updatedLead.stage === 'Closed Won') &&
-        originalLead && originalLead.stage !== 'Deal Closed' && originalLead.stage !== 'Closed Won') {
-        setEditingLead(response);
-        setShowDealValue(true);
-      }
-    } catch (error: any) {
-      handleError(error, { title: 'Update Failed' });
-    } finally {
-      setIsUpdating(false);
-    }
   }
 
   const handleSelectAll = () => {
@@ -1072,38 +466,7 @@ export default function LeadsPage() {
     );
   };
 
-  const [formErrors, setFormErrors] = useState<LeadFormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const validateAndSubmit = async () => {
-    setFormErrors({});
-    const errors: LeadFormErrors = {};
-    if (!newLead.name?.trim()) {
-      errors.name = 'Name is required';
-    }
-    if (!newLead.email?.trim()) {
-      errors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newLead.email)) {
-      errors.email = 'Invalid email format';
-    }
-    if (newLead.phone && !/^\+?[\d\s-]{10,}$/.test(newLead.phone)) {
-      errors.phone = 'Invalid phone number format';
-    }
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await handleAddLead();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to add lead");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleExport = async (exportAll: boolean = false) => {
     try {
@@ -1123,52 +486,8 @@ export default function LeadsPage() {
     }
   };
 
-  const extractVariables = (template: MessageTemplate) => {
-    const variableRegex = /{{([^}]+)}}/g
-    const variables = new Set<string>()
 
-    template.components.forEach(component => {
-      if (component.text) {
-        let match
-        while ((match = variableRegex.exec(component.text)) !== null) {
-          variables.add(match[1])
-        }
-      }
-    })
 
-    return Array.from(variables)
-  }
-
-  const handleBroadcast = async () => {
-    if (!selectedTemplate || selectedLeads.length === 0) return;
-
-    setIsSendingBroadcast(true);
-    setBroadcastResponse(null);
-
-    try {
-      const broadcastData = {
-        template_id: String(selectedTemplate.id),
-        lead_ids: selectedLeads,
-        variables: variables,
-        variable_column_mapping: variableColumnMapping
-      };
-
-      await integrationApi.sendBroadcast(broadcastData);
-
-      setBroadcastResponse({
-        success: true,
-        message: `Successfully initiated broadcast to ${selectedLeads.length} leads`
-      });
-
-    } catch (error: any) {
-      setBroadcastResponse({
-        success: false,
-        error: error.message || "Failed to send broadcast"
-      });
-    } finally {
-      setIsSendingBroadcast(false);
-    }
-  };
 
   const fetchFacebookForms = async () => {
     try {
@@ -1183,83 +502,6 @@ export default function LeadsPage() {
     }
   };
 
-  const handleRetrieveLeads = async () => {
-    if (!selectedForm) {
-      toast.error("Please select a lead form");
-      return;
-    }
-
-    if (!dateFrom || !dateTo) {
-      toast.error("Please select both From Date and To Date");
-      return;
-    }
-
-    const selectedFormData = facebookForms.find(f => f.id === selectedForm);
-    if (!selectedFormData) {
-      toast.error("Selected form not found");
-      return;
-    }
-
-    try {
-      setIsRetrievingLeads(true);
-      setRetrievalResults(null);
-      setShowProgress(true);
-      setProgress(0);
-      setProgressMessage('Connecting to Facebook API...');
-
-      const progressInterval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 90) return prev;
-          return prev + Math.random() * 15;
-        });
-      }, 500);
-
-      const messageInterval = setInterval(() => {
-        setProgressMessage(prev => {
-          const messages = [
-            'Connecting to Facebook API...',
-            'Fetching lead data...',
-            'Processing lead information...',
-            'Validating lead details...',
-            'Saving leads to database...',
-            'Finalizing sync process...'
-          ];
-          const currentIndex = Math.floor((progress / 90) * messages.length);
-          return messages[Math.min(currentIndex, messages.length - 1)];
-        });
-      }, 1000);
-
-      const response = await integrationApi.retrieveFacebookLeads({
-        form_id: selectedForm,
-        integration_id: selectedFormData.integration_id,
-        date_from: dateFrom || undefined,
-        date_to: dateTo || undefined,
-      });
-
-      clearInterval(progressInterval);
-      clearInterval(messageInterval);
-      setProgress(100);
-      setProgressMessage('Sync completed successfully!');
-
-      setTimeout(() => {
-        setRetrievalResults(response.data);
-        setShowProgress(false);
-        setShowResults(true);
-      }, 1000);
-
-      await fetchLeads();
-
-      toast.success(response.message || "Leads synced successfully");
-
-    } catch (error: any) {
-      handleError(error, { title: 'Facebook Sync Error' });
-    } finally {
-      setIsRetrievingLeads(false);
-      setShowProgress(false);
-      setProgress(0);
-      setProgressMessage('');
-    }
-  };
 
   const openFacebookRetrieval = () => {
     setShowFacebookRetrieval(true);
@@ -1293,13 +535,16 @@ export default function LeadsPage() {
     }
   };
 
-  const isMobile = useMediaQuery('(max-width: 768px)');
+
 
   // Mobile: infinite scroll + pull-to-refresh
   const mobileScrollRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const pullStartY = useRef<number | null>(null);
   const [pullDistance, setPullDistance] = useState(0);
+
+  
+
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
@@ -1515,126 +760,33 @@ export default function LeadsPage() {
             stages={stages}
           />
         )}
-        {!isMobile && (
-          <div className="shrink-0 mt-2 border-t border-[var(--crm-border)] pt-3">
-            <PaginationControls />
+        {!isMobile && viewMode === 'table' && (
+          <div className="shrink-0 pt-2.5 pb-0.5">
+            <PaginationControls
+              totalItems={totalItems}
+              currentPage={currentPage}
+              itemsPerPage={itemsPerPage}
+              totalPages={totalPages}
+              setItemsPerPage={setItemsPerPage}
+              setCurrentPage={setCurrentPage}
+            />
           </div>
         )}
         </div>
       </div>
 
-      <StageManagerDialog
-        isOpen={showStageManager}
-        onOpenChange={setShowStageManager}
-        newStageName={newStageName}
-        setNewStageName={setNewStageName}
-        selectedColor={selectedColor}
-        setSelectedColor={setSelectedColor}
-        stages={stages}
-        handleEditStage={handleEditStage}
-        handleDeleteStage={handleDeleteStage}
-        editingStage={editingStage}
-        setEditingStage={setEditingStage}
-        editedStageName={editedStageName}
-        setEditedStageName={setEditedStageName}
-        editedStageColor={editedStageColor}
-        setEditedStageColor={setEditedStageColor}
-        handleUpdateStage={handleUpdateStage}
-        handleAddStage={handleAddStage}
-        onSyncDefault={handleSyncDefaultStages}
-      />
-
-      <StageChangeDialog
-        isOpen={showStageChange}
-        onOpenChange={setShowStageChange}
-        leadName={editingLead ? editingLead.name : null}
+      <LeadsDialogsRenderer
+        dialogs={dialogs}
         selectedLeadsCount={selectedLeads.length}
         stages={stages}
-        selectedStage={selectedStage}
-        setSelectedStage={setSelectedStage}
-        onConfirm={() => {
-          if (selectedStage) {
-            if (editingLead) {
-              handleStageChange(editingLead.id, selectedStage);
-            } else {
-              handleBulkStageChange(selectedStage);
-            }
-          }
-        }}
-        onCancel={() => setShowStageChange(false)}
-      />
-
-      <DealValueDialog
-        isOpen={showDealValue}
-        onOpenChange={setShowDealValue}
-        leadName={editingLead?.name || ''}
-        dealValueAmount={dealValueAmount}
-        setDealValueAmount={setDealValueAmount}
-        recordInitialPayment={recordInitialPayment}
-        setRecordInitialPayment={setRecordInitialPayment}
-        initialPaymentAmount={initialPaymentAmount}
-        setInitialPaymentAmount={setInitialPaymentAmount}
-        paymentMethod={paymentMethod}
-        setPaymentMethod={setPaymentMethod}
-        onSave={handleSaveDealValue}
-        onCancel={() => {
-          setShowDealValue(false);
-          setEditingLead(null);
-          setDealValueAmount('');
-        }}
-        isSaving={isSavingDealValue}
-      />
-
-      <ImportLeadsDialog
-        showMapping={showMapping}
-        setShowMapping={setShowMapping}
-        resetImport={resetImport}
-        importError={importError}
-        columnMapping={columnMapping}
-        handleColumnMapChange={handleColumnMapChange}
-        isImporting={isImporting}
-        handleImport={handleImport}
-        importStats={importStats}
-        showGeneratingReport={showGeneratingReport}
-      />
-
-      <FacebookRetrievalDialog
-        showFacebookRetrieval={showFacebookRetrieval}
-        setShowFacebookRetrieval={setShowFacebookRetrieval}
-        facebookForms={facebookForms}
-        selectedForm={selectedForm}
-        setSelectedForm={setSelectedForm}
-        dateFrom={dateFrom}
-        setDateFrom={setDateFrom}
-        dateTo={dateTo}
-        setDateTo={setDateTo}
-        isRetrievingLeads={isRetrievingLeads}
-        handleRetrieveLeads={handleRetrieveLeads}
-        retrievalResults={retrievalResults}
-        showResults={showResults}
-        showProgress={showProgress}
-        progress={progress}
-        progressMessage={progressMessage}
-        setShowResults={setShowResults}
+        teamMembers={teamMembers}
+        handleBulkStageChange={handleBulkStageChange}
         fetchLeads={fetchLeads}
-      />
-
-      <ExportLeadsDialog
-        isOpen={showExportDialog}
-        onOpenChange={setShowExportDialog}
-        selectedCount={selectedLeads.length}
-        isExporting={isExporting}
-        isExportSuccess={isExportSuccess}
-        onExport={handleExport}
-        onCancel={() => setShowExportDialog(false)}
-      />
-
-      <DeleteConfirmationDialog
-        isOpen={deleteConfirmation.isOpen}
-        onOpenChange={(open) => setDeleteConfirmation(prev => ({ ...prev, isOpen: open }))}
-        leadName={deleteConfirmation.leadName}
-        onConfirm={confirmDelete}
-        onCancel={() => setDeleteConfirmation({ isOpen: false, leadId: null, leadName: '' })}
+        handleImport={handleImport}
+        handleExport={handleExport}
+        handleRetrieveLeads={handleRetrieveLeads}
+        confirmDelete={confirmDelete}
+        handleBroadcast={handleBroadcast}
       />
 
       <MobileFilterBottomSheet
@@ -1669,65 +821,11 @@ export default function LeadsPage() {
         </button>
       )}
 
-      <BroadcastMessageDialog
-        isOpen={showBroadcastDialog}
-        onOpenChange={setShowBroadcastDialog}
-        selectedCount={selectedLeads.length}
-        templates={templates}
-        isLoadingTemplates={isLoadingTemplates}
-        selectedTemplate={selectedTemplate}
-        setSelectedTemplate={setSelectedTemplate}
-        variables={variables}
-        setVariables={setVariables}
-        variableColumnMapping={variableColumnMapping}
-        setVariableColumnMapping={setVariableColumnMapping}
-        isSendingBroadcast={isSendingBroadcast}
-        broadcastResponse={broadcastResponse}
-        setBroadcastResponse={setBroadcastResponse}
-        onBroadcast={handleBroadcast}
-        extractVariables={extractVariables}
-      />
-
-      <EditLeadDialog
-        isOpen={showEditLead}
-        onOpenChange={setShowEditLead}
-        lead={editedLead}
-        setLead={setEditedLead}
-        stages={stages}
-        isUpdating={isUpdating}
-        onUpdate={handleUpdateLead}
-        onCancel={() => setShowEditLead(false)}
-      />
-
-      <AddLeadDialog
-        isOpen={showNewLead}
-        onOpenChange={setShowNewLead}
-        newLead={newLead}
-        setNewLead={setNewLead}
-        formErrors={formErrors as Record<string, string>}
-        setFormErrors={(errors) => setFormErrors(errors as any)}
-        submitError={submitError}
-        isSubmitting={isSubmitting}
-        onSave={validateAndSubmit}
-        onCancel={() => setShowNewLead(false)}
-        stages={stages}
-      />
-      
-      <AssignAgentDialog
-        isOpen={showAssignAgent}
-        onOpenChange={setShowAssignAgent}
-        leadName={editingLead?.name || ''}
-        teamMembers={teamMembers}
-        isAssigning={isAssigning}
-        onAssign={handleAssignAgent}
-        onCancel={() => setShowAssignAgent(false)}
-      />
-
       <input
         type="file"
         ref={fileInputRef}
         className="hidden"
-        accept=".csv"
+        accept=".csv,.xlsx,.xls"
         onChange={handleFileChange}
       />
 

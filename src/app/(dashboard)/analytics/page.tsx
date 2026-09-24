@@ -19,7 +19,9 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { RoleGuard } from '@/components/RoleGuard'
+import { PageHeader } from '@/components/page-header/PageHeader'
 import { getAnalyticsData } from '@/lib/api'
+import { getAgentColor } from '@/utils/agentColors'
 
 // ─── Stat Card ─────────────────────────────────────────────────────────────────
 
@@ -36,27 +38,25 @@ function StatCard({
 }) {
   const isUp = trend === 'up'
   return (
-    <Card className="bg-[var(--crm-surface-1)] border-[var(--crm-border)] shadow-sm overflow-hidden">
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-xs font-medium text-[var(--crm-text-secondary)] uppercase tracking-wider">{title}</p>
-            <p className="text-2xl font-bold text-[var(--crm-text-primary)] mt-1">{value}</p>
-            <p className="text-xs text-[var(--crm-text-secondary)] mt-0.5">{sub}</p>
-          </div>
-          <div className={cn('flex h-10 w-10 items-center justify-center rounded-xl', gradient)}>
-            <Icon className="h-5 w-5 text-white" />
-          </div>
+    <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{title}</p>
+          <p className="text-2xl font-bold font-heading text-slate-900 dark:text-white mt-1 tabular-nums">{value}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-normal">{sub}</p>
         </div>
-        <div className={cn(
-          'mt-3 flex items-center gap-1.5 text-xs font-semibold',
-          isUp ? 'text-emerald-600' : 'text-red-500'
-        )}>
-          {isUp ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
-          {trendValue} vs last month
+        <div className={cn('flex h-10 w-10 items-center justify-center rounded-full text-white shadow-xs shrink-0', gradient)}>
+          <Icon className="h-5 w-5" />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      <div className={cn(
+        'mt-3 flex items-center gap-1.5 text-xs font-semibold',
+        isUp ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'
+      )}>
+        {isUp ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
+        <span>{trendValue}</span> <span className="text-slate-400 font-normal">vs last month</span>
+      </div>
+    </div>
   )
 }
 
@@ -138,51 +138,51 @@ export default function AnalyticsPage() {
 
   return (
     <RoleGuard allowedFeatures={['analytics']}>
-      <div className="flex flex-col flex-1 gap-4 sm:gap-5">
+      <div className="flex flex-col flex-1 gap-6 font-sans max-w-[1400px] mx-auto w-full pb-10">
 
       {/* ── Header ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0">
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-[var(--crm-text-primary)]">Analytics</h1>
-            <p className="text-xs sm:text-sm text-[var(--crm-text-secondary)] mt-0.5">Track performance across your entire sales pipeline</p>
+      <PageHeader
+        title="Analytics & Reports"
+        description="Track revenue performance and conversion metrics across your pipeline"
+        icon={<BarChart2 className="h-6 w-6 text-[var(--crm-accent)]" />}
+        actions={
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 w-full sm:w-auto overflow-x-auto no-scrollbar shrink-0 border border-slate-200 dark:border-slate-700">
+            {PERIODS.map(p => (
+              // TODO: Migrate raw button to shared <Button> component later (complex styling)
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={cn(
+                  'px-3.5 py-1.5 rounded-lg text-xs font-semibold font-heading transition-all cursor-pointer',
+                  period === p
+                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                )}
+              >
+                {p}
+              </button>
+            ))}
           </div>
-        </div>
-        <div className="flex items-center gap-2 bg-[var(--crm-surface-3)] rounded-xl p-1 w-full lg:w-auto overflow-x-auto no-scrollbar shrink-0">
-          {PERIODS.map(p => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={cn(
-                'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
-                period === p
-                  ? 'bg-[var(--crm-surface-1)] text-[var(--crm-accent)] shadow-sm'
-                  : 'text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]:text-slate-300'
-              )}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-      </div>
+        }
+      />
 
       {/* ── Stat Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Leads"
           value={totalLeads.toLocaleString()}
-          sub="Across all sources"
+          sub="Across all channels"
           trend="up" trendValue="+18.4%"
           icon={Users}
-          gradient="bg-gradient-to-br from-indigo-500 to-indigo-700"
+          gradient="bg-blue-600"
         />
         <StatCard
           title="Converted"
           value={totalConverted.toLocaleString()}
-          sub="Successfully closed"
+          sub="Won deals"
           trend="up" trendValue="+22.1%"
           icon={Target}
-          gradient="bg-gradient-to-br from-emerald-500 to-emerald-700"
+          gradient="bg-emerald-600"
         />
         <StatCard
           title="Conv. Rate"
@@ -190,15 +190,15 @@ export default function AnalyticsPage() {
           sub="Lead-to-close ratio"
           trend="up" trendValue="+3.2%"
           icon={Activity}
-          gradient="bg-gradient-to-br from-violet-500 to-violet-700"
+          gradient="bg-purple-600"
         />
         <StatCard
-          title="Revenue"
+          title="Total Revenue"
           value={`₹${(totalRevenue / 100000).toFixed(1)}L`}
-          sub="Total deal value"
+          sub="Cumulative deal value"
           trend="up" trendValue="+31.6%"
           icon={DollarSign}
-          gradient="bg-gradient-to-br from-amber-500 to-amber-700"
+          gradient="bg-amber-500"
         />
       </div>
 
@@ -420,45 +420,45 @@ export default function AnalyticsPage() {
         </Card>
 
         {/* Top Performers */}
-        <Card className="bg-[var(--crm-surface-1)] border-[var(--crm-border)] shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-slate-800">Top Performers</CardTitle>
-            <CardDescription className="text-xs text-[var(--crm-text-secondary)]">Best closers this period</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="space-y-3 mt-1">
-              {activeTopPerformers.map((rep: any, i: number) => {
-                const convPct = Math.round((rep.converted / rep.leads) * 100)
-                const accentColors = ['bg-[var(--crm-accent-soft)]0', 'bg-violet-500', 'bg-cyan-500', 'bg-emerald-500', 'bg-amber-500']
-                return (
-                  <div key={rep.name} className="flex items-center gap-3">
-                    <div className={cn(
-                      'flex h-8 w-8 items-center justify-center rounded-full text-white text-xs font-bold shrink-0',
-                      accentColors[i % accentColors.length]
-                    )}>
-                      {rep.avatar}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-5">
+          <div className="pb-3 border-b border-slate-100 dark:border-slate-800">
+            <h3 className="text-sm font-bold font-heading text-slate-900 dark:text-white">Top Closers</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">Best sales representatives this period</p>
+          </div>
+          <div className="space-y-3.5 mt-4">
+            {activeTopPerformers.map((rep: any, i: number) => {
+              const convPct = Math.round((rep.converted / rep.leads) * 100)
+              const colors = getAgentColor(rep.name || i)
+              return (
+                <div key={rep.name} className="flex items-center gap-3">
+                  <div 
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-white text-xs font-bold font-heading shrink-0 shadow-xs"
+                    style={{ backgroundColor: colors.bg }}
+                  >
+                    {rep.avatar || rep.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold font-heading text-slate-900 dark:text-slate-100 truncate">{rep.name}</p>
+                      <span className="text-xs font-bold font-heading text-emerald-600 dark:text-emerald-400 shrink-0 ml-2 tabular-nums">{convPct}%</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold text-slate-800 truncate">{rep.name}</p>
-                        <span className="text-xs font-bold text-emerald-600 shrink-0 ml-2">{convPct}%</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-[var(--crm-text-secondary)]">{rep.leads} leads</span>
-                        <span className="text-[10px] text-slate-300">·</span>
-                        <span className="text-[10px] text-[var(--crm-text-secondary)]">₹{(rep.revenue / 1000).toFixed(0)}K</span>
-                      </div>
-                      <div className="mt-1 h-1 bg-[var(--crm-surface-3)] rounded-full overflow-hidden">
-                        <div className={cn('h-full rounded-full', accentColors[i % accentColors.length])}
-                          style={{ width: `${convPct}%` }} />
-                      </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">{rep.leads} leads</span>
+                      <span className="text-[10px] text-slate-300 dark:text-slate-700">·</span>
+                      <span className="text-[11px] text-slate-600 dark:text-slate-300 font-medium tabular-nums">₹{(rep.revenue / 1000).toFixed(0)}K</span>
+                    </div>
+                    <div className="mt-1.5 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all duration-500" 
+                        style={{ width: `${convPct}%`, backgroundColor: colors.bg }} 
+                      />
                     </div>
                   </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
 
     </div>

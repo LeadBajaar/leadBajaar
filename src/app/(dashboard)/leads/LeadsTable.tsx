@@ -16,10 +16,13 @@ import {
   RefreshCcw,
   AlertCircle,
   UserCheck,
-  Globe
+  Globe,
+  Flame,
+  ThermometerSun,
+  Snowflake
 } from 'lucide-react'
 import { cn } from "@/lib/utils"
-import { Lead, columns, temperatureConfig, sourceConfig } from './types'
+import { Lead, columns, temperatureConfig, sourceConfig, defaultStages } from './types'
 import { format } from 'date-fns'
 import { getAgentColor } from '@/utils/agentColors'
 import { useTheme } from 'next-themes'
@@ -44,33 +47,38 @@ interface LeadsTableProps {
 }
 
 export const LeadsTableSkeleton = ({ columns, visibleColumns }: { columns: any[], visibleColumns: string[] }) => (
-  <div className="flex-1 flex flex-col min-h-0 bg-transparent overflow-hidden">
-    <div className="flex-1 overflow-auto min-h-0">
-      <table className="crm-table w-full">
-      <thead>
-        <tr>
-          <th><Skeleton className="h-4 w-4" /></th>
-          {columns.filter(c => visibleColumns.includes(c.id)).map(c => (
-            <th key={c.id}><Skeleton className="h-3 w-16" /></th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {Array.from({ length: 12 }).map((_, i) => (
-          <tr key={i} className="border-b border-[var(--crm-border)] last:border-b-0">
-            <td><Skeleton className="h-4 w-4" /></td>
+  <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
+    <div className="flex-1 overflow-auto min-h-0 custom-scrollbar">
+      <table className="crm-table w-full border-collapse">
+        <thead>
+          <tr>
+            <th className="sticky top-0 z-30 px-4 py-3.5 bg-slate-50/90 dark:bg-slate-850/95 border-b border-slate-200/80 dark:border-slate-750 w-12 text-left backdrop-blur-sm">
+              <Skeleton className="h-4 w-4 rounded" />
+            </th>
             {columns.filter(c => visibleColumns.includes(c.id)).map(c => (
-              <td key={c.id}>
-                <div className="flex items-center gap-2">
-                  {c.id === 'name' && <Skeleton className="h-7 w-7 rounded-full shrink-0" />}
-                  <Skeleton className={cn("h-3", c.id === 'name' ? "w-20" : "w-12")} />
-                </div>
-              </td>
+              <th key={c.id} className="sticky top-0 z-30 px-4 py-3.5 bg-slate-50/90 dark:bg-slate-850/95 border-b border-slate-200/80 dark:border-slate-750 text-left backdrop-blur-sm">
+                <Skeleton className="h-3 w-16 rounded" />
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {Array.from({ length: 10 }).map((_, i) => (
+            <tr key={i} className="border-b border-slate-100 dark:border-slate-800/80 last:border-b-0">
+              <td className="px-4 py-3.5 w-12 text-left">
+                <Skeleton className="h-4 w-4 rounded" />
+              </td>
+              {columns.filter(c => visibleColumns.includes(c.id)).map(c => (
+                <td key={c.id} className="px-4 py-3.5">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className={cn("h-3.5", c.id === 'name' ? "w-28" : "w-16", "rounded")} />
+                  </div>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   </div>
 )
@@ -98,13 +106,14 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500">
-        <AlertCircle className="h-8 w-8 text-red-400 mb-3" />
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-1">Error Loading Leads</h3>
-        <p className="text-xs mb-4">{error}</p>
+      <div className="flex flex-col items-center justify-center py-16 text-center text-slate-500 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+        <AlertCircle className="h-8 w-8 text-rose-500 mb-3" />
+        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1">Error Loading Leads</h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-sm">{error}</p>
         <Button
           variant="default"
           onClick={() => { setError(null); fetchLeads(); }}
+          className="rounded-xl font-bold"
         >
           <RefreshCcw className="h-3 w-3 mr-1.5" />
           Try Again
@@ -119,24 +128,26 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
 
   if (leads.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center text-slate-400">
-        <i className="ti ti-user-check" />
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">No leads found</h3>
-        <p className="text-xs mt-1">Adjust filters or add a new lead.</p>
+      <div className="flex flex-col items-center justify-center py-20 text-center text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+        <div className="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-3">
+          <i className="ti ti-users text-2xl" />
+        </div>
+        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">No leads found</h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Adjust your filters or add a new lead to get started.</p>
       </div>
     )
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-transparent overflow-hidden">
-      <div className="flex-1 overflow-auto min-h-0 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent">
-        <table className="crm-table w-full">
+    <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
+      <div className="flex-1 overflow-auto min-h-0 custom-scrollbar">
+        <table className="crm-table w-full border-collapse">
           <thead>
             <tr>
-              <th>
+              <th className="sticky top-0 z-30 px-4 py-3.5 bg-slate-50/90 dark:bg-slate-850/95 border-b border-slate-200/80 dark:border-slate-750 w-12 text-left select-none backdrop-blur-sm">
                 <input
                   type="checkbox"
-                  className="h-3.5 w-3.5 rounded border-slate-300 dark:border-slate-600 accent-indigo-600 focus:ring-0"
+                  className="h-3.5 w-3.5 rounded border-slate-300 dark:border-slate-600 accent-indigo-600 focus:ring-0 cursor-pointer"
                   checked={selectedLeads.length > 0 && selectedLeads.length === leads.length}
                   onChange={handleSelectAll}
                 />
@@ -144,119 +155,150 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
               {columns
                 .filter(column => visibleColumns.includes(column.id))
                 .map(column => (
-                  <th key={column.id}
-                    className="sticky top-0 z-30 whitespace-nowrap px-3 py-2 text-[12px] font-medium text-[var(--crm-text-secondary)] bg-transparent border-b border-[var(--crm-border)]"
+                  <th 
+                    key={column.id}
+                    className="sticky top-0 z-30 whitespace-nowrap px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-50/90 dark:bg-slate-850/95 border-b border-slate-200/80 dark:border-slate-750 text-left select-none backdrop-blur-sm"
                   >
                     <div className="flex items-center gap-1.5">
-                      {column.icon && <column.icon className="h-3.5 w-3.5 opacity-60" />}
-                      {column.label}
+                      {column.icon && <column.icon className="h-3.5 w-3.5 text-slate-400 shrink-0" />}
+                      <span>{column.label}</span>
                     </div>
                   </th>
                 ))}
             </tr>
           </thead>
           <tbody>
-            {leads.map((lead) => (
-              <tr
-                key={`lead-${lead.id}`}
-                className="border-b border-[var(--crm-border)] last:border-b-0 hover:bg-[var(--crm-surface-2)]/60 transition-colors"
-              >
-                <td>
-                  <input
-                    type="checkbox"
-                    className="h-3.5 w-3.5 rounded border-slate-300 dark:border-slate-600 accent-indigo-600 focus:ring-0"
-                    checked={selectedLeads.includes(lead.id)}
-                    onChange={() => handleSelectLead(lead.id)}
-                  />
-                </td>
-                {columns
-                  .filter(column => visibleColumns.includes(column.id))
-                  .map(column => {
-                    const value = (lead as any)[column.id];
+            {leads.map((lead) => {
+              const isSelected = selectedLeads.includes(lead.id);
 
-                    return (
-                      <td key={`${lead.id}-${column.id}`} className="whitespace-nowrap px-3 py-1.5 text-[13px] font-medium text-[var(--crm-text-primary)]">
-                        {column.id === 'actions' ? (
-                          <div className="flex gap-1.5 whitespace-nowrap">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="icon" onClick={() => handleEdit(lead)} className="h-6 w-6">
-                                    <i className="ti ti-edit text-[14px]" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent className="text-[10px]">Edit</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="icon" onClick={() => handleWhatsAppClick(lead)} className="h-6 w-6">
-                                    <i className="ti ti-brand-whatsapp text-[14px]" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent className="text-[10px]">WhatsApp</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="icon" onClick={() => handleCallClick(lead)} className="h-6 w-6">
-                                    <i className="ti ti-phone text-[14px]" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent className="text-[10px]">Call</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="icon" onClick={() => handleDealValueClick(lead)} className="h-6 w-6">
-                                    <i className="ti ti-currency-rupee text-[14px]" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent className="text-[10px]">Value</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <button 
-                                    onClick={() => handleAssignAgentClick(lead)} 
-                                    className={cn(
-                                      "btn-icon w-6 h-6 transition-all duration-300",
-                                      lead.agent 
-                                        ? "ring-1" 
-                                        : "text-slate-400 hover:text-purple-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-                                    )}
-                                    style={lead.agent ? {
-                                      backgroundColor: isDark 
-                                        ? getAgentColor(lead.agent.id).bgDark 
-                                        : getAgentColor(lead.agent.id).bg,
-                                      color: isDark 
-                                        ? getAgentColor(lead.agent.id).textDark 
-                                        : getAgentColor(lead.agent.id).text,
-                                      borderColor: isDark 
-                                        ? getAgentColor(lead.agent.id).borderDark 
-                                        : getAgentColor(lead.agent.id).border,
-                                    } : {}}
-                                  >
-                                    <i className="ti ti-user-check text-[14px]" />
-                                  </button>
-                                </TooltipTrigger>
-                                <TooltipContent className="text-[10px]">
-                                  {lead.agent ? `Assigned to: ${lead.agent.name}` : 'Assign Agent'}
-                                </TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="icon" onClick={() => handleDelete(lead)} className="h-6 w-6">
-                                    <i className="ti ti-trash text-[14px]" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent className="text-[10px]">Delete</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                        ) : column.id === 'name' ? (
-                          <div className="flex items-center gap-2.5">
-                            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px] bg-[var(--crm-surface-3)] text-[10px] text-[var(--crm-text-primary)] font-bold border border-[var(--crm-border)]">
-                              {lead.name.charAt(0).toUpperCase()}
+              return (
+                <tr
+                  key={`lead-${lead.id}`}
+                  className={cn(
+                    "border-b border-slate-100 dark:border-slate-800/80 last:border-b-0 transition-colors",
+                    isSelected 
+                      ? "bg-indigo-50/60 dark:bg-indigo-950/30" 
+                      : "hover:bg-slate-50/70 dark:hover:bg-slate-800/40"
+                  )}
+                >
+                  <td className="px-4 py-3 w-12 text-left">
+                    <input
+                      type="checkbox"
+                      className="h-3.5 w-3.5 rounded border-slate-300 dark:border-slate-600 accent-indigo-600 focus:ring-0 cursor-pointer"
+                      checked={isSelected}
+                      onChange={() => handleSelectLead(lead.id)}
+                    />
+                  </td>
+                  {columns
+                    .filter(column => visibleColumns.includes(column.id))
+                    .map(column => {
+                      const value = (lead as any)[column.id];
+
+                      return (
+                        <td key={`${lead.id}-${column.id}`} className="whitespace-nowrap px-4 py-3 text-[13px] font-normal text-slate-700 dark:text-slate-300">
+                          {column.id === 'actions' ? (
+                            <div className="flex items-center gap-1.5 whitespace-nowrap">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button variant="ghost"
+                                      onClick={() => handleWhatsAppClick(lead)} 
+                                      className="h-6 w-6 flex items-center justify-center rounded-[6px] bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700 transition-all hover:scale-[1.08] active:scale-[0.92] border border-emerald-700/10 shadow-sm cursor-pointer p-0"
+                                      aria-label="WhatsApp lead"
+                                    >
+                                      <i className="ti ti-brand-whatsapp text-[13px]" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="text-[10px]">WhatsApp</TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button variant="ghost"
+                                      onClick={() => handleCallClick(lead)} 
+                                      className="h-6 w-6 flex items-center justify-center rounded-[6px] bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700 transition-all hover:scale-[1.08] active:scale-[0.92] border border-blue-700/10 shadow-sm cursor-pointer p-0"
+                                      aria-label="Call lead"
+                                    >
+                                      <i className="ti ti-phone text-[13px]" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="text-[10px]">Call</TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button variant="ghost"
+                                      onClick={() => handleDealValueClick(lead)} 
+                                      className="h-6 w-6 flex items-center justify-center rounded-[6px] bg-amber-500 hover:bg-amber-600 text-white dark:bg-amber-500 dark:hover:bg-amber-600 transition-all hover:scale-[1.08] active:scale-[0.92] border border-amber-600/10 shadow-sm cursor-pointer p-0"
+                                      aria-label="Edit deal value"
+                                    >
+                                      <i className="ti ti-currency-rupee text-[13px]" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="text-[10px]">Deal Value</TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button variant="ghost"
+                                      onClick={() => handleEdit(lead)} 
+                                      className="h-6 w-6 flex items-center justify-center rounded-[6px] bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 transition-all hover:scale-[1.08] active:scale-[0.92] border border-indigo-700/10 shadow-sm cursor-pointer p-0"
+                                      aria-label="Edit lead"
+                                    >
+                                      <i className="ti ti-edit text-[13px]" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="text-[10px]">Edit Lead</TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button variant="ghost"
+                                      onClick={() => handleDelete(lead)} 
+                                      className="h-6 w-6 flex items-center justify-center rounded-[6px] bg-rose-500 hover:bg-rose-600 text-white dark:bg-rose-500 dark:hover:bg-rose-600 transition-all hover:scale-[1.08] active:scale-[0.92] border border-rose-600/10 shadow-sm cursor-pointer p-0"
+                                      aria-label="Delete lead"
+                                    >
+                                      <i className="ti ti-trash text-[13px]" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="text-[10px]">Delete</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
+                          ) : column.id === 'agent' ? (
+                            <Button variant="ghost"
+                              onClick={() => handleAssignAgentClick(lead)}
+                              className="group/agent flex items-center justify-between gap-1.5 py-1 px-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-left cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-750 max-w-[165px] h-auto w-auto"
+                              title={lead.agent ? `Assigned to ${lead.agent.name} (click to change)` : 'Click to assign agent'}
+                            >
+                              {lead.agent ? (
+                                <>
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    <div
+                                      className="h-6 w-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-xs"
+                                      style={{ backgroundColor: getAgentColor(lead.agent.id).bg }}
+                                    >
+                                      {lead.agent.name ? lead.agent.name.charAt(0).toUpperCase() : 'A'}
+                                    </div>
+                                    <span className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate group-hover/agent:text-indigo-600 dark:group-hover/agent:text-indigo-400 transition-colors">
+                                      {lead.agent.name}
+                                    </span>
+                                  </div>
+                                  <Pencil className="h-3 w-3 text-slate-400 group-hover/agent:text-indigo-600 dark:group-hover/agent:text-indigo-400 shrink-0 opacity-60 group-hover/agent:opacity-100 transition-all ml-1" />
+                                </>
+                              ) : (
+                                <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 group-hover/agent:text-indigo-600 dark:group-hover/agent:text-indigo-400 transition-colors">
+                                  <div className="h-6 w-6 rounded-full bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-750 flex items-center justify-center shrink-0">
+                                    <UserCheck className="h-3 w-3 text-slate-400 group-hover/agent:text-indigo-600 transition-colors" />
+                                  </div>
+                                  <span className="text-xs font-normal italic">Assign</span>
+                                  <Pencil className="h-2.5 w-2.5 text-slate-400 group-hover/agent:text-indigo-600 transition-colors shrink-0 ml-0.5" />
+                                </div>
+                              )}
+                            </Button>
+                          ) : column.id === 'name' ? (
                             <div className="flex flex-col min-w-0">
-                              <span className="font-medium text-[13px] text-[var(--crm-text-primary)] truncate flex items-center gap-1.5">
+                              <span className="font-semibold text-[13px] text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5 leading-snug">
                                 {lead.name}
                                 {lead.is_incomplete ? (
                                   <TooltipProvider>
@@ -271,63 +313,67 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                                   </TooltipProvider>
                                 ) : null}
                               </span>
-                              <span className="text-[12px] text-[var(--crm-text-tertiary)] font-normal truncate opacity-80">{lead.company || lead.email}</span>
-                            </div>
-                          </div>
-                        ) : column.id === 'stage' ? (
-                          <Badge className={stages[lead.stage]?.color || 'border-[var(--crm-border)] bg-[var(--crm-surface-3)] text-[var(--crm-text-secondary)]'}>
-                            {lead.stage}
-                          </Badge>
-                        ) : column.id === 'status' ? (
-                          <Badge className={(temperatureConfig as any)[lead.status]?.color || 'border-[var(--crm-border)] bg-[var(--crm-surface-3)] text-[var(--crm-text-secondary)]'}>
-                            {lead.status}
-                          </Badge>
-                        ) : column.id === 'source' ? (
-                          <div className="flex items-center gap-1.5 text-[12px] text-[var(--crm-text-secondary)]">
-                            {(() => {
-                              const config = (sourceConfig as any)[lead.source];
-                              const Icon = config?.icon || Globe;
-                              return <Icon className="h-3.5 w-3.5" />
-                            })()}
-                            <span className="font-medium tracking-tight">{lead.source}</span>
-                          </div>
-                        ) : column.id === 'created_at' ? (
-                          <span className="text-[var(--crm-text-tertiary)] text-[12px] tabular-nums font-normal">
-                            {format(new Date(lead.created_at), 'dd MMM, yy | hh:mm a')}
-                          </span>
-                        ) : column.id === 'deal_value' ? (
-                          <div className="flex items-center gap-0.5 text-[var(--crm-text-primary)] font-medium text-[13px] tabular-nums">
-                            <span className="text-[11px] text-[var(--crm-text-tertiary)]">₹</span>
-                            <span>{lead.deal_value || 0}</span>
-                          </div>
-                        ) : column.id === 'paid_amount' ? (
-                          <div className="flex items-center gap-0.5 text-emerald-600 font-medium text-[13px] tabular-nums">
-                            <span className="text-[11px] opacity-60">₹</span>
-                            <span>{lead.paid_amount || 0}</span>
-                          </div>
-                        ) : column.id === 'notes' ? (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="truncate max-w-[200px] inline-block cursor-help italic opacity-70">
-                                  {value || '-'}
+                              {(lead.company || lead.email) ? (
+                                <span className="text-xs text-slate-500 dark:text-slate-400 font-normal truncate leading-none mt-0.5">
+                                  {lead.company || lead.email}
                                 </span>
-                              </TooltipTrigger>
-                              {value && (
-                                <TooltipContent className="max-w-[300px] p-3 text-xs leading-relaxed">
-                                  <p className="whitespace-pre-wrap font-normal">{value}</p>
-                                </TooltipContent>
-                              )}
-                            </Tooltip>
-                          </TooltipProvider>
-                        ) : (
-                          <span className="truncate max-w-[150px] inline-block font-normal text-[13px] text-[var(--crm-text-primary)]">{value || '-'}</span>
-                        )}
-                      </td>
-                    );
-                  })}
-              </tr>
-            ))}
+                              ) : null}
+                            </div>
+                          ) : column.id === 'stage' ? (
+                            <Badge className={cn("border-none rounded-full px-2.5 py-0.5 font-medium text-white text-[11px] shadow-xs", stages[lead.stage]?.color || (defaultStages as any)[lead.stage]?.color || 'bg-slate-500')}>
+                              {lead.stage}
+                            </Badge>
+                          ) : column.id === 'status' ? (
+                            <Badge className={cn("border-none rounded-full px-2.5 py-0.5 font-medium text-white text-[11px]", (temperatureConfig as any)[lead.status]?.color || 'bg-slate-500')}>
+                              {lead.status}
+                            </Badge>
+                          ) : column.id === 'source' ? (
+                            <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
+                              {(() => {
+                                const config = (sourceConfig as any)[lead.source];
+                                const Icon = config?.icon || Globe;
+                                return <Icon className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                              })()}
+                              <span className="font-medium">{lead.source || 'Direct'}</span>
+                            </div>
+                          ) : column.id === 'created_at' ? (
+                            <span className="text-slate-600 dark:text-slate-400 text-xs tabular-nums font-normal">
+                              {format(new Date(lead.created_at), 'dd MMM, yy | hh:mm a')}
+                            </span>
+                          ) : column.id === 'deal_value' ? (
+                            <div className="flex items-center gap-0.5 text-slate-800 dark:text-slate-200 font-semibold text-[13px] tabular-nums">
+                              <span className="text-[11px] text-slate-400 font-normal">₹</span>
+                              <span>{Number(lead.deal_value || 0).toLocaleString('en-IN')}</span>
+                            </div>
+                          ) : column.id === 'paid_amount' ? (
+                            <div className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold text-[13px] tabular-nums">
+                              <span className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 font-normal">₹</span>
+                              <span>{Number(lead.paid_amount || 0).toLocaleString('en-IN')}</span>
+                            </div>
+                          ) : column.id === 'notes' ? (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="truncate max-w-[200px] inline-block cursor-help italic text-slate-600 dark:text-slate-400 font-medium text-xs">
+                                    {value || '-'}
+                                  </span>
+                                </TooltipTrigger>
+                                {value && (
+                                  <TooltipContent className="max-w-[300px] p-3 text-xs leading-relaxed">
+                                    <p className="whitespace-pre-wrap font-normal">{value}</p>
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : (
+                            <span className="truncate max-w-[150px] inline-block font-semibold text-[13px] text-slate-800 dark:text-slate-200">{value || '-'}</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

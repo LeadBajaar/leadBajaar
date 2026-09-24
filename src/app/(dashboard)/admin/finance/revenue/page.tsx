@@ -18,6 +18,7 @@ import {
   CreditCard, Clock, CheckCircle, AlertCircle, Eye,
   Filter, FileText,
 } from 'lucide-react'
+import { PageHeader } from '@/components/page-header/PageHeader'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, BarChart, Bar,
@@ -141,20 +142,21 @@ export default function RevenuePage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">Revenue & MRR</h2>
-          <p className="text-sm text-muted-foreground">Manage subscriptions and monthly recurring revenue</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={() => setShowAdj(true)} className="h-9 gap-1.5 bg-primary hover:bg-primary/90 text-white">
-            <Plus className="h-4 w-4" /> Add Adjustment
-          </Button>
-          <Button onClick={fetchData} variant="outline" size="sm" className="h-9 gap-1">
-            <RefreshCw className="h-3.5 w-3.5" /> Refresh
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Revenue & MRR"
+        description="Manage subscriptions and monthly recurring revenue"
+        icon={<TrendingUp className="h-6 w-6 text-primary" />}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setShowAdj(true)} className="h-9 gap-1.5 bg-primary hover:bg-primary/90 text-white">
+              <Plus className="h-4 w-4" /> Add Adjustment
+            </Button>
+            <Button onClick={fetchData} variant="outline" size="sm" className="h-9 gap-1">
+              <RefreshCw className="h-3.5 w-3.5" /> Refresh
+            </Button>
+          </div>
+        }
+      />
 
       {/* MRR Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

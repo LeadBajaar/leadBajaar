@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { PageHeader } from "@/components/page-header/PageHeader";import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   BarChart3,
@@ -15,43 +15,11 @@ import {
   Loader2,
   ChevronDown,
 } from "lucide-react";
-import { API_BASE_URL } from "@/lib/api";
-import { getSession } from "@/lib/auth";
 import { toast } from "sonner";
 
-interface AdInsight {
-  campaign_name: string;
-  campaign_id: string;
-  status?: string;
-  spend: string;
-  impressions: string;
-  clicks: string;
-  cpc?: string;
-  ctr?: string;
-  leads?: string;
-  reach?: string;
-  cpm?: string;
-  cpl?: number | null;
-}
-
-interface AdAccount {
-  id: string;
-  name: string;
-  account_id: string;
-  currency?: string;
-}
-
-async function apiGet(path: string) {
-  const session = await getSession();
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      Authorization: `Bearer ${session?.token}`,
-      "Content-Type": "application/json",
-    },
-  });
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json();
-}
+import { Button } from "@/components/ui/button";
+import { getAdAccounts, getInsights } from "@/lib/api/ads.api";
+import { AdAccount, AdInsight } from "@/lib/api/types/ads.types";
 
 export default function AdPerformancePage() {
   const router = useRouter();
@@ -77,8 +45,7 @@ export default function AdPerformancePage() {
     setIsLoadingAccounts(true);
     setError(null);
     try {
-      const res = await apiGet("/meta/ads/adaccounts");
-      const accounts = res.ad_accounts ?? res.data ?? [];
+      const accounts = await getAdAccounts();
       setAdAccounts(accounts);
       if (accounts.length > 0) setSelectedAccount(accounts[0]);
     } catch (e: any) {
@@ -92,10 +59,8 @@ export default function AdPerformancePage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await apiGet(
-        `/meta/ads/adaccounts/${adAccountId}/insights?date_preset=${datePreset}`
-      );
-      setInsights(res.insights ?? res.data ?? []);
+      const fetchedInsights = await getInsights(adAccountId, datePreset);
+      setInsights(fetchedInsights);
     } catch (e: any) {
       setError("Failed to load insights. The account may have no campaigns yet.");
       setInsights([]);
@@ -116,74 +81,60 @@ export default function AdPerformancePage() {
   return (
     <div className="w-full min-h-full p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="rounded-lg border border-white/10 p-2 hover:bg-white/5 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 text-muted-foreground" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <BarChart3 className="h-6 w-6 text-blue-400" />
-              Ad Performance
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Campaign-level insights powered by Meta Ads API (<code>ads_read</code>)
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* Date preset selector */}
-          <div className="relative">
-            <select
-              value={datePreset}
-              onChange={(e) => setDatePreset(e.target.value)}
-              className="appearance-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 pr-8 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              <option value="today">Today</option>
-              <option value="yesterday">Yesterday</option>
-              <option value="last_7_days">Last 7 Days</option>
-              <option value="last_30_days">Last 30 Days</option>
-              <option value="last_90_days">Last 90 Days</option>
-              <option value="this_month">This Month</option>
-              <option value="last_month">Last Month</option>
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          </div>
-
-          {/* Account selector */}
-          {adAccounts.length > 1 && (
+      <PageHeader
+        title="Ad Performance"
+        description="Campaign-level insights powered by Meta Ads API"
+        actions={
+          <>
+            {/* Date preset selector */}
             <div className="relative">
               <select
-                value={selectedAccount?.id ?? ""}
-                onChange={(e) => {
-                  const acc = adAccounts.find((a) => a.id === e.target.value);
-                  if (acc) setSelectedAccount(acc);
-                }}
-                className="appearance-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 pr-8 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500"
+                value={datePreset}
+                onChange={(e) => setDatePreset(e.target.value)}
+                className="appearance-none rounded-lg border border-gray-200/80 bg-white hover:bg-gray-50 px-3 py-1.5 pr-8 text-[13px] font-bold text-slate-700 shadow-sm transition-all focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
-                {adAccounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name || a.id}
-                  </option>
-                ))}
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="last_7_days">Last 7 Days</option>
+                <option value="last_30_days">Last 30 Days</option>
+                <option value="last_90_days">Last 90 Days</option>
+                <option value="this_month">This Month</option>
+                <option value="last_month">Last Month</option>
               </select>
-              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
             </div>
-          )}
 
-          <button
-            onClick={() => selectedAccount && loadInsights(selectedAccount.id)}
-            disabled={isLoading || !selectedAccount}
-            className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10 transition-colors disabled:opacity-50"
-          >
-            <RefreshCcw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
-        </div>
-      </div>
+            {/* Account selector */}
+            {adAccounts.length > 1 && (
+              <div className="relative">
+                <select
+                  value={selectedAccount?.id ?? ""}
+                  onChange={(e) => {
+                    const acc = adAccounts.find((a) => a.id === e.target.value);
+                    if (acc) setSelectedAccount(acc);
+                  }}
+                  className="appearance-none rounded-lg border border-gray-200/80 bg-white hover:bg-gray-50 px-3 py-1.5 pr-8 text-[13px] font-bold text-slate-700 shadow-sm transition-all focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  {adAccounts.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name || a.id}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+              </div>
+            )}
+
+            <div 
+              onClick={() => selectedAccount && loadInsights(selectedAccount.id)}
+              className={`flex items-center gap-2 px-3 py-1.5 w-fit rounded-lg border border-gray-200/80 bg-white hover:bg-gray-50 text-[13px] font-bold text-slate-700 shadow-sm transition-all select-none ${isLoading || !selectedAccount ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              <RefreshCcw className={`h-4 w-4 text-slate-500 shrink-0 ${isLoading ? "animate-spin" : ""}`} />
+              <span>Refresh</span>
+            </div>
+          </>
+        }
+      />
 
       {/* Error state */}
       {error && (
@@ -213,12 +164,12 @@ export default function AdPerformancePage() {
               Connect your Meta Business account from the Integrations page to see performance data.
             </p>
           </div>
-          <button
+          <Button variant="ghost"
             onClick={() => router.push("/integrations")}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors p-0 h-auto w-auto"
           >
             Go to Integrations
-          </button>
+          </Button>
         </div>
       )}
 
@@ -233,70 +184,70 @@ export default function AdPerformancePage() {
               { label: "Total Clicks", value: fmtNum(totalClicks), icon: MousePointerClick, color: "text-yellow-400", bg: "bg-yellow-500/10" },
               { label: "Impressions", value: fmtNum(totalImpressions), icon: Eye, color: "text-pink-400", bg: "bg-pink-500/10" },
             ].map(({ label, value, icon: Icon, color, bg }) => (
-              <div key={label} className="rounded-xl border border-white/10 bg-white/5 p-4">
-                <div className={`inline-flex rounded-lg p-2 ${bg} mb-3`}>
-                  <Icon className={`h-4 w-4 ${color}`} />
+              <div key={label} className="rounded-xl border border-[var(--crm-border)] bg-[var(--crm-surface-1)] shadow-sm p-5 hover:shadow-md transition-shadow">
+                <div className={`inline-flex rounded-lg p-2.5 ${bg} mb-4`}>
+                  <Icon className={`h-5 w-5 ${color}`} />
                 </div>
-                <p className="text-2xl font-bold">{isLoading ? "—" : value}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+                <p className="text-2xl font-extrabold text-slate-800 tracking-tight">{isLoading ? "—" : value}</p>
+                <p className="text-sm font-semibold text-slate-500 mt-1">{label}</p>
               </div>
             ))}
           </div>
 
           {/* Campaign Table */}
-          <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
-            <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
-              <h2 className="text-sm font-semibold">
+          <div className="rounded-[var(--r-lg)] border border-[var(--crm-border)] bg-[var(--crm-surface-1)] shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-[var(--crm-border)] flex items-center justify-between">
+              <h2 className="text-[15px] font-bold text-[var(--crm-text-primary)]">
                 Campaigns — {selectedAccount.name || selectedAccount.id}
               </h2>
-              <span className="text-xs text-muted-foreground">{insights.length} campaigns</span>
+              <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{insights.length} campaigns</span>
             </div>
 
             {isLoading ? (
-              <div className="flex items-center justify-center py-12 text-muted-foreground">
+              <div className="flex items-center justify-center py-16 text-slate-500 font-medium">
                 <Loader2 className="h-5 w-5 animate-spin mr-2" />
                 Loading insights...
               </div>
             ) : insights.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 gap-2 text-center text-muted-foreground">
-                <BarChart3 className="h-8 w-8 opacity-30" />
-                <p className="text-sm">No campaign data for this period.</p>
+              <div className="flex flex-col items-center justify-center py-16 gap-3 text-center text-slate-400">
+                <BarChart3 className="h-10 w-10 opacity-40" />
+                <p className="text-sm font-medium">No campaign data for this period.</p>
                 <p className="text-xs">This could mean no campaigns ran, or the account has no spend yet.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-xs text-muted-foreground border-b border-white/10">
-                      <th className="text-left px-4 py-2.5 font-medium">Campaign Name</th>
-                      <th className="text-left px-4 py-2.5 font-medium">Status</th>
-                      <th className="text-right px-4 py-2.5 font-medium">Impressions</th>
-                      <th className="text-right px-4 py-2.5 font-medium">Clicks</th>
-                      <th className="text-right px-4 py-2.5 font-medium">Leads</th>
-                      <th className="text-right px-4 py-2.5 font-medium">Spend</th>
-                      <th className="text-right px-4 py-2.5 font-medium">CPL</th>
+                    <tr className="text-xs text-slate-500 border-b border-[var(--crm-border)] bg-slate-50/50">
+                      <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider">Campaign Name</th>
+                      <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider">Status</th>
+                      <th className="text-right px-5 py-3 font-semibold uppercase tracking-wider">Impressions</th>
+                      <th className="text-right px-5 py-3 font-semibold uppercase tracking-wider">Clicks</th>
+                      <th className="text-right px-5 py-3 font-semibold uppercase tracking-wider">Leads</th>
+                      <th className="text-right px-5 py-3 font-semibold uppercase tracking-wider">Spend</th>
+                      <th className="text-right px-5 py-3 font-semibold uppercase tracking-wider">CPL</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-[var(--crm-border)]">
                     {insights.map((row, i) => (
-                      <tr key={row.campaign_id ?? i} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                        <td className="px-4 py-3 font-medium max-w-[200px] truncate">{row.campaign_name || "—"}</td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                      <tr key={row.campaign_id ?? i} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-5 py-4 font-semibold text-slate-700 max-w-[200px] truncate">{row.campaign_name || "—"}</td>
+                        <td className="px-5 py-4">
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${
                             row.status === "ACTIVE"
-                              ? "bg-green-500/20 text-green-400"
+                              ? "bg-green-100 text-green-700"
                               : row.status === "PAUSED"
-                              ? "bg-yellow-500/20 text-yellow-400"
-                              : "bg-white/10 text-muted-foreground"
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-slate-100 text-slate-500"
                           }`}>
                             {row.status ?? "—"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right text-muted-foreground">{fmtNum(row.impressions || "0")}</td>
-                        <td className="px-4 py-3 text-right text-muted-foreground">{fmtNum(row.clicks || "0")}</td>
-                        <td className="px-4 py-3 text-right font-semibold text-blue-400">{fmtNum(row.leads || "0")}</td>
-                        <td className="px-4 py-3 text-right font-semibold text-green-400">{fmtCur(parseFloat(row.spend || "0"))}</td>
-                        <td className="px-4 py-3 text-right text-purple-400">
+                        <td className="px-5 py-4 text-right text-slate-500 font-medium">{fmtNum(row.impressions || "0")}</td>
+                        <td className="px-5 py-4 text-right text-slate-500 font-medium">{fmtNum(row.clicks || "0")}</td>
+                        <td className="px-5 py-4 text-right font-bold text-blue-600">{fmtNum(row.leads || "0")}</td>
+                        <td className="px-5 py-4 text-right font-bold text-green-600">{fmtCur(parseFloat(row.spend || "0"))}</td>
+                        <td className="px-5 py-4 text-right font-bold text-purple-600">
                           {row.cpl != null ? fmtCur(row.cpl) : "—"}
                         </td>
                       </tr>

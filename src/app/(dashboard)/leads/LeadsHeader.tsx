@@ -48,36 +48,41 @@ export const LeadsHeader: React.FC<LeadsHeaderProps> = ({
             <TooltipTrigger asChild>
               <button 
                 onClick={() => setShowStageManager(true)}
-                className="flex items-center gap-1.5 px-2 py-1 text-[12px] font-medium text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-2)] rounded-[var(--r-sm)] transition-colors"
+                className="h-7 px-2.5 flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700/80 text-slate-800 dark:text-slate-200 text-[12px] font-extrabold rounded-[6px] border border-slate-300 dark:border-slate-650 hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap shadow-sm"
               >
-                <i className="ti ti-settings" />
-                View settings
+                <i className="ti ti-settings text-slate-600 dark:text-slate-400" />
+                <span>View settings</span>
               </button>
             </TooltipTrigger>
             <TooltipContent><p>Manage Lead Stages</p></TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
-        <div className="flex items-center gap-1 px-2 py-1 text-[12px] font-medium text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-2)] rounded-[var(--r-sm)] transition-colors cursor-pointer">
-          <i className="ti ti-download" />
-          <span onClick={() => setShowExportDialog(true)}>Export</span>
-          <span className="mx-1 opacity-50">/</span>
-          <span onClick={handleImportClick}>Import</span>
+        <div className="h-7 px-2.5 flex items-center justify-center gap-2 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[12px] font-extrabold rounded-[6px] border border-slate-300 dark:border-slate-650 whitespace-nowrap shadow-sm">
+          <span onClick={handleImportClick} className="cursor-pointer hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-1">
+            <i className="ti ti-download text-slate-600 dark:text-slate-400" />
+            Import
+          </span>
+          <span className="text-slate-300 dark:text-slate-650">/</span>
+          <span onClick={() => setShowExportDialog(true)} className="cursor-pointer hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-1">
+            <i className="ti ti-upload text-slate-600 dark:text-slate-400" />
+            Export
+          </span>
         </div>
 
         <button
           onClick={openFacebookRetrieval}
-          className="flex items-center gap-1.5 px-2 py-1 text-[12px] font-medium text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-2)] rounded-[var(--r-sm)] transition-colors"
+          className="h-7 px-2.5 flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700/80 text-slate-800 dark:text-slate-200 text-[12px] font-extrabold rounded-[6px] border border-slate-300 dark:border-slate-650 hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap shadow-sm"
         >
-          <i className="ti ti-brand-facebook" />
+          <i className="ti ti-brand-facebook text-slate-600 dark:text-slate-400" />
           <span className="hidden lg:inline">Sync</span>
         </button>
 
         <button
           onClick={() => setShowNewLead(true)}
-          className="flex items-center gap-1.5 px-3 py-1 bg-[var(--crm-text-primary)] text-white text-[12px] font-medium rounded-[var(--r-sm)] hover:opacity-90 transition-opacity ml-2"
+          className="h-7 px-4 flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#FE4548] to-[#FF6E54] hover:from-[#FF6E54] hover:to-[#FE4548] text-white text-[12px] font-extrabold rounded-full shadow-sm shadow-rose-500/15 border border-[#FE4548]/10 hover:scale-[1.05] active:scale-[0.95] transition-all ml-2 whitespace-nowrap"
         >
-          <i className="ti ti-plus" />
+          <i className="ti ti-plus text-[12px] font-extrabold" />
           New Lead
         </button>
       </div>

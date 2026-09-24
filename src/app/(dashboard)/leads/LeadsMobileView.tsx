@@ -148,10 +148,10 @@ const SwipeableLeadCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative overflow-hidden rounded-2xl border transition-all cursor-pointer flex flex-col h-full select-none",
+      "relative overflow-hidden rounded-xl border transition-all cursor-pointer flex flex-col h-full select-none",
       isSelected
-        ? "border-[var(--crm-accent)] shadow-md shadow-[var(--crm-accent)]/10 bg-[var(--crm-accent-soft)]"
-        : "border-[var(--crm-border)]/60 shadow-sm bg-[var(--crm-surface-1)]"
+        ? "border-[var(--crm-accent)] shadow-sm shadow-[var(--crm-accent)]/10 bg-[var(--crm-accent-soft)]"
+        : "border-[var(--crm-border)]/40 shadow-xs bg-[var(--crm-surface-1)]"
     )}
     onClick={handleForegroundClick}
     onTouchStart={handleTouchStart}
@@ -159,143 +159,125 @@ const SwipeableLeadCard = React.memo(({
     onTouchEnd={cancelLongPress}
     >
         {/* Card content */}
-        <div className="px-4 pt-3.5 pb-2">
-          <div className="flex items-start gap-3">
-            <button
+        <div className="px-3 py-2.5">
+          <div className="flex items-start gap-2.5">
+            <button /* TODO: Selection toggle */
               onClick={(e) => { e.stopPropagation(); onSelect(); }}
               aria-label={isSelected ? 'Deselect lead' : 'Select lead'}
               className={cn(
-                "h-5 w-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-colors",
+                "h-4 w-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-colors",
                 isSelected
                   ? "bg-[var(--crm-accent)] border-[var(--crm-accent)] text-white"
                   : "border-[var(--crm-border)] bg-[var(--crm-surface-1)]"
               )}
             >
-              {isSelected && <Check className="h-3.5 w-3.5" />}
+              {isSelected && <Check className="h-2.5 w-2.5" />}
             </button>
             <div className="min-w-0 flex-1">
               {/* Name + Badge row */}
               <div className="flex items-center justify-between gap-2">
-                <h4 className="text-[15px] font-semibold text-[var(--crm-text-primary)] truncate leading-tight">
+                <h4 className="text-[14px] font-medium text-[var(--crm-text-primary)] truncate leading-tight">
                   {lead.name}
                 </h4>
                 <span className={cn(
-                  "shrink-0 px-2 py-0.5 rounded-full text-[11px] font-medium",
+                  "shrink-0 px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider",
                   stage.tonalClass || stage.color
                 )}>
                   {lead.stage}
                 </span>
               </div>
-              {/* Sub-info row (profession/company/city) */}
-              {(lead.city || lead.profession || lead.company) && (
-                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1 text-[12px] text-[var(--crm-text-secondary)] font-medium">
-                  {lead.profession && (
-                    <span className="flex items-center gap-1 max-w-[120px] truncate" title={lead.profession}>
-                      <Briefcase className="h-3.5 w-3.5 text-[var(--crm-text-tertiary)] shrink-0" />
-                      <span className="truncate">{lead.profession}</span>
+              
+              {/* Phone + Sub-info row */}
+              <div className="flex flex-wrap items-center justify-between gap-2 mt-1">
+                 <div className="flex items-center gap-1.5 text-[12px] text-[var(--crm-text-secondary)] font-medium truncate">
+                   {lead.phone ? (
+                     <><Phone className="h-3 w-3 text-slate-400 shrink-0" /><span className="truncate">{lead.phone}</span></>
+                   ) : lead.email ? (
+                     <><Mail className="h-3 w-3 text-slate-400 shrink-0" /><span className="truncate">{lead.email}</span></>
+                   ) : null}
+                 </div>
+                 
+                 {/* Time + deal */}
+                 <div className="flex items-center gap-2 text-[10px] text-[var(--crm-text-tertiary)] shrink-0">
+                    {lead.deal_value > 0 && (
+                      <Button
+                        variant="ghost"
+                        className="inline-flex items-center gap-0.5 h-4 px-1.5 rounded-sm font-bold bg-[var(--crm-accent-soft)] text-[var(--crm-accent)] w-auto p-0"
+                        onClick={(e) => { e.stopPropagation(); onDealValue(lead); }}
+                      >
+                        <IndianRupee className="h-2.5 w-2.5" />
+                        {Number(lead.deal_value).toLocaleString('en-IN')}
+                      </Button>
+                    )}
+                    <span className="flex items-center gap-0.5">
+                      <Clock className="h-2.5 w-2.5" />
+                      {formatDistanceToNowStrict(new Date(lead.created_at), { addSuffix: true })}
                     </span>
-                  )}
-                  {lead.company && (
-                    <span className="flex items-center gap-1 max-w-[120px] truncate" title={lead.company}>
-                      <Building2 className="h-3.5 w-3.5 text-[var(--crm-text-tertiary)] shrink-0" />
-                      <span className="truncate">{lead.company}</span>
-                    </span>
-                  )}
-                  {lead.city && (
-                    <span className="flex items-center gap-1 max-w-[100px] truncate" title={lead.city}>
-                      <MapPin className="h-3.5 w-3.5 text-[var(--crm-text-tertiary)] shrink-0" />
-                      <span className="truncate">{lead.city}</span>
-                    </span>
-                  )}
-                </div>
-              )}
-              {/* Phone row */}
-              {(lead.phone || lead.email) && (
-                <div className="flex items-center gap-1.5 mt-1.5 text-[12.5px] text-[var(--crm-text-secondary)]" title={lead.phone || lead.email}>
-                  {lead.phone
-                    ? <Phone className="h-3.5 w-3.5 text-[var(--crm-text-tertiary)] shrink-0" />
-                    : <Mail className="h-3.5 w-3.5 text-[var(--crm-text-tertiary)] shrink-0" />}
-                  <span className="truncate font-medium">{lead.phone || lead.email}</span>
-                </div>
-              )}
-              {/* Time + deal row */}
-              <div className="flex items-center gap-3 mt-0.5 text-[11.5px] text-[var(--crm-text-tertiary)]">
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {formatDistanceToNowStrict(new Date(lead.created_at), { addSuffix: true })}
-                </span>
-                {lead.deal_value > 0 && (
-                  <button
-                    className="inline-flex items-center gap-0.5 h-5 px-2 rounded-full text-[10px] font-bold bg-[var(--crm-accent-soft)] text-[var(--crm-accent)] border-[0.5px] border-[var(--crm-accent-border)]"
-                    onClick={(e) => { e.stopPropagation(); onDealValue(lead); }}
-                  >
-                    <IndianRupee className="h-3 w-3" />
-                    {Number(lead.deal_value).toLocaleString('en-IN')}
-                  </button>
-                )}
+                 </div>
               </div>
+
+              {/* Tags row */}
+              {(lead.city || lead.profession || lead.company) && (
+                <div className="flex items-center gap-2 mt-1 text-[11px] text-[var(--crm-text-tertiary)] font-medium truncate">
+                  {lead.profession && <span className="truncate">{lead.profession}</span>}
+                  {lead.profession && (lead.company || lead.city) && <span>•</span>}
+                  {lead.company && <span className="truncate">{lead.company}</span>}
+                  {lead.company && lead.city && <span>•</span>}
+                  {lead.city && <span className="truncate">{lead.city}</span>}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Inset divider */}
-        <div className="mx-4 border-b border-[var(--crm-border)] opacity-50" />
-
-        {/* Bottom Action Row — icon only */}
-        <div className="px-3 pb-3 pt-0.5 flex items-center" onClick={(e) => e.stopPropagation()}>
-          {/* Left: Call, WhatsApp, Agent, Edit */}
-          <div className="flex items-center gap-1">
-            <button
+        {/* Action Row - Integrated directly without divider */}
+        <div className="px-2 pb-2 pt-0 flex items-center justify-between ml-5" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-0.5">
+            <Button
+              variant="ghost" size="icon"
               onClick={(e) => { e.stopPropagation(); if (lead.phone) onCall(lead); }}
               disabled={!lead.phone}
               className={cn(
-                "h-9 w-9 flex items-center justify-center rounded-lg transition-colors",
-                lead.phone
-                  ? "text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-2)]"
-                  : "text-[var(--crm-text-tertiary)]/30"
+                "h-8 w-8 flex items-center justify-center rounded-md transition-colors p-0",
+                lead.phone ? "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" : "text-slate-300 dark:text-slate-700"
               )}
             >
-              <Phone className="h-[18px] w-[18px]" />
-            </button>
-            <button
+              <Phone className="h-[15px] w-[15px]" />
+            </Button>
+            <Button
+              variant="ghost" size="icon"
               onClick={(e) => { e.stopPropagation(); if (lead.phone) onWhatsApp(lead); }}
               disabled={!lead.phone}
               className={cn(
-                "h-9 w-9 flex items-center justify-center rounded-lg transition-colors",
-                lead.phone
-                  ? "text-[#25D366] hover:bg-[#25D366]/10"
-                  : "text-[var(--crm-text-tertiary)]/30"
+                "h-8 w-8 flex items-center justify-center rounded-md transition-colors p-0",
+                lead.phone ? "text-[#25D366] hover:bg-[#25D366]/10" : "text-slate-300 dark:text-slate-700"
               )}
             >
-              <i className="ti ti-brand-whatsapp text-[20px] leading-none" />
-            </button>
-            <button
+              <i className="ti ti-brand-whatsapp text-[17px] leading-none" />
+            </Button>
+            <Button
+              variant="ghost" size="icon"
               onClick={(e) => { e.stopPropagation(); onAssign(lead); }}
-              className="h-9 w-9 flex items-center justify-center rounded-lg text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-2)] transition-colors relative"
-              title={lead.agent ? `Assigned to ${lead.agent.name}` : 'Assign Agent'}
+              className="h-8 w-8 flex items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors relative p-0"
             >
-              <i className="ti ti-user-check text-[20px] leading-none" />
-              {lead.agent && (
-                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-orange-500 border border-[var(--crm-surface-1)]" />
-              )}
-            </button>
-            <button
+              <i className="ti ti-user-check text-[17px] leading-none" />
+              {lead.agent && <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-orange-500" />}
+            </Button>
+            <Button
+              variant="ghost" size="icon"
               onClick={(e) => { e.stopPropagation(); onActionClick(lead); }}
-              className="h-9 w-9 flex items-center justify-center rounded-lg text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-2)] transition-colors"
+              className="h-8 w-8 flex items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors p-0"
             >
-              <i className="ti ti-edit text-[20px] leading-none" />
-            </button>
+              <i className="ti ti-edit text-[17px] leading-none" />
+            </Button>
           </div>
-
-          {/* Right: Delete */}
-          <div className="ml-auto">
-            <button
-              onClick={(e) => { e.stopPropagation(); onDelete(lead); }}
-              className="h-9 w-9 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
-            >
-              <Trash2 className="h-[17px] w-[17px]" />
-            </button>
-          </div>
+          <Button
+            variant="ghost" size="icon"
+            onClick={(e) => { e.stopPropagation(); onDelete(lead); }}
+            className="h-8 w-8 flex items-center justify-center rounded-md text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors p-0"
+          >
+            <Trash2 className="h-[15px] w-[15px]" />
+          </Button>
         </div>
       </div>
   );

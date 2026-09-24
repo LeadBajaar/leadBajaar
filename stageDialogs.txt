@@ -1,0 +1,140 @@
+const handleDealValueClick = (lead: Lead) => {
+    setEditingLead(lead);
+    setShowDealValue(true);
+  }
+
+const handleSaveDealValue = async () => {
+    if (!editingLead || !dealValueAmount) return;
+
+    setIsSavingDealValue(true);
+    try {
+      const amount = parseFloat(dealValueAmount);
+
+      await updateLeadStage(editingLead.id, 'Deal Closed', amount);
+
+      if (recordInitialPayment && initialPaymentAmount) {
+        await createPayment({
+          lead_id: editingLead.id,
+          amount: parseFloat(initialPaymentAmount),
+          payment_method: paymentMethod,
+          status: 'Completed',
+          payment_date: new Date().toISOString().split('T')[0]
+        });
+      }
+
+      await fetchLeads()
+
+      toast.success(recordInitialPayment ? "Deal closed and payment recorded!" : "Deal closed successfully");
+      setShowDealValue(false);
+      setEditingLead(null);
+      setDealValueAmount('');
+      setInitialPaymentAmount('');
+      setRecordInitialPayment(false);
+
+    } catch (error: any) {
+      handleError(error, { title: 'Deal Update Failed' });
+    } finally {
+      setIsSavingDealValue(false);
+    }
+  }
+
+const handleStageChange = async (leadId: number | undefined, newStage: string) => {
+    if (typeof leadId !== 'number') return;
+
+    try {
+      if (newStage === 'Deal Closed' || newStage === 'Closed Won') {
+        const lead = leads.find(l => l.id === leadId);
+        if (lead && lead.stage !== 'Deal Closed' && lead.stage !== 'Closed Won') {
+          setEditingLead(lead || null);
+          setShowStageChange(false);
+          setShowDealValue(true);
+          return;
+        }
+      }
+
+      await updateLeadStage(leadId, newStage);
+      await fetchLeads()
+
+      setShowStageChange(false);
+      setEditingLead(null);
+      setSelectedStage(null);
+
+      toast.success("Lead stage has been updated successfully");
+
+    } catch (error: any) {
+      handleError(error, { title: 'Stage Update Failed' });
+    }
+  }
+
+const handleAddStage = async () => {
+    if (newStageName && !stages[newStageName]) {
+      try {
+        await createStage({
+          name: newStageName,
+          color: selectedColor,
+          icon: selectedIcon,
+          order: Object.keys(stages).length + 1
+        });
+        await fetchStagesData();
+        setNewStageName('')
+        toast.success("Stage created successfully")
+      } catch (error) {
+        console.error('Failed to create stage:', error);
+        toast.error("Failed to create stage")
+      }
+    }
+  }
+
+const handleEditStage = (stageName: string) => {
+    setEditingStage(stageName)
+    setEditedStageName(stageName)
+    setEditedStageColor(stages[stageName].color.split(' ')[0].replace('bg-', '').replace('-100', ''))
+  }
+
+const handleUpdateStage = async () => {
+    if (editedStageName && editingStage) {
+      const stageConfig = stages[editingStage]
+      if (!stageConfig.id) return
+
+      try {
+        await updateStage(stageConfig.id, {
+          name: editedStageName,
+          color: editedStageColor,
+        });
+        await fetchStagesData();
+        setEditingStage(null)
+        setEditedStageName('')
+        setEditedStageColor('')
+        toast.success("Stage updated successfully")
+      } catch (error: any) {
+        handleError(error, { title: 'Stage Config Error' });
+      }
+    }
+  }
+
+const handleDeleteStage = async (stageName: string) => {
+    const stageConfig = stages[stageName]
+    if (!stageConfig.id) return
+
+    if (!confirm(`Are you sure you want to delete the stage "${stageName}"?`)) return
+
+    try {
+      await deleteStage(stageConfig.id);
+      await fetchStagesData();
+      toast.success("Stage deleted successfully")
+    } catch (error) {
+      console.error('Failed to delete stage:', error);
+      toast.error("Failed to delete stage")
+    }
+  }
+
+const handleSyncDefaultStages = async () => {
+    try {
+      await syncDefaultStages();
+      await fetchStagesData();
+      toast.success("Default stages synced successfully");
+    } catch (error) {
+      console.error('Failed to sync default stages:', error);
+      toast.error("Failed to sync default stages");
+    }
+  }

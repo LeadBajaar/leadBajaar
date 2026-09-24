@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import {
   Dialog,
   DialogContent,
@@ -40,6 +41,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import GlobalAutomationsSettings from "@/components/automations/GlobalAutomationsSettings"
 import { RoleGuard } from '@/components/RoleGuard'
+import { PageHeader } from "@/components/page-header/PageHeader"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -174,174 +176,166 @@ export default function AutomationsPage() {
 
   return (
     <RoleGuard allowedTypes={['agency', 'super_admin', 'individual']} allowedFeatures={['automations']}>
-      <div className="flex flex-col gap-4 sm:gap-6 max-w-[1400px] mx-auto w-full pb-10">
-      {/* Authentic LeadBajaar Header */}
-      <div className="shrink-0 w-full">
-        <CardHeader className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 space-y-0 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
-          <div>
-            <CardTitle className="text-lg font-bold text-[var(--crm-text-primary)]">Automations</CardTitle>
-            <p className="text-xs text-[var(--crm-text-secondary)] mt-0.5">Manage automated workflows, drip sequences, and instant triggers</p>
-          </div>
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
-            <Button 
+      <div className="flex flex-col gap-6 max-w-[1400px] mx-auto w-full pb-10 font-sans">
+      {/* Header */}
+      <PageHeader
+        title="Workflow Automations"
+        description="Manage automated drip sequences, instant follow-up triggers, and multi-channel messages"
+        icon={<Zap className="h-6 w-6 text-[#FE4548]" />}
+        actions={
+          <div className="flex items-center gap-2">
+            {/* TODO: Migrate raw button to shared <Button> component later (complex styling) */}
+            <button 
               onClick={handleCreateNew}
-              className="h-9 bg-[var(--crm-accent)] hover:opacity-90 text-white gap-1.5 shadow-sm text-sm font-semibold"
+              className="px-4 py-2 bg-[#FE4548] hover:bg-[#FF6E54] text-white font-semibold text-xs rounded-xl shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2 cursor-pointer"
             >
               <Plus className="h-4 w-4" />
-              Create Sequence
-            </Button>
+              <span>Create Sequence</span>
+            </button>
           </div>
-        </CardHeader>
+        }
+      />
+
+      {/* Quick KPI Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm">
+        <div className="flex items-center gap-3 p-2">
+          <div className="h-10 w-10 flex items-center justify-center rounded-full bg-blue-600 text-white shadow-xs shrink-0">
+            <CheckCircle2 className="h-5 w-5" />
+          </div>
+          <div>
+            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Active Sequences</span>
+            <span className="text-xl font-bold font-heading text-slate-900 dark:text-white tabular-nums">
+              {sequences.filter(s => s.is_active).length}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 p-2">
+          <div className="h-10 w-10 flex items-center justify-center rounded-full bg-emerald-600 text-white shadow-xs shrink-0">
+            <Play className="h-5 w-5" />
+          </div>
+          <div>
+            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Total Enrollments</span>
+            <span className="text-xl font-bold font-heading text-slate-900 dark:text-white tabular-nums">
+              {sequences.reduce((acc, s) => acc + (s.enrollments_count || 0), 0)}
+            </span>
+          </div>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
-        <Tabs defaultValue="sequences" className="w-full flex flex-col min-h-full">
-          <div className="px-6 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
-            <TabsList className="bg-transparent border-0 w-full justify-start rounded-none p-0 h-11 space-x-6">
-              <TabsTrigger 
-                value="sequences" 
-                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[var(--crm-accent)] rounded-none border-b-2 border-transparent px-1 pb-3 pt-2 font-semibold text-sm text-[var(--crm-text-secondary)] data-[state=active]:text-[var(--crm-accent)] transition-none"
-              >
-                Drip Sequences
-              </TabsTrigger>
-              <TabsTrigger 
-                value="global" 
-                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[var(--crm-accent)] rounded-none border-b-2 border-transparent px-1 pb-3 pt-2 font-semibold text-sm text-[var(--crm-text-secondary)] data-[state=active]:text-[var(--crm-accent)] transition-none"
-              >
-                Global Triggers
-              </TabsTrigger>
-            </TabsList>
-          </div>
+      <div className="flex-1">
+        <Tabs defaultValue="sequences" className="w-full space-y-4">
+          <TabsList className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl h-auto flex flex-row border border-slate-200 dark:border-slate-700 w-full sm:w-fit shrink-0">
+            <TabsTrigger 
+              value="sequences" 
+              className="flex-1 sm:flex-none rounded-lg px-5 py-1.5 text-xs font-semibold font-heading data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-xs transition-all"
+            >
+              Drip Sequences
+            </TabsTrigger>
+            <TabsTrigger 
+              value="global" 
+              className="flex-1 sm:flex-none rounded-lg px-5 py-1.5 text-xs font-semibold font-heading data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-xs transition-all"
+            >
+              Global Triggers
+            </TabsTrigger>
+          </TabsList>
 
-          <TabsContent value="sequences" className="flex-1 p-6 m-0 outline-none space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 shrink-0 lg:max-w-2xl mb-2">
-              <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden group">
-                <CardContent className="p-3 relative flex items-center gap-3">
-                  <div className="absolute top-0 right-0 -mt-2 -mr-2 h-12 w-12 rounded-full blur-xl opacity-10 bg-indigo-500 group-hover:opacity-20 transition-opacity" />
-                  <div className="h-8 w-8 shrink-0 rounded-lg flex items-center justify-center bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
-                    <CheckCircle2 className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider truncate mb-0.5">Active Sequences</p>
-                    <p className="text-lg font-black text-[var(--crm-text-primary)] leading-none">
-                      {sequences.filter(s => s.is_active).length}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden group">
-                <CardContent className="p-3 relative flex items-center gap-3">
-                  <div className="absolute top-0 right-0 -mt-2 -mr-2 h-12 w-12 rounded-full blur-xl opacity-10 bg-emerald-500 group-hover:opacity-20 transition-opacity" />
-                  <div className="h-8 w-8 shrink-0 rounded-lg flex items-center justify-center bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
-                    <Play className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider truncate mb-0.5">Total Enrollments</p>
-                    <p className="text-lg font-black text-[var(--crm-text-primary)] leading-none">
-                      {sequences.reduce((acc, s) => acc + (s.enrollments_count || 0), 0)}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
+          <TabsContent value="sequences" className="space-y-4 m-0">
             <div className="space-y-4">
               {isLoading ? (
                 Array(3).fill(0).map((_, i) => (
-                  <Card key={i} className="animate-pulse h-24 bg-[var(--crm-surface-3)] border-none rounded-xl" />
+                  <div key={i} className="animate-pulse h-24 bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-800 rounded-2xl" />
                 ))
               ) : sequences.length === 0 ? (
-                <div className="py-20 text-center border-2 border-dashed border-[var(--crm-border)] rounded-xl bg-[var(--crm-surface-1)]/50">
-                  <Zap className="h-8 w-8 text-[var(--crm-text-secondary)] mx-auto mb-3" />
-                  <h3 className="text-sm font-semibold text-[var(--crm-text-primary)]">No sequences found</h3>
-                  <p className="text-xs text-[var(--crm-text-secondary)] mt-1 mb-4">Create a sequence to automate your lead follow-ups.</p>
-                  <Button onClick={handleCreateNew} size="sm" variant="outline" className="h-8">Create Sequence</Button>
+                <div className="py-16 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900">
+                  <Zap className="h-8 w-8 text-slate-400 mx-auto mb-2" />
+                  <h3 className="text-sm font-semibold font-heading text-slate-900 dark:text-white">No active sequences</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">Create a sequence to automate follow-up messages across email and WhatsApp.</p>
+                  <Button onClick={handleCreateNew} size="sm" className="h-8 text-xs font-semibold bg-[#FE4548] text-white">Create Sequence</Button>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {sequences.map(sequence => (
-                    <Card 
+                    <div 
                       key={sequence.id} 
-                      className="border border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] rounded-xl overflow-hidden group hover:border-primary/20:border-indigo-800 transition-colors"
+                      className="border border-slate-200/80 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 rounded-2xl overflow-hidden hover:border-indigo-400/50 dark:hover:border-indigo-500/50 transition-colors"
                     >
-                      <CardContent className="p-0">
-                        <div className="flex items-start justify-between p-5">
-                          <div className="space-y-1.5 flex-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="text-base font-bold text-[var(--crm-text-primary)] group-hover:text-[var(--crm-accent)] transition-colors">
-                                {sequence.name}
-                              </h3>
-                              <Badge variant="outline" className={sequence.is_active ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] border-[var(--crm-border)]"}>
-                                {sequence.is_active ? 'Active' : 'Paused'}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-[var(--crm-text-secondary)] line-clamp-1 pr-4">{sequence.description || 'No description provided.'}</p>
+                      <div className="p-5 flex items-start justify-between">
+                        <div className="space-y-1.5 flex-1 min-w-0 pr-3">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-bold font-heading text-slate-900 dark:text-white truncate">
+                              {sequence.name}
+                            </h3>
+                            <Badge className={cn("border-none text-[10.5px] font-semibold px-2 py-0.5 rounded-full text-white shadow-xs", sequence.is_active ? "bg-emerald-600" : "bg-slate-500")}>
+                              {sequence.is_active ? 'Active' : 'Paused'}
+                            </Badge>
                           </div>
-                          
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48 rounded-xl">
-                              <DropdownMenuItem className="text-xs cursor-pointer" onClick={() => {
-                                setCurrentSequence(sequence);
-                                setNewSteps(sequence.steps || []);
-                                setIsDialogOpen(true);
-                              }}>
-                                <Settings2 className="mr-2 h-3.5 w-3.5" /> Edit Sequence
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-xs cursor-pointer" onClick={() => toggleStatus(sequence.id)}>
-                                {sequence.is_active ? <Pause className="mr-2 h-3.5 w-3.5 text-amber-500" /> : <Play className="mr-2 h-3.5 w-3.5 text-emerald-500" />}
-                                {sequence.is_active ? 'Pause Sequence' : 'Resume Sequence'}
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 font-normal">{sequence.description || 'No description provided.'}</p>
                         </div>
                         
-                        <div className="bg-[var(--crm-surface-2)] px-5 py-3 border-t border-[var(--crm-border)] flex items-center justify-between">
-                          <div className="flex items-center gap-6">
-                            <div className="flex flex-col">
-                              <span className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Trigger</span>
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <Filter className="h-3.5 w-3.5 text-primary" />
-                                <span className="text-xs font-semibold text-[var(--crm-text-primary)]">
-                                  {sequence.trigger_type.replace('_', ' ')}
-                                </span>
-                              </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48 rounded-xl border-slate-200 dark:border-slate-800 p-1">
+                            <DropdownMenuItem className="text-xs cursor-pointer font-medium rounded-lg" onClick={() => {
+                              setCurrentSequence(sequence);
+                              setNewSteps(sequence.steps || []);
+                              setIsDialogOpen(true);
+                            }}>
+                              <Settings2 className="mr-2 h-3.5 w-3.5 text-slate-400" /> Edit Sequence
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-xs cursor-pointer font-medium rounded-lg" onClick={() => toggleStatus(sequence.id)}>
+                              {sequence.is_active ? <Pause className="mr-2 h-3.5 w-3.5 text-amber-500" /> : <Play className="mr-2 h-3.5 w-3.5 text-emerald-500" />}
+                              {sequence.is_active ? 'Pause Sequence' : 'Resume Sequence'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      
+                      <div className="bg-slate-50/60 dark:bg-slate-850/60 px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div className="flex items-center gap-6">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Trigger</span>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <Filter className="h-3 w-3 text-blue-600" />
+                              <span className="text-xs font-medium text-slate-800 dark:text-slate-200">
+                                {sequence.trigger_type.replace('_', ' ')}
+                              </span>
                             </div>
-                            <div className="flex flex-col">
-                              <span className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Enrollments</span>
-                              <span className="text-xs font-semibold text-[var(--crm-text-primary)] mt-0.5">{sequence.enrollments_count || 0}</span>
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Actions</span>
-                              <div className="flex -space-x-1.5 mt-0.5">
-                                {sequence.steps?.slice(0, 4).map((step, idx) => (
-                                  <div key={idx} className="h-5 w-5 rounded-full border border-white bg-[var(--crm-surface-1)] flex items-center justify-center text-[var(--crm-text-secondary)] shadow-sm">
-                                    {step.action_type === 'send_email' ? <Mail className="h-2.5 w-2.5 text-primary" /> : step.action_type === 'send_whatsapp' ? <MessageSquare className="h-2.5 w-2.5 text-emerald-500" /> : <Settings2 className="h-2.5 w-2.5 text-[var(--crm-text-secondary)]" />}
-                                  </div>
-                                ))}
-                                {(sequence.steps?.length || 0) > 4 && (
-                                  <div className="h-5 w-5 rounded-full border border-white bg-[var(--crm-surface-3)] flex items-center justify-center text-[9px] font-bold text-[var(--crm-text-secondary)]">
-                                    +{(sequence.steps?.length || 0) - 4}
-                                  </div>
-                                )}
-                              </div>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Enrollments</span>
+                            <span className="text-xs font-semibold font-heading text-slate-900 dark:text-white mt-0.5 tabular-nums">{sequence.enrollments_count || 0}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Step Flow</span>
+                            <div className="flex -space-x-1 mt-0.5">
+                              {sequence.steps?.slice(0, 4).map((step, idx) => (
+                                <div key={idx} className="h-5 w-5 rounded-full border border-white dark:border-slate-900 bg-white dark:bg-slate-800 flex items-center justify-center shadow-xs">
+                                  {step.action_type === 'send_email' ? <Mail className="h-2.5 w-2.5 text-blue-600" /> : step.action_type === 'send_whatsapp' ? <MessageSquare className="h-2.5 w-2.5 text-emerald-600" /> : <Settings2 className="h-2.5 w-2.5 text-purple-600" />}
+                                </div>
+                              ))}
+                              {(sequence.steps?.length || 0) > 4 && (
+                                <div className="h-5 w-5 rounded-full border border-white dark:border-slate-900 bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[9px] font-bold text-slate-700 dark:text-slate-200">
+                                  +{(sequence.steps?.length || 0) - 4}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
             </div>
           </TabsContent>
 
-          <TabsContent value="global" className="flex-1 p-6 m-0 outline-none h-full bg-[var(--crm-surface-1)] rounded-tl-xl border-t border-l border-[var(--crm-border)]">
-            <div className="max-w-4xl">
+          <TabsContent value="global" className="flex-1 m-0 outline-none">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-sm">
               <GlobalAutomationsSettings />
             </div>
           </TabsContent>

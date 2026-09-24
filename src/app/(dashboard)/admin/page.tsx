@@ -175,6 +175,7 @@ const AVAILABLE_PLATFORM_FEATURES = [
   { id: 'chatbot', label: 'Chatbot' },
   { id: 'meetings', label: 'Meetings' },
   { id: 'integrations', label: 'Integrations' },
+  { id: 'tutorials', label: 'Tutorials' },
   
   // Clients & Growth
   { id: 'agency_management', label: 'Clients' },
@@ -328,7 +329,12 @@ export default function SuperAdminPage() {
     cta_text: '',
     cta_link: '',
     expires_at: '',
-    allow_snooze: true
+    allow_snooze: true,
+    display_format: 'standard' as 'standard' | 'modal' | 'banner',
+    bg_color: '#0f172a',
+    primary_color: '#4f46e5',
+    text_color: '#ffffff',
+    secondary_text_color: '#94a3b8'
   })
   const [isSendingBroadcast, setIsSendingBroadcast] = useState(false)
   const [broadcastHistory, setBroadcastHistory] = useState<any[]>([])
@@ -384,7 +390,12 @@ export default function SuperAdminPage() {
         cta_text: '',
         cta_link: '',
         expires_at: '',
-        allow_snooze: true
+        allow_snooze: true,
+        display_format: 'standard',
+        bg_color: '',
+        primary_color: '',
+        text_color: '',
+        secondary_text_color: ''
       })
       
       fetchData()
@@ -2313,15 +2324,24 @@ export default function SuperAdminPage() {
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between p-4 bg-[var(--crm-accent-soft)]/50 rounded-2xl border border-indigo-100 mt-4">
+                    <div className="flex flex-col gap-3 p-4 bg-[var(--crm-accent-soft)]/50 rounded-2xl border border-indigo-100 mt-4">
                       <div className="space-y-0.5">
-                        <Label className="text-sm font-black text-indigo-900">Promotional Modal</Label>
-                        <p className="text-[10px] text-primary font-medium">Show as an interstitial overlay on page load.</p>
+                        <Label className="text-sm font-black text-indigo-900">Display Format</Label>
+                        <p className="text-[10px] text-primary font-medium">Choose how users will see this broadcast.</p>
                       </div>
-                      <Switch 
-                        checked={broadcastData.is_modal}
-                        onCheckedChange={(val) => setBroadcastData({ ...broadcastData, is_modal: val })}
-                      />
+                      <Select 
+                        value={broadcastData.display_format}
+                        onValueChange={(val: any) => setBroadcastData({ ...broadcastData, display_format: val, is_modal: val === 'modal' })}
+                      >
+                        <SelectTrigger className="h-11 rounded-xl bg-white border-[var(--crm-border)] font-bold text-indigo-900">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="standard">Standard Notification (Bell icon)</SelectItem>
+                          <SelectItem value="modal">Full-Screen Modal Overlay</SelectItem>
+                          <SelectItem value="banner">Top Banner (Full width alert)</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="flex items-center justify-between p-4 bg-[var(--crm-surface-1)] rounded-2xl border border-[var(--crm-border)] mt-4">
@@ -2335,7 +2355,7 @@ export default function SuperAdminPage() {
                       />
                     </div>
 
-                    {broadcastData.is_modal && (
+                    {(broadcastData.display_format === 'modal' || broadcastData.display_format === 'banner') && (
                       <div className="space-y-5 p-4 bg-[var(--crm-surface-2)] rounded-2xl border border-[var(--crm-border)] animate-in fade-in zoom-in-95 duration-200 mt-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
@@ -2383,6 +2403,57 @@ export default function SuperAdminPage() {
                               onChange={(e) => setBroadcastData({ ...broadcastData, cta_link: e.target.value })}
                               className="h-9 rounded-lg bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-xs font-bold"
                             />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase text-[var(--crm-text-secondary)]">Background</Label>
+                            <div className="flex gap-2 items-center">
+                              <input 
+                                type="color" 
+                                value={broadcastData.bg_color} 
+                                onChange={(e) => setBroadcastData({ ...broadcastData, bg_color: e.target.value })}
+                                className="h-9 w-9 p-0 border-0 rounded overflow-hidden cursor-pointer bg-transparent"
+                              />
+                              <span className="text-xs font-medium text-[var(--crm-text-secondary)]">{broadcastData.bg_color}</span>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase text-[var(--crm-text-secondary)]">Accent/Button</Label>
+                            <div className="flex gap-2 items-center">
+                              <input 
+                                type="color" 
+                                value={broadcastData.primary_color} 
+                                onChange={(e) => setBroadcastData({ ...broadcastData, primary_color: e.target.value })}
+                                className="h-9 w-9 p-0 border-0 rounded overflow-hidden cursor-pointer bg-transparent"
+                              />
+                              <span className="text-xs font-medium text-[var(--crm-text-secondary)]">{broadcastData.primary_color}</span>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase text-[var(--crm-text-secondary)]">Main Text</Label>
+                            <div className="flex gap-2 items-center">
+                              <input 
+                                type="color" 
+                                value={broadcastData.text_color} 
+                                onChange={(e) => setBroadcastData({ ...broadcastData, text_color: e.target.value })}
+                                className="h-9 w-9 p-0 border-0 rounded overflow-hidden cursor-pointer bg-transparent"
+                              />
+                              <span className="text-xs font-medium text-[var(--crm-text-secondary)]">{broadcastData.text_color}</span>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase text-[var(--crm-text-secondary)]">Subtitle Text</Label>
+                            <div className="flex gap-2 items-center">
+                              <input 
+                                type="color" 
+                                value={broadcastData.secondary_text_color} 
+                                onChange={(e) => setBroadcastData({ ...broadcastData, secondary_text_color: e.target.value })}
+                                className="h-9 w-9 p-0 border-0 rounded overflow-hidden cursor-pointer bg-transparent"
+                              />
+                              <span className="text-xs font-medium text-[var(--crm-text-secondary)]">{broadcastData.secondary_text_color}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -3352,7 +3423,7 @@ export default function SuperAdminPage() {
                             .filter(tag => !editingUser?.tags?.includes(tag))
                             .slice(0, 10)
                             .map((tag) => (
-                              <button
+                              <Button variant="ghost"
                                 key={tag}
                                 type="button"
                                 onClick={() => {
@@ -3361,10 +3432,10 @@ export default function SuperAdminPage() {
                                     setEditingUser({ ...editingUser, tags: [...tags, tag] });
                                   }
                                 }}
-                                className="text-[9px] px-2.5 py-1 rounded-lg bg-[var(--crm-accent-soft)]/50 text-[var(--crm-accent)] border border-indigo-100/50 hover:bg-primary/20:bg-indigo-900/40 transition-all font-black uppercase"
+                                className="text-[9px] px-2.5 py-1 rounded-lg bg-[var(--crm-accent-soft)]/50 text-[var(--crm-accent)] border border-indigo-100/50 hover:bg-primary/20:bg-indigo-900/40 transition-all font-black uppercase h-auto p-0 hover:bg-transparent"
                               >
                                 + {tag}
-                              </button>
+                              </Button>
                             ))}
                         </div>
                       </div>
@@ -3429,7 +3500,12 @@ export default function SuperAdminPage() {
                   cta_link: previewBroadcast.cta_link,
                   cta_text: previewBroadcast.cta_text,
                   image_url: previewBroadcast.image_url,
-                  allow_snooze: previewBroadcast.allow_snooze
+                  allow_snooze: previewBroadcast.allow_snooze,
+                  display_format: previewBroadcast.display_format,
+                  bg_color: previewBroadcast.bg_color,
+                  primary_color: previewBroadcast.primary_color,
+                  text_color: previewBroadcast.text_color,
+                  secondary_text_color: previewBroadcast.secondary_text_color
                 }
               }]}
               onClose={() => setPreviewBroadcast(null)}

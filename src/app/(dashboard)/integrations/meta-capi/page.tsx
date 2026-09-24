@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 import { 
   Activity, 
   BarChart3, 
@@ -40,6 +41,7 @@ import {
 import { PixelTestConsole } from '@/components/meta-capi/PixelTestConsole';
 import { ManualPixelDialog } from '@/components/meta-capi/ManualPixelDialog';
 import { useRouter } from 'next/navigation';
+import { PageHeader } from '@/components/page-header/PageHeader';
 
 interface CAPIMetrics {
   total_events: number;
@@ -120,102 +122,103 @@ export default function MetaCapiHubPage() {
 
   return (
     <div className="flex flex-col flex-1 gap-4 sm:gap-5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent flex items-center gap-3">
-              <Zap className="h-8 w-8 text-primary fill-indigo-500/20" />
-              Meta Conversions API Hub
-            </h2>
-            <p className="text-muted-foreground mt-1">
-              Monitor server-side events, verify tracking accuracy, and optimize your Meta Ad performance.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
+      <PageHeader
+        title="Meta Conversions API Hub"
+        description="Monitor server-side events, verify tracking accuracy, and optimize your Meta Ad performance."
+        icon={<Zap className="h-6 w-6 text-primary" />}
+        actions={
           <Button 
             variant="outline" 
             onClick={fetchData}
-            className="bg-background border-border hover:bg-accent"
+            className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white rounded-lg font-semibold h-9 px-4 shadow-sm"
           >
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Refresh Data
           </Button>
+        }
+      />
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Stat 1: Total Events */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-2xl p-5 flex flex-col gap-3 hover:shadow-md transition-all">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 flex items-center justify-center shrink-0">
+              <Activity className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <h3 className="text-[12px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Events (30d)</h3>
+          </div>
+          <div>
+            <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{metrics?.total_events || 0}</div>
+            <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-500 flex items-center mt-1.5 uppercase tracking-wide">
+              <TrendingUp className="h-3.5 w-3.5 mr-1" />
+              Live server-side signals
+            </p>
+          </div>
+        </div>
+
+        {/* Stat 2: Total Conversions */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-2xl p-5 flex flex-col gap-3 hover:shadow-md transition-all">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center shrink-0">
+              <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <h3 className="text-[12px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Conversions</h3>
+          </div>
+          <div>
+            <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{metrics?.total_conversions || 0}</div>
+            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center mt-1.5 uppercase tracking-wide">
+              Matched attribution data
+            </p>
+          </div>
+        </div>
+
+        {/* Stat 3: Tracked Revenue */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-2xl p-5 flex flex-col gap-3 hover:shadow-md transition-all">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 flex items-center justify-center shrink-0">
+              <BarChart3 className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <h3 className="text-[12px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tracked Revenue</h3>
+          </div>
+          <div>
+            <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              {metrics?.currency || 'INR'} {metrics?.total_revenue?.toLocaleString() || 0}
+            </div>
+            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center mt-1.5 uppercase tracking-wide">
+              From Purchase events
+            </p>
+          </div>
+        </div>
+
+        {/* Stat 4: Active Pixels */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-2xl p-5 flex flex-col gap-3 hover:shadow-md transition-all">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-900/30 flex items-center justify-center shrink-0">
+              <Database className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            </div>
+            <h3 className="text-[12px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active Pixels</h3>
+          </div>
+          <div>
+            <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{pixels.filter(p => p.is_active).length}</div>
+            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center mt-1.5 uppercase tracking-wide">
+              Of {pixels.length} total synced
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-card border-border shadow-md overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-3 opacity-10">
-            <Activity className="h-12 w-12 text-primary" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Events (30d)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{metrics?.total_events || 0}</div>
-            <p className="text-xs text-emerald-500 flex items-center mt-1">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              Live server-side signals
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border-border shadow-md overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-3 opacity-10">
-            <ShieldCheck className="h-12 w-12 text-emerald-500" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Conversions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{metrics?.total_conversions || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Matched attribution data</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border-border shadow-md overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-3 opacity-10">
-            <BarChart3 className="h-12 w-12 text-amber-500" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Tracked Revenue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              {metrics?.currency || 'INR'} {metrics?.total_revenue?.toLocaleString() || 0}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">From Purchase events</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border-border shadow-md overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-3 opacity-10">
-            <Database className="h-12 w-12 text-purple-500" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Pixels</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{pixels.filter(p => p.is_active).length}</div>
-            <p className="text-xs text-muted-foreground mt-1">Of {pixels.length} total synced</p>
-          </CardContent>
-        </Card>
-      </div>
-
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 bg-card border-border shadow-md min-w-0">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <LineChartIcon className="h-5 w-5 text-indigo-400" />
+        <div className="col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm min-w-0 rounded-2xl flex flex-col">
+          <div className="p-5 pb-0">
+            <h3 className="text-[15px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <LineChartIcon className="h-5 w-5 text-indigo-500" />
               Event Volume Trends
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
+            </h3>
+            <p className="text-[13px] text-slate-500 mt-1">
               Daily conversion events sent via server-side API.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-[300px] pl-2">
+            </p>
+          </div>
+          <div className="p-5 h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="opacity-10" vertical={false} />
@@ -250,20 +253,20 @@ export default function MetaCapiHubPage() {
                 />
               </LineChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="col-span-3 bg-card border-border shadow-md min-w-0">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-purple-400" />
+        <div className="col-span-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm min-w-0 rounded-2xl flex flex-col">
+          <div className="p-5 pb-0">
+            <h3 className="text-[15px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-purple-500" />
               Events Breakdown
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
+            </h3>
+            <p className="text-[13px] text-slate-500 mt-1">
               Distribution of event types across all pixels.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-[300px]">
+            </p>
+          </div>
+          <div className="p-5 h-[300px] w-full">
             {breakdown.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={breakdown} layout="vertical" margin={{ left: 40 }}>
@@ -296,49 +299,51 @@ export default function MetaCapiHubPage() {
                 <p>No event data found</p>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       <Tabs defaultValue="tester" className="w-full">
-        <TabsList className="bg-card border border-border p-1">
-          <TabsTrigger value="tester" className="flex items-center gap-2 px-6">
+        <TabsList className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <TabsTrigger value="tester" className="flex items-center gap-2 px-6 rounded-lg text-sm font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm data-[state=active]:text-slate-900 dark:data-[state=active]:text-white transition-all">
             <Terminal className="h-4 w-4" />
             Testing Console
           </TabsTrigger>
-          <TabsTrigger value="pixels" className="flex items-center gap-2 px-6">
+          <TabsTrigger value="pixels" className="flex items-center gap-2 px-6 rounded-lg text-sm font-semibold data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm data-[state=active]:text-slate-900 dark:data-[state=active]:text-white transition-all">
             <Settings className="h-4 w-4" />
             Manage Pixels
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="tester" className="mt-6">
-          <PixelTestConsole 
-            pixels={pixels} 
-            adAccounts={adAccounts} 
-            onRefreshPixels={fetchData} 
-            isSyncingPixels={isSyncing} 
-          />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-2xl overflow-hidden">
+            <PixelTestConsole 
+              pixels={pixels} 
+              adAccounts={adAccounts} 
+              onRefreshPixels={fetchData} 
+              isSyncingPixels={isSyncing} 
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="pixels" className="mt-6">
-          <Card className="bg-card border-border shadow-md">
-            <CardHeader className="flex flex-row items-start sm:items-center justify-between">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-2xl flex flex-col">
+            <div className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800">
               <div>
-                <CardTitle>Active Meta Pixels</CardTitle>
-                <CardDescription className="mt-1">
+                <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">Active Meta Pixels</h3>
+                <p className="text-[13px] text-slate-500 mt-1">
                   Toggle pixels to enable or disable server-side tracking for specific lead sources.
-                </CardDescription>
+                </p>
               </div>
-              <Button onClick={() => setShowManualPixelDialog(true)} className="bg-primary hover:bg-primary/90 text-white shrink-0">
+              <Button onClick={() => setShowManualPixelDialog(true)} className="bg-primary hover:bg-primary/90 text-white shrink-0 rounded-lg font-semibold shadow-sm h-9 px-4">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Pixel
               </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-xl border border-border overflow-x-auto">
+            </div>
+            <div className="p-5">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-x-auto bg-slate-50 dark:bg-slate-950/50">
                 <table className="w-full text-left text-sm">
-                  <thead className="bg-accent text-muted-foreground font-bold uppercase tracking-wider text-[10px]">
+                  <thead className="bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200 dark:border-slate-800">
                     <tr>
                       <th className="px-4 py-3">Pixel Name</th>
                       <th className="px-4 py-3">Pixel ID</th>
@@ -347,7 +352,7 @@ export default function MetaCapiHubPage() {
                       <th className="px-4 py-3 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border bg-card">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900">
                     {pixels.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground italic">
@@ -361,15 +366,20 @@ export default function MetaCapiHubPage() {
                           <td className="px-4 py-4 font-mono text-muted-foreground">{pixel.pixel_id}</td>
                           <td className="px-4 py-4 text-muted-foreground">{pixel.ad_account_id}</td>
                           <td className="px-4 py-4">
-                            <Badge className={pixel.is_active ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-accent text-muted-foreground border-border'}>
-                              {pixel.is_active ? 'Active' : 'Inactive'}
-                            </Badge>
+                            <span className={cn("text-[11px] font-bold tracking-wider px-2 py-1 rounded-md", pixel.is_active ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-500 border border-emerald-200 dark:border-emerald-800/50" : "bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700")}>
+                              {pixel.is_active ? 'ACTIVE' : 'INACTIVE'}
+                            </span>
                           </td>
                           <td className="px-4 py-4 text-right">
                             <Button 
-                              variant="ghost" 
+                              variant="outline" 
                               size="sm"
-                              className="text-primary hover:text-primary hover:bg-primary/10 dark:text-indigo-400 dark:hover:text-indigo-300"
+                              className={cn(
+                                "h-8 px-3 rounded-lg text-xs font-semibold shadow-sm",
+                                pixel.is_active 
+                                  ? "text-slate-500 hover:text-rose-600 hover:bg-rose-50 border-slate-200 hover:border-rose-200"
+                                  : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200"
+                              )}
                               onClick={async () => {
                                 try {
                                   await integrationApi.updateMetaPixel(pixel.id, { is_active: !pixel.is_active });
@@ -389,8 +399,8 @@ export default function MetaCapiHubPage() {
                   </tbody>
                 </table>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
 

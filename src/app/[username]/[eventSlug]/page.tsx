@@ -202,17 +202,18 @@ export default function BookingPage() {
 
   // Smoothly scroll to the slots section when a date is selected
   useEffect(() => {
-    if (selectedDate && slotsRef.current) {
+    if (!isEmbed && selectedDate && slotsRef.current) {
       slotsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
-  }, [selectedDate])
+  }, [selectedDate, isEmbed])
 
   // Smoothly scroll to the Next button when a time slot is selected
   useEffect(() => {
-    if (selectedTime && nextButtonRef.current) {
+    if (!isEmbed && selectedTime && nextButtonRef.current) {
       nextButtonRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
     }
-  }, [selectedTime])
+  }, [selectedTime, isEmbed])
+
 
   const fetchAvailableSlots = async (date: Date) => {
     setIsLoadingSlots(true);
@@ -639,7 +640,7 @@ export default function BookingPage() {
 
   if (error) {
     return (
-      <div className={cn(isEmbed ? "p-0 bg-transparent w-full" : "min-h-screen flex flex-col items-center justify-center bg-[var(--lb-bg)] py-6 px-4")}>
+      <div className={cn(isEmbed ? "p-0 bg-transparent w-full" : "min-h-[100dvh] flex flex-col items-center justify-center bg-[var(--lb-s2)] py-6 px-4")}>
         <div className="w-full max-w-md mx-auto text-center space-y-4">
           <div className="mx-auto w-16 h-16 bg-red-50 rounded-full flex items-center justify-center text-red-500">
             <AlertCircle className="w-8 h-8" />
@@ -652,7 +653,7 @@ export default function BookingPage() {
   }
 
   if (!eventType) return (
-    <div className={cn(isEmbed ? "p-0 bg-transparent w-full" : "min-h-screen flex flex-col items-center justify-center bg-[var(--lb-bg)] py-6 px-4")}>
+    <div className={cn(isEmbed ? "p-0 bg-transparent w-full" : "min-h-[100dvh] flex flex-col items-center justify-center bg-[var(--lb-s2)] py-6 px-4")}>
       <div className="w-full max-w-[820px] mx-auto">
         <Card className="border-[0.5px] border-[var(--lb-border)] bg-white shadow-sm rounded-[16px] overflow-hidden w-full">
           <CardContent className="p-0 relative overflow-hidden">
@@ -679,9 +680,12 @@ export default function BookingPage() {
   );
 
   return (
-    <div className={cn(isEmbed ? "p-0 bg-transparent w-full" : "min-h-[100dvh] flex flex-col items-center sm:justify-center bg-[var(--lb-s1)] sm:bg-[var(--lb-bg)] sm:py-6 sm:px-4")}>
+    <div className={cn(isEmbed ? "p-0 bg-[var(--lb-s1)] w-full min-h-[100dvh]" : "min-h-[100dvh] flex flex-col items-center sm:justify-center bg-[var(--lb-s1)] sm:bg-[var(--lb-s2)] sm:py-6 sm:px-4")}>
       <div className="w-full h-full sm:h-auto max-w-[700px] mx-auto flex flex-col flex-1 sm:flex-none">
-        <Card className="border-0 sm:border-[0.5px] border-[var(--lb-border)] bg-[var(--lb-s1)] shadow-none sm:shadow-sm rounded-none sm:rounded-[16px] overflow-hidden w-full flex-1 flex flex-col">
+        <Card className={cn(
+          "bg-[var(--lb-s1)] overflow-hidden w-full flex-1 flex flex-col",
+          isEmbed ? "border-0 rounded-none shadow-none" : "border-0 sm:border-[0.5px] border-[var(--lb-border)] shadow-none sm:shadow-sm rounded-none sm:rounded-[16px]"
+        )}>
           <CardContent className="p-0 relative flex-1 flex flex-col">
           <div className="grid grid-rows-[auto,1fr] sm:grid-rows-none sm:grid-cols-[220px,1fr] flex-1">
             <div className={cn("p-4 sm:p-[24px_20px] border-b sm:border-b-0 sm:border-r border-[var(--lb-border)] bg-[var(--lb-s1)] flex flex-row sm:flex-col items-center sm:items-center text-left sm:text-center gap-4 sm:gap-0")}>
@@ -788,7 +792,7 @@ export default function BookingPage() {
                     </p>
                   )}
 
-                  <button
+                  <Button
                     onClick={() => {
                       setShowSuccess(false);
                       setBookingDetails(null);
@@ -807,7 +811,7 @@ export default function BookingPage() {
                     className="w-full max-w-md mx-auto bg-[var(--lb-navy)] text-white border-none rounded-full p-[13px] text-[14px] font-medium cursor-pointer tracking-[0.04em] uppercase hover:opacity-90 transition-opacity shadow-sm"
                   >
                     Done
-                  </button>
+                  </Button>
                 </div>
               ) : step === 1 ? (
                 <>
@@ -866,15 +870,15 @@ export default function BookingPage() {
                         aria-hidden={!selectedDate}
                       >
                         <div className="flex items-center justify-between mb-3.5 mt-[-8px]">
-                          <button
+                          <Button variant="ghost" size="sm"
                             onClick={() => {
                               setSelectedTime(null)
                               setSelectedDate(undefined)
                             }}
-                            className="inline-flex items-center gap-[6px] bg-[var(--lb-s2)] border-[0.5px] border-[var(--lb-border)] rounded-full px-3.5 py-[7px] text-[12px] text-[var(--lb-t2)] hover:bg-[var(--lb-s3)] transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-[6px] bg-[var(--lb-s2)] border-[0.5px] border-[var(--lb-border)] rounded-full px-3.5 py-[7px] text-[12px] text-[var(--lb-t2)] hover:bg-[var(--lb-s3)] transition-colors cursor-pointer h-auto"
                           >
                             <ChevronLeft className="h-[13px] w-[13px]" /> Change date
-                          </button>
+                          </Button>
                           <div className="flex items-center gap-2">
                             {availableSlots.length > 0 && (
                               <span className="text-[11px] font-medium text-[var(--lb-navy)] bg-[var(--lb-navy-soft)] rounded-full px-2.5 py-0.5">
@@ -893,10 +897,10 @@ export default function BookingPage() {
                         ) : availableSlots.length > 0 ? (
                           <div className="grid grid-cols-3 gap-2">
                             {availableSlots.map((slot) => (
-                              <button
+                              <Button variant="outline"
                                 key={slot.startTime}
                                 className={cn(
-                                  "w-full min-h-[44px] transition-all duration-200 border-[0.5px] rounded-full font-medium text-[14px] sm:text-[13px] p-[12px] sm:p-[10px] flex flex-col items-center justify-center gap-0.5",
+                                  "w-full h-auto min-h-[44px] transition-all duration-200 border-[0.5px] rounded-full font-medium text-[14px] sm:text-[13px] p-[12px] sm:p-[10px] flex flex-col items-center justify-center gap-0.5",
                                   !slot.available && "opacity-50 cursor-not-allowed bg-[var(--lb-s2)] border-[var(--lb-border)] text-[var(--lb-t3)]",
                                   selectedTime !== slot.startTime && slot.available && "bg-[var(--lb-s2)] border-[var(--lb-border)] text-[var(--lb-t1)] hover:border-[var(--lb-navy)]",
                                   selectedTime === slot.startTime && "bg-[var(--lb-navy)] text-white border-[var(--lb-navy)]"
@@ -910,7 +914,7 @@ export default function BookingPage() {
                                     {slot.spotsRemaining} spot{slot.spotsRemaining !== 1 ? 's' : ''} left
                                   </span>
                                 )}
-                              </button>
+                              </Button>
                             ))}
                           </div>
                         ) : (
@@ -922,13 +926,13 @@ export default function BookingPage() {
                         {/* Next Button — pinned to the bottom / sticky within the scroll on mobile */}
                         {selectedDate && selectedTime && (
                           <div className="mt-auto pt-4 -mx-4 px-4 pb-3 sticky bottom-0 bg-gradient-to-t from-[var(--lb-s1)] via-[var(--lb-s1)] to-transparent sm:static sm:mt-4 sm:pt-0 sm:mx-0 sm:px-0 sm:pb-0 sm:bg-none">
-                            <button
+                            <Button
                               ref={nextButtonRef}
-                              className="w-full bg-[var(--lb-navy)] text-white border-none rounded-full p-[13px] text-[14px] font-medium cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
+                              className="w-full bg-[var(--lb-navy)] text-white border-none rounded-full p-[13px] text-[14px] font-medium cursor-pointer hover:opacity-90 transition-opacity shadow-sm h-auto"
                               onClick={() => setStep(2)}
                             >
                               Next &rarr;
-                            </button>
+                            </Button>
                           </div>
                         )}
                       </div>
@@ -938,9 +942,9 @@ export default function BookingPage() {
               ) : (
                 <>
                   <div className="flex items-center justify-between pb-3.5 border-b-[0.5px] border-[var(--lb-border)] mb-4">
-                    <button onClick={handlePreviousQuestion} className="flex items-center gap-[5px] bg-transparent border-none text-[13px] text-[var(--lb-t2)] cursor-pointer hover:text-[var(--lb-t1)] transition-colors">
+                    <Button variant="ghost" onClick={handlePreviousQuestion} className="flex items-center gap-[5px] bg-transparent border-none text-[13px] text-[var(--lb-t2)] cursor-pointer hover:text-[var(--lb-t1)] transition-colors h-auto p-0 hover:bg-transparent">
                       <ChevronLeft className="w-[14px] h-[14px]" /> Back
-                    </button>
+                    </Button>
                     <span className="text-[15px] font-medium text-[var(--lb-t1)]">Enter your details</span>
                     <div className="w-10" />
                   </div>
@@ -1020,15 +1024,15 @@ export default function BookingPage() {
                   )}
 
                   <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 mt-auto pt-6 sm:mt-6 sm:pt-0">
-                      <button
+                      <Button variant="outline"
                         onClick={handlePreviousQuestion}
-                        className="w-full sm:w-auto bg-[var(--lb-s2)] text-[var(--lb-t1)] border-[0.5px] border-[var(--lb-border)] rounded-full px-5 py-3 sm:py-2.5 text-[13px] font-medium cursor-pointer hover:bg-[var(--lb-s3)] transition-colors"
+                        className="w-full sm:w-auto bg-[var(--lb-s2)] text-[var(--lb-t1)] border-[0.5px] border-[var(--lb-border)] rounded-full px-5 py-3 sm:py-2.5 text-[13px] font-medium cursor-pointer hover:bg-[var(--lb-s3)] transition-colors h-auto"
                       >
                         Previous
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={currentQuestionIndex === eventType.questions.length - 1 ? handleSubmit : handleNextQuestion}
-                        className="w-full sm:w-auto bg-[var(--lb-navy)] text-white border-none rounded-full px-7 py-3 sm:py-2.5 text-[14px] sm:text-[13px] font-medium cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-sm"
+                        className="w-full sm:w-auto bg-[var(--lb-navy)] text-white border-none rounded-full px-7 py-3 sm:py-2.5 text-[14px] sm:text-[13px] font-medium cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-sm h-auto"
                         disabled={isSubmitting || !isCurrentQuestionValid()}
                       >
                         {isSubmitting ? (
@@ -1039,7 +1043,7 @@ export default function BookingPage() {
                         ) : (
                           (!eventType?.questions?.length || currentQuestionIndex === eventType.questions.length - 1) ? 'Schedule' : 'Next →'
                         )}
-                      </button>
+                      </Button>
                     </div>
                 </>
               )}

@@ -82,12 +82,12 @@ export default function ForgotPasswordPage() {
                 <div className="space-y-1.5">
                   <Label htmlFor="email" className="text-xs font-semibold text-slate-700 dark:text-slate-300 ml-0.5">Email Address</Label>
                   <div className="relative group transition-all">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                     <Input
                       id="email"
                       type="email"
                       placeholder="name@company.com"
-                      className="h-11 pl-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-indigo-500/20 focus:border-primary transition-all text-sm"
+                      className="h-11 pl-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
                       {...register('email', {
                         required: 'Email is required',
                         pattern: {

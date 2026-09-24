@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { CalendarService } from '@/lib/services/calendar'
-import { toast } from "@/components/ui/use-toast"
+import { toast } from 'sonner'
 
 interface Props {
   eventType: any
@@ -17,8 +17,7 @@ export const CalendarIntegration = ({ eventType, updateEventType }: Props) => {
     try {
       const success = await calendarService.connectCalendar(type)
       if (success) {
-        toast({
-          title: "Calendar Connected",
+        toast.success("Calendar Connected", {
           description: `Successfully connected ${type} calendar`,
         })
         updateEventType({
@@ -30,10 +29,8 @@ export const CalendarIntegration = ({ eventType, updateEventType }: Props) => {
         })
       }
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: `Failed to connect ${type} calendar`,
-        variant: "destructive",
       })
     }
   }
@@ -42,8 +39,7 @@ export const CalendarIntegration = ({ eventType, updateEventType }: Props) => {
     try {
       const success = await calendarService.disconnectCalendar(type)
       if (success) {
-        toast({
-          title: "Calendar Disconnected",
+        toast.success("Calendar Disconnected", {
           description: `Successfully disconnected ${type} calendar`,
         })
         updateEventType({
@@ -55,10 +51,8 @@ export const CalendarIntegration = ({ eventType, updateEventType }: Props) => {
         })
       }
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: `Failed to disconnect ${type} calendar`,
-        variant: "destructive",
       })
     }
   }

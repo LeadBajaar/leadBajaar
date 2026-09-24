@@ -1,0 +1,20 @@
+export * from './client';
+export * from './auth.api';
+export * from './types';
+export * from './leads.api';
+export * from './stages.api';
+export * from './integrations.api';
+export * from './messages.api';
+export * from './bookings.api';
+export * from './analytics.api';
+export * from './finance.api';
+export * from './company.api';
+export * from './agency.api';
+export * from './subscription.api';
+export * from './team.api';
+export * from './admin.api';
+export * from './evolution.api';
+export * from './tutorial.api';
+
+import api from './client';
+export default api;

@@ -2,7 +2,7 @@ import {
   User, Mail, Phone, Building2, Tag, Globe,
   CheckCircle, Clock, Star, AlertCircle, Globe2,
   Facebook, Linkedin, MonitorSmartphone, MessageSquare, X,
-  Flame, ThermometerSun, Snowflake, Thermometer, CalendarIcon, Map, Computer, IndianRupee, Wallet
+  Flame, ThermometerSun, Snowflake, Thermometer, CalendarIcon, Map, Computer, IndianRupee, Wallet, UserCheck
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -56,7 +56,7 @@ export interface ColumnMapping {
 export interface ImportError {
   row: number;
   field: string;
-  value: string;
+  value: string | number;
   reason: string;
 }
 
@@ -70,6 +70,7 @@ export interface ImportStats {
 
 export const columns = [
   { id: 'name', label: 'Name', icon: User },
+  { id: 'agent', label: 'Assigned Agent', icon: UserCheck },
   { id: 'email', label: 'Email', icon: Mail },
   { id: 'phone', label: 'Phone', icon: Phone },
   { id: 'profession', label: 'Profession', icon: Computer },
@@ -87,35 +88,35 @@ export const columns = [
 ];
 
 export const temperatureConfig: Record<TemperatureType, { color: string; icon: LucideIcon }> = {
-  'Hot': { color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100', icon: Flame },
-  'Warm': { color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100', icon: ThermometerSun },
-  'Cold': { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100', icon: Snowflake }
+  'Hot': { color: 'bg-red-500 text-white font-extrabold border-none hover:bg-red-600', icon: Flame },
+  'Warm': { color: 'bg-orange-500 text-white font-extrabold border-none hover:bg-orange-600', icon: ThermometerSun },
+  'Cold': { color: 'bg-blue-500 text-white font-extrabold border-none hover:bg-blue-600', icon: Snowflake }
 };
 
 export const defaultStages = {
-  'Lead': { color: 'bg-blue-50 text-primary dark:bg-blue-900/30 dark:text-blue-300', icon: User },
-  'Appointment Booked': { color: 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300', icon: CalendarIcon },
-  'Qualified': { color: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300', icon: CheckCircle },
-  'Disqualified': { color: 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-300', icon: AlertCircle },
-  'Not Connected': { color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300', icon: Phone },
-  'Deal Closed': { color: 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-300', icon: CheckCircle },
-  'Closed Won': { color: 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-300', icon: CheckCircle },
-  'DNP': { color: 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-300', icon: AlertCircle },
-  'Follow Up': { color: 'bg-cyan-50 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-300', icon: Clock },
-  'Call Back': { color: 'bg-primary/10 text-primary dark:bg-indigo-900/30 dark:text-indigo-300', icon: Phone },
-  'Consultation': { color: 'bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-300', icon: MessageSquare },
-  'Not Interested': { color: 'bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-300', icon: X },
-  'Broadcast Done': { color: 'bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-300', icon: Globe },
-  'Wrong Number': { color: 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-300', icon: Phone },
-  'Payment Received': { color: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300', icon: CheckCircle },
+  'Lead': { color: 'bg-blue-500 text-white font-extrabold border-none hover:bg-blue-600', icon: User },
+  'Appointment Booked': { color: 'bg-purple-500 text-white font-extrabold border-none hover:bg-purple-600', icon: CalendarIcon },
+  'Qualified': { color: 'bg-emerald-500 text-white font-extrabold border-none hover:bg-emerald-600', icon: CheckCircle },
+  'Disqualified': { color: 'bg-rose-500 text-white font-extrabold border-none hover:bg-rose-600', icon: AlertCircle },
+  'Not Connected': { color: 'bg-slate-500 text-white font-extrabold border-none hover:bg-slate-600', icon: Phone },
+  'Deal Closed': { color: 'bg-green-500 text-white font-extrabold border-none hover:bg-green-600', icon: CheckCircle },
+  'Closed Won': { color: 'bg-emerald-600 text-white font-extrabold border-none hover:bg-emerald-700', icon: CheckCircle },
+  'DNP': { color: 'bg-amber-500 text-white font-extrabold border-none hover:bg-amber-600', icon: AlertCircle },
+  'Follow Up': { color: 'bg-cyan-500 text-white font-extrabold border-none hover:bg-cyan-600', icon: Clock },
+  'Call Back': { color: 'bg-indigo-500 text-white font-extrabold border-none hover:bg-indigo-600', icon: Phone },
+  'Consultation': { color: 'bg-violet-500 text-white font-extrabold border-none hover:bg-violet-600', icon: MessageSquare },
+  'Not Interested': { color: 'bg-rose-500 text-white font-extrabold border-none hover:bg-rose-600', icon: X },
+  'Broadcast Done': { color: 'bg-teal-500 text-white font-extrabold border-none hover:bg-teal-600', icon: Globe },
+  'Wrong Number': { color: 'bg-red-500 text-white font-extrabold border-none hover:bg-red-600', icon: Phone },
+  'Payment Received': { color: 'bg-emerald-500 text-white font-extrabold border-none hover:bg-emerald-600', icon: CheckCircle },
 };
 
 export const sourceConfig = {
-  'Website': { color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100', icon: Globe2 },
-  'Facebook Ad': { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100', icon: Facebook },
-  'LinkedIn': { color: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-100', icon: Linkedin },
-  'Referral': { color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100', icon: MessageSquare },
-  'Google Ad': { color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100', icon: MonitorSmartphone }
+  'Website': { color: 'bg-purple-500 text-white font-extrabold border-none', icon: Globe2 },
+  'Facebook Ad': { color: 'bg-blue-600 text-white font-extrabold border-none', icon: Facebook },
+  'LinkedIn': { color: 'bg-sky-600 text-white font-extrabold border-none', icon: Linkedin },
+  'Referral': { color: 'bg-emerald-500 text-white font-extrabold border-none', icon: MessageSquare },
+  'Google Ad': { color: 'bg-red-500 text-white font-extrabold border-none', icon: MonitorSmartphone }
 };
 
 export const iconMapping = {

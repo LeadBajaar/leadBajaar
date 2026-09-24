@@ -60,7 +60,7 @@ export const EXTRA_QUESTION_DEFS: Record<ExtraQuestionKey, Omit<Question, 'id'>>
 
 export const LOCKED_QUESTIONS: Question[] = [
   { id: 'invitee_name', question: 'Name', type: 'text', required: true, isLocked: true },
-  { id: 'invitee_email', question: 'Email', type: 'email', required: true, isLocked: true },
+  { id: 'invitee_email', question: 'Email', type: 'email', required: false, isLocked: true },
   { id: 'invitee_phone', question: 'Phone Number', type: 'phone', required: true, isLocked: true },
 ]
 

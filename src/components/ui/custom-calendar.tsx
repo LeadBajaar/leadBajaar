@@ -92,58 +92,116 @@ export function CustomCalendar({
   const handleDateClick = (date: Date) => {
     if (!isDateDisabled(date) && onDateSelect) {
       onDateSelect(date)
+      if (date.getMonth() !== currentMonth.getMonth() || date.getFullYear() !== currentMonth.getFullYear()) {
+        setCurrentMonth(new Date(date.getFullYear(), date.getMonth(), 1))
+      }
     }
   }
 
+  const isPrevDisabled = React.useMemo(() => {
+    if (!minDate) {
+      const today = new Date()
+      const firstOfCurrent = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
+      const firstOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+      return firstOfCurrent <= firstOfThisMonth
+    }
+    const lastDayOfPrevMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 0)
+    return lastDayOfPrevMonth < minDate
+  }, [currentMonth, minDate])
+
+  const isNextDisabled = React.useMemo(() => {
+    if (!maxDate) return false
+    const firstDayOfNextMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
+    return firstDayOfNextMonth > maxDate
+  }, [currentMonth, maxDate])
+
   const goToPreviousMonth = () => {
-    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))
+    if (!isPrevDisabled) {
+      setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))
+    }
   }
 
   const goToNextMonth = () => {
-    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))
+    if (!isNextDisabled) {
+      setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))
+    }
+  }
+
+  const renderDayCell = (date: Date, key: string, isFaded: boolean) => {
+    const isAvailable = checkDateAvailable(date)
+    const isDisabled = isDateDisabled(date)
+    const isSelected = isDateSelected(date)
+    const isTodayDate = isToday(date)
+    
+    return (
+      <div
+        key={key}
+        className={cn(
+          "aspect-square w-full max-w-[45px] sm:w-10 sm:h-10 flex items-center justify-center text-[14px] sm:text-[13px] rounded-full transition-all duration-200 mx-auto",
+          isFaded && !isAvailable && "opacity-50",
+          isSelected && "bg-[var(--lb-navy)] text-white font-medium shadow-sm",
+          isTodayDate && !isSelected && "border-[0.5px] border-[var(--lb-navy)] text-[var(--lb-navy)] font-medium",
+          isAvailable && !isDisabled && !isSelected && !isTodayDate && "text-[var(--lb-navy)] font-medium bg-[var(--lb-navy-soft)] border-[0.5px] border-[var(--lb-navy-border)] hover:bg-[var(--lb-navy)] hover:text-white cursor-pointer shadow-sm",
+          isDisabled && "text-[var(--lb-t3)] cursor-default",
+          !isAvailable && !isDisabled && !isSelected && !isTodayDate && "text-[var(--lb-t3)] cursor-default"
+        )}
+        onClick={() => {
+          if (!isDisabled) {
+            handleDateClick(date)
+          } else if (isFaded) {
+            // If it's disabled but faded, just navigate the month without selecting
+            if (date < new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)) {
+              if (!isPrevDisabled) goToPreviousMonth()
+            } else {
+              if (!isNextDisabled) goToNextMonth()
+            }
+          }
+        }}
+        role="button"
+        tabIndex={isDisabled && !isFaded ? -1 : 0}
+        onKeyDown={(e) => {
+          if ((e.key === 'Enter' || e.key === ' ') && (!isDisabled || isFaded)) {
+            e.preventDefault()
+            if (!isDisabled) {
+              handleDateClick(date)
+            } else {
+              if (date < new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)) {
+                if (!isPrevDisabled) goToPreviousMonth()
+              } else {
+                if (!isNextDisabled) goToNextMonth()
+              }
+            }
+          }
+        }}
+      >
+        {date.getDate()}
+      </div>
+    )
   }
 
   const generateCalendarDays = () => {
     const days = []
     
-    // Add empty cells for days before the first day of the month
+    // Add days before the first day of the month (from previous month)
+    const daysInPrevMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 0).getDate()
     for (let i = 0; i < firstDayOfMonth; i++) {
-      days.push(<div key={`empty-${i}`} className="aspect-square w-full max-w-[45px] sm:w-10 sm:h-10 mx-auto" />)
+      const dayNum = daysInPrevMonth - firstDayOfMonth + i + 1
+      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, dayNum)
+      days.push(renderDayCell(date, `prev-${i}`, true))
     }
     
     // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
-             const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day)
-       const isAvailable = checkDateAvailable(date)
-       const isDisabled = isDateDisabled(date)
-       const isSelected = isDateSelected(date)
-       const isTodayDate = isToday(date)
-      
-      days.push(
-        <div
-          key={day}
-          className={cn(
-            "aspect-square w-full max-w-[45px] sm:w-10 sm:h-10 flex items-center justify-center text-[14px] sm:text-[13px] rounded-full transition-all duration-200",
-            "mx-auto",
-            isSelected && "bg-[var(--lb-navy)] text-white font-medium shadow-sm",
-            isTodayDate && !isSelected && "border-[0.5px] border-[var(--lb-navy)] text-[var(--lb-navy)] font-medium",
-            isAvailable && !isDisabled && !isSelected && !isTodayDate && "text-[var(--lb-navy)] font-medium bg-[var(--lb-navy-soft)] border-[0.5px] border-[var(--lb-navy-border)] hover:bg-[var(--lb-navy)] hover:text-white cursor-pointer shadow-sm",
-            isDisabled && "text-[var(--lb-t3)] cursor-default",
-            !isAvailable && !isDisabled && !isSelected && !isTodayDate && "text-[var(--lb-t3)] cursor-default"
-          )}
-          onClick={() => handleDateClick(date)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault()
-              handleDateClick(date)
-            }
-          }}
-        >
-          {day}
-        </div>
-      )
+      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day)
+      days.push(renderDayCell(date, `current-${day}`, false))
+    }
+    
+    // Add days after the last day of the month (from next month)
+    const totalCellsSoFar = firstDayOfMonth + daysInMonth
+    const remainingCells = (7 - (totalCellsSoFar % 7)) % 7
+    for (let i = 1; i <= remainingCells; i++) {
+      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, i)
+      days.push(renderDayCell(date, `next-${i}`, true))
     }
     
     return days
@@ -157,19 +215,31 @@ export function CustomCalendar({
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={goToPreviousMonth}
-          className="w-9 h-9 sm:w-7 sm:h-7 rounded-full border-[0.5px] border-[var(--lb-border)] bg-[var(--lb-bg)] flex items-center justify-center cursor-pointer text-[var(--lb-t2)] hover:bg-[var(--lb-s3)] transition-colors"
+          disabled={isPrevDisabled}
+          className={cn(
+            "w-9 h-9 sm:w-7 sm:h-7 rounded-full border flex items-center justify-center transition-colors shadow-2xs",
+            isPrevDisabled
+              ? "opacity-30 cursor-not-allowed border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+              : "cursor-pointer border-[var(--lb-navy-border)] bg-[var(--lb-navy-soft)] text-[var(--lb-navy)] hover:bg-[var(--lb-navy)] hover:text-white active:scale-95"
+          )}
           aria-label="Previous month"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
         
-        <h2 className="text-[15px] sm:text-[14px] font-medium text-[var(--lb-t1)]">
+        <h2 className="text-[15px] sm:text-[14px] font-bold text-slate-900 dark:text-white">
           {months[currentMonth.getMonth()]} {currentMonth.getFullYear()}
         </h2>
         
         <button
           onClick={goToNextMonth}
-          className="w-9 h-9 sm:w-7 sm:h-7 rounded-full border-[0.5px] border-[var(--lb-border)] bg-[var(--lb-bg)] flex items-center justify-center cursor-pointer text-[var(--lb-t2)] hover:bg-[var(--lb-s3)] transition-colors"
+          disabled={isNextDisabled}
+          className={cn(
+            "w-9 h-9 sm:w-7 sm:h-7 rounded-full border flex items-center justify-center transition-colors shadow-2xs",
+            isNextDisabled
+              ? "opacity-30 cursor-not-allowed border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+              : "cursor-pointer border-[var(--lb-navy-border)] bg-[var(--lb-navy-soft)] text-[var(--lb-navy)] hover:bg-[var(--lb-navy)] hover:text-white active:scale-95"
+          )}
           aria-label="Next month"
         >
           <ChevronRight className="h-4 w-4" />

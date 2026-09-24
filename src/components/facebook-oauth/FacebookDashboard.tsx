@@ -54,7 +54,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import { integrationApi } from '@/lib/api'
+import { integrationApi } from '@/lib/api';
+import { duplicateMetaObject } from '@/lib/api/ads.api';
 import { PixelTestConsole } from '@/components/meta-capi/PixelTestConsole'
 import { RoiDashboard } from '@/components/meta-capi/RoiDashboard'
 import { WebhookVerificationDialog } from './WebhookVerificationDialog'
@@ -882,7 +883,7 @@ export function FacebookDashboard() {
   const handleDuplicateObject = async (id: string, type: string) => {
     try {
       toast.info(`Duplicating ${type}...`, { description: "Preparing a copy with same assets." })
-      const response = await integrationApi.duplicateMetaObject(id)
+      const response = await duplicateMetaObject(id)
       if (response.status === 'success') {
         toast.success(`${type} Duplicated`, { description: "The copy is available in your list as 'PAUSED'." })
         if (selectedAdAccount) loadCampaigns(selectedAdAccount.id, true)
@@ -1743,14 +1744,14 @@ export function FacebookDashboard() {
                               .map((acc) => {
                                 const accStatus = AD_ACCOUNT_STATUS_MAP[acc.account_status] || { text: 'Unknown', color: 'bg-slate-100 text-slate-700' };
                                 return (
-                                  <button
+                                  <Button variant="ghost" /* TODO: Segment Control */
                                     key={acc.id}
                                     onClick={() => {
                                       setSelectedAdAccount(acc);
                                       loadCampaigns(acc.id);
                                       setIsAdAccountOpen(false);
                                     }}
-                                    className={`w-full flex items-start gap-3 p-3 text-left rounded-xl transition-all bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800/80 group ${selectedAdAccount?.id === acc.id ? 'bg-blue-50 dark:bg-blue-900/30' : ''} ${acc.account_status !== 1 ? 'opacity-60' : ''}`}
+                                    className={`w-full flex items-start gap-3 p-3 text-left rounded-xl transition-all bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800/80 group ${selectedAdAccount?.id === acc.id ? 'bg-blue-50 dark:bg-blue-900/30' : ''} ${acc.account_status !== 1 ? 'opacity-60' : ''} h-auto p-0`}
                                   >
                                     <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-white dark:group-hover:bg-slate-700 transition-colors">
                                       <Briefcase className={`h-4 w-4 ${selectedAdAccount?.id === acc.id ? 'text-primary' : 'text-slate-400'}`} />
@@ -1771,7 +1772,7 @@ export function FacebookDashboard() {
                                         <span className="font-mono">{acc.currency}</span>
                                       </div>
                                     </div>
-                                  </button>
+                                  </Button>
                                 );
                               })
                             }
@@ -1839,17 +1840,19 @@ export function FacebookDashboard() {
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
                           <span>Updated just now</span>
-                          <button onClick={() => loadCampaigns(selectedAdAccount.id)} className="p-1 bg-white border border-slate-200 shadow-sm hover:bg-blue-50 dark:hover:bg-slate-800 rounded transition-colors" title="Reload Basic Data">
+                          <Button variant="ghost" size="icon" onClick={() => loadCampaigns(selectedAdAccount.id)} className="h-auto w-auto p-1 bg-white border border-slate-200 shadow-sm hover:bg-blue-50 dark:hover:bg-slate-800 rounded transition-colors" title="Reload Basic Data">
                             <RefreshCw className={`h-3 w-3 ${isLoadingAds ? 'animate-spin' : ''}`} />
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={handleDeepSyncAccount}
                             disabled={isDeepSyncing}
-                            className={`p-1 bg-white border border-slate-200 shadow-sm hover:bg-blue-50 dark:hover:bg-slate-800 rounded transition-all ${isDeepSyncing ? 'animate-spin border-primary text-primary' : ''}`}
+                            className={`h-auto w-auto p-1 bg-white border border-slate-200 shadow-sm hover:bg-blue-50 dark:hover:bg-slate-800 rounded transition-all ${isDeepSyncing ? 'animate-spin border-primary text-primary' : ''}`}
                             title="Deep Sync (Reports & Metrics)"
                           >
                             <Zap className={`h-3 w-3 ${isDeepSyncing ? 'text-primary' : ''}`} />
-                          </button>
+                          </Button>
                         </div>
                         <Button size="sm" variant="outline" className="h-8 text-xs font-bold bg-[#e4e6eb] dark:bg-slate-800 border-none hover:bg-slate-200 dark:hover:bg-slate-700">
                           Review and publish
@@ -1912,30 +1915,30 @@ export function FacebookDashboard() {
 
                     {/* Inner Tabs */}
                     <div className="flex items-center bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-1">
-                      <button
+                      <Button variant="ghost" /* TODO: Segment Control */
                         onClick={() => setActiveInnerTab('campaigns')}
-                        className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'campaigns' ? 'text-primary border-b-2 border-primary bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'campaigns' ? 'text-primary border-b-2 border-primary bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'} h-auto rounded-none`}
                       >
                         <div className="flex items-center gap-2">
                           <Layout className="h-4 w-4" /> Campaigns
                         </div>
-                      </button>
-                      <button
+                      </Button>
+                      <Button variant="ghost" /* TODO: Segment Control */
                         onClick={() => setActiveInnerTab('ad_sets')}
-                        className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'ad_sets' ? 'text-primary border-b-2 border-primary bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'ad_sets' ? 'text-primary border-b-2 border-primary bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'} h-auto rounded-none`}
                       >
                         <div className="flex items-center gap-2">
                           <Layers className="h-4 w-4" /> Ad sets
                         </div>
-                      </button>
-                      <button
+                      </Button>
+                      <Button variant="ghost" /* TODO: Segment Control */
                         onClick={() => setActiveInnerTab('ads')}
-                        className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'ads' ? 'text-primary border-b-2 border-primary bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        className={`px-6 py-3.5 text-sm font-bold transition-all relative ${activeInnerTab === 'ads' ? 'text-primary border-b-2 border-primary bg-blue-50/10' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'} h-auto rounded-none`}
                       >
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4" /> Ads
                         </div>
-                      </button>
+                      </Button>
                     </div>
 
                     {/* Toolbar */}
@@ -2074,8 +2077,10 @@ export function FacebookDashboard() {
                                       </TableCell>
                                       <TableCell className="text-center">
                                         <div className="flex items-center justify-center gap-1 transition-opacity">
-                                          <button
-                                            className="p-1.5 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-full text-primary transition-colors"
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-auto w-auto p-1.5 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-full text-primary transition-colors"
                                             onClick={() => {
                                               setSelectedCampaign(camp);
                                               setIsCreateAdSetDialogOpen(true);
@@ -2083,9 +2088,11 @@ export function FacebookDashboard() {
                                             title="Add Ad Set"
                                           >
                                             <Plus className="h-3.5 w-3.5" />
-                                          </button>
-                                          <button
-                                            className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full"
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-auto w-auto p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full"
                                             title="Edit"
                                             onClick={() => {
                                               setEditingCampaign(camp);
@@ -2094,10 +2101,10 @@ export function FacebookDashboard() {
                                             }}
                                           >
                                             <Edit3 className="h-3.5 w-3.5 text-slate-500" />
-                                          </button>
-                                          <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-red-500" onClick={() => handleDuplicateObject(camp.id, 'Campaign')} title="Duplicate"><Copy className="h-3.5 w-3.5" /></button><button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-red-500" onClick={() => handleDeleteObject(camp.id, 'Campaign')} title="Delete">
+                                          </Button>
+                                          <Button variant="ghost" size="icon" className="h-auto w-auto p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-red-500" onClick={() => handleDuplicateObject(camp.id, 'Campaign')} title="Duplicate"><Copy className="h-3.5 w-3.5" /></Button><Button variant="ghost" size="icon" className="h-auto w-auto p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-red-500" onClick={() => handleDeleteObject(camp.id, 'Campaign')} title="Delete">
                                             <Trash2 className="h-3.5 w-3.5" />
-                                          </button>
+                                          </Button>
                                         </div>
                                       </TableCell>
                                     </TableRow>
@@ -2196,8 +2203,9 @@ export function FacebookDashboard() {
                                     </TableCell>
                                     <TableCell className="text-center">
                                       <div className="flex items-center justify-center gap-1 transition-opacity">
-                                        <button
-                                          className="p-1.5 hover:bg-green-50 dark:hover:bg-green-900/40 rounded-full text-green-600 transition-colors"
+                                        <Button
+                                          variant="ghost" size="icon"
+                                          className="h-auto w-auto p-1.5 hover:bg-green-50 dark:hover:bg-green-900/40 rounded-full text-green-600 transition-colors"
                                           onClick={() => {
                                             setSelectedAdSet(set);
                                             setIsCreateAdDialogOpen(true);
@@ -2205,16 +2213,16 @@ export function FacebookDashboard() {
                                           title="Add Ad"
                                         >
                                           <Plus className="h-3.5 w-3.5" />
-                                        </button>
-                                        <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => toast.info("Edit Ad Set", { description: "Audience editing coming soon." })} title="Edit">
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="h-auto w-auto p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => toast.info("Edit Ad Set", { description: "Audience editing coming soon." })} title="Edit">
                                           <Edit3 className="h-3.5 w-3.5" />
-                                        </button>
-                                        <button className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-full text-primary transition-colors" onClick={() => handleDuplicateObject(set.id, 'Ad Set')} title="Duplicate">
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="h-auto w-auto p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-full text-primary transition-colors" onClick={() => handleDuplicateObject(set.id, 'Ad Set')} title="Duplicate">
                                           <Copy className="h-3.5 w-3.5" />
-                                        </button>
-                                        <button className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/40 rounded-full text-red-500 transition-colors" onClick={() => handleDeleteObject(set.id, 'Ad Set')} title="Delete">
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="h-auto w-auto p-1.5 hover:bg-red-50 dark:hover:bg-red-900/40 rounded-full text-red-500 transition-colors" onClick={() => handleDeleteObject(set.id, 'Ad Set')} title="Delete">
                                           <Trash2 className="h-3.5 w-3.5" />
-                                        </button>
+                                        </Button>
                                       </div>
                                     </TableCell>
                                   </TableRow>
@@ -2302,18 +2310,18 @@ export function FacebookDashboard() {
                                     <TableCell className="text-right font-black text-xs">{selectedAdAccount.currency} 0.00</TableCell>
                                     <TableCell className="text-center">
                                       <div className="flex items-center justify-center gap-1 transition-opacity">
-                                        <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => toast.info("Edit Ad", { description: "Ad creative editing coming soon." })} title="Edit">
+                                        <Button variant="ghost" size="icon" className="h-auto w-auto p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => toast.info("Edit Ad", { description: "Ad creative editing coming soon." })} title="Edit">
                                           <Edit3 className="h-3.5 w-3.5" />
-                                        </button>
-                                        <button className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-full text-primary transition-colors" onClick={() => handleDuplicateObject(ad.id, 'Ad')} title="Duplicate">
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="h-auto w-auto p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-full text-primary transition-colors" onClick={() => handleDuplicateObject(ad.id, 'Ad')} title="Duplicate">
                                           <Copy className="h-3.5 w-3.5" />
-                                        </button>
-                                        <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => window.open(`https://www.facebook.com/ads/manager/preview/display/?ad_id=${ad.id}`, '_blank')} title="Preview Ad">
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="h-auto w-auto p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-slate-500" onClick={() => window.open(`https://www.facebook.com/ads/manager/preview/display/?ad_id=${ad.id}`, '_blank')} title="Preview Ad">
                                           <Eye className="h-3.5 w-3.5" />
-                                        </button>
-                                        <button className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-red-500" onClick={() => handleDeleteObject(ad.id, 'Ad')} title="Delete">
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="h-auto w-auto p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800 rounded-full text-red-500" onClick={() => handleDeleteObject(ad.id, 'Ad')} title="Delete">
                                           <Trash2 className="h-3.5 w-3.5" />
-                                        </button>
+                                        </Button>
                                       </div>
                                     </TableCell>
                                   </TableRow>
@@ -2729,14 +2737,14 @@ export function FacebookDashboard() {
                             .map((acc) => {
                               const accStatus = AD_ACCOUNT_STATUS_MAP[acc.account_status] || { text: 'Unknown', color: 'bg-slate-100 text-slate-700' };
                               return (
-                                <button
+                                <Button variant="ghost" /* TODO: Segment Control */
                                   key={acc.id}
                                   onClick={() => {
                                     setSelectedAdAccount(acc);
                                     loadCreatives(acc.id);
                                     setIsAdAccountOpen(false);
                                   }}
-                                  className={`w-full flex items-start gap-3 p-3 text-left rounded-xl transition-all bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800/80 group ${selectedAdAccount?.id === acc.id ? 'bg-purple-50 dark:bg-purple-900/30' : ''} ${acc.account_status !== 1 ? 'opacity-60' : ''}`}
+                                  className={`w-full flex items-start gap-3 p-3 text-left rounded-xl transition-all bg-white border border-slate-200 shadow-sm hover:bg-green-100 dark:hover:bg-slate-800/80 group ${selectedAdAccount?.id === acc.id ? 'bg-purple-50 dark:bg-purple-900/30' : ''} ${acc.account_status !== 1 ? 'opacity-60' : ''} h-auto p-0`}
                                 >
                                   <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-white dark:group-hover:bg-slate-700 transition-colors">
                                     <Briefcase className={`h-4 w-4 ${selectedAdAccount?.id === acc.id ? 'text-purple-500' : 'text-slate-400'}`} />
@@ -2757,7 +2765,7 @@ export function FacebookDashboard() {
                                       <span className="font-mono">{acc.currency}</span>
                                     </div>
                                   </div>
-                                </button>
+                                </Button>
                               );
                             })
                           }
@@ -2879,16 +2887,17 @@ export function FacebookDashboard() {
                                 </Badge>
                               </div>
                               <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                                <button
+                                <Button
+                                  variant="ghost" size="icon"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleDeleteObject(c.id, 'Creative');
                                   }}
-                                  className="p-1.5 bg-white/90 dark:bg-black/80 backdrop-blur-sm text-red-500 hover:bg-red-500 hover:text-white rounded-lg shadow-sm transition-all border border-slate-200 dark:border-slate-700"
+                                  className="h-auto w-auto p-1.5 bg-white/90 dark:bg-black/80 backdrop-blur-sm text-red-500 hover:bg-red-500 hover:text-white rounded-lg shadow-sm transition-all border border-slate-200 dark:border-slate-700"
                                   title="Delete Creative"
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
-                                </button>
+                                </Button>
                               </div>
                             </div>
                             <div className="space-y-1">

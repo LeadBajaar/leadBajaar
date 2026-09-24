@@ -6,6 +6,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Trash2, AlertTriangle, Plus } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Question } from '@/types/events'
 
@@ -74,20 +75,20 @@ export const InviteeQuestionCard = ({ question, index, displayIndex, updateQuest
     >
       <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-1.5">
-          <button
+          <Button variant="ghost"
             type="button"
             {...attributes}
             {...listeners}
-            className="cursor-grab active:cursor-grabbing text-[var(--crm-text-secondary)] touch-none"
+            className="cursor-grab active:cursor-grabbing text-[var(--crm-text-secondary)] touch-none p-0 h-auto w-auto"
           >
             <GripVertical className="h-4 w-4" />
-          </button>
+          </Button>
           <span className="text-sm font-semibold text-[var(--crm-text-primary)]">Question {(displayIndex ?? index) + 1}</span>
         </div>
         {!question.isLocked && (
-          <button type="button" onClick={() => removeQuestion(index)} className="text-[var(--crm-text-secondary)] hover:text-red-500">
+          <Button variant="ghost" type="button" onClick={() => removeQuestion(index)} className="text-[var(--crm-text-secondary)] hover:text-red-500 p-0 h-auto w-auto">
             <Trash2 className="h-4 w-4" />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -158,17 +159,17 @@ export const InviteeQuestionCard = ({ question, index, displayIndex, updateQuest
                     />
                     {optionEmpty && <FieldError />}
                   </div>
-                  <button type="button" onClick={() => removeOption(optionIndex)} className="text-[var(--crm-text-secondary)] hover:text-red-500 mt-1.5 shrink-0">
+                  <Button variant="ghost" type="button" onClick={() => removeOption(optionIndex)} className="text-[var(--crm-text-secondary)] hover:text-red-500 mt-1.5 shrink-0 p-0 h-auto w-auto">
                     <Trash2 className="h-4 w-4" />
-                  </button>
+                  </Button>
                 </div>
               )
             })}
           </div>
 
-          <button type="button" onClick={addOption} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--crm-accent)] mb-3">
+          <Button variant="ghost" type="button" onClick={addOption} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--crm-accent)] mb-3 p-0 h-auto w-auto hover:bg-transparent">
             <Plus className="h-3.5 w-3.5" /> Add another
-          </button>
+          </Button>
 
           {question.type !== 'dropdown' && (
             <label className="flex items-center gap-2 mb-1 text-sm text-[var(--crm-text-primary)] cursor-pointer">

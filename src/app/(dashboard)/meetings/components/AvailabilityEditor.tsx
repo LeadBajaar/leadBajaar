@@ -68,7 +68,7 @@ interface AvailabilityEditorProps {
   onChange: (field: string, value: any) => void
 }
 
-const rowInputStyle = 'h-8 text-xs font-medium bg-[var(--crm-surface-2)] border-none rounded-md px-2 w-[104px] text-[var(--crm-text-primary)]'
+const rowInputStyle = 'h-8 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-350 dark:border-slate-750 rounded-md px-2.5 w-[104px] text-slate-800 dark:text-slate-100 shadow-sm'
 
 export const AvailabilityEditor = ({ scheduling, onChange }: AvailabilityEditorProps) => {
   const [editingRange, setEditingRange] = useState(false)
@@ -129,15 +129,15 @@ export const AvailabilityEditor = ({ scheduling, onChange }: AvailabilityEditorP
       <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--crm-text-secondary)] mb-1.5">Date-range</p>
       <p className="text-sm text-[var(--crm-text-primary)] leading-relaxed mb-2">
         Invitees can schedule{' '}
-        <button type="button" onClick={() => setEditingRange(v => !v)} className="inline-flex items-center gap-0.5 font-semibold text-[var(--crm-accent)] underline decoration-dotted underline-offset-2">
+        <Button variant="link" type="button" onClick={() => setEditingRange(v => !v)} className="inline-flex items-center gap-0.5 font-semibold text-[var(--crm-accent)] underline decoration-dotted underline-offset-2 p-0 h-auto">
           {scheduling.dateRange} days
           <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', editingRange && 'rotate-180')} />
-        </button>{' '}
+        </Button>{' '}
         into the future with at least{' '}
-        <button type="button" onClick={() => setEditingNotice(v => !v)} className="inline-flex items-center gap-0.5 font-semibold text-[var(--crm-accent)] underline decoration-dotted underline-offset-2">
+        <Button variant="link" type="button" onClick={() => setEditingNotice(v => !v)} className="inline-flex items-center gap-0.5 font-semibold text-[var(--crm-accent)] underline decoration-dotted underline-offset-2 p-0 h-auto">
           {scheduling.minimumNotice} hours
           <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', editingNotice && 'rotate-180')} />
-        </button>{' '}
+        </Button>{' '}
         notice.
       </p>
 
@@ -172,29 +172,31 @@ export const AvailabilityEditor = ({ scheduling, onChange }: AvailabilityEditorP
           (with a pencil to jump into editing) and the directly-editable rows. */}
       <div className="relative mt-4 mb-3">
         <span className="text-sm text-[var(--crm-text-secondary)] mr-1.5">Schedule:</span>
-        <button
+        <Button
+          variant="ghost"
           type="button"
           onClick={() => setScheduleDropdownOpen(v => !v)}
-          className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--crm-accent)]"
+          className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--crm-accent)] p-0 h-auto hover:bg-transparent hover:text-[var(--crm-accent)]"
         >
           {scheduleOption === 'default' ? 'Working hours (Default)' : 'Custom'}
           <ChevronUp className={cn('h-4 w-4 transition-transform', !scheduleDropdownOpen && 'rotate-180')} />
-        </button>
+        </Button>
         {scheduleDropdownOpen && (
           <div className="absolute left-0 top-full mt-1 z-20 w-56 rounded-lg border border-[var(--crm-border)] bg-[var(--crm-surface-1)] shadow-lg p-1">
             {([
               { value: 'default', label: 'Working hours (Default)' },
               { value: 'custom', label: 'Custom schedule' },
             ] as const).map(opt => (
-              <button
+              <Button
+                variant="ghost"
                 key={opt.value}
                 type="button"
                 onClick={() => { setScheduleOption(opt.value); setScheduleDropdownOpen(false) }}
-                className="w-full flex items-center justify-between px-2.5 py-2 text-xs rounded-md hover:bg-[var(--crm-surface-2)] text-[var(--crm-text-primary)]"
+                className="w-full flex items-center justify-between px-2.5 py-2 text-xs rounded-md hover:bg-[var(--crm-surface-2)] text-[var(--crm-text-primary)] h-auto"
               >
                 {opt.label}
                 {scheduleOption === opt.value && <Check className="h-3.5 w-3.5 text-[var(--crm-accent)]" />}
-              </button>
+              </Button>
             ))}
           </div>
         )}
@@ -206,14 +208,15 @@ export const AvailabilityEditor = ({ scheduling, onChange }: AvailabilityEditorP
             <p className="text-sm text-[var(--crm-text-secondary)] leading-relaxed">
               This event type uses the weekly and custom hours saved on the schedule
             </p>
-            <button
+            <Button
+              variant="ghost" size="icon"
               type="button"
               onClick={() => setScheduleOption('custom')}
               title="Edit hours"
-              className="text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)] shrink-0"
+              className="text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)] shrink-0 h-auto w-auto p-0"
             >
               <Pencil className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
           <div className="border-t border-[var(--crm-border)] p-4 bg-[var(--crm-surface-2)]">
             <div className="flex items-center gap-1.5 mb-3">
@@ -227,7 +230,7 @@ export const AvailabilityEditor = ({ scheduling, onChange }: AvailabilityEditorP
                   <div key={day} className="flex items-center gap-3">
                     <div className={cn(
                       'h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0',
-                      ranges.length > 0 ? 'bg-[var(--lb-navy)] text-white' : 'bg-[var(--crm-surface-3)] text-[var(--crm-text-tertiary)]'
+                      ranges.length > 0 ? 'bg-[#FE4548] text-white font-extrabold shadow-sm' : 'bg-[var(--crm-surface-3)] text-[var(--crm-text-tertiary)]'
                     )}>
                       {DAY_LETTERS[day]}
                     </div>
@@ -299,20 +302,21 @@ export const AvailabilityEditor = ({ scheduling, onChange }: AvailabilityEditorP
                 <div key={day} className="flex items-start gap-2">
                   <div className={cn(
                     'h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5',
-                    ranges.length > 0 ? 'bg-[var(--lb-navy)] text-white' : 'bg-[var(--crm-surface-3)] text-[var(--crm-text-tertiary)]'
+                    ranges.length > 0 ? 'bg-[#FE4548] text-white font-extrabold shadow-sm' : 'bg-[var(--crm-surface-3)] text-[var(--crm-text-tertiary)]'
                   )}>
                     {DAY_LETTERS[day]}
                   </div>
                   {ranges.length === 0 ? (
                     <div className="flex-1 flex items-center gap-2 h-7">
                       <span className="text-sm text-[var(--crm-text-tertiary)]">Unavailable</span>
-                      <button
+                      <Button
+                        variant="ghost" size="icon"
                         type="button"
                         onClick={() => addRange(day)}
-                        className="h-5 w-5 rounded-full border-2 border-[var(--crm-text-tertiary)]/50 flex items-center justify-center text-[var(--crm-text-secondary)] hover:border-[var(--crm-accent)] hover:text-[var(--crm-accent)]"
+                        className="h-5 w-5 rounded-full border-2 border-[var(--crm-text-tertiary)]/50 flex items-center justify-center text-[var(--crm-text-secondary)] hover:border-[var(--crm-accent)] hover:text-[var(--crm-accent)] p-0"
                       >
                         <Plus className="h-3 w-3" />
-                      </button>
+                      </Button>
                     </div>
                   ) : (
                     <div className="flex-1 space-y-1.5">
@@ -329,16 +333,17 @@ export const AvailabilityEditor = ({ scheduling, onChange }: AvailabilityEditorP
                             onChange={(v) => updateRange(day, range.id, 'endTime', v)}
                             className={rowInputStyle}
                           />
-                          <button type="button" onClick={() => removeRange(day, range.id)} className="text-[var(--crm-text-tertiary)] hover:text-red-500 shrink-0">
+                          <Button variant="ghost" size="icon" type="button" onClick={() => removeRange(day, range.id)} className="text-[var(--crm-text-tertiary)] hover:text-red-500 shrink-0 h-auto w-auto p-0 hover:bg-transparent">
                             <X className="h-3.5 w-3.5" />
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            variant="ghost" size="icon"
                             type="button"
                             onClick={() => addRange(day)}
-                            className="h-5 w-5 rounded-full border-2 border-[var(--crm-text-tertiary)]/50 flex items-center justify-center text-[var(--crm-text-secondary)] hover:border-[var(--crm-accent)] hover:text-[var(--crm-accent)] shrink-0"
+                            className="h-5 w-5 rounded-full border-2 border-[var(--crm-text-tertiary)]/50 flex items-center justify-center text-[var(--crm-text-secondary)] hover:border-[var(--crm-accent)] hover:text-[var(--crm-accent)] shrink-0 p-0"
                           >
                             <Plus className="h-3 w-3" />
-                          </button>
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -367,13 +372,14 @@ export const AvailabilityEditor = ({ scheduling, onChange }: AvailabilityEditorP
               </div>
               <p className="text-sm text-[var(--crm-accent)]">Adjust hours for specific days</p>
             </div>
-            <button
+            <Button
+              variant="outline"
               type="button"
               onClick={openOverrideModal}
-              className="inline-flex items-center gap-1 h-8 px-3 rounded-full border border-[var(--crm-border)] text-xs font-semibold text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)] shrink-0"
+              className="inline-flex items-center gap-1 h-8 px-3 rounded-full border border-[var(--crm-border)] text-xs font-semibold text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)] shrink-0 w-auto"
             >
               <Plus className="h-3.5 w-3.5" /> Hours
-            </button>
+            </Button>
           </div>
 
           {sortedOverrides.length === 0 ? (
@@ -402,9 +408,9 @@ export const AvailabilityEditor = ({ scheduling, onChange }: AvailabilityEditorP
                           </p>
                         ))}
                       </div>
-                      <button type="button" onClick={() => removeOverrideDate(o.date)} className="text-[var(--crm-text-tertiary)] hover:text-red-500 shrink-0">
+                      <Button variant="ghost" size="icon" type="button" onClick={() => removeOverrideDate(o.date)} className="text-[var(--crm-text-tertiary)] hover:text-red-500 shrink-0 h-auto w-auto p-0 hover:bg-transparent">
                         <X className="h-4 w-4" />
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -428,12 +434,12 @@ export const AvailabilityEditor = ({ scheduling, onChange }: AvailabilityEditorP
                 {calendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </p>
               <div className="flex items-center gap-3">
-                <button type="button" onClick={() => setCalendarMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1))} className="text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)]">
+                <Button variant="ghost" size="icon" type="button" onClick={() => setCalendarMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1))} className="text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)] h-auto w-auto p-0 hover:bg-transparent">
                   <ChevronLeft className="h-4 w-4" />
-                </button>
-                <button type="button" onClick={() => setCalendarMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1))} className="text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)]">
+                </Button>
+                <Button variant="ghost" size="icon" type="button" onClick={() => setCalendarMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1))} className="text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)] h-auto w-auto p-0 hover:bg-transparent">
                   <ChevronRight className="h-4 w-4" />
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -451,17 +457,17 @@ export const AvailabilityEditor = ({ scheduling, onChange }: AvailabilityEditorP
                 const hasOverride = overriddenDateKeys.has(key)
                 return (
                   <div key={key} className="flex flex-col items-center">
-                    <button
+                    <button /* TODO: Calendar date toggle */
                       type="button"
                       onClick={() => toggleCalendarDate(key)}
                       className={cn(
                         'h-9 w-9 rounded-full flex items-center justify-center text-sm font-medium transition-colors',
-                        selected ? 'bg-[var(--lb-navy)] text-white' : 'bg-[var(--crm-accent-soft)] text-[var(--crm-accent)] hover:bg-[var(--crm-accent-soft)]/70'
+                        selected ? 'bg-[#FE4548] text-white font-bold shadow-sm' : 'bg-[var(--crm-accent-soft)] text-[#FE4548] hover:bg-[var(--crm-accent-soft)]/70'
                       )}
                     >
                       {day}
                     </button>
-                    <span className={cn('h-1 w-1 rounded-full mt-0.5', hasOverride ? 'bg-[var(--lb-navy)]' : 'bg-transparent')} />
+                    <span className={cn('h-1 w-1 rounded-full mt-0.5', hasOverride ? 'bg-[#FE4548]' : 'bg-transparent')} />
                   </div>
                 )
               })}
@@ -471,9 +477,9 @@ export const AvailabilityEditor = ({ scheduling, onChange }: AvailabilityEditorP
           <div className="border-t border-[var(--crm-border)] mt-4 p-5">
             <div className="flex items-center justify-between mb-4">
               <p className="text-base font-semibold text-[var(--crm-text-primary)]">What hours are you available?</p>
-              <button type="button" onClick={addModalRange} className="text-[var(--crm-text-primary)] hover:text-[var(--crm-accent)]">
+              <Button variant="ghost" size="icon" type="button" onClick={addModalRange} className="text-[var(--crm-text-primary)] hover:text-[var(--crm-accent)] h-auto w-auto p-0 hover:bg-transparent">
                 <Plus className="h-6 w-6" strokeWidth={2.5} />
-              </button>
+              </Button>
             </div>
             <div className="space-y-3">
               {modalRanges.map(range => (
@@ -489,9 +495,9 @@ export const AvailabilityEditor = ({ scheduling, onChange }: AvailabilityEditorP
                     onChange={(v) => updateModalRange(range.id, 'endTime', v)}
                     className="h-11 text-base font-medium bg-[var(--crm-surface-1)] border border-[var(--crm-accent)]/30 rounded-lg px-3 w-[152px] text-[var(--crm-text-primary)]"
                   />
-                  <button type="button" onClick={() => removeModalRange(range.id)} className="text-[var(--crm-text-secondary)] hover:text-red-500 shrink-0">
+                  <Button variant="ghost" size="icon" type="button" onClick={() => removeModalRange(range.id)} className="text-[var(--crm-text-secondary)] hover:text-red-500 shrink-0 h-auto w-auto p-0 hover:bg-transparent">
                     <X className="h-5 w-5" />
-                  </button>
+                  </Button>
                 </div>
               ))}
               {modalRanges.length === 0 && (
@@ -506,7 +512,7 @@ export const AvailabilityEditor = ({ scheduling, onChange }: AvailabilityEditorP
               size="sm"
               disabled={selectedCalendarDates.length === 0}
               onClick={applyOverrides}
-              className="bg-[var(--lb-navy)] hover:opacity-90 text-white disabled:opacity-40"
+              className="bg-[#FE4548] hover:bg-[#E03A3C] text-white disabled:opacity-40 font-extrabold rounded-full shadow-sm hover:scale-[1.03] active:scale-[0.97] transition-all cursor-pointer px-4 h-8"
             >
               Apply
             </Button>

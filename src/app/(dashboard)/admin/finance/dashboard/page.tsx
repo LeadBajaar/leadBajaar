@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { financeApi } from '@/lib/api'
+import { PageHeader } from '@/components/page-header/PageHeader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -58,37 +59,38 @@ export default function FinanceDashboardPage() {
   return (
     <div className="space-y-4 sm:space-y-6 max-w-[1400px] mx-auto w-full pb-10">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">P&amp;L Dashboard</h2>
-          <p className="text-sm text-[var(--crm-text-secondary)]">Financial overview for the selected period</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <Select value={String(month)} onValueChange={v => setMonth(Number(v))}>
-            <SelectTrigger className="w-28 h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {MONTHS.map((m, i) => (
-                <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={String(year)} onValueChange={v => setYear(Number(v))}>
-            <SelectTrigger className="w-24 h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[2024, 2025, 2026, 2027].map(y => (
-                <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button size="sm" variant="outline" onClick={fetchData} className="h-8 gap-1">
-            <RefreshCw className="h-3 w-3" />
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="P&L Dashboard"
+        description="Financial overview for the selected period"
+        icon={<BarChart3 className="h-5 w-5" />}
+        actions={
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <Select value={String(month)} onValueChange={v => setMonth(Number(v))}>
+              <SelectTrigger className="w-28 h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {MONTHS.map((m, i) => (
+                  <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={String(year)} onValueChange={v => setYear(Number(v))}>
+              <SelectTrigger className="w-24 h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[2024, 2025, 2026, 2027].map(y => (
+                  <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button size="sm" variant="outline" onClick={fetchData} className="h-8 gap-1">
+              <RefreshCw className="h-3 w-3" />
+            </Button>
+          </div>
+        }
+      />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

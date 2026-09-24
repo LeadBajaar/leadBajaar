@@ -11,6 +11,7 @@ import {
   ChevronRight, MoreHorizontal, Trash2, Edit2, Share2,
   CalendarCheck, AlertCircle, Loader2, CheckCircle2, Table, LayoutTemplate, Activity
 } from 'lucide-react'
+import { PageHeader } from "@/components/page-header/PageHeader"
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
@@ -157,20 +158,19 @@ export default function LBFormsPage() {
     <div className="absolute inset-0 flex flex-col bg-[var(--crm-bg)] z-10 overflow-hidden">
       {/* ── Header ────────────────────────────────────────────────────────────── */}
       <div className="shrink-0 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--crm-text-primary)]">LB Forms</h1>
-            <p className="text-sm text-[var(--crm-text-secondary)] mt-1">
-              Create contact forms and onboarding flows, and embed them anywhere.
-            </p>
-          </div>
-          <Link href="/lb-forms/new">
-            <Button className="bg-[var(--crm-primary)] hover:opacity-90 text-white gap-2 shadow-sm rounded-full h-8 text-xs px-4">
-              <Plus className="h-3.5 w-3.5" />
-              New Form
-            </Button>
-          </Link>
-        </div>
+        <PageHeader
+          title="LB Forms"
+          description="Create contact forms and onboarding flows, and embed them anywhere."
+          actions={
+            <Link href="/lb-forms/new">
+              <Button className="bg-[var(--crm-primary)] hover:opacity-90 text-white gap-2 shadow-sm rounded-full h-8 text-xs px-4">
+                <Plus className="h-3.5 w-3.5" />
+                New Form
+              </Button>
+            </Link>
+          }
+          className="p-6" /* TODO: Retained original padding for layout consistency */
+        />
       </div>
 
       {/* ── Content ──────────────────────────────────────────────────────────── */}

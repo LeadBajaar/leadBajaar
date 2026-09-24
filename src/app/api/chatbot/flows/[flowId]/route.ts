@@ -15,10 +15,10 @@ type RouteProps = {
 
 export async function GET(
   request: NextRequest,
-  props: RouteProps
+  { params }: any
 ) {
   try {
-    const { flowId } = props.params;
+    const { flowId } = params;
     const response = await fetch(`${API_URL}/chatbot/flows/${flowId}`, {
       headers: {
         'Accept': 'application/json',
@@ -45,7 +45,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { flowId: string } }
+  { params }: any
 ) {
   try {
     const body = await request.json()
@@ -79,7 +79,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { flowId: string } }
+  { params }: any
 ) {
   try {
     const response = await fetch(`${API_URL}/chatbot/flows/${params.flowId}`, {

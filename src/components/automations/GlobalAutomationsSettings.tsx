@@ -107,23 +107,23 @@ export default function GlobalAutomationsSettings() {
                 value={welcomeSettings.whatsapp_mode} 
                 onValueChange={(val: any) => setWelcomeSettings(prev => ({ ...prev, whatsapp_mode: val }))}
               >
-                <SelectTrigger className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-primary font-medium transition-all">
+                <SelectTrigger className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium transition-all">
                   <SelectValue placeholder="Select Provider" />
                 </SelectTrigger>
                  <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800">
-                  <SelectItem value="cloud" className="focus:bg-primary/10 dark:focus:bg-primary/10 rounded-lg py-3">
+                  <SelectItem value="cloud" className="focus:bg-blue-50 dark:focus:bg-blue-950/40 rounded-lg py-3">
                     <div className="flex flex-col">
                       <span className="font-bold">WhatsApp Cloud API</span>
                       <span className="text-[10px] text-slate-400 mt-0.5">Official Meta Business API (Reliable)</span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="personal" className="focus:bg-primary/10 dark:focus:bg-primary/10 rounded-lg py-3">
+                  <SelectItem value="personal" className="focus:bg-blue-50 dark:focus:bg-blue-950/40 rounded-lg py-3">
                     <div className="flex flex-col">
                       <span className="font-bold">Personal WhatsApp Bot</span>
                       <span className="text-[10px] text-slate-400 mt-0.5">Your connected WhatsApp account</span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="evolution" className="focus:bg-primary/10 dark:focus:bg-primary/10 rounded-lg py-3">
+                  <SelectItem value="evolution" className="focus:bg-blue-50 dark:focus:bg-blue-950/40 rounded-lg py-3">
                     <div className="flex flex-col">
                       <span className="font-bold">⚡ Evolution WhatsApp</span>
                       <span className="text-[10px] text-slate-400 mt-0.5">Send via your linked Evolution device</span>
@@ -133,11 +133,11 @@ export default function GlobalAutomationsSettings() {
                </Select>
              </div>
 
-            <div className="flex items-center gap-4 p-4 rounded-2xl bg-primary/5 dark:bg-primary/5 border border-indigo-100/50 dark:border-primary/10">
+            <div className="flex items-center gap-4 p-4 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30">
               <div className="h-10 w-10 shrink-0 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm">
-                <AlertCircle className="h-5 w-5 text-primary" />
+                <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <p className="text-xs text-indigo-900/70 dark:text-indigo-300 leading-relaxed font-medium">
+              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
                 {welcomeSettings.whatsapp_mode === 'cloud'
                   ? 'This mode uses your official Meta Business Account. Ensure you have an active WhatsApp integration configured.'
                   : welcomeSettings.whatsapp_mode === 'evolution'
@@ -152,7 +152,7 @@ export default function GlobalAutomationsSettings() {
               <Label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
                 {welcomeSettings.whatsapp_mode === 'cloud' ? 'Select Template' : 'Message Content'}
               </Label>
-              <Badge variant="outline" className="bg-primary/10 text-primary border-indigo-100 dark:bg-primary/10 dark:border-primary/20 text-[10px] font-bold py-0.5">
+              <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800 text-[10px] font-bold py-0.5">
                 Tip: Use {"{{name}}"} for personalization
               </Badge>
             </div>
@@ -182,7 +182,7 @@ export default function GlobalAutomationsSettings() {
                   placeholder={welcomeSettings.whatsapp_mode === 'evolution'
                     ? 'Hi {{name}}, thank you for reaching out! We will contact you shortly via WhatsApp.'
                     : 'Hi {{name}}, thank you for reaching out! We will contact you soon.'}
-                  className="min-h-[160px] rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-indigo-500/10 focus:border-primary transition-all resize-none p-6 font-medium text-slate-700 dark:text-slate-200"
+                  className="min-h-[160px] rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-transparent focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none p-6 font-medium text-slate-700 dark:text-slate-200"
                   value={welcomeSettings.whatsapp_welcome_message}
                   onChange={(e) => setWelcomeSettings(prev => ({ ...prev, whatsapp_welcome_message: e.target.value }))}
                 />

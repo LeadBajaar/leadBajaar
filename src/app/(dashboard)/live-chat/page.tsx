@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, useLayoutEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -27,6 +27,7 @@ import {
 // import '@/app/echo'
 import { format } from 'date-fns'
 import { RoleGuard } from '@/components/RoleGuard'
+import { getAgentColor } from '@/utils/agentColors'
 
 interface WhatsAppInteractive {
   type: string;
@@ -90,6 +91,19 @@ export default function LiveChatPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const unreadMessages = chats.reduce((acc, chat) => acc + (chat.user.unread_count || 0), 0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const isInitialScrollRef = useRef(true)
+
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+    }, 500)
+    return () => clearTimeout(handler)
+  }, [searchQuery])
 
   const formatMessageTime = (timestamp: string | Date | undefined): string => {
     if (!timestamp) return ''
@@ -112,13 +126,33 @@ export default function LiveChatPage() {
     return format(date, 'MMM d')
   }
 
-  const fetchChatMessages = useCallback(async (chatId: string | number) => {
-    try {
-      setIsLoadingMessages(true)
-      const response = await getConversationMessages(chatId)
+  const [messagesPage, setMessagesPage] = useState(1)
+  const [hasMoreMessages, setHasMoreMessages] = useState(true)
 
-      if (response?.messages && Array.isArray(response.messages)) {
-        const formatted = response.messages.map((msg: any) => ({
+  const scrollViewportRef = useRef<HTMLDivElement | null>(null);
+  const previousScrollHeightRef = useRef<number>(0);
+  const isFetchingOlderRef = useRef<boolean>(false);
+
+  useLayoutEffect(() => {
+    if (isFetchingOlderRef.current && scrollViewportRef.current) {
+      const newScrollHeight = scrollViewportRef.current.scrollHeight;
+      scrollViewportRef.current.scrollTop += (newScrollHeight - previousScrollHeightRef.current);
+      isFetchingOlderRef.current = false;
+    }
+  }, [messages])
+
+  const fetchChatMessages = useCallback(async (chatId: string | number, pageNum = 1) => {
+    try {
+      if (pageNum === 1) {
+        setIsLoadingMessages(true)
+        isInitialScrollRef.current = true
+      }
+      let response: any = await getConversationMessages(chatId, pageNum)
+      let messagesArray = response?.messages || response?.data || response;
+
+      if (messagesArray && Array.isArray(messagesArray)) {
+        if (messagesArray.length < 25) setHasMoreMessages(false);
+        const formatted = messagesArray.map((msg: any) => ({
           id: msg.id || Math.random(), // Fallback ID to prevent React render issues
           content: msg.content || '',
           metadata: msg.metadata,
@@ -128,24 +162,53 @@ export default function LiveChatPage() {
           direction: msg.direction,
           status: msg.status || 'read'
         }))
-        setMessages(formatted)
+        
+        const viewport = messagesEndRef.current?.closest('[data-radix-scroll-area-viewport]') as HTMLDivElement | null;
+        if (pageNum > 1 && viewport) {
+          previousScrollHeightRef.current = viewport.scrollHeight;
+          isFetchingOlderRef.current = true;
+          scrollViewportRef.current = viewport;
+        }
+
+        setMessages(prev => {
+          if (pageNum === 1) {
+            // Keep any pending local messages
+            const pendingLocalMessages = prev.filter(m => String(m.id).startsWith('local-'));
+            return [...formatted.reverse(), ...pendingLocalMessages.filter(local => 
+              !formatted.some(f => f.id === local.id)
+            )];
+          } else {
+            const newFormatted = formatted.reverse().filter((newMsg: any) => !prev.some(oldMsg => oldMsg.id === newMsg.id));
+            return [...newFormatted, ...prev];
+          }
+        })
       } else {
-        setMessages([])
+        if (pageNum === 1) setMessages([])
+        setHasMoreMessages(false)
       }
     } catch (error) {
       console.error('Error fetching messages:', error)
     } finally {
-      setIsLoadingMessages(false)
+      if (pageNum === 1) setIsLoadingMessages(false)
     }
   }, [])
 
-  const fetchActiveConversations = useCallback(async () => {
+  const fetchActiveConversations = useCallback(async (pageNum = 1, query = debouncedSearchQuery) => {
     try {
-      setIsLoadingChats(true)
-      const response = await getLeadsWithLatestMessages()
-      if (!response || !Array.isArray(response)) return
+      if (pageNum === 1) {
+        setIsLoadingChats(true)
+      } else {
+        setIsFetchingMore(true)
+      }
+      let response: any = await getLeadsWithLatestMessages(pageNum, query)
+      let rawData = response;
+      if (response && !Array.isArray(response) && Array.isArray(response.data)) {
+        rawData = response.data;
+        if (response.data.length < 20) setHasMore(false);
+      }
+      if (!rawData || !Array.isArray(rawData)) return
 
-      const formattedChats: Chat[] = response.map((chat: any) => ({
+      const formattedChats: Chat[] = rawData.map((chat: any) => ({
         id: chat.conversation_id, // Use string phone number directly
         user: {
           id: chat.conversation_id, // Use string phone number as the receiver_id
@@ -169,17 +232,31 @@ export default function LiveChatPage() {
         messages: []
       }))
 
-      setChats(formattedChats)
+      setChats(prev => {
+        if (pageNum === 1) return formattedChats;
+        const newChats = [...prev];
+        formattedChats.forEach(chat => {
+          if (!newChats.some(c => c.id === chat.id)) {
+            newChats.push(chat);
+          }
+        });
+        return newChats;
+      })
     } catch (error) {
       console.error('Error fetching conversations:', error)
     } finally {
       setIsLoadingChats(false)
+      setIsFetchingMore(false)
     }
-  }, [activeChat, fetchChatMessages])
+  }, [debouncedSearchQuery, fetchChatMessages])
 
   useEffect(() => {
-    fetchActiveConversations()
+    setPage(1);
+    setHasMore(true);
+    fetchActiveConversations(1, debouncedSearchQuery)
+  }, [debouncedSearchQuery, fetchActiveConversations])
 
+  useEffect(() => {
     // Real-time listener for incoming messages
     let channel: any;
 
@@ -233,8 +310,15 @@ export default function LiveChatPage() {
   }, [])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    if (messagesEndRef.current) {
+      if (isInitialScrollRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'instant', block: 'nearest' })
+        isInitialScrollRef.current = false
+      } else {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }
+    }
+  }, [messages[messages.length - 1]?.id])
 
   const handleSend = async () => {
     if (!message.trim() || !activeChat || isSending) return
@@ -275,10 +359,7 @@ export default function LiveChatPage() {
     }
   }
 
-  const filteredChats = chats.filter(c =>
-    c.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.user.company.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+
 
   const groupMessagesByDate = (messages: Message[]) => {
     const groups: { [key: string]: Message[] } = {}
@@ -302,8 +383,8 @@ export default function LiveChatPage() {
 
   return (
     <RoleGuard allowedFeatures={['live_chat']}>
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-[var(--crm-surface-1)] rounded-[var(--r-sm)] border border-[var(--crm-border)] shadow-sm">
+      <div className="h-full w-full flex flex-col flex-1 min-h-0 overflow-hidden p-2 sm:p-3 lg:p-4">
+        <div className="h-full w-full flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden bg-[var(--crm-surface-1)] rounded-[var(--r-sm)] border border-[var(--crm-border)] shadow-sm">
 
         {/* ── Sidebar: Conversations ─────────────────────────────────────── */}
         <div className={cn(
@@ -333,7 +414,19 @@ export default function LiveChatPage() {
             </div>
           </div>
 
-          <ScrollArea className="flex-1 [&>div>div]:!block bg-[var(--crm-surface-1)]">
+          <ScrollArea 
+            className="flex-1 [&>div>div]:!block bg-[var(--crm-surface-1)]"
+            onScrollCapture={(e) => {
+              const target = e.target as HTMLDivElement;
+              if (target.scrollHeight - target.scrollTop <= target.clientHeight + 50) {
+                if (hasMore && !isFetchingMore && !isLoadingChats) {
+                  const nextPage = page + 1;
+                  setPage(nextPage);
+                  fetchActiveConversations(nextPage, debouncedSearchQuery);
+                }
+              }
+            }}
+          >
               <div className="flex flex-col overflow-hidden">
                 {isLoadingChats ? (
                   Array.from({ length: 6 }).map((_, i) => (
@@ -345,7 +438,7 @@ export default function LiveChatPage() {
                       </div>
                     </div>
                   ))
-                ) : filteredChats.length === 0 ? (
+                ) : chats.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center px-4">
                     <div className="h-12 w-12 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center mb-4">
                       <MessageSquare className="h-6 w-6 text-slate-300" />
@@ -353,45 +446,47 @@ export default function LiveChatPage() {
                     <p className="text-sm font-medium text-slate-500">No active chats found</p>
                   </div>
                 ) : (
-                  filteredChats.map((chat) => (
-                    <button
+                  chats.map((chat) => (
+                    <Button variant="ghost"
                       key={chat.id}
                       onClick={() => {
                         setActiveChat(chat)
-                        fetchChatMessages(chat.id)
+                        setMessagesPage(1)
+                        setHasMoreMessages(true)
+                        fetchChatMessages(chat.id, 1)
                       }}
                       className={cn(
-                        "flex items-center gap-3 p-4 border-b border-[var(--crm-border)] transition-all duration-200 group relative min-w-0 overflow-hidden",
+                        "flex items-center gap-3 p-4 border-b border-[var(--crm-border)] transition-all duration-200 group relative min-w-0 overflow-hidden h-auto w-full rounded-none justify-start",
                         activeChat?.id === chat.id
                           ? "bg-[var(--crm-surface-2)]"
                           : "hover:bg-[var(--crm-surface-2)] active:scale-[0.98]"
                       )}
                     >
                       <div className="relative shrink-0">
-                        <Avatar className="h-10 w-10 border border-[var(--crm-border)]">
-                          <AvatarImage src={chat.user.avatar} />
-                          <AvatarFallback className="bg-[var(--crm-surface-2)] font-bold text-xs uppercase text-[var(--crm-text-secondary)]">
-                            {chat.user.name.substring(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
+                        <div 
+                          className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold font-heading text-xs shadow-xs"
+                          style={{ backgroundColor: getAgentColor(chat.id).bg }}
+                        >
+                          {chat.user.name.substring(0, 2).toUpperCase()}
+                        </div>
                         {chat.priority === 'high' && (
-                          <div className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-red-500 border-2 border-white dark:border-slate-900 animate-pulse" />
+                          <div className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-red-500 border-2 border-white dark:border-slate-900" />
                         )}
                       </div>
 
                       <div className="flex-1 min-w-0 text-left overflow-hidden">
                         <div className="flex items-center gap-2 overflow-hidden">
                           <p className={cn(
-                            "text-sm font-bold truncate flex-1 min-w-0",
-                            activeChat?.id === chat.id ? "text-[var(--crm-accent)]" : "text-slate-900 dark:text-white"
+                            "text-sm font-semibold font-heading truncate flex-1 min-w-0",
+                            activeChat?.id === chat.id ? "text-[#FE4548]" : "text-slate-900 dark:text-white"
                           )}>
                             {chat.user.name}
                           </p>
-                          <span className="text-[10px] font-medium text-slate-400 whitespace-nowrap shrink-0">
+                          <span className="text-[10px] font-normal text-slate-400 whitespace-nowrap shrink-0">
                             {chat.lastActive}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 font-medium leading-relaxed break-all">
+                        <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 font-normal leading-relaxed break-all">
                           {(() => {
                             const content = chat.user.last_message?.content;
                             if (!content) return 'Started a conversation';
@@ -421,7 +516,7 @@ export default function LiveChatPage() {
                       {activeChat?.id === chat.id && (
                         <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 bg-[var(--crm-accent)] rounded-r-full" />
                       )}
-                    </button>
+                    </Button>
                   ))
                 )}
               </div>
@@ -495,7 +590,20 @@ export default function LiveChatPage() {
               {/* Messages & Sidebar Wrapper */}
               <div className="flex-1 flex flex-row min-h-0 overflow-hidden relative">
                 <div className="flex-1 flex flex-col min-w-0">
-                  <ScrollArea className="flex-1 px-5 py-6">
+                  <ScrollArea 
+                    className="flex-1 px-5 py-6"
+                    onScrollCapture={(e) => {
+                      const target = e.target as HTMLDivElement;
+                      if (target.scrollTop <= 50 && hasMoreMessages && !isFetchingOlderRef.current) {
+                        isFetchingOlderRef.current = true;
+                        const nextPage = messagesPage + 1;
+                        setMessagesPage(nextPage);
+                        if (activeChat) {
+                          fetchChatMessages(activeChat.id, nextPage);
+                        }
+                      }
+                    }}
+                  >
                     {isLoadingMessages ? (
                       <div className="flex flex-col items-center justify-center h-full gap-4 text-slate-400">
                         <Loader2 className="h-8 w-8 animate-spin" />
@@ -510,7 +618,13 @@ export default function LiveChatPage() {
                         <p className="text-xs text-slate-500">Send a friendly greeting to {activeChat.user.name} to get things moving.</p>
                       </div>
                     ) : (
-                      <div className="space-y-8">
+                      <div className="min-h-full flex flex-col justify-end space-y-6">
+                        {hasMoreMessages && (
+                          <div className="flex justify-center py-4">
+                            <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                          </div>
+                        )}
+
                         {groupMessagesByDate(messages).map(([date, dateMessages]) => (
                           <div key={date} className="space-y-6">
                             <div className="relative flex justify-center">
@@ -566,6 +680,9 @@ export default function LiveChatPage() {
                                               // WhatsApp Interactive Object
                                               if (val.interactive?.body?.text && typeof val.interactive.body.text === 'string') return val.interactive.body.text;
                                               
+                                              // WhatsApp Button Object
+                                              if (val.type === 'button' && val.button?.text && typeof val.button.text === 'string') return val.button.text;
+
                                               // Generic keys
                                               if (typeof val.message === 'string') return val.message;
                                               
@@ -590,10 +707,16 @@ export default function LiveChatPage() {
 
                                           // Try metadata
                                           if (msg.metadata) {
-                                            const fromMeta = extractSafeString(msg.metadata);
-                                            if (fromMeta) return fromMeta;
-                                            if (msg.metadata.type === 'template' && typeof msg.metadata.template?.name === 'string') {
-                                              return `Template: ${msg.metadata.template.name}`;
+                                            let metaObj = msg.metadata;
+                                            if (typeof metaObj === 'string') {
+                                              try {
+                                                metaObj = JSON.parse(metaObj);
+                                              } catch (e) {}
+                                            }
+                                            const fromMeta = extractSafeString(metaObj);
+                                            if (fromMeta && !fromMeta.startsWith('{')) return fromMeta;
+                                            if (metaObj.type === 'template' && typeof metaObj.template?.name === 'string') {
+                                              return `Template: ${metaObj.template.name}`;
                                             }
                                           }
 
@@ -630,12 +753,12 @@ export default function LiveChatPage() {
                                               isAgent ? "border-t border-[var(--crm-accent-border)]" : "border-t border-[var(--crm-border)]"
                                             )}>
                                               {buttons.map((label, i) => (
-                                                <button
+                                                <Button variant="ghost"
                                                   key={i}
-                                                  className="px-3 py-1.5 rounded-[var(--r-lg)] bg-[var(--crm-accent)] text-white hover:opacity-90 active:scale-95 transition-all text-[11px] font-bold uppercase tracking-wider shadow-sm"
+                                                  className="px-3 py-1.5 rounded-[var(--r-lg)] bg-[var(--crm-accent)] text-white hover:opacity-90 active:scale-95 transition-all text-[11px] font-bold uppercase tracking-wider shadow-sm h-auto w-auto"
                                                 >
                                                   {typeof label === 'string' ? label : 'Action'}
-                                                </button>
+                                                </Button>
                                               ))}
                                             </div>
                                           );
@@ -694,7 +817,7 @@ export default function LiveChatPage() {
                             })}
                           </div>
                         ))}
-                        <div ref={messagesEndRef} className="h-4" />
+                        <div ref={messagesEndRef} className="h-2 shrink-0" />
                       </div>
                     )}
                   </ScrollArea>
@@ -739,13 +862,13 @@ export default function LiveChatPage() {
                     </div>
                     <div className="flex items-center gap-4 mt-2 px-2 overflow-x-auto no-scrollbar pb-1">
                       {['Pricing Plan', 'API Help', 'Product Demo', 'Refund Policy'].map((tag) => (
-                        <button
+                        <Button variant="ghost"
                           key={tag}
                           onClick={() => handleSend()} // Mock suggest
-                          className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider h-6 px-2.5 rounded-[var(--r-md)] border border-[var(--crm-border)] hover:border-[var(--crm-border-hover)] hover:bg-[var(--crm-surface-2)] transition-colors whitespace-nowrap"
+                          className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider h-6 px-2.5 rounded-[var(--r-md)] border border-[var(--crm-border)] hover:border-[var(--crm-border-hover)] hover:bg-[var(--crm-surface-2)] transition-colors whitespace-nowrap p-0 w-auto"
                         >
                           {tag}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>

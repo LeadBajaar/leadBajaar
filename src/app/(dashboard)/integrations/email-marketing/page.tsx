@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { integrationApi, api } from "@/lib/api";
 import { useErrorHandler } from "@/utils/useErrorHandler";
 import { TestEmailDialog } from "@/components/integrations/TestEmailDialog";
+import { PageHeader } from "@/components/page-header/PageHeader";
 
 export default function EmailMarketingPage() {
   const router = useRouter();
@@ -87,8 +88,8 @@ export default function EmailMarketingPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center bg-[var(--crm-bg)]">
-        <Loader2 className="h-8 w-8 animate-spin text-[var(--crm-text-tertiary)]" />
+      <div className="flex flex-1 min-h-[350px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-400 dark:text-slate-500" />
       </div>
     );
   }
@@ -96,22 +97,11 @@ export default function EmailMarketingPage() {
   return (
     <div className="flex flex-col flex-1 gap-4 sm:gap-5">
       {/* ── Header ────────────────────────────────────────────────────────────── */}
-      <div className="shrink-0">
-        <div className="flex items-center gap-4">
-          
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 dark:bg-indigo-900/20 flex items-center justify-center">
-              <Mail className="h-5 w-5 text-primary dark:text-indigo-400" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-[var(--crm-text-primary)]">Email Integration</h1>
-              <p className="text-sm text-[var(--crm-text-secondary)] mt-1">
-                Choose your provider and scale your automated revenue engine.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Email Integration"
+        description="Choose your provider and scale your automated revenue engine."
+        icon={<Mail className="h-6 w-6 text-primary dark:text-indigo-400" />}
+      />
 
       {/* ── Content ──────────────────────────────────────────────────────────── */}
       <div className="w-full">
@@ -334,6 +324,7 @@ export default function EmailMarketingPage() {
         email={testEmailAddress}
         setEmail={setTestEmailAddress}
         onSendTest={handleSendTestEmail}
+        isConnecting={isConnecting}
       />
     </div>
   );

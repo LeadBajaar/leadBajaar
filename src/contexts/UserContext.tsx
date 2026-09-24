@@ -4,40 +4,9 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { getUser } from '@/lib/api'
 import { logger } from '@/utils/logger'
 
-export type UserRole = 'Super Admin' | 'Admin' | 'Manager' | 'Agent'
-export type UserType = 'agency' | 'individual' | 'super_admin'
+import { User, UserRole, UserType } from '@/lib/api/types/auth.types';
 
-interface User {
-  id: number
-  name: string
-  email: string
-  avatar_url?: string
-  phone?: string
-  bio?: string
-  company_name?: string
-  role: UserRole
-  user_type: UserType
-  company_id: number | null
-  notification_settings?: any
-    company?: {
-      id?: number;
-      name?: string;
-      plan?: string;
-      status?: string;
-      type?: string;
-      expires_at?: string;
-      subscription_started_at?: string;
-      monthly_email_count?: number;
-      custom_setup_fee?: number;
-      custom_renewal_fee?: number;
-      plan_details?: {
-        id: number;
-        name: string;
-        features: string[];
-        price?: number;
-      };
-    };
-}
+export type { UserRole, UserType, User };
 
 interface UserContextType {
   user: User | null

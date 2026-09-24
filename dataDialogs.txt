@@ -1,0 +1,144 @@
+const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0]
+    setImportError(null)
+    setImportStats(null)
+
+    if (!selectedFile) {
+      setImportError('No file selected')
+      return
+    }
+
+    if (!selectedFile.name.endsWith('.csv')) {
+      setImportError('Please select a CSV file')
+      return
+    }
+
+    setFile(selectedFile)
+    const reader = new FileReader()
+
+    reader.onload = (event) => {
+      try {
+        const csv = event.target?.result as string
+        const { headers, preview } = parseCSVContent(csv)
+
+        setPreview(preview)
+
+        // Initialize column mapping
+        setColumnMapping(headers.map(header => ({
+          csvHeader: header,
+          leadField: 'skip'
+        })))
+        setShowMapping(true)
+      } catch (err: any) {
+        console.error('Failed to read CSV file:', err)
+        setImportError(err.message || 'Failed to read CSV file. Please check the file format.')
+      }
+    }
+
+    reader.onerror = () => {
+      setImportError('Failed to read the file')
+    }
+
+    reader.readAsText(selectedFile)
+  }
+
+const handleColumnMapChange = (csvHeader: string, leadField: string) => {
+    setColumnMapping(current =>
+      current.map(mapping =>
+        mapping.csvHeader === csvHeader
+          ? { ...mapping, leadField }
+          : mapping
+      )
+    )
+  }
+
+const resetImport = () => {
+    setFile(null);
+    setPreview([]);
+    setShowMapping(false);
+    setColumnMapping([]);
+    setImportError(null);
+    setImportStats(null);
+  }
+
+const handleImportClick = () => {
+    fileInputRef.current?.click()
+  }
+
+const handleRetrieveLeads = async () => {
+    if (!selectedForm) {
+      toast.error("Please select a lead form");
+      return;
+    }
+
+    if (!dateFrom || !dateTo) {
+      toast.error("Please select both From Date and To Date");
+      return;
+    }
+
+    const selectedFormData = facebookForms.find(f => f.id === selectedForm);
+    if (!selectedFormData) {
+      toast.error("Selected form not found");
+      return;
+    }
+
+    try {
+      setIsRetrievingLeads(true);
+      setRetrievalResults(null);
+      setShowProgress(true);
+      setProgress(0);
+      setProgressMessage('Connecting to Facebook API...');
+
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 90) return prev;
+          return prev + Math.random() * 15;
+        });
+      }, 500);
+
+      const messageInterval = setInterval(() => {
+        setProgressMessage(prev => {
+          const messages = [
+            'Connecting to Facebook API...',
+            'Fetching lead data...',
+            'Processing lead information...',
+            'Validating lead details...',
+            'Saving leads to database...',
+            'Finalizing sync process...'
+          ];
+          const currentIndex = Math.floor((progress / 90) * messages.length);
+          return messages[Math.min(currentIndex, messages.length - 1)];
+        });
+      }, 1000);
+
+      const response = await integrationApi.retrieveFacebookLeads({
+        form_id: selectedForm,
+        integration_id: selectedFormData.integration_id,
+        date_from: dateFrom || undefined,
+        date_to: dateTo || undefined,
+      });
+
+      clearInterval(progressInterval);
+      clearInterval(messageInterval);
+      setProgress(100);
+      setProgressMessage('Sync completed successfully!');
+
+      setTimeout(() => {
+        setRetrievalResults(response.data);
+        setShowProgress(false);
+        setShowResults(true);
+      }, 1000);
+
+      await fetchLeads();
+
+      toast.success(response.message || "Leads synced successfully");
+
+    } catch (error: any) {
+      handleError(error, { title: 'Facebook Sync Error' });
+    } finally {
+      setIsRetrievingLeads(false);
+      setShowProgress(false);
+      setProgress(0);
+      setProgressMessage('');
+    }
+  }

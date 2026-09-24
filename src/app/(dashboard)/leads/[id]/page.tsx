@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { getLead, Lead, updateLead, deleteLead, teamApi } from '@/lib/api'
+import { getLead, updateLead, deleteLead, teamApi } from '@/lib/api'
+import { Lead, temperatureConfig, defaultStages, sourceConfig } from '../types'
 import { 
   ChevronLeft, 
   Phone, 
@@ -13,16 +14,20 @@ import {
   Globe, 
   Mail, 
   Building2, 
-  Clock,
   IndianRupee,
   Briefcase,
   MapPin,
   Calendar,
-  Wallet
+  Wallet,
+  AlertCircle,
+  Copy,
+  Check,
+  Flame,
+  ThermometerSun,
+  Snowflake
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { temperatureConfig, defaultStages } from '../types'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -31,9 +36,10 @@ import { RoleGuard } from '@/components/RoleGuard'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getAgentColor } from '@/utils/agentColors'
 import { useTheme } from 'next-themes'
-import { EditLeadDialog } from '../EditLeadDialog'
-import { DeleteConfirmationDialog } from '../DeleteConfirmationDialog'
+import { EditLeadDialog } from '../components/dialogs/EditLeadDialog'
+import { DeleteConfirmationDialog } from '../components/dialogs/DeleteConfirmationDialog'
 import { toTelHref, toWhatsAppPhone } from '@/lib/phone'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 export default function LeadDetailsPage() {
   const { id } = useParams()
@@ -46,6 +52,8 @@ export default function LeadDetailsPage() {
   const [showEditLead, setShowEditLead] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false })
+  const [copiedField, setCopiedField] = useState<string | null>(null)
+  
   const { theme, resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark' || theme === 'dark'
 
@@ -104,7 +112,7 @@ export default function LeadDetailsPage() {
     try {
       setIsUpdating(true)
       const { id, ...data } = updatedData
-      await updateLead(id, data)
+      await updateLead(id, data as any)
       toast.success('Lead updated successfully')
       
       const freshLead = await getLead(id)
@@ -133,7 +141,6 @@ export default function LeadDetailsPage() {
 
   const handleCall = () => {
     if (!lead?.phone) return;
-
     const a = document.createElement('a');
     a.href = toTelHref(lead.phone);
     document.body.appendChild(a);
@@ -141,20 +148,49 @@ export default function LeadDetailsPage() {
     document.body.removeChild(a);
   };
 
+  const copyToClipboard = (text: string, fieldName: string) => {
+    if (!text) return
+    navigator.clipboard.writeText(text)
+    setCopiedField(fieldName)
+    toast.success(`Copied ${fieldName} to clipboard`)
+    setTimeout(() => setCopiedField(null), 2000)
+  }
+
   if (isLoading) {
     return (
-      <div className="flex flex-col h-full bg-white dark:bg-slate-950">
-        <div className="p-4 flex items-center gap-4 border-b border-slate-100 dark:border-slate-800">
-          <Skeleton className="h-9 w-9 rounded-xl" />
-          <Skeleton className="h-5 w-24 rounded-lg" />
-        </div>
-        <div className="flex-1 p-5 space-y-4">
-          <Skeleton className="h-32 w-full rounded-2xl" />
-          <div className="grid grid-cols-2 gap-4">
-            <Skeleton className="h-24 w-full rounded-2xl" />
-            <Skeleton className="h-24 w-full rounded-2xl" />
+      <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-9 w-9 rounded-full" />
+            <Skeleton className="h-6 w-36 rounded-md" />
           </div>
-          <Skeleton className="h-48 w-full rounded-2xl" />
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-20 rounded-md" />
+            <Skeleton className="h-8 w-20 rounded-md" />
+          </div>
+        </div>
+
+        <div className="flex gap-4 items-center py-4 border-b border-slate-100 dark:border-slate-800">
+          <Skeleton className="h-16 w-16 rounded-full" />
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-6 w-48 rounded-md" />
+            <Skeleton className="h-4 w-32 rounded-md" />
+            <div className="flex gap-2 pt-1">
+              <Skeleton className="h-5 w-20 rounded-full" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Skeleton className="h-20 rounded-xl" />
+          <Skeleton className="h-20 rounded-xl" />
+          <Skeleton className="h-20 rounded-xl" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
         </div>
       </div>
     )
@@ -162,311 +198,501 @@ export default function LeadDetailsPage() {
 
   if (!lead) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-white dark:bg-slate-950">
-        <div className="bg-slate-50 dark:bg-slate-900 rounded-2xl p-6 mb-4 border border-slate-100 dark:border-slate-800">
-          <User className="h-10 w-10 text-slate-300" />
+      <div className="flex-1 flex flex-col items-center justify-center min-h-[400px] p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+        <div className="bg-slate-100 dark:bg-slate-800 rounded-full p-5 mb-4 text-slate-700 dark:text-slate-200">
+          <User className="h-10 w-10" />
         </div>
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Lead not found</h2>
-        <Button onClick={() => router.back()} variant="ghost" className="mt-2 text-sm text-primary">
-          <ChevronLeft className="mr-1 h-4 w-4" /> Go back
+        <h2 className="text-xl font-bold font-heading text-slate-900 dark:text-white mb-1">Lead not found</h2>
+        <p className="text-xs font-normal text-slate-500 dark:text-slate-400 mb-4 max-w-sm">The lead you are looking for might have been deleted or does not exist.</p>
+        <Button onClick={() => router.push('/leads')} variant="default" className="rounded-xl font-semibold bg-indigo-600 hover:bg-indigo-700 text-white">
+          <ChevronLeft className="mr-1.5 h-4 w-4" /> Back to Leads
         </Button>
       </div>
     )
   }
 
-  const temp = (temperatureConfig as any)[lead.status] || temperatureConfig.Cold;
-  const stage = (defaultStages as any)[lead.stage] || { color: 'bg-slate-200/50 text-slate-600 dark:bg-slate-800 dark:text-slate-300', icon: User };
+  const stage = (defaultStages as any)[lead.stage] || { color: 'bg-slate-600 text-white', icon: User };
+  const sourceItem = (sourceConfig as any)[lead.source];
+  const SourceIcon = sourceItem?.icon || Globe;
 
   return (
     <RoleGuard allowedFeatures={['leads']}>
-      <div className="flex flex-col absolute inset-0 sm:relative sm:inset-auto sm:h-full bg-[var(--crm-surface-1)] overflow-hidden z-10">
-      {/* Subtle Header */}
-      <div className="relative z-20 shrink-0 px-4 py-3 flex items-center justify-between border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]/80 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center justify-center rounded-full h-10 w-10 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
-          >
-            <ChevronLeft className="h-6 w-6 text-[var(--crm-text-secondary)]" />
-          </button>
-          <div className="min-w-0">
-            <h1 className="text-[10px] font-bold uppercase tracking-widest text-[var(--crm-text-secondary)] mb-0.5">Lead Profile</h1>
-            <p className="text-sm font-bold text-[var(--crm-text-primary)] leading-none truncate max-w-[150px]">{lead.name}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1">
-          <button onClick={() => handleEdit(lead)} className="flex items-center justify-center h-10 w-10 rounded-full text-[var(--crm-text-secondary)] hover:text-primary transition-all bg-transparent hover:bg-transparent">
-            <Edit2 className="h-5 w-5" />
-          </button>
-          <button onClick={() => setDeleteConfirmation({ isOpen: true })} className="flex items-center justify-center h-10 w-10 rounded-full text-[var(--crm-text-secondary)] hover:text-rose-500 transition-all bg-transparent hover:bg-transparent">
-            <Trash2 className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto relative z-10 no-scrollbar pb-32">
-        {/* Profile Header Area - Edge to Edge */}
-        <div className="px-5 pt-6 pb-8 border-b border-[var(--crm-border)] bg-[var(--crm-surface-1)]">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-            <div className="flex-1 min-w-0">
-              <h2 className="text-2xl font-bold text-[var(--crm-text-primary)] mb-2.5 truncate">{lead.name}</h2>
-              <div className="flex flex-wrap gap-2 items-center">
-                <span className={cn("px-2.5 py-0.5 rounded-full text-[11px] font-medium border-none shadow-none", stage.tonalClass || stage.color)}>
-                  {lead.stage || 'Unknown Stage'}
-                </span>
-                {lead.status && (
-                  <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium", temp.color)}>
-                     {lead.status}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Core Info Grid */}
-        <div className="p-3 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
-          {/* Quick Stats Section */}
-          <div className="bg-[var(--crm-surface-1)] rounded-[var(--r-2xl)] border border-[var(--crm-border)]/60 shadow-sm">
-            <div className="px-5 py-4 border-b border-[var(--crm-border)]/60">
-              <h3 className="text-[11px] font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Overview</h3>
-            </div>
-            <div className="divide-y divide-[var(--crm-border)]/60">
-              <div className="p-4 flex items-center justify-between hover:bg-[var(--crm-surface-2)] transition-colors">
-                <div className="flex items-center gap-3 text-[var(--crm-text-secondary)]">
-                  <Wallet className="h-4 w-4 opacity-70" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">Deal Value</span>
-                </div>
-                <div className="flex items-center gap-1 text-lg font-bold text-[var(--crm-text-primary)]">
-                  <IndianRupee className="h-4 w-4 text-emerald-500/80" />
-                  {lead.deal_value || 0}
-                </div>
-              </div>
-              <div className="p-4 flex items-center justify-between hover:bg-[var(--crm-surface-2)] transition-colors">
-                <div className="flex items-center gap-3 text-[var(--crm-text-secondary)]">
-                  <CheckCircle className="h-4 w-4 opacity-70" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">Paid Amount</span>
-                </div>
-                <div className="flex items-center gap-1 text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                  <IndianRupee className="h-4 w-4 opacity-60" />
-                  {lead.paid_amount || 0}
-                </div>
-              </div>
-              <div className="p-4 flex items-center justify-between hover:bg-[var(--crm-surface-2)] transition-colors">
-                <div className="flex items-center gap-3 text-[var(--crm-text-secondary)]">
-                  <User className="h-4 w-4 text-purple-500" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Representative</span>
-                </div>
-                <div className="w-[160px]">
-                  <Select 
-                    value={lead.user_id?.toString() || lead.agent?.id?.toString() || 'unassigned'} 
-                    onValueChange={handleAssignAgent}
-                    disabled={isAssigning}
-                  >
-                    <SelectTrigger className="h-8 text-xs border-[var(--crm-border)] bg-[var(--crm-surface-1)] rounded-[var(--r-lg)] px-2.5 font-bold focus:ring-1 focus:ring-indigo-500 w-full">
-                      <SelectValue placeholder="Assign" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-[var(--crm-border)]">
-                      <SelectItem value="unassigned" className="text-[var(--crm-text-secondary)] font-bold text-xs rounded-lg">
-                        Unassigned
-                      </SelectItem>
-                      {teamMembers.map((member) => (
-                        <SelectItem key={member.id} value={member.id.toString()} className="rounded-lg text-xs">
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="h-5 w-5 rounded-full flex items-center justify-center text-white text-[9px] font-black"
-                              style={{ backgroundColor: getAgentColor(member.id).bg }}
-                            >
-                              {member.name.split(' ').filter(Boolean).map((n: string) => n[0].toUpperCase()).join('')}
-                            </div>
-                            <span className="font-bold">{member.name}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+      <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden font-sans">
+        
+        {/* Clean Top Navigation Bar */}
+        <div className="shrink-0 px-5 sm:px-8 py-3.5 flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-850/60">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => router.push('/leads')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all shadow-xs h-auto w-auto"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span>Back to Leads</span>
+            </Button>
+            <div className="hidden sm:flex items-center gap-2 border-l border-slate-200 dark:border-slate-700 pl-3">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Lead ID</span>
+              <span className="text-xs font-bold font-heading text-slate-800 dark:text-slate-200 bg-slate-200/70 dark:bg-slate-800 px-2 py-0.5 rounded-md">#{lead.id}</span>
             </div>
           </div>
 
-          {/* Contact Details */}
-          <div className="bg-[var(--crm-surface-1)] rounded-[var(--r-2xl)] border border-[var(--crm-border)]/60 shadow-sm">
-            <div className="px-5 py-4 border-b border-[var(--crm-border)]/60 flex items-center justify-between">
-              <h3 className="text-[11px] font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Contact Details</h3>
-              <Globe className="h-4 w-4 text-[var(--crm-text-secondary)] opacity-50" />
-            </div>
-            
-            <div className="divide-y divide-[var(--crm-border)]/60">
-              <div className="p-4 flex items-center gap-3 group cursor-pointer hover:bg-[var(--crm-surface-2)] transition-colors" onClick={handleCall}>
-                <Phone className="h-5 w-5 text-[var(--crm-text-secondary)] group-hover:text-primary transition-all shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tight mb-0.5">Personal Phone</p>
-                  <p className="text-sm font-bold text-[var(--crm-text-primary)]">{lead.phone || 'N/A'}</p>
-                </div>
-              </div>
-
-              <div className="p-4 flex items-center gap-3 group cursor-pointer hover:bg-[var(--crm-surface-2)] transition-colors" onClick={() => window.open(`mailto:${lead.email}`, '_blank')}>
-                <Mail className="h-5 w-5 text-[var(--crm-text-secondary)] group-hover:text-primary transition-all shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tight mb-0.5">Email Address</p>
-                  <p className="text-sm font-bold text-[var(--crm-text-primary)] truncate">{lead.email || 'N/A'}</p>
-                </div>
-              </div>
-
-              <div className="p-4 flex items-center gap-3 hover:bg-[var(--crm-surface-2)] transition-colors">
-                <Building2 className="h-5 w-5 text-[var(--crm-text-secondary)] shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tight mb-0.5">Organization</p>
-                  <p className="text-sm font-bold text-[var(--crm-text-primary)]">{lead.company || 'N/A'}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Background Info */}
-          <div className="bg-[var(--crm-surface-1)] rounded-[var(--r-2xl)] border border-[var(--crm-border)]/60 shadow-sm">
-            <div className="px-5 py-4 border-b border-[var(--crm-border)]/60 flex items-center justify-between">
-              <h3 className="text-[11px] font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Background</h3>
-              <Briefcase className="h-4 w-4 text-[var(--crm-text-secondary)] opacity-50" />
-            </div>
-            
-            <div className="divide-y divide-[var(--crm-border)]/60">
-              <div className="p-4 flex items-center gap-3 hover:bg-[var(--crm-surface-2)] transition-colors">
-                <Briefcase className="h-5 w-5 text-[var(--crm-text-secondary)] shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tight mb-0.5">Professional Role</p>
-                  <p className="text-sm font-bold text-[var(--crm-text-primary)]">{lead.profession || 'N/A'}</p>
-                </div>
-              </div>
-
-              <div className="p-4 flex items-center gap-3 hover:bg-[var(--crm-surface-2)] transition-colors">
-                <MapPin className="h-5 w-5 text-[var(--crm-text-secondary)] shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tight mb-0.5">Current City</p>
-                  <p className="text-sm font-bold text-[var(--crm-text-primary)]">{lead.city || 'N/A'}</p>
-                </div>
-              </div>
-
-              <div className="p-4 flex items-center gap-3 hover:bg-[var(--crm-surface-2)] transition-colors">
-                <Calendar className="h-5 w-5 text-[var(--crm-text-secondary)] shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-[var(--crm-text-secondary)] font-bold uppercase tracking-tight mb-0.5">Acquisition Date</p>
-                  <p className="text-sm font-bold text-[var(--crm-text-primary)]">{format(new Date(lead.created_at), 'PPP')}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Notes Section */}
-        {lead.notes && (
-          <div className="mx-3 sm:mx-6 mb-3 sm:mb-6 bg-[var(--crm-surface-1)] rounded-[var(--r-2xl)] border border-[var(--crm-border)]/60 shadow-sm mt-0 sm:mt-0">
-            <div className="px-5 py-4 border-b border-[var(--crm-border)]/60 flex items-center justify-between">
-              <h3 className="text-[11px] font-bold uppercase tracking-wider text-[var(--crm-text-secondary)]">Internal Notes</h3>
-              <MessageSquare className="h-4 w-4 text-[var(--crm-text-secondary)] opacity-50" />
-            </div>
-            <div className="p-6">
-              {(() => {
-                try {
-                  const parsed = JSON.parse(lead.notes);
-                  if (typeof parsed === 'object' && parsed !== null) {
-                    return (
-                      <div className="flex flex-col gap-3">
-                        {Object.entries(parsed).map(([key, value]) => (
-                          <div key={key}>
-                            <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--crm-text-secondary)] block mb-1">{key}</span>
-                            <span className="text-sm font-medium text-[var(--crm-text-primary)]">{String(value)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  }
-                } catch (e) {}
-                
-                return (
-                  <p className="text-sm text-[var(--crm-text-secondary)] leading-relaxed whitespace-pre-line italic font-medium">
-                    "{lead.notes}"
-                  </p>
-                );
-              })()}
-            </div>
-          </div>
-        )}
-
-        {/* Footer info */}
-        <div className="flex items-center justify-center gap-4 pt-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--crm-text-secondary)] opacity-50">
+          {/* Desktop Solid Actions Toolbar */}
           <div className="flex items-center gap-2">
-            <Clock className="h-3 w-3" />
-            Updated {format(new Date(lead.updated_at), 'MMM dd, p')}
+            <TooltipProvider>
+              {lead.phone && (
+                <>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="default"
+                        onClick={() => window.open(`https://wa.me/${toWhatsAppPhone(lead.phone)}`, '_blank')} 
+                        className="h-8 px-3.5 flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all hover:scale-[1.02] w-auto"
+                      >
+                        <i className="ti ti-brand-whatsapp text-[14px]" />
+                        <span className="hidden md:inline">WhatsApp</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="text-[10px] font-medium">Send WhatsApp Message</TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="default"
+                        onClick={handleCall} 
+                        className="h-8 px-3.5 flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-all hover:scale-[1.02] w-auto"
+                      >
+                        <i className="ti ti-phone text-[14px]" />
+                        <span className="hidden md:inline">Call</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="text-[10px] font-medium">Call Lead</TooltipContent>
+                  </Tooltip>
+                </>
+              )}
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="default"
+                    onClick={() => handleEdit(lead)} 
+                    className="h-8 px-3.5 flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-all hover:scale-[1.02] w-auto"
+                  >
+                    <i className="ti ti-edit text-[14px]" />
+                    <span className="hidden md:inline">Edit</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="text-[10px] font-medium">Edit Lead Profile</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="destructive"
+                    onClick={() => setDeleteConfirmation({ isOpen: true })} 
+                    className="h-8 px-3.5 flex items-center justify-center gap-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-xs transition-all hover:scale-[1.02] w-auto"
+                  >
+                    <i className="ti ti-trash text-[14px]" />
+                    <span className="hidden md:inline">Delete</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="text-[10px] font-medium">Delete Lead</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
 
-        <div className="h-28" />
-      </div>
+        {/* Main Content Area */}
+        <div className="flex-1 overflow-y-auto px-5 sm:px-8 py-6 space-y-7 custom-scrollbar">
+          
+          {/* Seamless Header (Unboxed Profile Banner) */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 pb-6 border-b border-slate-200/80 dark:border-slate-800">
+            <div className="flex items-start gap-4 sm:gap-5">
+              {/* Profile Avatar Circle */}
+              <div className="flex h-16 w-16 sm:h-18 sm:w-18 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white font-bold font-heading text-2xl sm:text-3xl shadow-sm">
+                {lead.name ? lead.name.charAt(0).toUpperCase() : 'L'}
+              </div>
 
-      {/* Floating Action Bar - Ultra Clean */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 px-5 pb-6 pt-4 bg-gradient-to-t from-[var(--crm-surface-1)] via-[var(--crm-surface-1)] to-transparent pointer-events-none">
-        <div className="flex items-center justify-center gap-4 w-full max-w-sm mx-auto pointer-events-auto">
-          <button 
-            className="h-14 w-14 p-0 text-white rounded-full flex items-center justify-center transition-all hover:opacity-90 active:scale-95 shrink-0 shadow-lg"
-            style={{ backgroundColor: '#25D366', boxShadow: '0 8px 16px -4px rgba(37, 211, 102, 0.3)' }}
-            onClick={() => {
-              window.open(`https://wa.me/${toWhatsAppPhone(lead.phone)}`, '_blank');
-            }}
-          >
-            <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7 text-white">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-            </svg>
-          </button>
-          <button 
-            className="h-14 w-14 p-0 border border-[var(--crm-border)]/60 text-[var(--crm-text-primary)] rounded-full hover:bg-[var(--crm-surface-2)] transition-all active:scale-95 flex items-center justify-center bg-[var(--crm-surface-1)] shadow-sm shrink-0"
-            onClick={handleCall}
-          >
-            <Phone className="h-6 w-6" />
-          </button>
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h1 className="text-2xl sm:text-3xl font-bold font-heading text-slate-900 dark:text-white tracking-tight">
+                    {lead.name}
+                  </h1>
+                  {lead.is_incomplete && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500 text-white shadow-xs">
+                      <AlertCircle className="h-3 w-3" />
+                      Missing Phone
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-sm font-normal text-slate-600 dark:text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
+                  {lead.company && (
+                    <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                      <Building2 className="h-4 w-4 text-slate-400" />
+                      {lead.company}
+                    </span>
+                  )}
+                  {lead.profession && (
+                    <span className="flex items-center gap-1.5 before:content-['•'] before:mr-1 before:text-slate-300 text-slate-600 dark:text-slate-300">
+                      <Briefcase className="h-4 w-4 text-slate-400" />
+                      {lead.profession}
+                    </span>
+                  )}
+                  {lead.city && (
+                    <span className="flex items-center gap-1.5 before:content-['•'] before:mr-1 before:text-slate-300 text-slate-600 dark:text-slate-300">
+                      <MapPin className="h-4 w-4 text-slate-400" />
+                      {lead.city}
+                    </span>
+                  )}
+                </p>
+
+                {/* Badges Row */}
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  <Badge className={cn("border-none rounded-full px-3 py-0.5 font-semibold text-white text-[11px] shadow-xs", stage.color)}>
+                    <i className="ti ti-tag mr-1 text-[11px]" />
+                    {lead.stage}
+                  </Badge>
+
+                  {lead.status && (
+                    <Badge className={cn("border-none rounded-full px-3 py-0.5 font-semibold text-white text-[11px] shadow-xs", (temperatureConfig as any)[lead.status]?.color || 'bg-slate-600')}>
+                      {lead.status === 'Hot' && <Flame className="h-3 w-3 mr-1" />}
+                      {lead.status === 'Warm' && <ThermometerSun className="h-3 w-3 mr-1" />}
+                      {lead.status === 'Cold' && <Snowflake className="h-3 w-3 mr-1" />}
+                      {lead.status}
+                    </Badge>
+                  )}
+
+                  {lead.source && (
+                    <div className="flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-white dark:bg-slate-700 shadow-xs">
+                      <SourceIcon className="h-3 w-3 text-white" />
+                      <span>{lead.source}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Unified Metrics Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-200/80 dark:divide-slate-800 bg-slate-50/70 dark:bg-slate-850/70 rounded-xl border border-slate-200/80 dark:border-slate-800 p-2 overflow-hidden">
+            {/* Deal Value */}
+            <div className="p-4 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">Deal Value</span>
+                <div className="flex items-center gap-1 text-2xl font-bold font-heading text-slate-900 dark:text-white tabular-nums">
+                  <span className="text-base font-medium text-slate-400">₹</span>
+                  <span>{Number(lead.deal_value || 0).toLocaleString('en-IN')}</span>
+                </div>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                <IndianRupee className="h-5 w-5" />
+              </div>
+            </div>
+
+            {/* Paid Amount */}
+            <div className="p-4 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">Paid Amount</span>
+                <div className="flex items-center gap-1 text-2xl font-bold font-heading text-emerald-600 dark:text-emerald-400 tabular-nums">
+                  <span className="text-base font-medium text-emerald-600/70">₹</span>
+                  <span>{Number(lead.paid_amount || 0).toLocaleString('en-IN')}</span>
+                </div>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                <Wallet className="h-5 w-5" />
+              </div>
+            </div>
+
+            {/* Representative Assignment */}
+            <div className="p-4 flex flex-col justify-center">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5">Assigned Agent</span>
+              <Select 
+                value={lead.user_id?.toString() || lead.agent?.id?.toString() || 'unassigned'} 
+                onValueChange={handleAssignAgent}
+                disabled={isAssigning}
+              >
+                <SelectTrigger className="h-9 text-xs border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-lg px-3 font-medium focus:ring-2 focus:ring-indigo-500 w-full shadow-xs">
+                  <div className="flex items-center gap-2 truncate">
+                    {lead.agent ? (
+                      <div 
+                        className="h-5 w-5 rounded-full flex items-center justify-center text-white text-[9px] font-bold shrink-0 shadow-xs"
+                        style={{ backgroundColor: getAgentColor(lead.agent.id).bg }}
+                      >
+                        {lead.agent.name.split(' ').filter(Boolean).map((n: string) => n[0].toUpperCase()).join('')}
+                      </div>
+                    ) : (
+                      <div className="h-5 w-5 rounded-full bg-slate-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <User className="h-3 w-3" />
+                      </div>
+                    )}
+                    <span className="truncate font-medium">{lead.agent?.name || 'Unassigned'}</span>
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-slate-200 dark:border-slate-700">
+                  <SelectItem value="unassigned" className="text-slate-800 dark:text-slate-200 font-medium text-xs rounded-lg cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <div className="h-5 w-5 rounded-full bg-slate-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <User className="h-3 w-3" />
+                      </div>
+                      <span>Unassigned</span>
+                    </div>
+                  </SelectItem>
+                  {teamMembers.map((member) => {
+                    const agentColors = getAgentColor(member.id);
+                    return (
+                      <SelectItem key={member.id} value={member.id.toString()} className="rounded-lg text-xs font-medium text-slate-800 dark:text-slate-200 cursor-pointer">
+                        <div className="flex items-center gap-2.5">
+                          <div 
+                            className="h-5 w-5 rounded-full flex items-center justify-center text-white text-[9px] font-bold shrink-0 shadow-xs"
+                            style={{ backgroundColor: agentColors.bg }}
+                          >
+                            {member.name.split(' ').filter(Boolean).map((n: string) => n[0].toUpperCase()).join('')}
+                          </div>
+                          <span>{member.name}</span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Two Seamless Main Panels */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-2">
+            
+            {/* Left Column: Contact & Demographics */}
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xs font-bold font-heading uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2 mb-3">
+                  <User className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                  Contact & Demographics
+                </h3>
+
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {/* Phone */}
+                  <div className="py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <Phone className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Phone Number</span>
+                        <span className="text-sm font-medium text-slate-900 dark:text-slate-100 tabular-nums">
+                          {lead.phone || 'No phone number'}
+                        </span>
+                      </div>
+                    </div>
+                    {lead.phone && (
+                      <Button 
+                        variant="ghost" size="icon"
+                        onClick={() => copyToClipboard(lead.phone, 'Phone')} 
+                        className="h-7 w-7 rounded-md flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all p-0"
+                      >
+                        {copiedField === 'Phone' ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Email */}
+                  <div className="py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <Mail className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Email Address</span>
+                        <span className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate block">
+                          {lead.email || 'No email address'}
+                        </span>
+                      </div>
+                    </div>
+                    {lead.email && (
+                      <Button 
+                        variant="ghost" size="icon"
+                        onClick={() => copyToClipboard(lead.email, 'Email')} 
+                        className="h-7 w-7 rounded-md flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all p-0"
+                      >
+                        {copiedField === 'Email' ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Company */}
+                  <div className="py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-8 w-8 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <Building2 className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Company / Organization</span>
+                        <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                          {lead.company || 'Not specified'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Profession */}
+                  <div className="py-3 flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <Briefcase className="h-3.5 w-3.5" />
+                    </div>
+                    <div>
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Profession / Role</span>
+                      <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{lead.profession || 'Not specified'}</span>
+                    </div>
+                  </div>
+
+                  {/* City */}
+                  <div className="py-3 flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <MapPin className="h-3.5 w-3.5" />
+                    </div>
+                    <div>
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">City / Location</span>
+                      <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{lead.city || 'Not specified'}</span>
+                    </div>
+                  </div>
+
+                  {/* Created Date */}
+                  <div className="py-3 flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <Calendar className="h-3.5 w-3.5" />
+                    </div>
+                    <div>
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Created Date</span>
+                      <span className="text-sm font-medium text-slate-900 dark:text-slate-100 tabular-nums">
+                        {lead.created_at ? format(new Date(lead.created_at), 'PPP | hh:mm a') : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Unified Notes & System Info */}
+            <div className="space-y-7">
+              {/* Internal Notes */}
+              <div>
+                <h3 className="text-xs font-bold font-heading uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2 mb-3">
+                  <MessageSquare className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  Internal Notes & Custom Data
+                </h3>
+
+                <div>
+                  {lead.notes ? (
+                    (() => {
+                      try {
+                        const parsed = JSON.parse(lead.notes);
+                        if (typeof parsed === 'object' && parsed !== null) {
+                          return (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                              {Object.entries(parsed).map(([key, value]) => (
+                                <div key={key} className="p-3 bg-slate-50 dark:bg-slate-850 rounded-lg border border-slate-100 dark:border-slate-800">
+                                  <span className="text-[10.5px] uppercase font-semibold tracking-wider text-slate-400 block mb-0.5">{key}</span>
+                                  <span className="text-xs font-medium text-slate-800 dark:text-slate-200">{String(value)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        }
+                      } catch (e) {}
+                      
+                      return (
+                        <div className="p-4 bg-slate-50 dark:bg-slate-850 rounded-xl border border-slate-100 dark:border-slate-800">
+                          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line font-normal">
+                            "{lead.notes}"
+                          </p>
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    <div className="py-6 text-slate-400">
+                      <p className="text-xs font-normal text-slate-500">No notes recorded for this lead yet.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* System Metadata */}
+              <div className="pt-4 border-t border-slate-200/80 dark:border-slate-800">
+                <h3 className="text-xs font-bold font-heading uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-3">System Information</h3>
+                
+                <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                  <div className="flex items-center justify-between py-2.5">
+                    <span className="text-slate-500 dark:text-slate-400 font-normal">Lead ID</span>
+                    <span className="font-medium text-slate-800 dark:text-slate-200 tabular-nums">#{lead.id}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between py-2.5">
+                    <span className="text-slate-500 dark:text-slate-400 font-normal">Last Updated</span>
+                    <span className="font-medium text-slate-800 dark:text-slate-200 tabular-nums">
+                      {lead.updated_at ? format(new Date(lead.updated_at), 'PPP p') : 'N/A'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between py-2.5">
+                    <span className="text-slate-500 dark:text-slate-400 font-normal">System Status</span>
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                      <span className="h-2 w-2 rounded-full bg-emerald-600 animate-pulse" />
+                      Active Lead
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="h-12" />
         </div>
+
+        {/* Mobile Floating Action Bar */}
+        <div className="sm:hidden fixed bottom-4 left-4 right-4 z-40 flex items-center gap-2">
+          {lead.phone && (
+            <>
+              <Button 
+                variant="default"
+                onClick={() => window.open(`https://wa.me/${toWhatsAppPhone(lead.phone)}`, '_blank')} 
+                className="flex-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg transition-all"
+              >
+                <i className="ti ti-brand-whatsapp text-lg" />
+                <span>WhatsApp</span>
+              </Button>
+
+              <Button 
+                variant="default"
+                onClick={handleCall} 
+                className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg transition-all"
+              >
+                <i className="ti ti-phone text-lg" />
+                <span>Call</span>
+              </Button>
+            </>
+          )}
+        </div>
+
+        {/* Dialogs */}
+        <EditLeadDialog
+          isOpen={showEditLead}
+          onOpenChange={setShowEditLead}
+          lead={editingLead as any}
+          setLead={setEditingLead as any}
+          stages={defaultStages}
+          isUpdating={isUpdating}
+          onUpdate={handleUpdateSubmit as any}
+          onCancel={() => setShowEditLead(false)}
+        />
+
+        <DeleteConfirmationDialog
+          isOpen={deleteConfirmation.isOpen}
+          onOpenChange={(isOpen: boolean) => setDeleteConfirmation({ isOpen })}
+          leadName={lead.name}
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteConfirmation({ isOpen: false })}
+        />
       </div>
-
-      <EditLeadDialog
-        isOpen={showEditLead}
-        onOpenChange={setShowEditLead}
-        lead={editingLead as any}
-        setLead={setEditingLead as any}
-        stages={defaultStages}
-        isUpdating={isUpdating}
-        onUpdate={handleUpdateSubmit as any}
-        onCancel={() => setShowEditLead(false)}
-      />
-
-      <DeleteConfirmationDialog
-        isOpen={deleteConfirmation.isOpen}
-        onOpenChange={(isOpen) => setDeleteConfirmation({ isOpen })}
-        leadName={lead.name}
-        onConfirm={confirmDelete}
-        onCancel={() => setDeleteConfirmation({ isOpen: false })}
-      />
-    </div>
     </RoleGuard>
-  )
-}
-
-function CheckCircle(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-      <polyline points="22 4 12 14.01 9 11.01" />
-    </svg>
   )
 }

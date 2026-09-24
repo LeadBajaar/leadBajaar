@@ -1,12 +1,11 @@
-import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import { ErrorProvider } from '@/contexts/ErrorContext'
+import { NavigationProgressBar } from '@/components/NavigationProgressBar'
 import '@/styles/globals.css'
 import '@tabler/icons-webfont/dist/tabler-icons.min.css'
 import '@/lib/globalErrorHandler'
-
-const inter = Inter({ subsets: ['latin'] })
+import { ReactQueryProvider } from './ReactQueryProvider'
 
 export default function RootLayout({
   children,
@@ -15,15 +14,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className="font-sans antialiased">
         <ThemeProvider>
-          <ErrorProvider>
-            {children}
-            <Toaster position="top-right" richColors closeButton />
-          </ErrorProvider>
+          <ReactQueryProvider>
+            <ErrorProvider>
+              <NavigationProgressBar />
+              {children}
+              <Toaster position="top-right" richColors closeButton />
+            </ErrorProvider>
+          </ReactQueryProvider>
         </ThemeProvider>
       </body>
     </html>
   )
 }
-

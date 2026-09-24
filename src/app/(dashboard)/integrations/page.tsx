@@ -1,25 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import {
   Dialog,
   DialogContent,
@@ -27,69 +11,36 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Icons } from "@/components/icons";
-import { Badge } from "@/components/ui/badge";
-import {
-  Trash2,
-  Plus,
-  Globe,
-  Webhook,
   CheckCircle2,
-  XCircle,
-  RefreshCcw,
-  ArrowDownToLine,
-  ArrowRight,
-  Send,
-  Cloud,
-  Database,
-  Zap,
-  MessageCircle,
-  LucideIcon,
-  ClipboardCopy,
-  Facebook,
   Loader2,
-  Settings,
-  Play,
-  ShieldCheck,
   AlertCircle,
-  Mail,
-  Info,
-  Search
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  MoreVertical,
+  ShieldCheck,
+  Send
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { api, integrationApi, IntegrationConfig } from "@/lib/api";
+import { api, integrationApi } from "@/lib/api";
 import { useErrorHandler } from "@/utils/useErrorHandler";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/contexts/UserContext";
+import { RoleGuard } from "@/components/RoleGuard";
 
-import { FacebookConversionApiManager } from "@/components/meta-capi/FacebookConversionApiManager";
-import { LeadConversionTracker } from "@/components/meta-capi/LeadConversionTracker";
-import { ConversionApiTester } from "@/components/meta-capi/ConversionApiTester";
+import { BrandLogo } from "@/components/integrations/BrandLogos";
 import { WebhookConfigDialog } from "@/components/integrations/WebhookConfigDialog";
 import { EmailConfigDialog } from "@/components/integrations/EmailConfigDialog";
 import { TestEmailDialog } from "@/components/integrations/TestEmailDialog";
-import { UnifiedIntegrationDialog } from "@/components/integrations/UnifiedIntegrationDialog";
-import { IntegrationCard } from "@/components/integrations/IntegrationCard";
 import { DeleteConfirmationModal } from "@/components/shared/DeleteConfirmationModal";
-import { GoogleAccountCard } from "@/components/integrations/GoogleAccountCard";
 
 interface WebhookConfig {
   id: string;
@@ -115,28 +66,7 @@ interface ConnectedIntegration {
   id: number;
   user_id: number;
   type: string;
-  config: {
-    // WhatsApp fields (snake_case from backend)
-    phone_number_id?: string;
-    waba_id?: string;
-    access_token?: string;
-    enable_templates?: boolean;
-    // Facebook Lead Form fields
-    project_name?: string;
-    page_id?: string;
-    form_id?: string;
-    page_access_token?: string;
-    // Facebook Conversion API fields
-    pixel_id?: string;
-    page_name?: string;
-    test_event_code?: string;
-    // Email Marketing fields
-    provider?: string;
-    from_name?: string;
-    from_email?: string;
-    credentials?: any;
-    // Add other possible config fields
-  };
+  config: Record<string, any>;
   metadata: any;
   environment: string;
   is_active: boolean;
@@ -146,303 +76,219 @@ interface ConnectedIntegration {
   updated_at: string;
 }
 
-interface Integration {
+interface IntegrationItem {
   id: string;
   name: string;
-  icon: LucideIcon;
-  category: string;
-  color: string;
   description: string;
-  features: string[];
-  allowMultiple: boolean;
-  plans?: string[];
-  price?: string;
-  isPremium?: boolean;
+  category: "communication" | "lead_sources" | "productivity" | "marketing" | "payment" | "other";
+  route?: string;
+  isPopular?: boolean;
 }
 
-interface WhatsAppConfig {
-  phoneNumberId: string;
-  wabaId: string;
-  accessToken: string;
-  enableTemplates: boolean;
-}
+const popularIntegrationsList: IntegrationItem[] = [
+  {
+    id: "whatsapp",
+    name: "WhatsApp",
+    description: "Connect WhatsApp Business API to send messages, automate responses and manage chats.",
+    category: "communication",
+    route: "/integrations/whatsapp",
+    isPopular: true,
+  },
+  {
+    id: "leadform",
+    name: "Facebook Lead Ads",
+    description: "Sync leads from Facebook Lead Ads directly into your CRM in real time.",
+    category: "lead_sources",
+    route: "/integrations/facebook-lead-forms",
+    isPopular: true,
+  },
+  {
+    id: "google_calendar",
+    name: "Google Calendar",
+    description: "Sync your meetings and appointments with Google Calendar.",
+    category: "productivity",
+    isPopular: true,
+  },
+  {
+    id: "gmail",
+    name: "Gmail",
+    description: "Send emails, track opens and manage conversations directly from your CRM.",
+    category: "communication",
+    route: "/integrations/email-marketing",
+    isPopular: true,
+  },
+];
 
-interface FacebookConfig {
-  leadFormName: string;
-  pageId: string;
-  formId: string;
-  accessToken: string;
-  pixelId?: string;
-  testEventCode?: string;
-}
-
-interface FacebookConversionApiConfig {
-  pixelId: string;
-  accessToken: string;
-  pageName: string;
-  testEventCode?: string;
-}
-
-interface ConfigError {
-  phoneNumberId?: string;
-  wabaId?: string;
-  accessToken?: string;
-  leadFormName?: string;
-  pageId?: string;
-  formId?: string;
-  fbAccessToken?: string;
-  pixelId?: string;
-  conversionApiAccessToken?: string;
-  pageName?: string;
-}
-
-const integrations: Integration[] = [
+const catalogIntegrations: IntegrationItem[] = [
+  {
+    id: "outlook",
+    name: "Outlook",
+    description: "Sync emails and calendar with Microsoft Outlook.",
+    category: "productivity",
+  },
+  {
+    id: "google_sheets",
+    name: "Google Sheets",
+    description: "Export leads and data to Google Sheets automatically.",
+    category: "productivity",
+  },
+  {
+    id: "zapier",
+    name: "Zapier",
+    description: "Connect with 5000+ apps and automate workflows.",
+    category: "productivity",
+  },
+  {
+    id: "twilio",
+    name: "Twilio",
+    description: "Send SMS, make calls and verify numbers using Twilio.",
+    category: "communication",
+  },
+  {
+    id: "woocommerce",
+    name: "WooCommerce",
+    description: "Sync customers and orders from your WooCommerce store.",
+    category: "lead_sources",
+  },
+  {
+    id: "mailchimp",
+    name: "Mailchimp",
+    description: "Sync leads and run email campaigns with Mailchimp.",
+    category: "marketing",
+  },
+  {
+    id: "stripe",
+    name: "Stripe",
+    description: "Accept payments and manage subscriptions with Stripe.",
+    category: "payment",
+  },
+  {
+    id: "pabbly",
+    name: "Pabbly Connect",
+    description: "Automate tasks and connect your favorite applications.",
+    category: "productivity",
+  },
   {
     id: "whatsapp",
     name: "WhatsApp Cloud API",
-    icon: MessageCircle,
-    category: "messaging",
-    color: "#25D366",
-    description: "Connect with customers via WhatsApp Business Platform",
-    features: [
-      "Automated Messages",
-      "Chat Templates",
-      "Business Profile",
-      "Message Analytics",
-    ],
-    allowMultiple: false,
-    plans: ["pro", "enterprise"],
-    price: "$49/mo",
-    isPremium: true,
+    description: "Connect with customers via official Meta WhatsApp Business Cloud API.",
+    category: "communication",
+    route: "/integrations/whatsapp",
   },
   {
     id: "evolution",
     name: "WhatsApp (Evolution)",
-    icon: MessageCircle,
-    category: "messaging",
-    color: "#25D366",
-    description: "Connect personal WhatsApp numbers via Evolution API",
-    features: [
-      "QR Code Connection",
-      "Personal Number Support",
-      "Automated Messaging"
-    ],
-    allowMultiple: true,
-    price: "$19/mo",
-    isPremium: true,
+    description: "Connect personal WhatsApp numbers via QR code Evolution API.",
+    category: "communication",
+    route: "/integrations/evolution",
   },
   {
     id: "leadform",
     name: "Facebook Lead Forms",
-    icon: Facebook,
-    category: "marketing",
-    color: "#1877F2",
-    description: "Connect and sync Facebook Lead Form submissions",
-    features: [
-      "Lead Form Integration",
-      "Real-time Notifications",
-      "Automated Lead Capture",
-    ],
-    allowMultiple: true,
-    price: "Free",
-    isPremium: false,
+    description: "Connect and sync Facebook Lead Form submissions automatically.",
+    category: "lead_sources",
+    route: "/integrations/facebook-lead-forms",
   },
   {
     id: "facebook_conversion_api",
-    name: "Facebook Conversion API",
-    icon: Facebook,
+    name: "Meta Conversion API",
+    description: "Track conversions with Facebook Conversion API for better attribution.",
     category: "marketing",
-    color: "#1877F2",
-    description:
-      "Track conversions with Facebook Conversion API for better attribution",
-    features: [
-      "Server-side Tracking",
-      "Better Attribution",
-      "Privacy Compliant",
-      "iOS 14.5+ Compatible",
-    ],
-    allowMultiple: true,
-    price: "$29/mo",
-    isPremium: true,
-  },
-  {
-    id: "webhook",
-    name: "General Webhook",
-    icon: Webhook,
-    category: "webhooks",
-    color: "#4F46E5",
-    description: "Receive leads into CRM or dispatch them to external tools.",
-    features: ["Incoming Lead Receiver", "Outgoing Dispatcher", "Secure Auth", "Custom Mapping"],
-    allowMultiple: true,
-    price: "$19/mo",
-    isPremium: true,
-  },
-  {
-    id: "facebook_auth",
-    name: "Facebook Auth",
-    icon: Facebook,
-    category: "marketing",
-    color: "#1877F2",
-    description: "Connect Facebook accounts to manage pages and services.",
-    features: ["OAuth Connection", "Page Management", "Service Sync"],
-    allowMultiple: false,
-    price: "Free",
-    isPremium: false,
-  },
-  {
-    id: "email",
-    name: "Email Marketing",
-    icon: Mail,
-    category: "marketing",
-    color: "#4F46E5",
-    description: "Connect SES, SMTP, or Mailgun for automated drip sequences",
-    features: [
-      "Custom SMTP Support",
-      "Amazon SES Integration",
-      "Campaign Analytics",
-      "Sequences Enabled",
-    ],
-    allowMultiple: false,
-    price: "$29/mo",
-    isPremium: true,
+    route: "/integrations/meta-capi",
   },
   {
     id: "lb_forms",
     name: "LB Forms",
-    icon: ClipboardCopy,
-    category: "marketing",
-    color: "#8B5CF6",
     description: "Create custom forms and capture leads directly into CRM.",
-    features: [
-      "Drag-and-drop Builder",
-      "Auto Lead Creation",
-      "Custom Redirection",
-      "Embeddable Forms"
-    ],
-    allowMultiple: false,
-    price: "Free",
-    isPremium: false,
+    category: "lead_sources",
+    route: "/lb-forms",
+  },
+  {
+    id: "webhook",
+    name: "General Webhook",
+    description: "Receive leads into CRM or dispatch them to external tools.",
+    category: "other",
+    route: "/integrations/webhooks",
+  },
+  {
+    id: "email",
+    name: "Email Marketing",
+    description: "Connect SES, SMTP, or Mailgun for automated drip sequences.",
+    category: "marketing",
+    route: "/integrations/email-marketing",
+  },
+  {
+    id: "facebook_auth",
+    name: "Facebook Auth",
+    description: "Connect Facebook accounts to manage pages and permissions.",
+    category: "marketing",
+    route: "/integrations/facebook-auth",
   },
 ];
 
-const dummyLogs = [
-  {
-    id: 1,
-    integration: "Salesforce",
-    action: "Data sync",
-    status: "Success",
-    timestamp: "2023-06-15 10:30:00",
-    icon: RefreshCcw,
-  },
-  {
-    id: 2,
-    integration: "HubSpot",
-    action: "Contact import",
-    status: "Failed",
-    timestamp: "2023-06-15 11:45:00",
-    icon: ArrowDownToLine,
-  },
-  {
-    id: 3,
-    integration: "Mailchimp",
-    action: "Campaign sync",
-    status: "Success",
-    timestamp: "2023-06-15 13:15:00",
-    icon: RefreshCcw,
-  },
-  {
-    id: 4,
-    integration: "Zapier",
-    action: "Trigger update",
-    status: "Success",
-    timestamp: "2023-06-15 14:30:00",
-    icon: Send,
-  },
-  {
-    id: 5,
-    integration: "Calendly",
-    action: "Appointment sync",
-    status: "Success",
-    timestamp: "2023-06-15 15:45:00",
-    icon: RefreshCcw,
-  },
+const categoryTabs = [
+  { id: "all", label: "All" },
+  { id: "communication", label: "Communication" },
+  { id: "lead_sources", label: "Lead Sources" },
+  { id: "productivity", label: "Productivity" },
+  { id: "marketing", label: "Marketing" },
+  { id: "payment", label: "Payment" },
+  { id: "other", label: "Other" },
 ];
-
-import { RoleGuard } from "@/components/RoleGuard";
 
 export default function IntegrationsPage() {
-  const { hasPlan, hasType, hasFeature } = useUser();
-  const [activeIntegrations, setActiveIntegrations] = useState<string[]>([]);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [webhookToDelete, setWebhookToDelete] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
+  const { handleError } = useErrorHandler();
+  const popularScrollRef = useRef<HTMLDivElement>(null);
 
-  const [showTestEmailDialog, setShowTestEmailDialog] = useState(false);
-  const [testEmailAddress, setTestEmailAddress] = useState('');
-  const [connectingIntegrationId, setConnectingIntegrationId] = useState<string | null>(null);
-  const [integrationToConfirm, setIntegrationToConfirm] = useState<Integration | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [connectedIntegrations, setConnectedIntegrations] = useState<ConnectedIntegration[]>([]);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [selectedIntegrationId, setSelectedIntegrationId] = useState<string | null>(null);
+  const [integrationToConfirm, setIntegrationToConfirm] = useState<IntegrationItem | null>(null);
 
-  const [webhooks, setWebhooks] = useState<WebhookConfig[]>([
-    {
-      id: "1",
-      name: "Lead Form Webhook",
-      url: "https://example.com/webhook1",
-      events: ["lead.created", "lead.updated"],
-      isActive: true,
-      mapping: [
-        { sourceField: "name", targetField: "full_name" },
-        { sourceField: "email", targetField: "email_address" },
-      ],
-    },
-  ]);
+  // Webhook State
+  const [webhooks, setWebhooks] = useState<WebhookConfig[]>([]);
   const [showNewWebhookDialog, setShowNewWebhookDialog] = useState(false);
+  const [selectedWebhookId, setSelectedWebhookId] = useState<string | null>(null);
   const [newWebhook, setNewWebhook] = useState<Partial<WebhookConfig>>({
     name: "",
     url: "",
     events: [],
     mapping: [],
   });
-  const [whatsappConfig, setWhatsappConfig] = useState<WhatsAppConfig>({
-    phoneNumberId: "",
-    wabaId: "",
-    accessToken: "",
-    enableTemplates: false,
-  });
-  const [facebookConfig, setFacebookConfig] = useState<FacebookConfig>({
-    leadFormName: "",
-    pageId: "",
-    formId: "",
-    accessToken: "",
-    pixelId: "",
-    testEventCode: "",
-  });
-  const [facebookConversionApiConfig, setFacebookConversionApiConfig] =
-    useState<FacebookConversionApiConfig>({
-      pixelId: "",
-      accessToken: "",
-      pageName: "",
-      testEventCode: "",
-    });
-  const [configErrors, setConfigErrors] = useState<ConfigError>({});
-  const [selectedIntegrationId, setSelectedIntegrationId] = useState<
-    string | null
-  >(null);
-  const [selectedWebhookId, setSelectedWebhookId] = useState<string | null>(null);
-  const { handleError } = useErrorHandler();
-  const router = useRouter();
-  const [connectedIntegrations, setConnectedIntegrations] = useState<
-    ConnectedIntegration[]
-  >([]);
-  const [currentUserId, setCurrentUserId] = useState<number>(1);
-  const [isConnecting, setIsConnecting] = useState(false);
-
-  const [activeTab, setActiveTab] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-
   const [isListeningForWebhook, setIsListeningForWebhook] = useState(false);
   const [availablePayloadFields, setAvailablePayloadFields] = useState<{ key: string; value: any }[]>([]);
 
-  // Fix 10: Meta connection status for reconnect banner
+  // Deletion Modal
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [webhookToDelete, setWebhookToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Email Config State
+  const [emailConfig, setEmailConfig] = useState({
+    provider: 'smtp',
+    from_name: '',
+    from_email: '',
+    smtp_host: '',
+    smtp_port: '587',
+    smtp_username: '',
+    smtp_password: '',
+    smtp_encryption: 'tls',
+    aws_access_key_id: '',
+    aws_secret_access_key: '',
+    aws_default_region: 'us-east-1',
+  });
+  const [showTestEmailDialog, setShowTestEmailDialog] = useState(false);
+  const [testEmailAddress, setTestEmailAddress] = useState('');
+
+  // Request Modal
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestToolName, setRequestToolName] = useState("");
+  const [requestUseCase, setRequestUseCase] = useState("");
+
+  // Meta Reconnect State
   const [metaConnectionStatus, setMetaConnectionStatus] = useState<{
     connected: boolean;
     needs_reconnect?: boolean;
@@ -450,418 +296,181 @@ export default function IntegrationsPage() {
   } | null>(null);
   const [isReconnecting, setIsReconnecting] = useState(false);
 
-  const [emailConfig, setEmailConfig] = useState<any>({
-    provider: 'ses',
-    from_name: '',
-    from_email: '',
-    credentials: {},
-    is_active: true
-  });
+  const fetchConnectedIntegrations = async () => {
+    try {
+      const response = await integrationApi.getConnectedIntegrations();
+      setConnectedIntegrations(response || []);
+    } catch {
+      setConnectedIntegrations([]);
+    }
+  };
+
+  const fetchWebhooks = async () => {
+    try {
+      const response = await api.get("/webhooks");
+      if (response?.data?.data && Array.isArray(response.data.data)) {
+        setWebhooks(response.data.data);
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   const fetchEmailConfig = async () => {
     try {
-      const res = await (integrationApi as any).get('/email/configurations');
-      if (res.data && res.data.length > 0) {
-        const active = res.data.find((c: any) => c.is_active) || res.data[0];
-        setEmailConfig(active);
+      const response = await api.get('/email/configurations');
+      if (response?.data?.data) {
+        setEmailConfig(response.data.data);
       }
-    } catch (e) {
-      console.warn("Could not fetch email config");
+    } catch {
+      // ignore
     }
   };
 
   useEffect(() => {
-    // Select tab based on query parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    const tab = urlParams.get("tab");
-    if (
-      tab &&
-      [
-        "all",
-        "facebook",
-        "marketing",
-        "messaging",
-        "webhooks",
-        "settings",
-      ].includes(tab)
-    ) {
-      setActiveTab(tab);
-    } else if (urlParams.has("meta_connected")) {
-      setActiveTab("facebook");
-    }
-
-    fetchEmailConfig();
     fetchConnectedIntegrations();
-    // Fix 10: Check Meta connection status for reconnect banner
-    fetchMetaStatus();
+    fetchWebhooks();
+    fetchEmailConfig();
+
+    const checkMetaStatus = async () => {
+      try {
+        const res = await (integrationApi as any).get('/meta/status');
+        if (res?.data) setMetaConnectionStatus(res.data);
+      } catch {
+        // ignore
+      }
+    };
+    checkMetaStatus();
+
+    const handleUpdate = () => {
+      fetchConnectedIntegrations();
+      fetchWebhooks();
+    };
+    window.addEventListener('integrationsUpdated', handleUpdate);
+    return () => window.removeEventListener('integrationsUpdated', handleUpdate);
   }, []);
 
-  const fetchConnectedIntegrations = async () => {
+  const saveWebhookConfig = async (id: string) => {
     try {
-      const response = await integrationApi.getConnectedIntegrations();
-      setConnectedIntegrations(response);
-      if (response && response.length > 0) {
-        setCurrentUserId(response[0].user_id);
-      }
-
-      const filteredWebhooks = response
-        .filter((ci: any) => ci.type === "webhook")
-        .map((ci: any) => ({
-          id: ci.id.toString(),
-          uuid: ci.uuid,
-          name: ci.config.name || "External Webhook",
-          url: ci.webhook_url || ci.config.url || "",
-          events: ci.config.events || ["lead.created"],
-          isActive: ci.is_active,
-          mapping: ci.config.mapping || [],
-          secret: ci.webhook_secret || "",
-          enrichment: ci.config.enrichment || { enabled: false }
-        }));
-      setWebhooks(filteredWebhooks);
-    } catch (error: any) {
-      setConnectedIntegrations([]);
-      setWebhooks([]);
-      handleError(error, { title: "Connection Error" });
+      const webhook = webhooks.find((w) => w.id === id);
+      if (!webhook) return;
+      await api.put(`/webhooks/${id}`, webhook);
+      toast.success("Webhook updated successfully");
+      fetchWebhooks();
+    } catch {
+      toast.error("Failed to save webhook");
     }
   };
-
-  const canConnectIntegration = (integrationId: string) => {
-    const integration = integrations.find((i) => i.id === integrationId);
-    if (!integration) return false;
-
-    const isConnected = connectedIntegrations.some(
-      (ci) => ci.type === integrationId && ci.is_active,
-    );
-
-    return integration.allowMultiple || !isConnected;
-  };
-
-  // const toggleIntegration = async (integrationId: string) => {
-  //   try {
-  //     const isActive = !activeIntegrations.includes(integrationId);
-  //     await integrationApi.updateIntegrationStatus(integrationId, isActive);
-  //     setActiveIntegrations(prev =>
-  //       isActive
-  //         ? [...prev, integrationId]
-  //         : prev.filter(id => id !== integrationId)
-  //     );
-  //     toast.success("");
-  //   } catch (error: any) {
-  //     toast.error("Error");
-  //     // Revert the UI state if the API call failed
-  //     setActiveIntegrations(prev => prev);
-  //   }
-  // }
 
   const addWebhook = async () => {
-    if (!newWebhook.name) return;
     try {
-      setIsConnecting(true);
-      await integrationApi.saveIntegration({
-        type: "webhook",
-        config: { ...newWebhook, secret: Math.random().toString(36).substring(2, 12) },
-        isActive: true,
-        environment: "production"
-      });
+      if (!newWebhook.name || !newWebhook.url) {
+        toast.error("Please provide a webhook name and destination URL");
+        return;
+      }
+      await api.post("/webhooks", newWebhook);
+      toast.success("Webhook created successfully");
       setShowNewWebhookDialog(false);
       setNewWebhook({ name: "", url: "", events: [], mapping: [] });
-      setSelectedIntegrationId(null);
-      fetchConnectedIntegrations();
-      toast.success("Integration connected successfully!");
-    } catch (error: any) {
-      handleError(error, { title: "Integration Failed" });
-    } finally {
-      setIsConnecting(false);
+      fetchWebhooks();
+    } catch {
+      toast.error("Failed to create webhook");
     }
   };
 
-  const deleteWebhook = async () => {
-    if (!webhookToDelete) return;
-    try {
-      setIsDeleting(true);
-      await integrationApi.deleteIntegration(webhookToDelete);
-      toast.success("Integration deactivated successfully");
-      setShowDeleteDialog(false);
-      fetchConnectedIntegrations();
-      window.dispatchEvent(new Event('integrationsUpdated'));
-    } catch (error: any) {
-      handleError(error, { title: "Deletion Failed" });
-    } finally {
-      setIsDeleting(false);
-      setWebhookToDelete(null);
-    }
-  };
-
-  const toggleWebhook = async (id: string) => {
-    const webhook = webhooks.find(w => w.id === id);
-    if (!webhook) return;
-    try {
-      await integrationApi.updateIntegrationStatus(id, !webhook.isActive);
-      toast.success(`Webhook ${webhook.isActive ? "deactivated" : "activated"} successfully`);
-      fetchConnectedIntegrations();
-    } catch (error: any) {
-      handleError(error, { title: "Status Update Failed" });
-    }
-  };
-
-  /**
-   * Recursively flatten a nested object/array into dot-notation key-value pairs.
-   * e.g. { body: { data: ["a", "b"], event: "x" } }
-   *   → [{ key: "body.data.0", value: "a" }, { key: "body.data.1", value: "b" }, { key: "body.event", value: "x" }]
-   */
-  const flattenPayload = (obj: any, prefix = ''): { key: string; value: any }[] => {
-    const result: { key: string; value: any }[] = [];
-    if (obj === null || obj === undefined) return result;
-
-    for (const [k, v] of Object.entries(obj)) {
-      const dotKey = prefix ? `${prefix}.${k}` : k;
-
-      if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
-        // Recurse into nested objects
-        result.push(...flattenPayload(v, dotKey));
-      } else if (Array.isArray(v)) {
-        // Recurse into arrays with numeric index
-        v.forEach((item, i) => {
-          if (item !== null && typeof item === 'object') {
-            result.push(...flattenPayload(item, `${dotKey}.${i}`));
-          } else {
-            result.push({ key: `${dotKey}.${i}`, value: item });
-          }
-        });
-      } else {
-        // Scalar value — leaf node
-        result.push({ key: dotKey, value: v });
-      }
-    }
-    return result;
-  };
-
-  const startListening = async (id: string) => {
-    setIsListeningForWebhook(true);
-    setAvailablePayloadFields([]);
-
-    toast.success("Waiting for test request...");
-
-    const pollInterval = setInterval(async () => {
-      try {
-        const result = await integrationApi.getLatestLog(id);
-        if (result.log && (result.log.details?.payload || result.log.details)) {
-          const payloadData = result.log.details.payload || result.log.details;
-          const payload = typeof payloadData === 'string' ? JSON.parse(payloadData) : payloadData;
-
-          // Flatten nested structures into dot-notation field paths
-          const fields = flattenPayload(payload);
-
-          setAvailablePayloadFields(fields);
-          setIsListeningForWebhook(false);
-          clearInterval(pollInterval);
-
-          // Provide first mapping row immediately if none exist
-          addFieldMapping(id);
-
-          console.log("Captured fields:", fields);
-          toast.success(`Webhook captured — ${fields.length} mappable fields detected!`);
-        }
-      } catch (e) {
-        console.error("Polling error:", e);
-      }
-    }, 3000);
-
-    setTimeout(() => { clearInterval(pollInterval); setIsListeningForWebhook(false); }, 120000);
-  };
-
-  const saveWebhookConfig = async (webhookId: string) => {
-    const webhook = webhooks.find(w => w.id === webhookId);
-    if (!webhook) return;
-    try {
-      const config = {
-        type: "webhook",
-        config: {
-          name: webhook.name,
-          url: webhook.url,
-          events: webhook.events,
-          mapping: webhook.mapping,
-          secret: (webhook as any).secret,
-          enrichment: (webhook as any).enrichment
-        },
-        isActive: webhook.isActive,
-        environment: "production" as "production"
-      };
-
-      if (webhookId) {
-        await (integrationApi as any).updateIntegration(webhookId, config);
-        toast.success("Webhook mapping updated!");
-      } else {
-        await integrationApi.saveIntegration(config);
-        toast.success("Webhook created!");
-      }
-
-      setShowNewWebhookDialog(false);
-      fetchConnectedIntegrations();
-    } catch (error: any) {
-      handleError(error, { title: "Save Failed" });
-    }
-  };
-
-  const addFieldMapping = (webhookId: string) => {
+  const addFieldMapping = (id: string) => {
     setWebhooks((prev) =>
-      prev.map((webhook) => {
-        if (webhook.id === webhookId) {
-          return {
-            ...webhook,
-            mapping: [...webhook.mapping, { sourceField: "", targetField: "" }],
-          };
-        }
-        return webhook;
-      }),
+      prev.map((w) =>
+        w.id === id
+          ? {
+              ...w,
+              mapping: [...(w.mapping || []), { sourceField: "", targetField: "" }],
+            }
+          : w
+      )
     );
   };
 
   const updateFieldMapping = (
-    webhookId: string,
+    id: string,
     index: number,
     field: "sourceField" | "targetField",
-    value: string,
+    value: string
   ) => {
     setWebhooks((prev) =>
-      prev.map((webhook) => {
-        if (webhook.id === webhookId) {
-          const newMapping = [...webhook.mapping];
-          newMapping[index] = { ...newMapping[index], [field]: value };
-          return { ...webhook, mapping: newMapping };
+      prev.map((w) => {
+        if (w.id === id) {
+          const newMapping = [...(w.mapping || [])];
+          if (newMapping[index]) {
+            newMapping[index] = { ...newMapping[index], [field]: value };
+          }
+          return { ...w, mapping: newMapping };
         }
-        return webhook;
-      }),
+        return w;
+      })
     );
   };
 
-  const removeFieldMapping = (webhookId: string, index: number) => {
+  const removeFieldMapping = (id: string, index: number) => {
     setWebhooks((prev) =>
-      prev.map((webhook) => {
-        if (webhook.id === webhookId) {
-          const newMapping = webhook.mapping.filter((_, i) => i !== index);
-          return { ...webhook, mapping: newMapping };
-        }
-        return webhook;
-      }),
+      prev.map((w) =>
+        w.id === id
+          ? {
+              ...w,
+              mapping: (w.mapping || []).filter((_, i) => i !== index),
+            }
+          : w
+      )
     );
   };
 
-  const validateConfig = () => {
-    const errors: ConfigError = {};
-
-    if (!whatsappConfig.phoneNumberId.trim()) {
-      errors.phoneNumberId = "Phone Number ID is required";
+  const isIntegrationConnected = (id: string): boolean => {
+    if (id === 'webhook') {
+      return webhooks.some((w) => w.isActive);
     }
-    if (!whatsappConfig.wabaId.trim()) {
-      errors.wabaId = "WABA ID is required";
+    if (id === 'email' || id === 'gmail') {
+      return !!(emailConfig?.from_email && (emailConfig?.smtp_host || emailConfig?.aws_access_key_id));
     }
-    if (!whatsappConfig.accessToken.trim()) {
-      errors.accessToken = "Access Token is required";
+    if (id === 'leadform' || id === 'facebook_auth') {
+      return metaConnectionStatus?.connected ?? false;
     }
-
-    setConfigErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  // const handleSaveConfig = async () => {
-  //   if (validateConfig()) {
-  //     try {
-  //       await integrationApi.saveIntegration({
-  //         type: 'whatsapp',
-  //         config: whatsappConfig,
-  //         isActive: true,
-  //         environment: 'production',
-  //       });
-  //       toast.success("WhatsApp integration has been configured successfully.");
-  //       setSelectedIntegrationId(null);
-  //     } catch (error: any) {
-  //       toast.error("Configuration Failed");
-  //     }
-  //   }
-  // };
-
-  const validateFacebookConfig = () => {
-    const errors: ConfigError = {};
-
-    if (!facebookConfig.leadFormName.trim()) {
-      errors.leadFormName = "Lead Form Name is required";
-    }
-    if (!facebookConfig.pageId.trim()) {
-      errors.pageId = "Page ID is required";
-    }
-    if (!facebookConfig.formId.trim()) {
-      errors.formId = "Form ID is required";
-    }
-    if (!facebookConfig.accessToken.trim()) {
-      errors.fbAccessToken = "Access Token is required";
-    }
-
-    setConfigErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  // const handleSaveFacebookConfig = async () => {
-  //   if (validateFacebookConfig()) {
-  //     try {
-  //       await integrationApi.saveIntegration({
-  //         type: 'facebook',
-  //         config: facebookConfig,
-  //         isActive: true,
-  //         environment: 'production',
-  //       });
-  //       toast.success("Facebook Lead Form integration has been configured successfully.");
-  //       setSelectedIntegrationId(null);
-  //     } catch (error: any) {
-  //       toast.error("Configuration Failed");
-  //     }
-  //   }
-  // };
-
-  const handleIntegrationAction = async (integration: Integration) => {
-
-    const connectedIntegration = connectedIntegrations.find(
-      (ci) => ci.type === integration.id && ci.is_active,
+    return connectedIntegrations.some(
+      (ci) =>
+        (ci.type === id ||
+          (id === 'leadform' && ci.type === 'leadform') ||
+          (id === 'whatsapp' && (ci.type === 'whatsapp' || ci.type === 'evolution')) ||
+          (id === 'gmail' && ci.type === 'email')) &&
+        ci.is_active
     );
+  };
 
-    if (connectedIntegration) {
-      if (integration.id === "whatsapp") {
-        router.push("/integrations/whatsapp");
-        return;
-      } else if (integration.id === "evolution") {
-        router.push("/integrations/evolution");
-        return;
-      } else if (integration.id === "facebook_conversion_api") {
-        router.push("/integrations/meta-capi");
-        return;
-      } else if (integration.id === "leadform") {
-        router.push("/integrations/facebook-lead-forms");
-        return;
-      } else if (integration.id === "email") {
-        router.push("/integrations/email-marketing");
-        return;
-      } else if (integration.id === "webhook") {
-        router.push("/integrations/webhooks");
-        return;
-      } else if (integration.id === "facebook_auth") {
-        router.push("/integrations/facebook-auth");
-        return;
-      } else if (integration.id === "lb_forms") {
-        router.push("/lb-forms");
-        return;
+  const handleIntegrationCardAction = (item: IntegrationItem) => {
+    const isConnected = isIntegrationConnected(item.id);
+
+    if (item.route) {
+      router.push(item.route);
+      return;
+    }
+
+    if (isConnected) {
+      if (item.id === "webhook") {
+        setShowNewWebhookDialog(true);
+      } else if (item.id === "email") {
+        setSelectedIntegrationId("email");
+      } else {
+        toast.info(`${item.name} is connected and syncing actively.`);
       }
+      return;
     }
-    
-    // Not connected: Ask for confirmation
-    setIntegrationToConfirm(integration);
+
+    // Direct Connect modal
+    setIntegrationToConfirm(item);
   };
 
   const handleConfirmConnect = async () => {
     if (!integrationToConfirm) return;
-    
     setIsConnecting(true);
-    setConnectingIntegrationId(integrationToConfirm.id);
-    
+
     try {
       await integrationApi.saveIntegration({
         type: integrationToConfirm.id,
@@ -869,181 +478,46 @@ export default function IntegrationsPage() {
         isActive: true,
         environment: "production",
       });
-      
-      toast.success(`${integrationToConfirm.name} enabled successfully!`);
+
+      toast.success(`${integrationToConfirm.name} connected successfully!`);
       fetchConnectedIntegrations();
       window.dispatchEvent(new Event('integrationsUpdated'));
-      
-      // Route to page
-      const routeMap: Record<string, string> = {
-        facebook: "/integrations/facebook",
-        evolution: "/integrations/evolution",
-        facebook_conversion_api: "/integrations/meta-capi",
-        leadform: "/integrations/facebook-lead-forms",
-        email: "/integrations/email-marketing",
-        webhook: "/integrations/webhooks",
-        facebook_auth: "/integrations/facebook-auth",
-        lb_forms: "/lb-forms"
-      };
-      
-      const route = routeMap[integrationToConfirm.id];
-      if (route) {
-        router.push(route);
+
+      if (integrationToConfirm.route) {
+        router.push(integrationToConfirm.route);
       }
-      
     } catch (error: any) {
       handleError(error, { title: `Failed to connect ${integrationToConfirm.name}` });
     } finally {
       setIsConnecting(false);
-      setConnectingIntegrationId(null);
       setIntegrationToConfirm(null);
     }
   };
 
   const handleDeactivateRequest = (integrationId: string) => {
-    const connected = connectedIntegrations.find(ci => ci.type === integrationId && ci.is_active);
+    const connected = connectedIntegrations.find((ci) => ci.type === integrationId && ci.is_active);
     if (connected) {
       setWebhookToDelete(connected.id.toString());
       setShowDeleteDialog(true);
-    }
-  };
-
-  const handleIntegrationConnect = async () => {
-    const type = selectedIntegrationId;
-    if (!type) return;
-
-    let config: any;
-    if (type === "whatsapp") {
-      config = whatsappConfig;
-    } else if (type === "leadform") {
-      config = facebookConfig;
-    } else if (type === "facebook_conversion_api") {
-      config = facebookConversionApiConfig;
     } else {
-      config = {};
-    }
-    // Clear previous errors
-    setConfigErrors({});
-
-    // Validate based on integration type
-    if (type === "whatsapp") {
-      if (!config.phoneNumberId?.trim()) {
-        setConfigErrors((prev) => ({
-          ...prev,
-          phoneNumberId: "Phone Number ID is required",
-        }));
-        return;
-      }
-      if (!config.wabaId?.trim()) {
-        setConfigErrors((prev) => ({ ...prev, wabaId: "WABA ID is required" }));
-        return;
-      }
-      if (!config.accessToken?.trim()) {
-        setConfigErrors((prev) => ({
-          ...prev,
-          accessToken: "Access Token is required",
-        }));
-        return;
-      }
-    } else if (type === "facebook" || type === "leadform") {
-      if (!config.leadFormName?.trim()) {
-        setConfigErrors((prev) => ({
-          ...prev,
-          leadFormName: "Lead Form Name is required",
-        }));
-        return;
-      }
-      if (!config.pageId?.trim()) {
-        setConfigErrors((prev) => ({ ...prev, pageId: "Page ID is required" }));
-        return;
-      }
-      if (!config.formId?.trim()) {
-        setConfigErrors((prev) => ({ ...prev, formId: "Form ID is required" }));
-        return;
-      }
-      if (!config.accessToken?.trim()) {
-        setConfigErrors((prev) => ({
-          ...prev,
-          fbAccessToken: "Access Token is required",
-        }));
-        return;
-      }
-    } else if (type === "facebook_conversion_api") {
-      if (!config.pixelId?.trim()) {
-        setConfigErrors((prev) => ({
-          ...prev,
-          pixelId: "Pixel ID is required",
-        }));
-        return;
-      }
-      if (!config.accessToken?.trim()) {
-        setConfigErrors((prev) => ({
-          ...prev,
-          conversionApiAccessToken: "Access Token is required",
-        }));
-        return;
-      }
-      if (!config.pageName?.trim()) {
-        setConfigErrors((prev) => ({
-          ...prev,
-          pageName: "Page Name is required",
-        }));
-        return;
-      }
-    }
-
-    setIsConnecting(true);
-    try {
-      // Clean up config - remove empty optional fields
-      const cleanedConfig = { ...config };
-      if (cleanedConfig.testEventCode === "") {
-        delete cleanedConfig.testEventCode;
-      }
-
-      const payload: IntegrationConfig = {
-        type: type,
-        config: cleanedConfig,
-        isActive: true,
-        environment: "production" as "sandbox" | "production",
-      };
-
-      const response = await integrationApi.saveIntegration(payload);
-
-      // Update connected integrations list with the correct structure
-      setConnectedIntegrations((prev) => [
-        ...prev,
-        {
-          id: response.data.id,
-          user_id: response.data.user_id,
-          type: type,
-          config: config,
-          metadata: null,
-          environment: "production",
-          is_active: true,
-          webhook_url: null,
-          webhook_secret: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ]);
-
-      toast.success("Integration connected successfully");
-
-      setConfigErrors({});
-      setSelectedIntegrationId(null);
-    } catch (error: any) {
-      handleError(error, { title: "Integration Failed" });
-    } finally {
-      setIsConnecting(false);
+      toast.info("Integration is not actively configured.");
     }
   };
 
-  const fetchMetaStatus = async () => {
+  const deleteWebhook = async () => {
+    if (!webhookToDelete) return;
+    setIsDeleting(true);
     try {
-      const res = await (integrationApi as any).get('/meta/status');
-      setMetaConnectionStatus(res.data ?? res);
-    } catch (e) {
-      // Silently fail — don't block page load if status check fails
+      await integrationApi.deleteIntegration(webhookToDelete);
+      toast.success("Integration disconnected successfully");
+      fetchConnectedIntegrations();
+      window.dispatchEvent(new Event('integrationsUpdated'));
+    } catch (error) {
+      toast.error("Failed to disconnect integration");
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+      setWebhookToDelete(null);
     }
   };
 
@@ -1053,427 +527,422 @@ export default function IntegrationsPage() {
       const res = await (integrationApi as any).get('/meta/connect');
       const authUrl = res?.data?.auth_url ?? res?.auth_url;
       if (authUrl) window.location.href = authUrl;
-    } catch (e) {
+    } catch {
       toast.error('Could not start Facebook reconnection. Please try again.');
     } finally {
       setIsReconnecting(false);
     }
   };
 
+  const scrollPopular = (direction: "left" | "right") => {
+    if (popularScrollRef.current) {
+      const amount = 320;
+      popularScrollRef.current.scrollBy({
+        left: direction === "left" ? -amount : amount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const filteredCatalog = catalogIntegrations.filter((item) => {
+    const matchesSearch =
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = activeCategory === "all" || item.category === activeCategory;
+    return matchesSearch && matchesCategory;
+  });
+
   return (
     <RoleGuard allowedFeatures={['integrations']}>
-      <div className="w-full h-full overflow-y-auto p-6 pt-2">
-        {/* Fix 10: Meta reconnect banner — appears when token is expired or connection lost */}
+      <div className="w-full min-h-full pb-20 sm:pb-24 lg:pb-28">
+        
+        {/* Meta Expired Alert */}
         {metaConnectionStatus && metaConnectionStatus.connected === false &&
           metaConnectionStatus.status !== 'deletion_pending' && (
-          <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-orange-400/40 bg-orange-500/10 px-4 py-3 text-sm">
-            <div className="flex items-center gap-2 text-orange-300">
+          <div className="mb-6 flex items-center justify-between gap-3 rounded-2xl border border-orange-300 bg-orange-50 dark:bg-orange-950/30 px-4 py-3 text-sm">
+            <div className="flex items-center gap-2 text-orange-800 dark:text-orange-300">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>
                 <strong>Your Facebook connection has expired.</strong> Reconnect to continue receiving leads and ad data.
               </span>
             </div>
-            <button
+            <Button
+              variant="default"
               onClick={handleReconnectMeta}
               disabled={isReconnecting}
-              className="shrink-0 rounded-md bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-600 disabled:opacity-50 transition-colors"
+              className="shrink-0 rounded-xl bg-orange-500 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-orange-600 disabled:opacity-50 transition-colors h-auto w-auto"
             >
               {isReconnecting ? 'Connecting...' : 'Reconnect'}
-            </button>
+            </Button>
           </div>
         )}
 
-        {/* Marketplace Hero */}
-        <div className="mb-8 rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-8 text-white shadow-xl relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="relative z-10 max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 bg-white/20 text-white px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
-              <Zap className="h-3 w-3 fill-amber-300 text-amber-300" /> App Store
-            </div>
-            <h1 className="text-3xl font-black mb-3 tracking-tight">Integration Marketplace</h1>
-            <p className="text-primary-foreground/90 text-sm sm:text-base leading-relaxed mb-6 font-medium">
-              Supercharge your CRM with premium integrations. Connect to the tools you already use or unlock advanced features to scale your business effortlessly.
+        {/* ── Header ──────────────────────────────────────────────────────── */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight font-['Satoshi']">
+              Integrations
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
+              Connect your favorite tools and automate your workflow
             </p>
           </div>
-          <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 pointer-events-none hidden md:block">
-            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="h-full w-full">
-              <path fill="#FFFFFF" d="M44.7,-76.4C58.9,-69.2,71.8,-59.1,79.6,-45.8C87.4,-32.6,90.1,-16.3,89.1,-0.6C88.1,15.1,83.3,30.3,74.7,43.1C66.1,55.9,53.6,66.4,39.6,73.1C25.6,79.8,10.1,82.8,-5.3,81.1C-20.6,79.4,-35.8,73.1,-48.5,63.4C-61.1,53.7,-71.3,40.7,-77.8,25.8C-84.3,10.9,-87.1,-5.9,-83.4,-21.3C-79.6,-36.7,-69.3,-50.7,-56.3,-58.9C-43.2,-67.2,-27.4,-69.8,-12.3,-72C2.8,-74.3,18.7,-76.3,30.5,-83.6" transform="translate(100 100) scale(1.1)" />
-            </svg>
-          </div>
-        </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
-            <div className="w-full overflow-x-auto no-scrollbar">
-              <TabsList className="inline-flex w-auto min-w-full p-1 bg-slate-100 dark:bg-slate-800/50 rounded-xl h-auto">
-                <TabsTrigger value="all" className="rounded-lg h-10 px-5 font-bold data-[state=active]:shadow-sm">All Apps</TabsTrigger>
-                <TabsTrigger value="marketing" className="rounded-lg h-10 px-5 font-bold data-[state=active]:shadow-sm">Marketing</TabsTrigger>
-                <TabsTrigger value="messaging" className="rounded-lg h-10 px-5 font-bold data-[state=active]:shadow-sm">Messaging</TabsTrigger>
-                <TabsTrigger value="webhooks" className="rounded-lg h-10 px-5 font-bold data-[state=active]:shadow-sm">Webhooks</TabsTrigger>
-                <TabsTrigger value="workspace" className="rounded-lg h-10 px-5 font-bold data-[state=active]:shadow-sm">Google Workspace</TabsTrigger>
-                <TabsTrigger value="settings" className="rounded-lg h-10 px-5 font-bold data-[state=active]:shadow-sm">Settings</TabsTrigger>
-              </TabsList>
-            </div>
-            
-            <div className="relative w-full xl:w-72 shrink-0">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search apps..." 
+          <div className="flex items-center gap-2.5">
+            <div className="relative w-full sm:w-72 md:w-80">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="Search integrations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-10 bg-white dark:bg-slate-950 rounded-xl"
+                className="pl-10 h-10 bg-white dark:bg-[#10182D] border-slate-200 dark:border-slate-800 rounded-xl text-xs shadow-2xs focus-visible:border-blue-500"
               />
             </div>
           </div>
-          {[
-            "all",
-            "marketing",
-            "messaging",
-            "webhooks",
-            "workspace",
-            "settings",
-          ].map((category) => (
-            <TabsContent key={category} value={category}>
-              {category === "marketing" ? (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {integrations
-                      .filter((i) => i.category === "marketing" && (i.name.toLowerCase().includes(searchQuery.toLowerCase()) || i.description.toLowerCase().includes(searchQuery.toLowerCase())))
-                      .map((integration) => (
-                        <IntegrationCard
-                          key={integration.id}
-                          integration={integration}
-                          connectedIntegrations={connectedIntegrations}
-                          onAction={handleIntegrationAction}
-                          onDeactivate={handleDeactivateRequest}
-                          isConnecting={isConnecting && (selectedIntegrationId === integration.id || connectingIntegrationId === integration.id)}
-                        />
-                      ))}
-                  </div>
+        </div>
 
-                  {/* Conversion API Management Components */}
-                  <div className="pt-8 border-t">
-                    <div className="mb-6">
-                      <h2 className="text-xl font-bold">Conversion API Management</h2>
-                      <p className="text-sm text-muted-foreground">Manage configurations and track lead events</p>
-                    </div>
-                    <div className="space-y-6">
-                      <FacebookConversionApiManager />
-                      <LeadConversionTracker />
-                      <ConversionApiTester />
-                    </div>
-                  </div>
-                </div>
-              ) : category === "webhooks" ? (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold">Webhooks</h2>
-                      <p className="text-sm text-muted-foreground mt-1">Connect your CRM to external services via incoming or outgoing webhooks.</p>
-                    </div>
-                    <Button onClick={() => setShowNewWebhookDialog(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Webhook
-                    </Button>
-                  </div>
+        {/* ── Popular Integrations ────────────────────────────────────────── */}
+        <div className="mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+              Popular Integrations
+            </h2>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline" size="icon"
+                onClick={() => scrollPopular("left")}
+                className="w-7 h-7 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-2xs p-0"
+                title="Scroll left"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline" size="icon"
+                onClick={() => scrollPopular("right")}
+                className="w-7 h-7 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-2xs p-0"
+                title="Scroll right"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
 
-                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {/* Connect New Webhook Card */}
-                    <Card className="border-dashed border-2 flex items-center justify-center p-4 hover:bg-muted/50 transition-colors cursor-pointer group gap-3" onClick={() => {
-                      setSelectedWebhookId(null);
-                      setShowNewWebhookDialog(true);
-                    }}>
-                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
-                        <Plus className="h-4 w-4 text-primary" />
+          <div
+            ref={popularScrollRef}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 overflow-x-auto no-scrollbar pb-1"
+          >
+            {popularIntegrationsList.map((item) => {
+              const isConnected = isIntegrationConnected(item.id);
+              return (
+                <div
+                  key={item.id}
+                  className="bg-white dark:bg-[#10182D] rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 flex flex-col justify-between shadow-2xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200"
+                >
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="w-11 h-11 shrink-0 flex items-center justify-center">
+                        <BrandLogo id={item.id} className="w-11 h-11" />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-sm">Add New Webhook</h3>
-                        <p className="text-[11px] text-muted-foreground">Connect another source</p>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1.5 h-auto w-auto rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={() => handleIntegrationCardAction(item)}>
+                            {isConnected ? "Manage Integration" : "Connect"}
+                          </DropdownMenuItem>
+                          {isConnected && (
+                            <DropdownMenuItem
+                              onClick={() => handleDeactivateRequest(item.id)}
+                              className="text-red-600"
+                            >
+                              Disconnect
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => toast.info(`Viewing documentation for ${item.name}`)}>
+                            View Docs
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    <h3 className="text-[15px] font-bold text-slate-900 dark:text-white mt-3.5 leading-snug">
+                      {item.name}
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed line-clamp-2 min-h-[34px]">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                    {isConnected ? (
+                      <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                        <span>Connected</span>
                       </div>
-                    </Card>
+                    ) : (
+                      <div />
+                    )}
 
-                    {webhooks.filter((w) => w.name.toLowerCase().includes(searchQuery.toLowerCase())).map((webhook) => (
-                      <Card key={webhook.id} className="flex flex-col p-4 gap-3">
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="p-2 rounded-xl bg-blue-500/10 shrink-0">
-                              <Webhook className="h-5 w-5 text-primary" />
-                            </div>
-                            <div className="min-w-0">
-                              <h3 className="text-sm font-bold leading-none truncate">{webhook.name}</h3>
-                              <p className="text-[11px] text-[var(--crm-text-secondary)] mt-1 truncate">
-                                {webhook.url || "No outgoing URL set"}
-                              </p>
-                            </div>
-                          </div>
-                          <Switch
-                            checked={webhook.isActive}
-                            onCheckedChange={() => toggleWebhook(webhook.id)}
-                            className="scale-75 origin-right shrink-0"
-                          />
-                        </div>
-
-                        <div className="flex items-center gap-2 mt-2 pt-3 border-t border-[var(--crm-border)]">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-red-500 hover:bg-red-500/10 hover:text-red-600 rounded-lg"
-                            onClick={() => {
-                              setWebhookToDelete(webhook.id);
-                              setShowDeleteDialog(true);
-                            }}
-                            title="Delete"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                          
-                          <div className="flex-1 flex justify-center">
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
-                              navigator.clipboard.writeText(`https://api.leadbajaar.com/api/webhooks/incoming/${(webhook as any).uuid}`);
-                              toast.success("URL Copied!");
-                            }} title="Copy URL">
-                              <ClipboardCopy className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                          
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-[11px] px-3 rounded-lg font-semibold"
-                            onClick={() => {
-                              setSelectedWebhookId(webhook.id);
-                              setShowNewWebhookDialog(true);
-                            }}
-                          >
-                            <Settings className="h-3 w-3 mr-1.5" /> Configure
-                          </Button>
-                        </div>
-                      </Card>
-                    ))}
+                    {isConnected ? (
+                      <Button
+                        variant="outline"
+                        onClick={() => handleIntegrationCardAction(item)}
+                        className="text-slate-700 dark:text-slate-200 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-semibold h-auto w-auto transition-colors"
+                      >
+                        Manage
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        onClick={() => handleIntegrationCardAction(item)}
+                        className="text-blue-600 dark:text-blue-400 bg-blue-50/70 hover:bg-blue-100/80 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 border border-blue-200/80 dark:border-blue-800/60 px-3.5 py-1.5 rounded-lg text-xs font-bold h-auto w-auto transition-colors"
+                      >
+                        Connect +
+                      </Button>
+                    )}
                   </div>
                 </div>
-              ) : category === "workspace" ? (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <GoogleAccountCard />
-                </div>
-              ) : category === "settings" ? (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <h2 className="text-2xl font-bold mb-4">
-                    Integration Settings
-                  </h2>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <Accordion type="single" collapsible className="w-full">
-                        <AccordionItem value="item-1">
-                          <AccordionTrigger>Data Sync Frequency</AccordionTrigger>
-                          <AccordionContent>
-                            <div className="space-y-2">
-                              <Label htmlFor="sync-frequency">Sync every</Label>
-                              <Select>
-                                <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="Select frequency" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="15">15 minutes</SelectItem>
-                                  <SelectItem value="30">30 minutes</SelectItem>
-                                  <SelectItem value="60">1 hour</SelectItem>
-                                  <SelectItem value="360">6 hours</SelectItem>
-                                  <SelectItem value="720">12 hours</SelectItem>
-                                  <SelectItem value="1440">24 hours</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                        <AccordionItem value="item-2">
-                          <AccordionTrigger>Data Mapping</AccordionTrigger>
-                          <AccordionContent>
-                            <p className="mb-4">
-                              Configure how data fields from integrated services
-                              map to your CRM fields.
-                            </p>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button>Configure Mapping</Button>
-                              </DialogTrigger>
-                              <DialogContent className="sm:max-w-[625px]">
-                                <DialogHeader>
-                                  <DialogTitle>
-                                    Data Mapping Configuration
-                                  </DialogTitle>
-                                  <DialogDescription>
-                                    Map fields from your integrated services to
-                                    your CRM fields.
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                  <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label
-                                      htmlFor="sourceField"
-                                      className="text-right"
-                                    >
-                                      Source Field
-                                    </Label>
-                                    <Select>
-                                      <SelectTrigger className="w-full col-span-3">
-                                        <SelectValue placeholder="Select source field" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="name">Name</SelectItem>
-                                        <SelectItem value="email">
-                                          Email
-                                        </SelectItem>
-                                        <SelectItem value="phone">
-                                          Phone
-                                        </SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label
-                                      htmlFor="targetField"
-                                      className="text-right"
-                                    >
-                                      Target Field
-                                    </Label>
-                                    <Select>
-                                      <SelectTrigger className="w-full col-span-3">
-                                        <SelectValue placeholder="Select target field" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="fullName">
-                                          Full Name
-                                        </SelectItem>
-                                        <SelectItem value="emailAddress">
-                                          Email Address
-                                        </SelectItem>
-                                        <SelectItem value="phoneNumber">
-                                          Phone Number
-                                        </SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                </div>
-                                <DialogFooter>
-                                  <Button type="submit">Save mapping</Button>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
-                          </AccordionContent>
-                        </AccordionItem>
-                        <AccordionItem value="item-3">
-                          <AccordionTrigger>Integration Logs</AccordionTrigger>
-                          <AccordionContent>
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>Integration</TableHead>
-                                  <TableHead>Action</TableHead>
-                                  <TableHead>Status</TableHead>
-                                  <TableHead>Timestamp</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {dummyLogs.map((log) => (
-                                  <TableRow key={log.id}>
-                                    <TableCell>
-                                      <div className="flex items-center gap-2">
-                                        {Icons[
-                                          log.integration.toLowerCase() as keyof typeof Icons
-                                        ] ? (
-                                          React.createElement(
-                                            Icons[
-                                            log.integration.toLowerCase() as keyof typeof Icons
-                                            ],
-                                            {
-                                              className: "h-4 w-4",
-                                              style: {
-                                                color: integrations.find(
-                                                  (i) =>
-                                                    i.name.toLowerCase() ===
-                                                    log.integration.toLowerCase(),
-                                                )?.color,
-                                              },
-                                            },
-                                          )
-                                        ) : (
-                                          <div className="h-4 w-4" />
-                                        )}
-                                        {log.integration}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell>
-                                      <div className="flex items-center gap-2">
-                                        {React.createElement(log.icon, {
-                                          className: "h-4 w-4 text-gray-500",
-                                        })}
-                                        {log.action}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell>
-                                      <div className="flex items-center gap-2">
-                                        {log.status === "Success" ? (
-                                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 flex items-center gap-1">
-                                            <CheckCircle2 className="h-3 w-3" />
-                                            Success
-                                          </Badge>
-                                        ) : (
-                                          <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 flex items-center gap-1">
-                                            <XCircle className="h-3 w-3" />
-                                            Failed
-                                          </Badge>
-                                        )}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-gray-500">
-                                      {log.timestamp}
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    </CardContent>
-                  </Card>
-                </div>
-              ) : (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {integrations
-                    .filter(
-                      (integration) => {
-                        const categoryMatch = category === "all" || integration.category === category;
-                        const searchMatch = integration.name.toLowerCase().includes(searchQuery.toLowerCase()) || integration.description.toLowerCase().includes(searchQuery.toLowerCase());
-                        
-                        // Use hasFeature if the integration defines required features
-                        let featureMatch = true;
-                        if (integration.id === 'whatsapp') {
-                          featureMatch = hasFeature('whatsapp_cloud_api');
-                        } else if (integration.plans) {
-                          // Fallback for other items still using 'plans'
-                          featureMatch = hasPlan(integration.plans) || hasType(['agency', 'super_admin']);
-                        }
-                        
-                        return categoryMatch && featureMatch && searchMatch;
-                      }
-                    )
-                    .map((integration) => (
-                      <IntegrationCard
-                        key={integration.id}
-                        integration={integration}
-                        connectedIntegrations={connectedIntegrations}
-                        onAction={handleIntegrationAction}
-                        onDeactivate={handleDeactivateRequest}
-                        isConnecting={isConnecting && (selectedIntegrationId === integration.id || connectingIntegrationId === integration.id)}
-                      />
-                    ))}
-                </div>
-              )}
-              {/* </div> */}
-            </TabsContent>
-          ))}
-        </Tabs>
+              );
+            })}
+          </div>
+        </div>
 
+        {/* ── All Integrations ────────────────────────────────────────────── */}
+        <div>
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3.5">
+            All Integrations
+          </h2>
+
+          {/* Category Filter Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 mb-4">
+            {categoryTabs.map((tab) => {
+              const isActive = activeCategory === tab.id;
+              return (
+                <button /* TODO: Segmented control */
+                  key={tab.id}
+                  onClick={() => setActiveCategory(tab.id)}
+                  className={cn(
+                    "px-4 py-1.5 rounded-full text-xs whitespace-nowrap transition-all cursor-pointer",
+                    isActive
+                      ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold shadow-xs"
+                      : "bg-white dark:bg-[#10182D] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium"
+                  )}
+                >
+                  {tab.id === "all" ? "All" : tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Catalog Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            {filteredCatalog.map((item) => {
+              const isConnected = isIntegrationConnected(item.id);
+              return (
+                <div
+                  key={item.id}
+                  className="bg-white dark:bg-[#10182D] rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 flex flex-col justify-between shadow-2xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200"
+                >
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="w-11 h-11 shrink-0 flex items-center justify-center">
+                        <BrandLogo id={item.id} className="w-11 h-11" />
+                      </div>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1.5 h-auto w-auto rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={() => handleIntegrationCardAction(item)}>
+                            {isConnected ? "Manage Integration" : "Connect"}
+                          </DropdownMenuItem>
+                          {isConnected && (
+                            <DropdownMenuItem
+                              onClick={() => handleDeactivateRequest(item.id)}
+                              className="text-red-600"
+                            >
+                              Disconnect
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => toast.info(`Viewing documentation for ${item.name}`)}>
+                            View Docs
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    <h3 className="text-[15px] font-bold text-slate-900 dark:text-white mt-3.5 leading-snug">
+                      {item.name}
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed line-clamp-2 min-h-[34px]">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                    {isConnected ? (
+                      <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                        <span>Connected</span>
+                      </div>
+                    ) : (
+                      <div />
+                    )}
+
+                    {isConnected ? (
+                      <Button
+                        variant="outline"
+                        onClick={() => handleIntegrationCardAction(item)}
+                        className="text-slate-700 dark:text-slate-200 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-semibold h-auto w-auto transition-colors"
+                      >
+                        Manage
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        onClick={() => handleIntegrationCardAction(item)}
+                        className="text-blue-600 dark:text-blue-400 bg-blue-50/70 hover:bg-blue-100/80 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 border border-blue-200/80 dark:border-blue-800/60 px-3.5 py-1.5 rounded-lg text-xs font-bold h-auto w-auto transition-colors"
+                      >
+                        Connect +
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Missing an Integration Banner ────────────────────────────────── */}
+        <div className="mt-10 mb-12 lg:mb-16 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
+          <div className="flex items-center gap-4 text-left w-full sm:w-auto">
+            <div className="w-11 h-11 rounded-xl bg-blue-100/80 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                Missing an integration?
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                We&apos;re always adding new integrations. Tell us which one you need.
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={() => setShowRequestModal(true)}
+            className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs shrink-0 cursor-pointer h-auto"
+          >
+            Request Integration
+          </Button>
+        </div>
+
+        {/* ── Connect Confirmation Dialog ─────────────────────────────────── */}
+        <Dialog open={!!integrationToConfirm} onOpenChange={(open) => !open && setIntegrationToConfirm(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Connect {integrationToConfirm?.name}</DialogTitle>
+              <DialogDescription>
+                Enable and configure {integrationToConfirm?.name} integration for your CRM workspace.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 text-xs text-slate-500">
+              {integrationToConfirm?.description}
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setIntegrationToConfirm(null)} disabled={isConnecting}>
+                Cancel
+              </Button>
+              <Button onClick={handleConfirmConnect} disabled={isConnecting} className="bg-[#FE4548] hover:bg-[#FE4548]/90 text-white font-bold">
+                {isConnecting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                Yes, Connect
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ── Request Integration Dialog ──────────────────────────────────── */}
+        <Dialog open={showRequestModal} onOpenChange={setShowRequestModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Request New Integration</DialogTitle>
+              <DialogDescription>
+                Suggest a tool or platform you&apos;d love to connect with LeadBajaar CRM.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div>
+                <Label htmlFor="tool-name" className="text-xs font-bold text-slate-700 dark:text-slate-300">Tool or Service Name</Label>
+                <Input
+                  id="tool-name"
+                  placeholder="e.g. HubSpot, Shopify, Notion..."
+                  value={requestToolName}
+                  onChange={(e) => setRequestToolName(e.target.value)}
+                  className="mt-1 text-xs"
+                />
+              </div>
+              <div>
+                <Label htmlFor="use-case" className="text-xs font-bold text-slate-700 dark:text-slate-300">How would you use it?</Label>
+                <textarea
+                  id="use-case"
+                  rows={3}
+                  placeholder="Describe your workflow or what data needs to sync..."
+                  value={requestUseCase}
+                  onChange={(e) => setRequestUseCase(e.target.value)}
+                  className="mt-1 w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setShowRequestModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (!requestToolName.trim()) {
+                    toast.error("Please enter a tool name");
+                    return;
+                  }
+                  toast.success("Thank you! Your request has been submitted to the product team.");
+                  setShowRequestModal(false);
+                  setRequestToolName("");
+                  setRequestUseCase("");
+                }}
+                className="bg-[#FE4548] hover:bg-[#FE4548]/90 text-white font-bold"
+              >
+                <Send className="h-3.5 w-3.5 mr-1.5" /> Submit Request
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Webhook Config Dialog */}
+        <WebhookConfigDialog
+          isOpen={showNewWebhookDialog}
+          onOpenChange={setShowNewWebhookDialog}
+          webhookId={selectedWebhookId}
+          webhooks={webhooks}
+          newWebhook={newWebhook}
+          setNewWebhook={setNewWebhook}
+          setWebhooks={setWebhooks}
+          isConnecting={isConnecting}
+          isListening={isListeningForWebhook}
+          availableFields={availablePayloadFields}
+          onSave={saveWebhookConfig}
+          onAdd={addWebhook}
+          startListening={async () => {}}
+          addFieldMapping={addFieldMapping}
+          updateFieldMapping={updateFieldMapping}
+          removeFieldMapping={removeFieldMapping}
+        />
+
+        {/* Email Config Dialog */}
         <EmailConfigDialog
           isOpen={selectedIntegrationId === "email"}
           onOpenChange={(open) => !open && setSelectedIntegrationId(null)}
@@ -1489,7 +958,7 @@ export default function IntegrationsPage() {
               setSelectedIntegrationId(null);
               fetchEmailConfig();
               fetchConnectedIntegrations();
-            } catch (e) {
+            } catch {
               toast.error('Synchronization failed');
             } finally {
               setIsConnecting(false);
@@ -1499,6 +968,7 @@ export default function IntegrationsPage() {
           isConnecting={isConnecting}
         />
 
+        {/* Test Email Dialog */}
         <TestEmailDialog
           isOpen={showTestEmailDialog}
           onOpenChange={setShowTestEmailDialog}
@@ -1512,9 +982,9 @@ export default function IntegrationsPage() {
             try {
               setIsConnecting(true);
               await api.post('/email/configurations/test', { email: testEmailAddress });
-              toast.success('Professional test email dispatched!');
+              toast.success('Test email dispatched!');
               setShowTestEmailDialog(false);
-            } catch (e) {
+            } catch {
               toast.error('Test dispatch failed');
             } finally {
               setIsConnecting(false);
@@ -1523,70 +993,16 @@ export default function IntegrationsPage() {
           isConnecting={isConnecting}
         />
 
-        <WebhookConfigDialog
-          isOpen={showNewWebhookDialog}
-          onOpenChange={setShowNewWebhookDialog}
-          webhookId={selectedWebhookId}
-          webhooks={webhooks}
-          newWebhook={newWebhook}
-          setNewWebhook={setNewWebhook}
-          setWebhooks={setWebhooks}
-          isConnecting={isConnecting}
-          isListening={isListeningForWebhook}
-          availableFields={availablePayloadFields}
-          onSave={saveWebhookConfig}
-          onAdd={addWebhook}
-          startListening={startListening}
-          addFieldMapping={addFieldMapping}
-          updateFieldMapping={updateFieldMapping}
-          removeFieldMapping={removeFieldMapping}
-        />
-
-        <UnifiedIntegrationDialog
-          isOpen={!!selectedIntegrationId && selectedIntegrationId !== "webhook" && selectedIntegrationId !== "email"}
-          onOpenChange={(open) => !open && setSelectedIntegrationId(null)}
-          selectedIntegrationId={selectedIntegrationId}
-          integrations={integrations}
-          currentUserId={currentUserId}
-          whatsappConfig={whatsappConfig}
-          setWhatsappConfig={setWhatsappConfig}
-          facebookConfig={facebookConfig}
-          setFacebookConfig={setFacebookConfig}
-          facebookConversionApiConfig={facebookConversionApiConfig}
-          setFacebookConversionApiConfig={setFacebookConversionApiConfig}
-          configErrors={configErrors}
-          isConnecting={isConnecting}
-          onSave={handleIntegrationConnect}
-        />
+        {/* Delete Confirmation Modal */}
         <DeleteConfirmationModal
           isOpen={showDeleteDialog}
           onOpenChange={setShowDeleteDialog}
           onConfirm={deleteWebhook}
           isLoading={isDeleting}
-          title="Deactivate Integration"
-          description="Are you sure you want to deactivate this integration? This action can be undone later by re-connecting from the integrations gallery."
-          confirmText="Confirm Deactivation"
+          title="Disconnect Integration"
+          description="Are you sure you want to disconnect this integration? You can re-enable it at any time."
+          confirmText="Disconnect"
         />
-
-      <Dialog open={!!integrationToConfirm} onOpenChange={(open) => !open && setIntegrationToConfirm(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Connect Integration</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to connect {integrationToConfirm?.name}?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="mt-4">
-            <Button variant="ghost" onClick={() => setIntegrationToConfirm(null)} disabled={isConnecting}>
-              Cancel
-            </Button>
-            <Button onClick={handleConfirmConnect} disabled={isConnecting} className="bg-primary hover:bg-primary/90">
-              {isConnecting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-              Yes, Connect
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       </div>
     </RoleGuard>
   );

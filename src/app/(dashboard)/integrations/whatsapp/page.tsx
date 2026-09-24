@@ -20,6 +20,7 @@ import { Switch } from "@/components/ui/switch"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { TokenUpdateModal } from "@/components/ui/reconnection-modal"
 import { RoleGuard } from '@/components/RoleGuard'
+import { PageHeader } from "@/components/page-header/PageHeader"
 
 interface WhatsAppAccount {
   id: number;
@@ -805,19 +806,20 @@ export default function WhatsAppManagementPage() {
   return (
     <RoleGuard allowedFeatures={['integrations']}>
       <div className="flex flex-col flex-1 gap-4 sm:gap-5">
-      <div className="flex justify-between items-start sm:items-center flex-col sm:flex-row gap-4">
-        <div className="flex items-center gap-3">
-          
-          <h1 className="text-2xl font-bold">WhatsApp Management</h1>
-        </div>
-        <Button onClick={() => {
-          resetTemplateForm();
-          setShowNewTemplate(true);
-        }} disabled={accounts.length === 0 || accounts.some(a => !a.phone_number)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Template
-        </Button>
-      </div>
+        <PageHeader
+          title="WhatsApp Management"
+          description="Manage your WhatsApp accounts, templates, and settings."
+          icon={<MessageSquare className="h-5 w-5" />}
+          actions={
+            <Button onClick={() => {
+              resetTemplateForm();
+              setShowNewTemplate(true);
+            }} disabled={accounts.length === 0 || accounts.some(a => !a.phone_number)}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Template
+            </Button>
+          }
+        />
 
       {(accounts.length === 0 || accounts.some(a => !a.phone_number)) ? (
         <Card className="w-full max-w-none mt-8">

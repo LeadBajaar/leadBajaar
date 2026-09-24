@@ -21,6 +21,7 @@ import { integrationApi } from "@/lib/api";
 import { useErrorHandler } from "@/utils/useErrorHandler";
 import { useUser } from "@/contexts/UserContext";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/page-header/PageHeader";
 
 export default function FacebookLeadFormsPage() {
   const router = useRouter();
@@ -135,8 +136,8 @@ export default function FacebookLeadFormsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center bg-[var(--crm-bg)]">
-        <Loader2 className="h-8 w-8 animate-spin text-[var(--crm-text-tertiary)]" />
+      <div className="flex flex-1 min-h-[350px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-400 dark:text-slate-500" />
       </div>
     );
   }
@@ -144,15 +145,12 @@ export default function FacebookLeadFormsPage() {
   return (
     <div className="flex flex-col flex-1 gap-4 sm:gap-5">
       {/* ── Header ────────────────────────────────────────────────────────────── */}
-      <div className="shrink-0">
-        <div className="flex items-center gap-4">
-          
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-[var(--crm-text-primary)]">Facebook Lead Forms</h1>
-            <p className="text-sm text-[var(--crm-text-secondary)] mt-1">
-              Configure and sync Facebook Lead Form submissions automatically.
-            </p>
-          </div>
+      {/* ── Header ────────────────────────────────────────────────────────────── */}
+      <PageHeader
+        title="Facebook Lead Forms"
+        description="Configure and sync Facebook Lead Form submissions automatically."
+        icon={<Globe className="h-6 w-6 text-primary" />}
+        actions={
           <Button
             className="bg-primary hover:bg-primary/90 text-white rounded-md font-semibold h-9 px-4 shadow-sm"
             onClick={() => {
@@ -164,8 +162,8 @@ export default function FacebookLeadFormsPage() {
           >
             <Plus className="mr-2 h-4 w-4" /> Add New Form
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* ── Content ──────────────────────────────────────────────────────────── */}
       <div className="w-full">
@@ -175,33 +173,33 @@ export default function FacebookLeadFormsPage() {
           <div className="lg:col-span-2 space-y-4">
             <h2 className="text-sm font-semibold text-[var(--crm-text-primary)] px-1">Connected Forms</h2>
             {forms.length === 0 ? (
-              <div className="text-center py-12 text-[var(--crm-text-secondary)] border border-[var(--crm-border)] rounded-xl bg-[var(--crm-surface-1)]">
+              <div className="text-center py-12 text-slate-500 border border-dashed border-slate-300 dark:border-slate-700 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
                 No forms connected yet. Click "Add New Form" to get started.
               </div>
             ) : (
-              <div className="border border-[var(--crm-border)] rounded-xl bg-[var(--crm-surface-1)] overflow-hidden divide-y divide-[var(--crm-border)] shadow-sm">
+              <div className="flex flex-col gap-3">
                 {forms.map((form) => (
-                  <div key={form.id} className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 hover:bg-[var(--crm-surface-2)] transition-colors gap-4">
+                  <div key={form.id} className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md transition-all duration-200 gap-4 shadow-sm">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="h-10 w-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0 border border-blue-100 dark:border-blue-900/50">
-                        <Globe className="h-5 w-5 text-primary dark:text-blue-400" />
+                      <div className="h-11 w-11 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0 border border-blue-100 dark:border-blue-900/30 shadow-sm text-blue-600 dark:text-blue-400">
+                        <Globe className="h-5 w-5" />
                       </div>
-                      <div className="flex-1 min-w-0 flex flex-col gap-1">
+                      <div className="flex-1 min-w-0 flex flex-col gap-1.5">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-semibold text-[var(--crm-text-primary)] truncate">
+                          <h3 className="text-[15px] font-bold text-slate-900 dark:text-white truncate">
                             {form.config?.project_name || form.config?.leadFormName || "Unnamed Form"}
                           </h3>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-[var(--crm-bg)] border border-[var(--crm-border)] text-[var(--crm-text-secondary)] truncate max-w-[200px]">
+                          <span className="text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 truncate max-w-[200px]">
                             PAGE: {form.config?.page_id || form.config?.pageId}
                           </span>
                           {form.config?.routingOnly ? (
-                            <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 truncate max-w-[200px]">
+                            <span className="text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800/50 text-purple-600 dark:text-purple-400 truncate max-w-[200px]">
                               ROUTING ONLY
                             </span>
                           ) : (
-                            <span className="text-[10px] font-mono tracking-wider px-1.5 py-0.5 rounded bg-[var(--crm-bg)] border border-[var(--crm-border)] text-[var(--crm-text-secondary)] truncate max-w-[200px]">
+                            <span className="text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 truncate max-w-[200px]">
                               FORM: {form.config?.form_id || form.config?.formId}
                             </span>
                           )}
@@ -209,21 +207,21 @@ export default function FacebookLeadFormsPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4 shrink-0">
-                      <div className="flex items-center gap-2">
-                        <span className={cn("text-[10px] font-bold tracking-wider", form.is_active ? "text-green-600 dark:text-green-500" : "text-[var(--crm-text-tertiary)]")}>
+                    <div className="flex items-center gap-4 shrink-0 w-full sm:w-auto mt-2 sm:mt-0 justify-between sm:justify-end">
+                      <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <span className={cn("text-[11px] font-bold tracking-wider", form.is_active ? "text-emerald-600 dark:text-emerald-500" : "text-slate-400")}>
                           {form.is_active ? "ACTIVE" : "INACTIVE"}
                         </span>
                         <Switch
                           checked={form.is_active}
                           onCheckedChange={() => toggleStatus(form.id, form.is_active)}
-                          className="scale-90"
+                          className="scale-90 data-[state=checked]:bg-emerald-500"
                         />
                       </div>
-                      <div className="h-6 w-[1px] bg-[var(--crm-border)] hidden sm:block" />
-                      <div className="flex items-center gap-1">
+                      
+                      <div className="flex items-center gap-1.5">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="icon"
                           onClick={() => {
                             setConfig({
@@ -237,14 +235,14 @@ export default function FacebookLeadFormsPage() {
                             setSelectedFormId(form.id);
                             setIsCreatingNew(true); // Open modal
                           }}
-                          className="h-8 w-8 rounded-md text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-3)]"
+                          className="h-9 w-9 rounded-xl border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
                         >
                           <Settings className="h-4 w-4" />
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="icon"
-                          className="h-8 w-8 rounded-md text-[var(--crm-text-tertiary)] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          className="h-9 w-9 rounded-xl border-rose-200 dark:border-rose-900/50 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20"
                           onClick={() => handleDelete(form.id)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -259,30 +257,32 @@ export default function FacebookLeadFormsPage() {
 
           {/* ── Side Column: Meta Config ───────────────────────────────────────── */}
           <div className="lg:col-span-1 space-y-4">
-            <h2 className="text-sm font-semibold text-[var(--crm-text-primary)] px-1">Meta Configuration</h2>
-            <div className="p-5 bg-blue-500/5 rounded-2xl border border-primary/10 space-y-5">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-bold uppercase text-primary dark:text-blue-400 flex items-center gap-2 tracking-wider">
-                  <Globe className="h-4 w-4" /> Webhook Info
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white px-1">Meta Configuration</h2>
+            <div className="p-5 sm:p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+                <Label className="text-[13px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-blue-500" /> Webhook Setup
                 </Label>
-                <Badge className="bg-blue-500/10 text-primary border-primary/20">
-                  Dashboard Setup
+                <Badge variant="secondary" className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-none font-bold text-[10px] px-2 py-0.5 rounded-md">
+                  REQUIRED
                 </Badge>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div className="space-y-2">
-                  <Label className="text-xs text-[var(--crm-text-secondary)] uppercase font-bold ml-1">
+                  <Label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">
                     Webhook URL
                   </Label>
-                  <div className="flex items-center gap-2">
-                    <code className="text-[13px] p-3 bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl flex-1 font-mono break-all text-[var(--crm-text-primary)] shadow-sm">
-                      {`https://api.leadbajaar.com/api/webhook/leadform?id=${user?.id || 1}`}
-                    </code>
+                  <div className="relative flex items-center group">
+                    <input 
+                      readOnly 
+                      value={`https://api.leadbajaar.com/api/webhook/leadform?id=${user?.id || 1}`}
+                      className="w-full text-[13px] pl-4 pr-12 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl font-mono text-slate-700 dark:text-slate-300 shadow-inner focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    />
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="icon"
-                      className="shrink-0 h-11 w-11 rounded-xl bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]"
+                      className="absolute right-1.5 h-8 w-8 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors"
                       onClick={() => {
                         navigator.clipboard.writeText(`https://api.leadbajaar.com/api/webhook/leadform?id=${user?.id || 1}`);
                         toast.success("Webhook URL Copied!");
@@ -294,17 +294,19 @@ export default function FacebookLeadFormsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xs text-[var(--crm-text-secondary)] uppercase font-bold ml-1">
+                  <Label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">
                     Verify Token
                   </Label>
-                  <div className="flex items-center gap-2">
-                    <code className="text-[13px] p-3 bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl flex-1 font-mono text-[var(--crm-text-primary)] shadow-sm">
-                      123abc
-                    </code>
+                  <div className="relative flex items-center group">
+                    <input 
+                      readOnly 
+                      value="123abc"
+                      className="w-full text-[13px] pl-4 pr-12 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl font-mono text-slate-700 dark:text-slate-300 shadow-inner focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    />
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="icon"
-                      className="shrink-0 h-11 w-11 rounded-xl bg-[var(--crm-surface-1)] border-[var(--crm-border)] text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)]"
+                      className="absolute right-1.5 h-8 w-8 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors"
                       onClick={() => {
                         navigator.clipboard.writeText("123abc");
                         toast.success("Verify Token Copied!");
@@ -316,14 +318,12 @@ export default function FacebookLeadFormsPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 pt-2">
-                <div className="h-6 w-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="h-3.5 w-3.5 text-primary dark:text-blue-400" />
-                </div>
-                <p className="text-[13px] text-[var(--crm-text-secondary)] leading-relaxed pt-0.5">
+              <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl p-4 flex items-start gap-3">
+                <Globe className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
+                <p className="text-[13px] text-blue-900 dark:text-blue-200 leading-relaxed">
                   Copy these values into your Meta Developer Dashboard under{" "}
-                  <strong className="text-[var(--crm-text-primary)]">Webhooks → Leadgen</strong> to enable real-time
-                  lead capture.
+                  <strong className="font-bold">Webhooks → Leadgen</strong> to enable real-time
+                  lead capture from your forms.
                 </p>
               </div>
             </div>

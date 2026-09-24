@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,700&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -5,65 +7,65 @@
  
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: var(--crm-surface-1);
+    --foreground: var(--crm-text-primary);
  
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: var(--crm-surface-1);
+    --card-foreground: var(--crm-text-primary);
  
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: var(--crm-surface-1);
+    --popover-foreground: var(--crm-text-primary);
  
-    --primary: 228 56% 27%;
-    --primary-foreground: 0 0% 100%;
+    --primary: var(--crm-accent);
+    --primary-foreground: #ffffff;
  
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: var(--crm-surface-3);
+    --secondary-foreground: var(--crm-text-primary);
  
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: var(--crm-surface-2);
+    --muted-foreground: var(--crm-text-tertiary);
  
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: var(--crm-surface-3);
+    --accent-foreground: var(--crm-text-primary);
  
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: var(--crm-red);
+    --destructive-foreground: #ffffff;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 228 56% 27%;
+    --border: var(--crm-border);
+    --input: var(--crm-border);
+    --ring: var(--crm-accent);
  
-    --radius: 0.5rem;
+    --radius: var(--r-md);
   }
  
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: var(--crm-surface-1);
+    --foreground: var(--crm-text-primary);
  
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: var(--crm-surface-1);
+    --card-foreground: var(--crm-text-primary);
  
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: var(--crm-surface-1);
+    --popover-foreground: var(--crm-text-primary);
  
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 0 0% 100%;
+    --primary: var(--crm-accent);
+    --primary-foreground: #ffffff;
  
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: var(--crm-surface-3);
+    --secondary-foreground: var(--crm-text-primary);
  
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: var(--crm-surface-2);
+    --muted-foreground: var(--crm-text-tertiary);
  
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: var(--crm-surface-3);
+    --accent-foreground: var(--crm-text-primary);
  
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: var(--crm-red);
+    --destructive-foreground: #ffffff;
  
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 217.2 91.2% 59.8%;
+    --border: var(--crm-border);
+    --input: var(--crm-border);
+    --ring: var(--crm-accent);
   }
 }
  
@@ -72,7 +74,11 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', 'Figtree', sans-serif;
   }
 }
 
@@ -122,15 +128,18 @@
    truth). Surfaces, text, and semantic colors below are defined once and
    just re-expressed per theme, not independently re-invented per theme. */
 :root {
-  --crm-bg: #f0f2f8;
+  --crm-bg: #10182D;
   --crm-surface-1: #ffffff;
-  --crm-surface-2: #f5f6fa;
+  --crm-surface-2: #f8fafc;
   --crm-surface-3: #eceef5;
   --crm-surface-4: #e1e4f0;
 
-  --crm-sidebar-bg: #FFFFFF;
-  --crm-sidebar-hover: var(--crm-surface-2);
-  --crm-sidebar-active: var(--crm-surface-3);
+  --crm-sidebar-bg: #10182D;
+  --crm-sidebar-hover: rgba(255, 255, 255, 0.05);
+  --crm-sidebar-active: var(--crm-accent);
+
+  --crm-shell-text: #ffffff;
+  --crm-shell-text-muted: rgba(255, 255, 255, 0.75);
 
   --crm-border: #e2e8f0;
   --crm-border-hover: rgba(30, 45, 107, 0.16);
@@ -140,10 +149,19 @@
   --crm-text-secondary: #475569;
   --crm-text-tertiary: #94a3b8;
 
-  /* Brand accent: LeadBajaar Navy — the primary brand color used everywhere */
-  --crm-accent: #1e2d6b;
-  --crm-accent-soft: #ebedf5;
-  --crm-accent-border: #cdd4ea;
+  /* Brand accent: LeadBajaar Coral / Vibrant Red-Orange (#E84C3A / #FE4548) */
+  --crm-accent: #E84C3A;
+  --crm-accent-soft: #fde8e5;
+  --crm-accent-border: #f9b6ae;
+  --crm-primary: #E84C3A;
+  --crm-primary-hover: #d8402f;
+
+  /* Brand Primary: LeadBajaar Deep Navy (#1A237E / #10182D / #1E2D6B) */
+  --crm-navy: #1A237E;
+
+  --crm-btn-primary-bg: #1e2d6b;
+  --crm-btn-primary-text: #ffffff;
+  --crm-nav-active-icon: #1e2d6b;
 
   /* Semantic — success/warning/danger, distinct from the coral brand accent. */
   --crm-green: #15803D;
@@ -184,14 +202,11 @@
   --r-xl: 16px;
   --r-pill: 9999px;
 
-  --crm-btn-primary-bg: #1e2d6b;
-  --crm-btn-primary-text: #ffffff;
-
-  --crm-nav-active-icon: #1e2d6b;
-
   /* ── BOOKING FLOW REDESIGN TOKENS (Deprecated aliases, use --crm-* instead) ── */
-  --lb-navy:   var(--crm-accent);
-  --lb-red:    var(--crm-red);
+  --lb-navy:   #1A237E;
+  --lb-navy-soft: #E8EAF6;
+  --lb-navy-border: #C5CAE9;
+  --lb-red:    #E84C3A;
   --lb-bg:     var(--crm-bg);
   
   --lb-s1: var(--crm-surface-1);
@@ -208,9 +223,6 @@
   --lb-green:      var(--crm-green);
   --lb-green-soft: var(--crm-green-soft);
   --lb-green-border: var(--crm-green-border);
-
-  --lb-navy-soft:   var(--crm-accent-soft);
-  --lb-navy-border: var(--crm-accent-border);
 }
 
 .dark {
@@ -223,6 +235,12 @@
   --crm-sidebar-bg: var(--crm-surface-1);
   --crm-sidebar-hover: var(--crm-surface-2);
   --crm-sidebar-active: var(--crm-surface-2);
+
+  /* Premium Redesign Tokens */
+  --crm-primary: #E84C3A;
+  --crm-primary-hover: #d8402f;
+  --crm-navy: #10182D;
+  --crm-canvas: #0A0A0B;
 
   --crm-border: #1F1F23;
   --crm-border-hover: rgba(255, 255, 255, 0.18);
@@ -337,14 +355,16 @@
 body {
   background: var(--crm-bg);
   color: var(--crm-text-primary);
-  font-family: -apple-system, 'SF Pro Text', sans-serif;
+  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 13px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* --- Buttons --- */
 /* DEPRECATED: Do not use these hand-rolled classes. Use <Button> from src/components/ui/button.tsx instead. */
-.btn {
+.btn { font-family: "Roboto", sans-serif; 
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -505,10 +525,9 @@ body {
 .avatar-lg { width: 36px; height: 36px; font-size: 12px; }
 
 /* --- Sidebar --- */
-.sidebar {
+.sidebar { font-family: "Roboto", sans-serif; 
   width: 220px;
   background: var(--crm-sidebar-bg);
-  border-right: 0.5px solid var(--crm-border);
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -565,119 +584,6 @@ body {
 .metric-value { font-size: 20px; font-weight: 500; color: var(--crm-text-primary); }
 .metric-up    { font-size: 10px; color: var(--crm-green); margin-top: 3px; }
 .metric-down  { font-size: 10px; color: var(--crm-red);   margin-top: 3px; }
-
-/* --- Modals --- */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
-.modal {
-  background: var(--crm-surface-2);
-  border: 0.5px solid var(--crm-border-hover);
-  border-radius: var(--r-xl);
-  width: 100%;
-  max-width: 480px;
-  overflow: hidden;
-}
-.modal-sm { max-width: 360px; }
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px;
-  border-bottom: 0.5px solid var(--crm-border);
-}
-.modal-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--crm-text-primary);
-}
-.modal-body {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.modal-footer {
-  display: flex;
-  gap: 8px;
-  padding: 12px 16px;
-  border-top: 0.5px solid var(--crm-border);
-}
-.modal-footer .btn { flex: 1; justify-content: center; }
-.modal-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 10px;
-}
-.modal-icon-danger { background: var(--crm-red-soft); }
-
-/* --- Dropdowns --- */
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
-.dropdown-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  background: var(--crm-surface-2);
-  border: 0.5px solid var(--crm-border-hover);
-  border-radius: var(--r-lg);
-  min-width: 180px;
-  z-index: 50;
-  overflow: hidden;
-  padding: 4px;
-}
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 7px 10px;
-  border-radius: var(--r-sm);
-  font-size: 12px;
-  color: var(--crm-text-primary);
-  cursor: pointer;
-  transition: background 0.1s;
-}
-.dropdown-item:hover           { background: var(--crm-surface-3); }
-.dropdown-item.danger          { color: var(--crm-red); }
-.dropdown-item.danger:hover    { background: var(--crm-red-soft); }
-.dropdown-item i               { font-size: 14px; color: var(--crm-text-secondary); }
-.dropdown-item.danger i        { color: var(--crm-red); }
-
-.dropdown-divider {
-  height: 0.5px;
-  background: var(--crm-border);
-  margin: 4px 0;
-}
-.dropdown-search {
-  padding: 8px 8px 4px;
-}
-.dropdown-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: var(--r-sm);
-  font-size: 12px;
-  color: var(--crm-text-secondary);
-  cursor: pointer;
-  transition: background 0.1s;
-}
-.dropdown-option:hover    { background: var(--crm-surface-3); }
-.dropdown-option.selected { color: var(--crm-text-primary); }
-.dropdown-option-dot      { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
 /* --- Tooltips --- */
 .tooltip-wrap {
@@ -1025,3 +931,7 @@ body {
 }
 .radio.unchecked { background: transparent; border: 0.5px solid var(--crm-border-hover); }
 .radio.checked   { background: var(--crm-accent); border: 0.5px solid var(--crm-accent); }
+
+h1, h2, h3, h4, h5, h6, .satoshi-heading {
+  font-family: 'Satoshi', 'Roboto', sans-serif;
+}

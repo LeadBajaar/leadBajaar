@@ -16,6 +16,16 @@ import {
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { Question } from '@/types/events'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface Props {
   question: Question
@@ -36,6 +46,8 @@ export const SortableQuestion = ({ question, index, updateQuestion, removeQuesti
     transition,
     isDragging
   } = useSortable({ id: question.id })
+
+  const [showEmailWarning, setShowEmailWarning] = React.useState(false)
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -228,10 +240,17 @@ export const SortableQuestion = ({ question, index, updateQuestion, removeQuesti
               <Switch
                 id={`required-${question.id}`}
                 checked={question.required}
-                onCheckedChange={(checked) => updateQuestion(index, 'required', checked)}
+                onCheckedChange={(checked) => {
+                  if (question.id === 'invitee_email' && !checked) {
+                    setShowEmailWarning(true);
+                  } else {
+                    updateQuestion(index, 'required', checked)
+                  }
+                }}
+                disabled={question.isLocked && question.id !== 'invitee_email'}
                 className="scale-90 data-[state=checked]:bg-[var(--crm-accent)]"
               />
-              <Label htmlFor={`required-${question.id}`} className="text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider cursor-pointer select-none">Required</Label>
+              <Label htmlFor={`required-${question.id}`} className={cn("text-[10px] font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider cursor-pointer select-none", (question.isLocked && question.id !== 'invitee_email') && "opacity-50 cursor-default")}>Required</Label>
             </div>
             
             <Button
@@ -244,6 +263,23 @@ export const SortableQuestion = ({ question, index, updateQuestion, removeQuesti
               Remove
             </Button>
           </div>
+
+          <AlertDialog open={showEmailWarning} onOpenChange={setShowEmailWarning}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Make email optional?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Email is required to send meeting confirmation notifications. If you make it optional, some invitees may not receive calendar invites. Are you sure?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => updateQuestion(index, 'required', false)}>
+                  Make Optional
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           {/* Preview section */}
           <div className="mt-4 pt-4 border-t border-[var(--crm-border)]">

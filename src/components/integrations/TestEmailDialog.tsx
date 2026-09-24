@@ -16,8 +16,9 @@ interface TestEmailDialogProps {
   onOpenChange: (open: boolean) => void;
   email: string;
   setEmail: (email: string) => void;
-  onSend: () => Promise<void>;
-  isConnecting: boolean;
+  onSend?: () => Promise<void>;
+  onSendTest?: () => Promise<void>;
+  isConnecting?: boolean;
 }
 
 export function TestEmailDialog({
@@ -26,8 +27,10 @@ export function TestEmailDialog({
   email,
   setEmail,
   onSend,
-  isConnecting,
+  onSendTest,
+  isConnecting = false,
 }: TestEmailDialogProps) {
+  const handleSend = onSend || onSendTest || (async () => {});
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px] rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl dark:bg-slate-900">
@@ -58,7 +61,7 @@ export function TestEmailDialog({
               </Button>
               <Button
                 className="flex-1 h-12 rounded-2xl bg-primary hover:bg-primary/90 font-bold text-white shadow-lg shadow-primary/20 dark:shadow-none"
-                onClick={onSend}
+                onClick={handleSend}
                 disabled={isConnecting}
               >
                 {isConnecting ? (

@@ -9,6 +9,7 @@ import { evolutionApi } from '@/lib/api'
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, QrCode, Loader2, CheckCircle2, Phone, Trash2 } from 'lucide-react'
+import { PageHeader } from "@/components/page-header/PageHeader"
 
 export default function EvolutionIntegrationPage() {
   const { toast } = useToast()
@@ -192,13 +193,17 @@ export default function EvolutionIntegrationPage() {
 
   return (
     <div className="container mx-auto py-8 max-w-2xl space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => { stopPolling(); router.push('/integrations'); }}>
+      <div className="flex items-center gap-2 mb-6">
+        <Button variant="ghost" size="icon" onClick={() => { stopPolling(); router.push('/integrations'); }} className="shrink-0 -ml-2">
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Evolution WhatsApp</h1>
-          <p className="text-muted-foreground">Connect your personal WhatsApp number</p>
+        <div className="flex-1">
+          <PageHeader
+            title="Evolution WhatsApp"
+            description="Connect your personal WhatsApp number"
+            icon={<Phone className="h-6 w-6 text-primary" />}
+            className="pb-0 border-b-0"
+          />
         </div>
       </div>
 

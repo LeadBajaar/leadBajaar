@@ -50,105 +50,108 @@ export function PromotionModal({ notifications, onClose, onMarkAsRead }: Promoti
     }
   }
 
+  const bgColor = data.bg_color || '#0F172A'
+  const primaryColor = data.primary_color || '#FF7A00'
+  const textColor = data.text_color || '#ffffff'
+  const secondaryTextColor = data.secondary_text_color || '#cbd5e1'
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent hideCloseButton className="sm:max-w-[420px] p-0 overflow-hidden rounded-xl border border-[var(--crm-border)] shadow-xl bg-[var(--crm-surface-1)]">
-        <DialogTitle className="sr-only">{notification.title}</DialogTitle>
+      <DialogContent hideCloseButton className="sm:max-w-[850px] p-0 overflow-hidden rounded-2xl border-0 shadow-2xl w-[95vw]" style={{ backgroundColor: bgColor }}>
+        <DialogTitle className="sr-only" style={{ color: textColor }}>{notification.title}</DialogTitle>
         <DialogDescription className="sr-only">{notification.message}</DialogDescription>
         
         {/* Close Button Top Right */}
         <button 
           onClick={onClose}
-          className="absolute right-4 top-4 text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] transition-colors rounded-sm opacity-70 ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 z-10 bg-white/50 dark:bg-black/50 p-1 backdrop-blur-sm"
+          className="absolute right-4 top-4 text-white hover:text-white/80 transition-colors rounded-full opacity-80 z-50 bg-black/40 hover:bg-black/60 p-2 backdrop-blur-md"
           aria-label="Close"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" />
         </button>
 
-        {/* Image Header (if exists) */}
-        {data.image_url && (
-          <div className="w-full aspect-video bg-[var(--crm-surface-2)] overflow-hidden">
-            <img src={data.image_url} alt="Announcement Media" className="w-full h-full object-cover" />
-          </div>
-        )}
-
-        {/* Padding Container */}
-        <div className="px-5 pt-5 pb-4">
-          {/* Header */}
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-9 w-9 rounded-lg bg-[#E84C3A]/10 flex items-center justify-center shrink-0">
-              <Megaphone className="h-4 w-4 text-[#E84C3A]" />
-            </div>
-            <div className="px-2 py-0.5 rounded-full bg-[#E84C3A]/10 text-[#E84C3A] text-[11px] font-bold uppercase tracking-wider">
-              {category}
-            </div>
-          </div>
-
-          {/* Body */}
-          <div className="space-y-1.5 mb-4">
-            <h2 className="text-[17px] font-bold text-[var(--crm-text-primary)] leading-snug truncate pr-6">
-              {notification.title}
-            </h2>
-            <p className="text-[14px] text-[var(--crm-text-secondary)] leading-[1.6] line-clamp-4">
-              {notification.message}
-            </p>
-          </div>
-
-          {/* Learn More Link */}
-          {data.cta_link && (
-            <div className="mb-1">
-              <a 
-                href={data.cta_link} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center text-[13px] font-bold text-[#E84C3A] hover:opacity-80 transition-opacity"
-              >
-                {data.cta_text || 'Learn more'} 
-                <ChevronRight className="ml-0.5 h-3.5 w-3.5" />
-              </a>
+        <div className="flex flex-col w-full h-full max-h-[85vh]">
+          {/* Image Header (if exists) */}
+          {data.image_url && (
+            <div className="w-full relative group flex-shrink-0" style={{ maxHeight: notification.message ? '60vh' : '85vh' }}>
+              {data.cta_link ? (
+                <a href={data.cta_link} target="_blank" rel="noopener noreferrer" onClick={handleGotIt} className="block w-full h-full">
+                  <img src={data.image_url} alt={notification.title} className="w-full h-full object-contain" />
+                </a>
+              ) : (
+                <img src={data.image_url} alt={notification.title} className="w-full h-full object-contain" />
+              )}
             </div>
           )}
+
+          {/* Content Area */}
+          <div className="px-8 py-8 flex flex-col items-center text-center mt-auto" style={{ background: `linear-gradient(to top, ${bgColor}, ${bgColor}f2)` }}>
+            {notification.title && (
+              <h2 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: textColor }}>
+                {notification.title}
+              </h2>
+            )}
+            {notification.message && (
+              <p className="text-sm sm:text-base leading-relaxed max-w-2xl mb-6" style={{ color: secondaryTextColor }}>
+                {notification.message}
+              </p>
+            )}
+            
+            {data.cta_link && (
+              <Button 
+                asChild
+                onClick={handleGotIt}
+                className="text-white font-bold px-10 py-6 h-auto text-lg rounded-full transition-all border-none mb-6 hover:opacity-90"
+                style={{ backgroundColor: primaryColor, boxShadow: `0 0 20px ${primaryColor}66` }}
+              >
+                <a href={data.cta_link} target="_blank" rel="noopener noreferrer">
+                  {data.cta_text || 'TAP TO REGISTER'}
+                </a>
+              </Button>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 mt-2">
+              {data.allow_snooze !== false && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSnooze}
+                  disabled={isSnoozing}
+                  className="bg-transparent hover:bg-white/10 transition-colors"
+                  style={{ color: secondaryTextColor, borderColor: `${secondaryTextColor}33` }}
+                >
+                  Remind me later
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleGotIt}
+                className="bg-transparent hover:bg-white/10 transition-colors"
+                style={{ color: secondaryTextColor, borderColor: `${secondaryTextColor}33` }}
+              >
+                Got it
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {/* Footer */}
-        <div className="px-5 py-3.5 border-t border-[var(--crm-border)] bg-[var(--crm-surface-1)] flex items-center justify-between">
-          {/* Pagination Dots */}
-          <div className="flex items-center gap-1.5">
-            {notifications.length > 1 && notifications.map((_, idx) => (
+        {/* Pagination Dots (if multiple) */}
+        {notifications.length > 1 && (
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center items-center gap-2 pointer-events-none">
+            {notifications.map((_, idx) => (
               <div 
                 key={idx} 
                 className={cn(
-                  "h-1.5 w-1.5 rounded-full transition-colors",
-                  idx === currentIndex ? "bg-[#E84C3A]" : "bg-[var(--crm-border)]"
+                  "h-2 w-2 rounded-full transition-all",
+                  idx === currentIndex ? "bg-white w-4" : "bg-white/30"
                 )}
                 aria-label={`Announcement ${idx + 1} of ${notifications.length}`}
               />
             ))}
           </div>
-          
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2">
-            {data.allow_snooze !== false && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSnooze}
-                disabled={isSnoozing}
-                className="h-8 px-3 text-[12px] font-bold border-[var(--crm-border)] text-[var(--crm-text-secondary)] hover:bg-[var(--crm-surface-2)] hover:text-[var(--crm-text-primary)] shadow-none"
-              >
-                Remind me later
-              </Button>
-            )}
-            <Button
-              size="sm"
-              onClick={handleGotIt}
-              className="h-8 px-3 text-[12px] font-bold bg-[#E84C3A] text-white hover:bg-[#D64332] shadow-sm"
-            >
-              Got it
-            </Button>
-          </div>
-        </div>
-
+        )}
       </DialogContent>
     </Dialog>
   )

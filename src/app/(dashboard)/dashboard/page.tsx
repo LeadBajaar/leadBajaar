@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { format, differenceInDays, parseISO } from "date-fns";
 import {
   Mail,
@@ -11,6 +12,12 @@ import {
   QrCode,
   CreditCard,
   Zap,
+  MessageCircle,
+  MessageSquare,
+  BarChart3,
+  PieChart,
+  ChevronDown,
+  Clock,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -38,11 +45,12 @@ import { ErrorState, SkeletonDashboard, DismissibleCard } from "@/components/sta
 import { StatGrid, type DashboardStat } from "./StatGrid";
 import { PipelineCard, type PipelineStage } from "./PipelineCard";
 import { ActivityCard, type ActivityItem } from "./ActivityCard";
+import { MeetingsCard } from "./MeetingsCard";
 
 const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.leadbajaar";
 
 // v2 design system: coral is reserved for primary CTAs only.
-const CORAL_CTA = "bg-[#E84C3A] hover:bg-[#d8402f] text-white";
+const CORAL_CTA = "bg-[var(--crm-accent)] hover:opacity-90 text-white";
 
 // ── Types ─────────────────────────────────────────────────────
 interface DashboardData {
@@ -182,8 +190,36 @@ export default function DashboardPage() {
     }
   };
 
+  const greeting = new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good night';
+
   return (
-    <div className="flex flex-col gap-3 px-3 sm:px-4 pb-3 pt-2 overflow-x-hidden">
+    <div className="flex flex-col gap-5 px-6 sm:px-8 pb-8 pt-6 overflow-x-hidden">
+      
+      {/* ── Dashboard Header ─────────────────────────────── */}
+      <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-6 mb-2">
+        <div className="flex flex-col gap-3">
+          <div>
+            <h1 className="text-[28px] font-extrabold text-[var(--crm-text-primary)] tracking-tight satoshi-heading flex items-center gap-2 whitespace-nowrap leading-tight">
+              {greeting}, {user?.name?.split(' ')[0] || 'Super'}! <span className="text-[28px]">👋</span>
+            </h1>
+            <p className="text-[13px] font-semibold text-slate-500 mt-1">
+              Here's what's happening with your business today.
+            </p>
+          </div>
+          
+          {/* Premium Date Selector Button */}
+          <div className="flex items-center gap-2 px-3 py-1.5 w-fit rounded-lg border border-gray-200/80 bg-white hover:bg-gray-50 text-[13px] font-bold text-slate-700 shadow-sm transition-all cursor-pointer select-none">
+            <Calendar className="h-4 w-4 text-slate-500 shrink-0" />
+            <span>{format(new Date(), "MMM d, yyyy")}</span>
+            <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+          </div>
+        </div>
+        
+        {/* Right side stats */}
+        <div className="flex-1 w-full xl:w-auto xl:max-w-3xl flex justify-start xl:justify-end">
+          <StatGrid isLoading={status === "loading"} stats={data?.stats || []} compact />
+        </div>
+      </div>
 
       {/* ── Stale / refresh-failed banner ────────────────── */}
       {isStale && data && (
@@ -223,22 +259,32 @@ export default function DashboardPage() {
       {status === "success" && data && (
         <div
           className={cn(
-            "flex flex-col gap-3 transition-opacity duration-150 motion-reduce:transition-none animate-in fade-in duration-300",
+            "flex flex-col gap-5 transition-opacity duration-150 motion-reduce:transition-none animate-in fade-in duration-300",
             isStale && "opacity-70"
           )}
         >
-              <StatGrid isLoading={false} stats={data.stats} />
+          {/* Top Row: Promo Card & Account Info */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-2">
+            <div className="lg:col-span-2">
+              <MobileAppPromoCard onShowQR={() => setShowQRModal(true)} />
+            </div>
+            <div className="lg:col-span-1">
+              <AccountInfoCard user={user} />
+            </div>
+          </div>
 
-              {/* ── Promo (left) + Account (right) — side-by-side on desktop ── */}
-              <div className="grid grid-cols-1 lg:grid-cols-[55fr_45fr] gap-3">
-                <PlayStorePromo onScanQR={() => setShowQRModal(true)} />
-                {user && <AccountCard user={user} />}
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                <PipelineCard pipeline={data.pipeline} />
-                <ActivityCard activity={data.recent_activity} />
-              </div>
+          {/* Bottom Row: Pipeline, Meetings & Recent Activity */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div className="lg:col-span-1">
+              <PipelineCard pipeline={data.pipeline} />
+            </div>
+            <div className="lg:col-span-1">
+              <MeetingsCard />
+            </div>
+            <div className="lg:col-span-1">
+              <ActivityCard activities={data.recent_activity} />
+            </div>
+          </div>
         </div>
       )}
 
@@ -327,167 +373,250 @@ export default function DashboardPage() {
   );
 }
 
-function AccountCard({ user }: { user: any }) {
-  const initials = user?.name
-    ? user.name
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .toUpperCase()
-    : "?";
-
-  // ── Plan / validity logic (was in AccountInfoBanner) ──
-  const plan = user?.company?.plan;
-  const expiresAt = user?.company?.expires_at;
-
-  let daysLeft: number | null = null;
-  let validityLabel = "";
-  let urgency: "ok" | "warn" | "critical" = "ok";
-
-  if (expiresAt) {
-    try {
-      daysLeft = differenceInDays(parseISO(expiresAt), new Date());
-      if (daysLeft <= 0) {
-        validityLabel = "Expired";
-        urgency = "critical";
-      } else if (daysLeft <= 7) {
-        validityLabel = `${daysLeft}d left`;
-        urgency = "critical";
-      } else if (daysLeft <= 30) {
-        validityLabel = `${daysLeft}d left`;
-        urgency = "warn";
-      } else {
-        validityLabel = `Till ${format(parseISO(expiresAt), "dd MMM yyyy")}`;
-        urgency = "ok";
-      }
-    } catch {
-      validityLabel = "";
-    }
-  }
-
-  const isExpired = daysLeft !== null && daysLeft <= 0;
-
-  const rows = [
-    { key: "email",   icon: Mail,      text: user.email },
-    { key: "phone",   icon: Phone,     text: user.phone || "Not provided" },
-    { key: "company", icon: Building2, text: user.company?.name || "Not provided" },
-    {
-      key: "member",
-      icon: Calendar,
-      text: `Since ${format(new Date(user.created_at || new Date()), "MMM yyyy")}`,
-    },
-  ];
-
+// ── Mobile App Promo Card ──────────────────────────────────
+function MobileAppPromoCard({ onShowQR }: { onShowQR: () => void }) {
   return (
-    <div className={cn(
-      "rounded-[var(--r-lg)] border bg-[var(--crm-surface-1)] shadow-card transition-colors",
-      urgency === "critical"
-        ? "border-[var(--crm-red-border)]"
-        : "border-[var(--crm-border)]"
-    )}>
-      {/* Header: title + plan pill + validity + renew */}
-      <div className={cn(
-        "px-4 py-2.5 border-b flex flex-wrap items-center gap-2",
-        urgency === "critical"
-          ? "border-[var(--crm-red-border)] bg-[var(--crm-red-soft)]"
-          : "border-[var(--crm-border)]"
-      )}>
-        <h2 className="text-[13px] font-semibold text-[var(--crm-text-primary)] mr-auto">Account</h2>
-        {plan && (
-          <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border border-primary/20 bg-primary/10 text-primary capitalize">
-            <Zap className="h-2.5 w-2.5" />{plan} Plan
-          </span>
-        )}
-        {validityLabel && (
-          <span className={cn(
-            "text-[12px] font-semibold px-2 py-0.5 rounded-full",
-            urgency === "critical" && "bg-[var(--crm-red)] text-white",
-            urgency === "warn"     && "bg-[var(--crm-amber-soft)] text-[var(--crm-amber)]",
-            urgency === "ok"       && "bg-[var(--crm-green-soft)] text-[var(--crm-green)]"
-          )}>
-            {urgency === "critical" ? "⚠ " : urgency === "warn" ? "▷ " : "✓ "}{validityLabel}
-          </span>
-        )}
-        {urgency === "critical" && (
-          <Button
-            size="sm"
-            onClick={() => { window.location.href = "/settings?tab=billing"; }}
-            className={cn("h-6 px-2 rounded-[var(--r-md)] text-[11px] font-bold shadow-sm", CORAL_CTA)}
-          >
-            <CreditCard className="h-3 w-3 mr-1" />
-            {isExpired ? "Renew" : "Renew Now"}
-          </Button>
-        )}
+    <div 
+      className="relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between min-h-[280px] h-auto md:h-[280px] p-6 md:p-8 bg-gradient-to-br from-[#EBF3FF] via-[#EAE9FC] to-[#F1F3FE] rounded-xl border border-gray-200/60 shadow-[0_2px_12px_rgba(0,0,0,0.03)] cursor-pointer select-none" 
+      onClick={onShowQR}
+    >
+      
+      {/* Background Decorative Element */}
+      <div className="absolute top-0 right-0 w-full h-full overflow-hidden pointer-events-none opacity-50">
+        <div className="absolute -bottom-32 -right-10 w-96 h-96 bg-[#E0E2F8] rounded-full blur-3xl opacity-60" />
+        <div className="absolute top-10 right-32 w-64 h-64 bg-purple-100 rounded-full blur-3xl opacity-40" />
       </div>
-      <div className="p-3.5 space-y-3">
-        {/* Avatar + name row */}
-        <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9 rounded-[var(--r-md)] shadow-[0_4px_10px_-2px_rgba(30,45,107,0.35)] ring-1 ring-black/[0.04] dark:ring-white/[0.06] shrink-0">
-            <AvatarImage src={user.avatar || ""} />
-            <AvatarFallback className="rounded-[var(--r-md)] bg-gradient-to-br from-[var(--crm-accent)] to-[#3a4d99] text-white font-semibold text-sm">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <p className="font-semibold text-[var(--crm-text-primary)] text-[13px] truncate">{user.name}</p>
-            <Badge variant="secondary" className="text-[10px] mt-0.5">
-              {user.role}
-            </Badge>
-          </div>
+      
+      {/* Left side text content */}
+      <div className="flex-1 flex flex-col justify-center relative z-10 pl-0 md:pl-2 w-full md:max-w-[55%]">
+        <span className="text-[14px] md:text-[16px] font-extrabold text-slate-800 tracking-tight mb-2 leading-none">
+          All your leads. All your conversations.
+        </span>
+        <h2 className="text-[28px] md:text-[36px] font-black text-slate-900 satoshi-heading mb-3 md:mb-4 tracking-tight leading-[1.1]">
+          All in one place.
+        </h2>
+        <p className="text-[13px] md:text-[14px] text-slate-500 leading-relaxed w-full max-w-[420px] font-semibold mb-5 md:mb-6">
+          Manage leads, live chat, meetings and more — all from the LeadBajaar mobile app.
+        </p>
+        
+        {/* Buttons */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full">
+          <Button variant="ghost" 
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(PLAY_STORE_URL, "_blank");
+            }}
+            className="w-full sm:w-[160px] justify-center bg-gradient-to-r from-[#2A3ED6] to-[#4054E6] hover:opacity-95 text-white text-[13px] font-extrabold h-[44px] px-6 rounded-xl flex items-center gap-2.5 shadow-md shadow-blue-600/10 transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <Smartphone className="h-4.5 w-4.5 shrink-0" />
+            Get the App
+          </Button>
+          
+          <Button variant="ghost"
+            onClick={(e) => {
+              e.stopPropagation();
+              onShowQR();
+            }}
+            className="w-full sm:w-[160px] justify-center bg-white hover:bg-gray-50 text-slate-850 border border-gray-200 text-[13px] font-extrabold h-[44px] px-6 rounded-xl flex items-center gap-2.5 shadow-sm transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <QrCode className="h-4.5 w-4.5 text-slate-500 shrink-0" />
+            Scan QR Code
+          </Button>
         </div>
-        {/* Details — 2-column compact grid */}
-        <div className="grid grid-cols-2 gap-1.5">
-          {rows.map(({ key, icon: Icon, text }) => (
-            <div key={key} className="flex items-center gap-2 text-[11px] rounded-[var(--r-md)] px-1.5 py-1 hover:bg-[var(--crm-surface-2)] transition-colors min-w-0">
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--r-sm)] bg-[var(--crm-surface-2)]">
-                <Icon className="h-3 w-3 text-[var(--crm-text-secondary)]" aria-hidden="true" />
-              </div>
-              <span className="text-[var(--crm-text-secondary)] truncate">{text}</span>
-            </div>
-          ))}
-        </div>
+      </div>
+
+      {/* Right side Illustration (Tilted Phone + 3D Floating Elements) */}
+      <div className="absolute right-4 top-0 bottom-0 w-[42%] hidden md:flex items-center justify-end pr-4 pointer-events-none z-10">
+        <img 
+          src="/android-mockup.png" 
+          alt="LeadBajaar Mobile App & 3D illustrations" 
+          className="h-[265px] w-auto object-contain drop-shadow-[0_15px_35px_rgba(30,27,75,0.06)]" 
+        />
       </div>
     </div>
   );
 }
 
-// ── Mobile App Promo card ───────────────────────────────────
-function PlayStorePromo({ onScanQR }: { onScanQR: () => void }) {
+function AccountInfoCard({ user }: { user: any }) {
+  const router = useRouter();
+
+  // ── Plan Calculation ──
+  const rawPlan = user?.company?.plan || user?.company?.plan_details?.name || 'Free';
+  const planName = rawPlan.charAt(0).toUpperCase() + rawPlan.slice(1);
+  const planLower = rawPlan.toLowerCase();
+
+  // ── Expiry / Remaining Days Calculation ──
+  const isSuperAdmin = user?.role === 'Super Admin' || user?.user_type === 'super_admin';
+  const expiresAtStr = user?.company?.expires_at;
+
+  let expiryBadge = {
+    text: 'Active',
+    className: 'text-emerald-600 bg-emerald-50 border-emerald-100',
+    iconColor: 'text-emerald-600',
+    isUrgent: false,
+  };
+
+  if (isSuperAdmin && !expiresAtStr) {
+    expiryBadge = {
+      text: 'Lifetime Access',
+      className: 'text-purple-600 bg-purple-50 border-purple-100',
+      iconColor: 'text-purple-600',
+      isUrgent: false,
+    };
+  } else if (expiresAtStr) {
+    const expiresAt = new Date(expiresAtStr);
+    const now = new Date();
+    const diffTime = expiresAt.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      expiryBadge = {
+        text: 'Expired',
+        className: 'text-rose-600 bg-rose-50 border-rose-100',
+        iconColor: 'text-rose-600',
+        isUrgent: true,
+      };
+    } else if (diffDays === 0) {
+      expiryBadge = {
+        text: 'Expires today',
+        className: 'text-red-600 bg-red-50 border-red-100',
+        iconColor: 'text-red-600',
+        isUrgent: true,
+      };
+    } else if (diffDays === 1) {
+      expiryBadge = {
+        text: '1d left',
+        className: 'text-red-600 bg-red-50 border-red-100',
+        iconColor: 'text-red-600',
+        isUrgent: true,
+      };
+    } else if (diffDays <= 7) {
+      expiryBadge = {
+        text: `${diffDays}d left`,
+        className: 'text-amber-600 bg-amber-50 border-amber-100',
+        iconColor: 'text-amber-600',
+        isUrgent: true,
+      };
+    } else {
+      expiryBadge = {
+        text: `${diffDays}d left`,
+        className: 'text-emerald-600 bg-emerald-50 border-emerald-100',
+        iconColor: 'text-emerald-600',
+        isUrgent: false,
+      };
+    }
+  }
+
+  // ── Plan Badge Color ──
+  const planBadgeClass =
+    planLower === 'enterprise'
+      ? 'text-blue-600 bg-blue-50 border-blue-100'
+      : planLower === 'pro'
+      ? 'text-indigo-600 bg-indigo-50 border-indigo-100'
+      : planLower === 'agency'
+      ? 'text-purple-600 bg-purple-50 border-purple-100'
+      : 'text-slate-700 bg-slate-100 border-slate-200';
+
+  // ── User Initials & Data ──
+  const initials = (user?.name || 'User')
+    .split(' ')
+    .filter(Boolean)
+    .map((n: string) => n[0].toUpperCase())
+    .slice(0, 2)
+    .join('');
+
+  const companyName = user?.company?.name || user?.company_name || (user?.name ? `${user.name}'s Workspace` : 'My Workspace');
+  const phone = user?.phone || user?.mobile || 'Not set';
+  const email = user?.email || 'No email';
+
+  // ── Member Since ──
+  const memberDate = user?.company?.subscription_started_at || user?.created_at;
+  let sinceText = 'Active Member';
+  if (memberDate) {
+    try {
+      sinceText = `Since ${format(new Date(memberDate), 'MMM yyyy')}`;
+    } catch {
+      sinceText = 'Active Member';
+    }
+  }
+
+  // ── Plan Limits ──
+  const leadLimitText = 'No limit';
+
+  const companyStatus = user?.company?.status || 'Active';
+
   return (
-    <DismissibleCard
-      id="dashboard-playstore-promo"
-      className="rounded-[var(--r-lg)] border-[var(--crm-border)] bg-white dark:bg-[var(--crm-surface-1)] px-5 py-4 shadow-card"
-    >
-      <div className="flex items-center gap-5 flex-wrap">
-        <img
-          src="/android-mockup.png"
-          alt="LeadBajaar Android app"
-          className="hidden sm:block h-24 w-auto drop-shadow-lg shrink-0 self-center"
-        />
-        <div className="flex-1 min-w-[220px] py-1">
-          <p className="text-[14px] font-bold text-[var(--crm-text-primary)] tracking-tight flex items-center gap-2">
-            <Smartphone className="h-4 w-4 text-[var(--crm-accent)]" aria-hidden="true" />
-            Take LeadBajaar with you
-          </p>
-          <p className="text-[12px] text-[var(--crm-text-secondary)] mt-1 leading-relaxed">
-            Manage leads, live chat, and meetings on the go — the LeadBajaar app is available on the Google Play Store.
-          </p>
-          <div className="flex items-center gap-2 flex-wrap mt-3">
-            <Button asChild size="sm" className={cn("h-8 px-3 rounded-[var(--r-md)] text-[12px] font-bold shadow-sm", CORAL_CTA)}>
-              <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer">
-                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 mr-1.5 fill-current" aria-hidden="true">
-                  <path d="M3.6 1.8 13.7 12 3.6 22.2c-.4-.2-.6-.6-.6-1.1V2.9c0-.5.2-.9.6-1.1zm11.5 8.8 2.6-2.6 -11-6.3c-.2-.1-.4-.2-.6-.2l9 9.1zm3.9-1.3 2.6 1.5c.9.5.9 1.9 0 2.4l-2.6 1.5L16.5 12l2.5-2.7zM6.1 22.5c.2 0 .4-.1.6-.2l11-6.3-2.6-2.6-9 9.1z"/>
-                </svg>
-                Get it on Google Play
-              </a>
-            </Button>
-            <Button size="sm" variant="outline" onClick={onScanQR} className="h-8 px-3 rounded-[var(--r-md)] text-[12px] font-semibold border-[var(--crm-border)] hover:bg-[var(--crm-surface-2)]">
-              <QrCode className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
-              Scan QR
-            </Button>
+    <div className="flex flex-col h-full min-h-[280px] bg-white rounded-xl border border-gray-200/80 shadow-sm p-6 relative overflow-hidden">
+      
+      {/* Top section: Identity & Badges */}
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3.5 w-full min-w-0">
+          <div className="h-12 w-12 rounded-[12px] bg-[#0F172A] text-white flex items-center justify-center text-[16px] font-bold shadow-sm shrink-0">
+            {initials || 'SA'}
+          </div>
+          <div className="flex flex-col min-w-0 flex-1">
+            <h3 className="text-[16px] font-bold text-slate-900 leading-tight flex items-center gap-2 mb-1 flex-wrap">
+              <span className="truncate">{user?.name || 'Super Admin'}</span>
+              <span className={cn("px-1.5 py-0.5 text-[9px] uppercase tracking-wider font-bold rounded-md border shadow-sm shrink-0", planBadgeClass)}>
+                {planName}
+              </span>
+            </h3>
+            <p className="text-[12.5px] font-medium text-slate-500 leading-none truncate">{email}</p>
           </div>
         </div>
+        
+        {/* Actions / Expiry */}
+        <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start w-full sm:w-auto gap-2 shrink-0 border-t sm:border-0 pt-3 sm:pt-0 border-slate-100">
+           <span className={cn("text-[11px] font-bold flex items-center gap-1", expiryBadge.isUrgent ? "text-rose-600" : "text-emerald-600")}>
+              <Clock className="w-3.5 h-3.5" />
+              {expiryBadge.text}
+           </span>
+           {expiryBadge.isUrgent ? (
+             <Button variant="ghost" onClick={() => router.push('/settings')} className="px-3 py-1.5 bg-[#EF4444] hover:bg-[#DC2626] text-white text-[11px] font-bold rounded-md transition-all shadow-sm active:scale-95 h-auto w-auto">
+                Renew Now
+             </Button>
+           ) : (
+             <Button variant="ghost" onClick={() => router.push('/settings')} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold rounded-md transition-all shadow-sm active:scale-95 border border-slate-200/60 h-auto w-auto">
+                Manage
+             </Button>
+           )}
+        </div>
       </div>
-    </DismissibleCard>
+
+      {/* Middle section: Key Details */}
+      <div className="grid grid-cols-2 gap-4 mb-6 text-[13px]">
+         <div className="flex flex-col gap-1.5">
+            <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Workspace</span>
+            <span className="text-slate-700 font-semibold flex items-center gap-1.5 truncate">
+              <Building2 className="w-4 h-4 text-slate-400 shrink-0"/> 
+              <span className="truncate">{companyName}</span>
+            </span>
+         </div>
+         <div className="flex flex-col gap-1.5">
+            <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Member Since</span>
+            <span className="text-slate-700 font-semibold flex items-center gap-1.5 truncate">
+              <Calendar className="w-4 h-4 text-slate-400 shrink-0"/> 
+              <span className="truncate">{sinceText.replace('Since ', '')}</span>
+            </span>
+         </div>
+      </div>
+
+      {/* Bottom section: Limits & Status */}
+      <div className="mt-auto bg-[#F8FAFC]/80 rounded-xl p-4 border border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+         <div className="flex flex-col gap-1 w-full sm:w-auto">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lead Limits</span>
+            <span className="text-[16px] font-bold text-slate-900 leading-none">{leadLimitText}</span>
+         </div>
+         <div className="flex flex-col items-start sm:items-end gap-1 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-0 border-slate-200/60">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Platform Status</span>
+            <span className={cn(
+              "text-[12px] font-bold leading-none",
+              companyStatus.toLowerCase() === 'active' ? "text-indigo-600" : "text-amber-600"
+            )}>
+              {companyStatus.toLowerCase() === 'active' ? "All systems normal" : `${companyStatus} status`}
+            </span>
+         </div>
+      </div>
+    </div>
   );
 }

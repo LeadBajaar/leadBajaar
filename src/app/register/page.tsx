@@ -85,11 +85,11 @@ export default function RegisterPage() {
               <div className="space-y-1.5">
                 <Label htmlFor="name" className="text-xs font-semibold text-slate-700 dark:text-slate-300 ml-0.5">Full Name</Label>
                 <div className="relative group transition-all">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                   <Input
                     id="name"
                     placeholder="John Doe"
-                    className="h-11 pl-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-indigo-500/20 focus:border-primary transition-all text-sm"
+                    className="h-11 pl-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
                     {...register('name', { required: 'Name is required' })}
                   />
                 </div>
@@ -99,12 +99,12 @@ export default function RegisterPage() {
               <div className="space-y-1.5">
                 <Label htmlFor="email" className="text-xs font-semibold text-slate-700 dark:text-slate-300 ml-0.5">Work Email</Label>
                 <div className="relative group transition-all">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="name@company.com"
-                    className="h-11 pl-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-indigo-500/20 focus:border-primary transition-all text-sm"
+                    className="h-11 pl-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
                     {...register('email', {
                       required: 'Email is required',
                       pattern: {
@@ -120,12 +120,12 @@ export default function RegisterPage() {
               <div className="space-y-1.5">
                 <Label htmlFor="phone" className="text-xs font-semibold text-slate-700 dark:text-slate-300 ml-0.5">Phone Number</Label>
                 <div className="relative group transition-all">
-                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                   <Input
                     id="phone"
                     type="tel"
                     placeholder="+1 234 567 8900"
-                    className="h-11 pl-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-indigo-500/20 focus:border-primary transition-all text-sm"
+                    className="h-11 pl-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
                     {...register('phone', {
                       required: 'Phone number is required'
                     })}
@@ -137,12 +137,12 @@ export default function RegisterPage() {
               <div className="space-y-1.5">
                 <Label htmlFor="password" className="text-xs font-semibold text-slate-700 dark:text-slate-300 ml-0.5">Password</Label>
                 <div className="relative group transition-all">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    className="h-11 pl-10 pr-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-indigo-500/20 focus:border-primary transition-all text-sm"
+                    className="h-11 pl-10 pr-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
                     {...register('password', {
                       required: 'Password is required',
                       minLength: { value: 8, message: 'Minimum 8 characters' }
@@ -166,12 +166,12 @@ export default function RegisterPage() {
               <div className="space-y-1.5">
                 <Label htmlFor="password_confirmation" className="text-xs font-semibold text-slate-700 dark:text-slate-300 ml-0.5">Confirm Password</Label>
                 <div className="relative group transition-all">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                   <Input
                     id="password_confirmation"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    className="h-11 pl-10 pr-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-indigo-500/20 focus:border-primary transition-all text-sm"
+                    className="h-11 pl-10 pr-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
                     {...register('password_confirmation', {
                       validate: (val: string) => {
                         if (watch('password') != val) {

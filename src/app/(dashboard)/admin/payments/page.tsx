@@ -41,6 +41,7 @@ import {
 } from '@/components/ui/pagination'
 import { CouponsTab } from './components/CouponsTab'
 import { SettingsTab } from './components/SettingsTab'
+import { PageHeader } from '@/components/page-header/PageHeader'
 
 export default function PaymentsPage() {
   const [activeTab, setActiveTab] = useState('pending')
@@ -144,15 +145,16 @@ export default function PaymentsPage() {
   return (
     <RoleGuard allowedTypes={['super_admin']} allowedFeatures={['system_admin']}>
       <div className="flex flex-col gap-4 sm:gap-6 max-w-[1400px] mx-auto w-full pb-10">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--crm-text-primary)]">Payments & Billing</h1>
-            <p className="text-[var(--crm-text-secondary)]">Manage custom payments, approvals, and view billing history.</p>
-          </div>
-          <Button onClick={refreshData} variant="outline" size="sm">
-            Refresh
-          </Button>
-        </div>
+        <PageHeader
+          title="Payments & Billing"
+          description="Manage custom payments, approvals, and view billing history."
+          icon={<CreditCard className="h-6 w-6 text-primary" />}
+          actions={
+            <Button onClick={refreshData} variant="outline" size="sm">
+              Refresh
+            </Button>
+          }
+        />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-6 bg-[var(--crm-surface-1)] border border-[var(--crm-border)] w-full justify-start h-auto p-1 overflow-x-auto no-scrollbar">

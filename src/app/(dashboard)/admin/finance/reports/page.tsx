@@ -13,6 +13,7 @@ import {
   Calendar, RefreshCw, Calculator, ShieldCheck,
   TrendingUp, TrendingDown, Users, Receipt,
 } from 'lucide-react'
+import { PageHeader } from '@/components/page-header/PageHeader'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
@@ -161,35 +162,36 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6 print:p-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
-        <div>
-          <h2 className="text-2xl font-bold">Financial Reports</h2>
-          <p className="text-sm text-muted-foreground">Generated statements for accounting and audits</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Select value={String(month)} onValueChange={v => setMonth(Number(v))}>
-            <SelectTrigger className="w-28 h-9 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i+1)}>{m}</SelectItem>)}</SelectContent>
-          </Select>
-          <Select value={String(year)} onValueChange={v => setYear(Number(v))}>
-            <SelectTrigger className="w-24 h-9 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>{[2024,2025,2026,2027].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
-          </Select>
-          <Button onClick={handleFetch} disabled={loading} size="sm" className="bg-primary hover:bg-primary/90 text-white h-9 gap-1">
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} /> Generate
-          </Button>
-          {report && (
-            <div className="flex items-center gap-2">
-              <Button onClick={handleExport} variant="outline" size="sm" className="h-9 gap-1 text-emerald-600 border-emerald-200 hover:bg-emerald-50">
-                <Download className="h-3.5 w-3.5" /> CSV
-              </Button>
-              <Button onClick={handlePrint} variant="outline" size="sm" className="h-9 gap-1">
-                <Printer className="h-3.5 w-3.5" /> Print
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title="Financial Reports"
+        description="Generated statements for accounting and audits"
+        icon={<FileText className="h-6 w-6 text-primary" />}
+        actions={
+          <div className="flex items-center gap-2">
+            <Select value={String(month)} onValueChange={v => setMonth(Number(v))}>
+              <SelectTrigger className="w-28 h-9 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i+1)}>{m}</SelectItem>)}</SelectContent>
+            </Select>
+            <Select value={String(year)} onValueChange={v => setYear(Number(v))}>
+              <SelectTrigger className="w-24 h-9 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>{[2024,2025,2026,2027].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+            </Select>
+            <Button onClick={handleFetch} disabled={loading} size="sm" className="bg-primary hover:bg-primary/90 text-white h-9 gap-1">
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} /> Generate
+            </Button>
+            {report && (
+              <div className="flex items-center gap-2">
+                <Button onClick={handleExport} variant="outline" size="sm" className="h-9 gap-1 text-emerald-600 border-emerald-200 hover:bg-emerald-50">
+                  <Download className="h-3.5 w-3.5" /> CSV
+                </Button>
+                <Button onClick={handlePrint} variant="outline" size="sm" className="h-9 gap-1">
+                  <Printer className="h-3.5 w-3.5" /> Print
+                </Button>
+              </div>
+            )}
+          </div>
+        }
+      />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="print:hidden">
         <TabsList className="grid grid-cols-4 w-full md:w-[600px] bg-muted/50">

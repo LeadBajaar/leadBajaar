@@ -68,6 +68,7 @@ import { RoleGuard } from '@/components/RoleGuard'
 import { useRouter } from 'next/navigation'
 import { setSession } from '@/lib/auth'
 import { ConfirmationModal } from '@/components/shared/ConfirmationModal'
+import { PageHeader } from '@/components/page-header/PageHeader'
 
 export default function AgencyPortalPage() {
   const [clients, setClients] = useState<any[]>([])
@@ -230,25 +231,21 @@ export default function AgencyPortalPage() {
     <RoleGuard allowedTypes={['agency', 'super_admin']} allowedFeatures={['agency_management']}>
       <div className="flex flex-col gap-4 sm:gap-6 max-w-[1400px] mx-auto w-full pb-10">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-black text-[var(--crm-text-primary)] tracking-tight flex items-center gap-2">
-              <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-[var(--crm-accent)]" />
-              Agency Management
-            </h1>
-            <p className="text-xs sm:text-sm text-[var(--crm-text-secondary)] font-medium mt-1">Oversee your client portfolio and performance metrics</p>
-          </div>
-
-          <Dialog open={isOnboardingOpen} onOpenChange={(open) => {
-            setIsOnboardingOpen(open);
-            if (!open) setOnboardingResult(null);
-          }}>
-            <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto bg-[var(--crm-accent)] hover:opacity-90 text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]">
-                <UserPlus2 className="h-4 w-4 mr-2 shrink-0" /> Onboard New Client
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[450px] rounded-3xl p-6 border border-[var(--crm-border)] bg-[var(--crm-surface-1)] shadow-2xl">
+        <PageHeader
+          title="Agency Management"
+          description="Oversee your client portfolio and performance metrics"
+          icon={<Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-[var(--crm-accent)]" />}
+          actions={
+            <Dialog open={isOnboardingOpen} onOpenChange={(open) => {
+              setIsOnboardingOpen(open);
+              if (!open) setOnboardingResult(null);
+            }}>
+              <DialogTrigger asChild>
+                <Button className="w-full sm:w-auto bg-[var(--crm-accent)] hover:opacity-90 text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]">
+                  <UserPlus2 className="h-4 w-4 mr-2 shrink-0" /> Onboard New Client
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[450px] rounded-3xl p-6 border border-[var(--crm-border)] bg-[var(--crm-surface-1)] shadow-2xl">
               <DialogHeader>
                 <DialogTitle className="text-xl font-black tracking-tight">Onboard Individual Client</DialogTitle>
                 <DialogDescription className="text-[var(--crm-text-secondary)] font-medium italic">
@@ -358,7 +355,8 @@ export default function AgencyPortalPage() {
               )}
             </DialogContent>
           </Dialog>
-        </div>
+          }
+        />
 
         {/* Portfolio Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 shrink-0 lg:max-w-3xl">

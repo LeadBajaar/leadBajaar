@@ -11,8 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ChatbotNode, ChatbotEdge, MessageNodeData, TriggerConfig, NodeData, FlowNodeData, FunctionNodeData, BaseNodeData } from '@/types/nodes'
-import { Paperclip, Smile, X, PlusCircle, Tag, ArrowLeft } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { Paperclip, Smile, X, PlusCircle, Tag, ArrowLeft, LayoutTemplate } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
 import MessageNode from '@/components/reactflow/MessageNode'
@@ -24,6 +24,8 @@ import FlowNode from '@/components/reactflow/FlowNode'
 import { ChatbotFlow, chatbotService } from '@/services/chatbot'
 import { useToast } from '@/components/ui/use-toast'
 import { integrationApi } from '@/lib/api'
+import { getChatbotTemplateById, ChatbotTemplate } from '@/constants/chatbot-templates'
+import { TemplateSelectionModal } from '@/components/chatbot/TemplateSelectionModal'
 
 interface CTAUrlButton {
   display_text: string;
@@ -285,6 +287,9 @@ type TriggerType = keyof typeof TRIGGER_TYPES;
 
 export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuilderProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const templateParam = searchParams?.get('template')
+
   const [nodes, setNodes] = useState<ChatbotNode[]>(isNew ? initialNodes : [])
   const [edges, setEdges] = useState<ChatbotEdge[]>(isNew ? initialEdges : [])
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
@@ -307,7 +312,41 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
   })
   const [isSaving, setIsSaving] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false)
   const loadedRef = useRef(false)
+
+  // Hydrate template if specified in URL query params on new flow creation
+  useEffect(() => {
+    if (isNew && templateParam) {
+      const template = getChatbotTemplateById(templateParam)
+      if (template) {
+        setNodes(template.nodes)
+        setEdges(template.edges)
+        setFlowName(template.name)
+        setFlowDescription(template.description)
+        setFlowTrigger({
+          type: 'message',
+          value: template.trigger,
+        })
+      }
+    }
+  }, [isNew, templateParam])
+
+  const handleApplyTemplate = (template: ChatbotTemplate) => {
+    setNodes(template.nodes)
+    setEdges(template.edges)
+    setFlowName(template.name)
+    setFlowDescription(template.description)
+    setFlowTrigger({
+      type: 'message',
+      value: template.trigger,
+    })
+    setIsTemplateModalOpen(false)
+    toast({
+      title: 'Template Applied',
+      description: `"${template.name}" template has been loaded onto your canvas.`,
+    })
+  }
 
   useEffect(() => {
     setIsMounted(true)
@@ -555,9 +594,20 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
             />
           </div>
         </div>
-        <Button onClick={saveFlow} disabled={isSaving} className="w-full sm:w-auto mt-2 sm:mt-0 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90">
-          {isSaving ? 'Saving...' : 'Save Flow'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsTemplateModalOpen(true)}
+            className="w-full sm:w-auto h-9 px-3 text-xs font-semibold rounded-xl border-slate-200 dark:border-slate-800"
+          >
+            <LayoutTemplate className="h-3.5 w-3.5 mr-1.5 text-[#1e2d6b] dark:text-indigo-400" />
+            Templates
+          </Button>
+          <Button onClick={saveFlow} disabled={isSaving} className="w-full sm:w-auto bg-crm-btn-primary hover:bg-crm-btn-primary-hover text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 shadow-sm shadow-[#1e2d6b]/20 h-9 rounded-xl font-semibold transition-all">
+            {isSaving ? 'Saving...' : 'Save Flow'}
+          </Button>
+        </div>
       </div>
 
       {loading ? (
@@ -869,6 +919,13 @@ export default function FlowBuilder({ flowId, isNew = false, onSave }: FlowBuild
           </div>
         </div>
       )}
+
+      {/* In-Builder Template Selection Modal */}
+      <TemplateSelectionModal
+        isOpen={isTemplateModalOpen}
+        onOpenChange={setIsTemplateModalOpen}
+        onSelectTemplate={handleApplyTemplate}
+      />
     </div>
   )
 }

@@ -24,10 +24,10 @@ export function TableColumnToggle({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="ml-auto">
-          <Settings2 className="mr-2 h-4 w-4" />
+        <button className="h-8 px-3 flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all whitespace-nowrap shadow-xs cursor-pointer">
+          <Settings2 className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
           Columns
-        </Button>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {columns.map((column) => (

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -9,18 +9,17 @@ import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Shield, Users, Mail, UserPlus, MoreVertical, Star, ShieldCheck, User, Trash2, Edit, CheckCircle2, XCircle, Info, Settings, AlertCircle } from 'lucide-react'
+import { Shield, Users, Mail, UserPlus, MoreVertical, Star, ShieldCheck, User, Trash2, Edit, CheckCircle2, XCircle, Info, AlertCircle, Search } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import { teamApi } from '@/lib/api'
-import { useEffect } from 'react'
 import { RoleGuard } from '@/components/RoleGuard'
 import { handleError } from '@/utils/handleError'
+import { getAgentColor } from '@/utils/agentColors'
+import { PageHeader } from '@/components/page-header/PageHeader'
 
-
-// Mock Data
 type Role = 'Admin' | 'Manager' | 'Agent'
 
 interface TeamMember {
@@ -32,14 +31,6 @@ interface TeamMember {
   lastActive: string
 }
 
-const initialMembers: TeamMember[] = [
-  { id: '1', name: 'John Doe', email: 'john@leadbajaar.com', role: 'Admin', status: 'Active', lastActive: '2 mins ago' },
-  { id: '2', name: 'Sarah Smith', email: 'sarah@leadbajaar.com', role: 'Manager', status: 'Active', lastActive: '1 hour ago' },
-  { id: '3', name: 'Mike Johnson', email: 'mike@leadbajaar.com', role: 'Agent', status: 'Active', lastActive: '3 hours ago' },
-  { id: '4', name: 'Emily Davis', email: 'emily@leadbajaar.com', role: 'Agent', status: 'Invited', lastActive: 'Never' },
-]
-
-// Permission Definition
 interface Permission {
   name: string
   description: string
@@ -147,104 +138,111 @@ export default function TeamManagementPage() {
     (m.email || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const getRoleIcon = (role: Role) => {
+  const getRoleBadge = (role: Role) => {
     switch (role) {
-      case 'Admin': return <ShieldCheck className="h-4 w-4 text-purple-500" />
-      case 'Manager': return <Star className="h-4 w-4 text-amber-500" />
-      case 'Agent': return <User className="h-4 w-4 text-primary" />
-    }
-  }
-
-  const getRoleBadgeColor = (role: Role) => {
-    switch (role) {
-      case 'Admin': return 'bg-purple-100 text-purple-700 border-purple-200'
-      case 'Manager': return 'bg-amber-100 text-amber-700 border-amber-200'
-      case 'Agent': return 'bg-blue-100 text-blue-700 border-blue-200'
+      case 'Admin':
+        return (
+          <Badge className="border-none rounded-full px-2.5 py-0.5 font-semibold text-white text-[11px] bg-purple-600 shadow-xs flex w-fit items-center gap-1">
+            <ShieldCheck className="h-3 w-3" />
+            Admin
+          </Badge>
+        )
+      case 'Manager':
+        return (
+          <Badge className="border-none rounded-full px-2.5 py-0.5 font-semibold text-white text-[11px] bg-amber-500 shadow-xs flex w-fit items-center gap-1">
+            <Star className="h-3 w-3" />
+            Manager
+          </Badge>
+        )
+      case 'Agent':
+        return (
+          <Badge className="border-none rounded-full px-2.5 py-0.5 font-semibold text-white text-[11px] bg-blue-600 shadow-xs flex w-fit items-center gap-1">
+            <User className="h-3 w-3" />
+            Agent
+          </Badge>
+        )
     }
   }
 
   return (
     <RoleGuard allowedFeatures={['team_management']}>
-      <div className="flex flex-col gap-4 sm:gap-6 max-w-[1400px] mx-auto w-full pb-10">
-        <div className="w-full">
-          {/* Header Actions */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 mb-4 sm:mb-6">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black text-[var(--crm-text-primary)] tracking-tight flex items-center gap-2">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-[var(--crm-accent)]" />
-                Team Management
-              </h1>
-              <p className="text-xs sm:text-sm text-[var(--crm-text-secondary)] font-medium mt-1">Manage team members, roles, and permissions</p>
-            </div>
-            <div className="flex justify-start sm:justify-end items-center gap-3 w-full sm:w-auto">
-              <Dialog open={isInviteModalOpen} onOpenChange={(v) => {
-                setIsInviteModalOpen(v)
-                if (!v) setError(null)
-              }}>
-                <DialogTrigger asChild>
-                  <Button className="w-full sm:w-auto bg-[var(--crm-accent)] hover:opacity-90 text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]">
-                    <UserPlus className="h-4 w-4 mr-2 shrink-0" />
-                    Invite Member
-                  </Button>
-                </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px] rounded-2xl">
+      <div className="flex flex-col gap-6 max-w-[1400px] mx-auto w-full pb-10 font-sans">
+        
+        {/* Header Bar */}
+        <PageHeader
+          title="Team Management"
+          description="Manage organization members, assign roles, and configure access permissions"
+          icon={<Users className="h-6 w-6 text-[var(--crm-accent)]" />}
+          actions={
+            <Dialog open={isInviteModalOpen} onOpenChange={(v) => {
+              setIsInviteModalOpen(v)
+              if (!v) setError(null)
+            }}>
+              <DialogTrigger asChild>
+                {/* TODO: Migrate raw button to shared <Button> component later (complex styling) */}
+                <button className="w-full sm:w-auto px-4 py-2 bg-[#E84C3A] hover:bg-[#d8402f] text-white font-semibold text-xs rounded-xl shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer">
+                  <UserPlus className="h-4 w-4 shrink-0" />
+                  <span>Invite Member</span>
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px] rounded-2xl border-slate-200 dark:border-slate-800">
                 <DialogHeader>
-                  <DialogTitle className="text-xl font-bold">Invite Team Member</DialogTitle>
-                  <DialogDescription className="font-medium text-[var(--crm-text-secondary)]">
-                    Send an email invitation to add a new member.
+                  <DialogTitle className="text-lg font-bold font-heading">Invite Team Member</DialogTitle>
+                  <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
+                    Send an email invitation to add a colleague to your workspace.
                   </DialogDescription>
                 </DialogHeader>
 
                 {error && (
-                  <div className="mx-6 mt-4 bg-red-50 border border-red-200 p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in duration-200">
+                  <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-850 p-3 rounded-xl flex items-center gap-2">
                     <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
-                    <p className="text-xs font-bold text-red-600">{error}</p>
+                    <p className="text-xs font-medium text-red-600 dark:text-red-400">{error}</p>
                   </div>
                 )}
 
-                <div className="grid gap-5 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="font-bold text-[var(--crm-text-primary)]">Email address</Label>
+                <div className="grid gap-4 py-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="email" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Email Address</Label>
                     <Input 
                       id="email" 
                       placeholder="colleague@company.com" 
                       type="email"
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
-                      className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)]"
+                      className="h-10 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-xs font-medium"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="role" className="font-bold text-[var(--crm-text-primary)]">Assign Role</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="role" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Assign Role</Label>
                     <Select value={inviteRole} onValueChange={(v: Role) => setInviteRole(v)}>
-                      <SelectTrigger className="h-11 rounded-xl bg-[var(--crm-surface-2)] border-[var(--crm-border)]">
+                      <SelectTrigger className="h-10 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-xs font-medium">
                         <SelectValue placeholder="Select a role" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-[var(--crm-border)] p-1">
+                      <SelectContent className="rounded-xl border-slate-200 dark:border-slate-700">
                         <SelectItem value="Admin" className="rounded-lg">
-                          <div className="flex items-center py-0.5">
-                            <ShieldCheck className="h-4 w-4 text-purple-500 mr-3" />
+                          <div className="flex items-center gap-2 py-0.5">
+                            <ShieldCheck className="h-4 w-4 text-purple-600" />
                             <div className="text-left">
-                              <p className="font-bold text-sm">Admin</p>
-                              <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium">Full workspace control</p>
+                              <p className="font-semibold text-xs">Admin</p>
+                              <p className="text-[10px] text-slate-400">Full workspace and billing control</p>
                             </div>
                           </div>
                         </SelectItem>
                         <SelectItem value="Manager" className="rounded-lg">
-                          <div className="flex items-center py-0.5">
-                            <Star className="h-4 w-4 text-amber-500 mr-3" />
+                          <div className="flex items-center gap-2 py-0.5">
+                            <Star className="h-4 w-4 text-amber-500" />
                             <div className="text-left">
-                              <p className="font-bold text-sm">Manager</p>
-                              <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium">Manage leads, agents & reports</p>
+                              <p className="font-semibold text-xs">Manager</p>
+                              <p className="text-[10px] text-slate-400">Manage leads, representatives & reports</p>
                             </div>
                           </div>
                         </SelectItem>
                         <SelectItem value="Agent" className="rounded-lg">
-                          <div className="flex items-center py-0.5">
-                            <User className="h-4 w-4 text-primary mr-3" />
+                          <div className="flex items-center gap-2 py-0.5">
+                            <User className="h-4 w-4 text-blue-600" />
                             <div className="text-left">
-                              <p className="font-bold text-sm">Agent</p>
-                              <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium">Access assigned leads/meetings only</p>
+                              <p className="font-semibold text-xs">Agent</p>
+                              <p className="text-[10px] text-slate-400">Access assigned leads and communications only</p>
                             </div>
                           </div>
                         </SelectItem>
@@ -252,336 +250,360 @@ export default function TeamManagementPage() {
                     </Select>
                   </div>
                 </div>
-                <DialogFooter className="mt-4 sm:mt-6 gap-3 sm:gap-2">
-                  <Button variant="ghost" onClick={() => setIsInviteModalOpen(false)} className="rounded-xl h-11 sm:h-10 font-bold text-[var(--crm-text-secondary)] hover:text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-2)] w-full sm:w-auto" disabled={isInviting}>Cancel</Button>
-                  <Button onClick={handleInvite} className="rounded-xl h-11 sm:h-10 font-black bg-[var(--crm-accent)] hover:opacity-90 text-white px-6 shadow-md w-full sm:w-auto" disabled={!inviteEmail || isInviting}>
-                    {isInviting ? (
-                      <>
-                        <div className="h-4 w-4 border-2 border-slate-400 border-t-white rounded-full animate-spin mr-2" />
-                        Sending...
-                      </>
-                    ) : 'Send Invitation'}
+
+                <DialogFooter className="mt-4 gap-2">
+                  <Button variant="ghost" onClick={() => setIsInviteModalOpen(false)} className="rounded-xl h-9 text-xs font-medium" disabled={isInviting}>Cancel</Button>
+                  <Button onClick={handleInvite} className="rounded-xl h-9 text-xs font-semibold bg-[#E84C3A] hover:bg-[#d8402f] text-white px-5 shadow-xs" disabled={!inviteEmail || isInviting}>
+                    {isInviting ? 'Sending...' : 'Send Invitation'}
                   </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+          }
+        />
+
+        {/* Quick KPI Strip (Unified Summary Bar) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm">
+          <div className="flex items-center gap-3 p-2">
+            <div className="h-10 w-10 flex items-center justify-center rounded-full bg-blue-600 text-white shadow-xs shrink-0">
+              <Users className="h-5 w-5" />
+            </div>
+            <div>
+              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Total Members</span>
+              <span className="text-xl font-bold font-heading text-slate-900 dark:text-white tabular-nums">{members.length}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-2">
+            <div className="h-10 w-10 flex items-center justify-center rounded-full bg-purple-600 text-white shadow-xs shrink-0">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+            <div>
+              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Admins</span>
+              <span className="text-xl font-bold font-heading text-slate-900 dark:text-white tabular-nums">{members.filter(m => m.role === 'Admin').length}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-2">
+            <div className="h-10 w-10 flex items-center justify-center rounded-full bg-indigo-600 text-white shadow-xs shrink-0">
+              <User className="h-5 w-5" />
+            </div>
+            <div>
+              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Agents</span>
+              <span className="text-xl font-bold font-heading text-slate-900 dark:text-white tabular-nums">{members.filter(m => m.role === 'Agent').length}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-2">
+            <div className="h-10 w-10 flex items-center justify-center rounded-full bg-amber-500 text-white shadow-xs shrink-0">
+              <Mail className="h-5 w-5" />
+            </div>
+            <div>
+              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Pending</span>
+              <span className="text-xl font-bold font-heading text-slate-900 dark:text-white tabular-nums">{members.filter(m => m.status === 'Invited').length}</span>
+            </div>
           </div>
         </div>
 
+        {/* Tabs: Directory & Roles */}
         <Tabs defaultValue="directory" className="space-y-4 w-full">
-          <TabsList className="bg-[var(--crm-surface-3)] p-1 rounded-xl h-auto flex flex-row border border-[var(--crm-border)] w-full sm:w-fit shrink-0">
-            <TabsTrigger value="directory" className="flex-1 sm:flex-none rounded-lg px-4 sm:px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all">
-              <Users className="h-4 w-4 mr-2 shrink-0" />
-              <span className="truncate">Directory</span>
+          <TabsList className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl h-auto flex flex-row border border-slate-200 dark:border-slate-700 w-full sm:w-fit shrink-0">
+            <TabsTrigger value="directory" className="flex-1 sm:flex-none rounded-lg px-5 py-1.5 text-xs font-semibold font-heading data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-xs transition-all">
+              <Users className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+              <span>Directory</span>
             </TabsTrigger>
-            <TabsTrigger value="roles" className="flex-1 sm:flex-none rounded-lg px-4 sm:px-6 py-2 text-sm font-bold data-[state=active]:bg-[var(--crm-surface-1)] data-[state=active]:shadow-sm transition-all">
-              <Shield className="h-4 w-4 mr-2 shrink-0" />
-              <span className="truncate">Roles</span>
+            <TabsTrigger value="roles" className="flex-1 sm:flex-none rounded-lg px-5 py-1.5 text-xs font-semibold font-heading data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-xs transition-all">
+              <Shield className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+              <span>Roles & Permissions</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="directory" className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            {/* Optimized Compact Stat Boxes */}
-            <div className="flex flex-wrap gap-6 py-1">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-blue-100 text-primary">
-                  <Users className="h-4 w-4" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase mr-1.5">Total:</span>
-                  <span className="text-base font-black text-[var(--crm-text-primary)]">{members.length}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-purple-100 text-purple-600">
-                  <ShieldCheck className="h-4 w-4" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase mr-1.5">Admins:</span>
-                  <span className="text-base font-black text-[var(--crm-text-primary)]">{members.filter(m => m.role === 'Admin').length}</span>
+          <TabsContent value="directory" className="space-y-4">
+            {/* Members Directory Card */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+              <div className="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-850/60 py-3.5 px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <h2 className="text-sm font-bold font-heading text-slate-900 dark:text-white">Active Members</h2>
+                <div className="relative w-full sm:w-72">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                  <Input 
+                    placeholder="Search by name or email..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-8.5 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium pl-8.5 shadow-xs"
+                  />
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-blue-100 text-primary">
-                  <User className="h-4 w-4" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase mr-1.5">Agents:</span>
-                  <span className="text-base font-black text-[var(--crm-text-primary)]">{members.filter(m => m.role === 'Agent').length}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-amber-100 text-amber-600">
-                  <Mail className="h-4 w-4" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase mr-1.5">Pending:</span>
-                  <span className="text-base font-black text-[var(--crm-text-primary)]">{members.filter(m => m.status === 'Invited').length}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Members Table */}
-            <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden">
-              <CardHeader className="border-b border-[var(--crm-border)] bg-[var(--crm-surface-2)] py-4 px-4 sm:px-6">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <CardTitle className="text-base font-bold text-[var(--crm-text-primary)]">Directory</CardTitle>
-                  <div className="relative w-full sm:w-72">
-                    <Input 
-                      placeholder="Search members..." 
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="h-9 bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-lg text-sm shadow-sm pl-4"
-                    />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="hidden md:block p-0">
-                <div className="max-h-[calc(100vh-320px)] min-h-[400px] overflow-auto relative">
-                  <Table className="min-w-[800px] relative">
-                    <TableHeader className="bg-[var(--crm-surface-2)] sticky top-0 z-20 shadow-sm border-b border-[var(--crm-border)]">
-                      <TableRow>
-                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4 pl-6">User</TableHead>
-                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4">Role</TableHead>
-                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4">Status</TableHead>
-                        <TableHead className="font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4">Last Active</TableHead>
-                        <TableHead className="text-right font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider text-xs py-4 pr-6">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                  <TableBody>
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table className="w-full">
+                  <TableHeader className="bg-slate-50/80 dark:bg-slate-850/80 border-b border-slate-200/80 dark:border-slate-800">
+                    <TableRow>
+                      <TableHead className="font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] py-3.5 pl-6">Member</TableHead>
+                      <TableHead className="font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] py-3.5">Role</TableHead>
+                      <TableHead className="font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] py-3.5">Status</TableHead>
+                      <TableHead className="font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] py-3.5">Last Active</TableHead>
+                      <TableHead className="text-right font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] py-3.5 pr-6">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {filteredMembers.length > 0 ? (
-                      filteredMembers.map((member) => (
-                        <TableRow key={member.id}>
-                          <TableCell className="py-4 pl-6">
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-100 to-blue-50 flex items-center justify-center text-[var(--crm-accent)] font-bold text-sm ring-1 ring-white shadow-sm shrink-0">
-                                {member.name ? member.name.charAt(0) : member.email.charAt(0).toUpperCase()}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-[var(--crm-text-primary)] text-sm truncate">{member.name || 'Invited User'}</p>
-                                <p className="text-xs text-[var(--crm-text-secondary)] truncate">{member.email}</p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={`font-bold border px-2.5 py-0.5 shadow-sm flex w-fit items-center gap-1.5 ${getRoleBadgeColor(member.role)}`}>
-                              {getRoleIcon(member.role)}
-                              {member.role}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <div className={`h-2.5 w-2.5 rounded-full ${
-                                member.status === 'Active' ? 'bg-emerald-500' : 
-                                member.status === 'Invited' ? 'bg-amber-400' : 'bg-red-500'
-                              }`} />
-                              <span className="text-sm font-semibold text-[var(--crm-text-primary)]">{member.status}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-sm text-[var(--crm-text-secondary)] font-medium">
-                            {member.lastActive}
-                          </TableCell>
-                          <TableCell className="text-right pr-6">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-[var(--crm-surface-hover)] rounded-lg text-[var(--crm-text-secondary)]">
-                                  <span className="sr-only">Open menu</span>
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48 rounded-xl border-[var(--crm-border)] shadow-xl bg-[var(--crm-surface-1)] p-1">
-                                <DropdownMenuLabel className="font-bold text-xs uppercase tracking-wider text-[var(--crm-text-secondary)] px-2 py-1.5">Manage Member</DropdownMenuLabel>
-                                <DropdownMenuSeparator className="bg-[var(--crm-surface-3)]" />
-                                <DropdownMenuItem 
-                                  className="cursor-pointer font-medium py-2 px-2.5 focus:bg-[var(--crm-surface-hover)] rounded-lg text-[var(--crm-text-primary)]"
-                                  onClick={() => {
-                                    setEditingMember({...member})
-                                    setIsEditModalOpen(true)
-                                  }}
+                      filteredMembers.map((member) => {
+                        const colors = getAgentColor(member.id);
+                        return (
+                          <TableRow key={member.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                            <TableCell className="py-3.5 pl-6">
+                              <div className="flex items-center gap-3">
+                                <div 
+                                  className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold font-heading text-sm shadow-xs shrink-0"
+                                  style={{ backgroundColor: colors.bg }}
                                 >
-                                  <Edit className="mr-2 h-4 w-4 text-[var(--crm-text-secondary)]" /> Edit Role
-                                </DropdownMenuItem>
-                                {member.status === 'Invited' && (
+                                  {member.name ? member.name.charAt(0).toUpperCase() : member.email.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-semibold font-heading text-slate-900 dark:text-slate-100 text-sm truncate">{member.name || 'Invited User'}</p>
+                                  <p className="text-xs text-slate-500 dark:text-slate-400 font-normal truncate">{member.email}</p>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {getRoleBadge(member.role)}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <div className={cn("h-2 w-2 rounded-full", 
+                                  member.status === 'Active' ? 'bg-emerald-500' : 
+                                  member.status === 'Invited' ? 'bg-amber-400' : 'bg-red-500'
+                                )} />
+                                <span className="text-xs font-medium text-slate-800 dark:text-slate-200">{member.status}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-xs text-slate-500 dark:text-slate-400 font-normal">
+                              {member.lastActive}
+                            </TableCell>
+                            <TableCell className="text-right pr-6">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-44 rounded-xl border-slate-200 dark:border-slate-800 shadow-lg bg-white dark:bg-slate-900 p-1">
+                                  <DropdownMenuLabel className="font-semibold text-[10.5px] uppercase tracking-wider text-slate-400 px-2 py-1">Manage Member</DropdownMenuLabel>
+                                  <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
                                   <DropdownMenuItem 
-                                    className="cursor-pointer font-medium py-2 px-2.5 focus:bg-[var(--crm-surface-hover)] rounded-lg text-[var(--crm-accent)] mt-1"
-                                    onClick={() => handleResendInvite(member.id)}
+                                    className="cursor-pointer text-xs font-medium py-1.5 px-2.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+                                    onClick={() => {
+                                      setEditingMember({...member})
+                                      setIsEditModalOpen(true)
+                                    }}
                                   >
-                                    <Mail className="mr-2 h-4 w-4" /> Resend Invite
+                                    <Edit className="mr-2 h-3.5 w-3.5 text-slate-400" /> Edit Role
                                   </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem 
-                                  className="cursor-pointer font-medium py-2 px-2.5 text-red-600 focus:bg-red-50:bg-red-950/30 focus:text-red-600 rounded-lg mt-1"
-                                  onClick={() => handleDelete(member.id)}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" /> Remove User
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                                  {member.status === 'Invited' && (
+                                    <DropdownMenuItem 
+                                      className="cursor-pointer text-xs font-medium py-1.5 px-2.5 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                                      onClick={() => handleResendInvite(member.id)}
+                                    >
+                                      <Mail className="mr-2 h-3.5 w-3.5" /> Resend Invite
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuItem 
+                                    className="cursor-pointer text-xs font-medium py-1.5 px-2.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg"
+                                    onClick={() => handleDelete(member.id)}
+                                  >
+                                    <Trash2 className="mr-2 h-3.5 w-3.5" /> Remove User
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })
+                    ) : isLoading ? (
+                      Array.from({ length: 4 }).map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="py-3.5 pl-6">
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse shrink-0" />
+                              <div className="space-y-1.5 flex-1">
+                                <div className="h-3.5 w-28 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+                                <div className="h-2.5 w-40 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+                              </div>
+                            </div>
                           </TableCell>
+                          <TableCell><div className="h-5 w-16 bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse" /></TableCell>
+                          <TableCell><div className="h-4 w-16 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" /></TableCell>
+                          <TableCell><div className="h-4 w-20 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" /></TableCell>
+                          <TableCell className="text-right pr-6"><div className="h-7 w-7 bg-slate-200 dark:bg-slate-800 rounded-lg ml-auto animate-pulse" /></TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={5} className="h-32 text-center text-[var(--crm-text-secondary)] font-medium">
+                        <TableCell colSpan={5} className="h-28 text-center text-slate-500 dark:text-slate-400 text-xs font-normal">
                           No team members found matching your search.
                         </TableCell>
                       </TableRow>
                     )}
                   </TableBody>
                 </Table>
-                </div>
-              </CardContent>
+              </div>
 
               {/* Mobile Card View */}
-              <CardContent className="md:hidden p-4 space-y-4 bg-[var(--crm-surface-2)]/30">
-                {filteredMembers.length > 0 ? (
-                  filteredMembers.map((member) => (
-                    <div key={member.id} className="bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
-                      <div className="flex justify-between items-start gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-indigo-100 to-blue-50 flex items-center justify-center text-[var(--crm-accent)] font-bold text-sm ring-1 ring-white shadow-sm">
-                            {member.name ? member.name.charAt(0) : member.email.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="font-bold text-[14px] text-[var(--crm-text-primary)] leading-tight">{member.name || 'Invited User'}</p>
-                            <p className="text-[11px] text-[var(--crm-text-secondary)] mt-0.5 truncate max-w-[150px]">{member.email}</p>
-                          </div>
+              <div className="md:hidden p-4 space-y-3">
+                {isLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 rounded-xl p-4 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse shrink-0" />
+                        <div className="space-y-1.5 flex-1">
+                          <div className="h-3.5 w-28 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                          <div className="h-2.5 w-36 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
                         </div>
-                        <Badge variant="outline" className={cn(`font-bold border px-1.5 py-0.5 text-[9px] shadow-sm flex items-center gap-1 shrink-0`, getRoleBadgeColor(member.role))}>
-                          {getRoleIcon(member.role)}
-                          {member.role}
-                        </Badge>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-[var(--crm-border)]">
-                        <div>
-                          <p className="text-[9px] text-[var(--crm-text-secondary)] uppercase font-bold mb-1">Status</p>
-                          <div className="flex items-center gap-1.5">
-                            <div className={cn("h-2 w-2 rounded-full", member.status === 'Active' ? 'bg-emerald-500' : member.status === 'Invited' ? 'bg-amber-400' : 'bg-red-500')} />
-                            <span className="text-[11px] font-bold text-[var(--crm-text-primary)]">{member.status}</span>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-[9px] text-[var(--crm-text-secondary)] uppercase font-bold mb-1">Last Active</p>
-                          <span className="text-[11px] font-medium text-[var(--crm-text-secondary)]">{member.lastActive}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-end mt-1 pt-3 border-t border-[var(--crm-border)] gap-2">
-                        <Button 
-                          onClick={() => {
-                            setEditingMember({...member})
-                            setIsEditModalOpen(true)
-                          }}
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-8 rounded-lg text-xs font-black bg-[var(--crm-surface-2)] text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-3)]"
-                        >
-                          <Edit className="h-3.5 w-3.5 mr-1.5" /> Edit Role
-                        </Button>
-                        {member.status === 'Invited' && (
-                          <Button 
-                            onClick={() => handleResendInvite(member.id)}
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 rounded-lg text-xs font-black bg-blue-50 text-blue-600 hover:bg-blue-100"
-                          >
-                            <Mail className="h-3.5 w-3.5 mr-1.5" /> Resend
-                          </Button>
-                        )}
-                        <Button 
-                          onClick={() => handleDelete(member.id)}
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-8 w-8 p-0 rounded-lg text-red-500 bg-red-50 hover:bg-red-100 shrink-0"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
                       </div>
                     </div>
                   ))
+                ) : filteredMembers.length > 0 ? (
+                  filteredMembers.map((member) => {
+                    const colors = getAgentColor(member.id);
+                    return (
+                      <div key={member.id} className="bg-white dark:bg-slate-850 border border-slate-200/80 dark:border-slate-800 rounded-xl p-4 space-y-3 shadow-xs">
+                        <div className="flex justify-between items-start gap-3">
+                          <div className="flex items-center gap-3">
+                            <div 
+                              className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-white font-bold font-heading text-sm shadow-xs"
+                              style={{ backgroundColor: colors.bg }}
+                            >
+                              {member.name ? member.name.charAt(0).toUpperCase() : member.email.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="font-semibold font-heading text-sm text-slate-900 dark:text-white leading-tight">{member.name || 'Invited User'}</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[160px]">{member.email}</p>
+                            </div>
+                          </div>
+                          {getRoleBadge(member.role)}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-xs">
+                          <div>
+                            <span className="text-[10px] text-slate-400 uppercase font-semibold block mb-0.5">Status</span>
+                            <div className="flex items-center gap-1.5">
+                              <div className={cn("h-2 w-2 rounded-full", member.status === 'Active' ? 'bg-emerald-500' : member.status === 'Invited' ? 'bg-amber-400' : 'bg-red-500')} />
+                              <span className="font-medium text-slate-800 dark:text-slate-200">{member.status}</span>
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-400 uppercase font-semibold block mb-0.5">Last Active</span>
+                            <span className="font-normal text-slate-600 dark:text-slate-400">{member.lastActive}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-end pt-2 border-t border-slate-100 dark:border-slate-800 gap-2">
+                          <Button 
+                            onClick={() => {
+                              setEditingMember({...member})
+                              setIsEditModalOpen(true)
+                            }}
+                            variant="outline" 
+                            size="sm" 
+                            className="h-7 text-xs font-semibold rounded-lg"
+                          >
+                            <Edit className="h-3 w-3 mr-1" /> Edit
+                          </Button>
+                          {member.status === 'Invited' && (
+                            <Button 
+                              onClick={() => handleResendInvite(member.id)}
+                              variant="outline" 
+                              size="sm" 
+                              className="h-7 text-xs font-semibold text-blue-600 rounded-lg"
+                            >
+                              <Mail className="h-3 w-3 mr-1" /> Resend
+                            </Button>
+                          )}
+                          <Button 
+                            onClick={() => handleDelete(member.id)}
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  })
                 ) : (
-                  <div className="flex flex-col items-center justify-center space-y-3 opacity-40 py-10">
-                    <Users className="h-10 w-10" />
-                    <p className="font-bold text-sm">No team members found matching your search.</p>
+                  <div className="flex flex-col items-center justify-center space-y-2 py-8 text-slate-400">
+                    <Users className="h-8 w-8 opacity-40" />
+                    <p className="text-xs font-medium">No team members found</p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
 
-          <TabsContent value="roles" className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <Card className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] overflow-hidden">
-              <CardHeader className="border-b border-[var(--crm-border)] py-4 px-6 bg-[var(--crm-surface-2)]">
-                <CardTitle className="text-base font-bold text-[var(--crm-text-primary)]">Permissions Matrix</CardTitle>
-                <CardDescription className="text-xs text-[var(--crm-text-secondary)]">Access level breakdown for each role.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-0 overflow-x-auto">
-                <Table className="min-w-[600px]">
-                  <TableHeader>
+          <TabsContent value="roles" className="space-y-6">
+            {/* Permissions Matrix */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+              <div className="border-b border-slate-200/80 dark:border-slate-800 py-3.5 px-6 bg-slate-50/60 dark:bg-slate-850/60">
+                <h2 className="text-sm font-bold font-heading text-slate-900 dark:text-white">Permissions Matrix</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">Granular access breakdown for each user tier.</p>
+              </div>
+
+              <div className="overflow-x-auto">
+                <Table className="w-full">
+                  <TableHeader className="bg-slate-50/80 dark:bg-slate-850/80 border-b border-slate-200/80 dark:border-slate-800">
                     <TableRow>
-                      <TableHead className="font-bold text-[var(--crm-text-primary)] py-4 pl-6">Feature / Access</TableHead>
-                      <TableHead className="text-center font-bold text-purple-600">Admin</TableHead>
-                      <TableHead className="text-center font-bold text-amber-500">Manager</TableHead>
-                      <TableHead className="text-center font-bold text-primary">Agent</TableHead>
+                      <TableHead className="font-semibold text-slate-600 dark:text-slate-300 py-3.5 pl-6 text-xs uppercase tracking-wider">Feature / Module</TableHead>
+                      <TableHead className="text-center font-bold font-heading text-purple-600 text-xs py-3.5">Admin</TableHead>
+                      <TableHead className="text-center font-bold font-heading text-amber-500 text-xs py-3.5">Manager</TableHead>
+                      <TableHead className="text-center font-bold font-heading text-blue-600 text-xs py-3.5">Agent</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
+                  <TableBody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {permissions.map((perm, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell className="py-4 pl-6">
-                          <p className="font-bold text-sm text-[var(--crm-text-primary)]">{perm.name}</p>
-                          <p className="text-xs text-[var(--crm-text-secondary)] leading-tight">{perm.description}</p>
+                      <TableRow key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                        <TableCell className="py-3.5 pl-6">
+                          <p className="font-semibold font-heading text-xs text-slate-900 dark:text-slate-100">{perm.name}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 font-normal leading-tight mt-0.5">{perm.description}</p>
                         </TableCell>
                         <TableCell className="text-center">
-                          {perm.admin ? <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" /> : <XCircle className="h-4 w-4 text-[var(--crm-border)] mx-auto" />}
+                          {perm.admin ? <CheckCircle2 className="h-4 w-4 text-emerald-600 mx-auto" /> : <XCircle className="h-4 w-4 text-slate-300 dark:text-slate-600 mx-auto" />}
                         </TableCell>
                         <TableCell className="text-center">
-                          {perm.manager ? <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" /> : <XCircle className="h-4 w-4 text-[var(--crm-border)] mx-auto" />}
+                          {perm.manager ? <CheckCircle2 className="h-4 w-4 text-emerald-600 mx-auto" /> : <XCircle className="h-4 w-4 text-slate-300 dark:text-slate-600 mx-auto" />}
                         </TableCell>
                         <TableCell className="text-center">
-                          {perm.agent ? <CheckCircle2 className="h-5 w-5 text-emerald-500 mx-auto" /> : <XCircle className="h-5 w-5 text-[var(--crm-border)] mx-auto" />}
+                          {perm.agent ? <CheckCircle2 className="h-4 w-4 text-emerald-600 mx-auto" /> : <XCircle className="h-4 w-4 text-slate-300 dark:text-slate-600 mx-auto" />}
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-              </CardContent>
-              <CardFooter className="bg-[var(--crm-surface-2)] border-t border-[var(--crm-border)] p-6">
-                <div className="flex items-start gap-3">
-                  <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                  <p className="text-xs text-[var(--crm-text-secondary)] leading-relaxed font-medium">
-                    Permissions are global and affect all members with the assigned role. Currently, custom role creation is limited to enterprise plans. 
-                    Contact support to learn more about granular access control.
-                  </p>
-                </div>
-              </CardFooter>
-            </Card>
+              </div>
+              <div className="bg-slate-50/60 dark:bg-slate-850/60 border-t border-slate-200/80 dark:border-slate-800 p-4 px-6 flex items-start gap-3">
+                <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
+                  Role permissions are workspace-wide. Custom roles with bespoke ACL rules are available on Enterprise plans.
+                </p>
+              </div>
+            </div>
 
+            {/* Role Overview Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
-                { role: 'Admin', color: 'purple', shadow: 'purple', desc: 'Full access to billing, security, and team management.', icon: ShieldCheck },
-                { role: 'Manager', color: 'amber', shadow: 'amber', desc: 'Can manage leads and oversee agent performance.', icon: Star },
-                { role: 'Agent', color: 'blue', shadow: 'blue', desc: 'Dedicated to lead processing and chat interactions.', icon: User }
+                { role: 'Admin', color: 'bg-purple-600', desc: 'Full workspace authority, billing, team invitations, and integration settings.', icon: ShieldCheck },
+                { role: 'Manager', color: 'bg-amber-500', desc: 'Manage lead workflows, oversee representative performance, and generate reports.', icon: Star },
+                { role: 'Agent', color: 'bg-blue-600', desc: 'Dedicated to processing assigned leads, appointments, and live chat conversations.', icon: User }
               ].map((role) => (
-                <Card key={role.role} className="border-none shadow-sm bg-[var(--crm-surface-1)] rounded-xl ring-1 ring-[var(--crm-border)] p-4 flex flex-col items-center text-center group hover:ring-[var(--crm-accent)]/50 transition-all duration-300">
-                  <div className={cn(
-                    "h-10 w-10 rounded-xl flex items-center justify-center mb-3 transition-all duration-300",
-                    role.role === 'Admin' ? "bg-purple-50 text-purple-600" : 
-                    role.role === 'Manager' ? "bg-amber-50 text-amber-600" : 
-                    "bg-blue-50 text-primary"
-                  )}>
+                <div key={role.role} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 flex flex-col items-center text-center shadow-sm">
+                  <div className={cn("h-10 w-10 rounded-full flex items-center justify-center mb-3 text-white shadow-xs", role.color)}>
                     <role.icon className="h-5 w-5" />
                   </div>
-                  <h4 className="font-bold text-[var(--crm-text-primary)] mb-1 text-sm">{role.role} Role</h4>
-                  <p className="text-[10px] text-[var(--crm-text-secondary)] mb-4 flex-1 px-1">{role.desc}</p>
-                  <Button variant="outline" className="w-full rounded-lg font-bold text-[9px] uppercase tracking-wider h-8 border-[var(--crm-border)] hover:bg-[var(--crm-surface-3)] transition-colors">
-                    View Members
-                  </Button>
-                </Card>
+                  <h4 className="font-bold font-heading text-slate-900 dark:text-white mb-1 text-sm">{role.role}</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-normal mb-3 flex-1">{role.desc}</p>
+                </div>
               ))}
             </div>
           </TabsContent>
@@ -592,56 +614,56 @@ export default function TeamManagementPage() {
           setIsEditModalOpen(v)
           if (!v) setError(null)
         }}>
-          <DialogContent className="sm:max-w-[425px] rounded-2xl">
+          <DialogContent className="sm:max-w-[425px] rounded-2xl border-slate-200 dark:border-slate-800">
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold tracking-tight">Edit Member Role</DialogTitle>
-              <DialogDescription className="font-medium text-[var(--crm-text-secondary)]">
-                Change the access level for this team member.
+              <DialogTitle className="text-lg font-bold font-heading tracking-tight">Edit Member Role</DialogTitle>
+              <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
+                Change the workspace role and permissions for {editingMember?.name || 'this member'}.
               </DialogDescription>
             </DialogHeader>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in duration-200">
+              <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-850 p-3 rounded-xl flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
-                <p className="text-xs font-bold text-red-600">{error}</p>
+                <p className="text-xs font-medium text-red-600 dark:text-red-400">{error}</p>
               </div>
             )}
 
-            <div className="grid gap-5 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-role" className="font-bold text-[var(--crm-text-primary)]">Role & Permissions</Label>
+            <div className="grid gap-4 py-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-role" className="text-xs font-semibold text-slate-700 dark:text-slate-300">Select Role</Label>
                 <Select 
                   value={editingMember?.role} 
                   onValueChange={(v: Role) => setEditingMember(prev => prev ? {...prev, role: v} : null)}
                 >
-                  <SelectTrigger className="h-11 rounded-lg bg-[var(--crm-surface-2)] border-[var(--crm-border)]">
+                  <SelectTrigger className="h-10 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-xs font-medium">
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Admin">
-                      <div className="flex items-center">
-                        <ShieldCheck className="h-4 w-4 text-purple-500 mr-2" />
+                  <SelectContent className="rounded-xl border-slate-200 dark:border-slate-700">
+                    <SelectItem value="Admin" className="rounded-lg">
+                      <div className="flex items-center gap-2 py-0.5">
+                        <ShieldCheck className="h-4 w-4 text-purple-600" />
                         <div>
-                          <p className="font-bold">Admin</p>
-                          <p className="text-[10px] text-[var(--crm-text-secondary)]">Full access to all settings and billing</p>
+                          <p className="font-semibold text-xs">Admin</p>
+                          <p className="text-[10px] text-slate-400">Full workspace access and billing</p>
                         </div>
                       </div>
                     </SelectItem>
-                    <SelectItem value="Manager">
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 text-amber-500 mr-2" />
+                    <SelectItem value="Manager" className="rounded-lg">
+                      <div className="flex items-center gap-2 py-0.5">
+                        <Star className="h-4 w-4 text-amber-500" />
                         <div>
-                          <p className="font-bold">Manager</p>
-                          <p className="text-[10px] text-[var(--crm-text-secondary)]">Can manage leads, agents, and reports</p>
+                          <p className="font-semibold text-xs">Manager</p>
+                          <p className="text-[10px] text-slate-400">Manage leads, representatives, and reports</p>
                         </div>
                       </div>
                     </SelectItem>
-                    <SelectItem value="Agent">
-                      <div className="flex items-center">
-                        <User className="h-4 w-4 text-primary mr-2" />
+                    <SelectItem value="Agent" className="rounded-lg">
+                      <div className="flex items-center gap-2 py-0.5">
+                        <User className="h-4 w-4 text-blue-600" />
                         <div>
-                          <p className="font-bold">Agent</p>
-                          <p className="text-[10px] text-[var(--crm-text-secondary)]">Can only handle assigned leads and calls</p>
+                          <p className="font-semibold text-xs">Agent</p>
+                          <p className="text-[10px] text-slate-400">Process assigned leads and conversations</p>
                         </div>
                       </div>
                     </SelectItem>
@@ -649,20 +671,14 @@ export default function TeamManagementPage() {
                 </Select>
               </div>
             </div>
-            <DialogFooter className="mt-4 sm:mt-6 gap-3 sm:gap-2">
-              <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="rounded-xl h-11 sm:h-10 font-bold border-[var(--crm-border)] bg-[var(--crm-surface-2)] hover:bg-[var(--crm-surface-3)] text-[var(--crm-text-primary)] w-full sm:w-auto" disabled={isUpdating}>Cancel</Button>
-              <Button onClick={handleUpdateRole} className="rounded-xl h-11 sm:h-10 font-bold bg-[var(--crm-accent)] hover:opacity-90 text-white px-6 shadow-md w-full sm:w-auto border-none" disabled={isUpdating}>
-                {isUpdating ? (
-                  <>
-                    <div className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
-                    Updating...
-                  </>
-                ) : 'Save Changes'}
+            <DialogFooter className="mt-4 gap-2">
+              <Button variant="ghost" onClick={() => setIsEditModalOpen(false)} className="rounded-xl h-9 text-xs font-medium" disabled={isUpdating}>Cancel</Button>
+              <Button onClick={handleUpdateRole} className="rounded-xl h-9 text-xs font-semibold bg-[#E84C3A] hover:bg-[#d8402f] text-white px-5 shadow-xs" disabled={isUpdating}>
+                {isUpdating ? 'Saving...' : 'Save Changes'}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-        </div>
       </div>
     </RoleGuard>
   )

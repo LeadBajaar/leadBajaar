@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   try {
     const session = await getServerSession(authOptions)

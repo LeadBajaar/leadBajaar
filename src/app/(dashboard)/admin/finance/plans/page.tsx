@@ -13,6 +13,7 @@ import {
   Settings, History, DollarSign, Edit3,
   Clock, CheckCircle, Save, RefreshCw,
 } from 'lucide-react'
+import { PageHeader } from '@/components/page-header/PageHeader'
 
 function fmt(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n ?? 0)
@@ -60,15 +61,16 @@ export default function PlansPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Plans & Pricing</h2>
-          <p className="text-sm text-muted-foreground">Manage SaaS subscription tiers and track pricing changes</p>
-        </div>
-        <Button onClick={fetchData} variant="outline" size="sm" className="h-9 gap-1">
-          <RefreshCw className="h-3.5 w-3.5" /> Refresh
-        </Button>
-      </div>
+      <PageHeader
+        title="Plans & Pricing"
+        description="Manage SaaS subscription tiers and track pricing changes"
+        icon={<Settings className="h-6 w-6 text-primary" />}
+        actions={
+          <Button onClick={fetchData} variant="outline" size="sm" className="h-9 gap-1">
+            <RefreshCw className="h-3.5 w-3.5" /> Refresh
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map((plan: any) => (

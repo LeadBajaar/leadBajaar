@@ -11,46 +11,46 @@ export default {
 		extend: {
 			// ── All colors reference CSS variables defined in globals.css ──
 			colors: {
-				background: "hsl(var(--background))",
-				foreground: "hsl(var(--foreground))",
+				background: "var(--background)",
+				foreground: "var(--foreground)",
 
 				card: {
-					DEFAULT: "hsl(var(--card))",
-					foreground: "hsl(var(--card-foreground))",
+					DEFAULT: "var(--card)",
+					foreground: "var(--card-foreground)",
 				},
 				popover: {
-					DEFAULT: "hsl(var(--popover))",
-					foreground: "hsl(var(--popover-foreground))",
+					DEFAULT: "var(--popover)",
+					foreground: "var(--popover-foreground)",
 				},
 				primary: {
-					DEFAULT: "hsl(var(--primary))",
-					hover: "hsl(var(--primary-hover))",
-					light: "hsl(var(--primary-light))",
-					foreground: "hsl(var(--primary-foreground))",
+					DEFAULT: "var(--primary)",
+					hover: "var(--primary-hover)",
+					light: "var(--primary-light)",
+					foreground: "var(--primary-foreground)",
 				},
 				secondary: {
-					DEFAULT: "hsl(var(--secondary))",
-					foreground: "hsl(var(--secondary-foreground))",
+					DEFAULT: "var(--secondary)",
+					foreground: "var(--secondary-foreground)",
 				},
 				muted: {
-					DEFAULT: "hsl(var(--muted))",
-					foreground: "hsl(var(--muted-foreground))",
+					DEFAULT: "var(--muted)",
+					foreground: "var(--muted-foreground)",
 				},
 				accent: {
-					DEFAULT: "hsl(var(--accent))",
-					foreground: "hsl(var(--accent-foreground))",
+					DEFAULT: "var(--accent)",
+					foreground: "var(--accent-foreground)",
 				},
 				destructive: {
-					DEFAULT: "hsl(var(--destructive))",
-					foreground: "hsl(var(--destructive-foreground))",
+					DEFAULT: "var(--destructive)",
+					foreground: "var(--destructive-foreground)",
 					// crm-red-soft/-border are the real, theme-reactive tint pair
 					// already used by Badge/Button — not an hsl() var, so no wrapper.
 					bg: "var(--crm-red-soft)",
 					border: "var(--crm-red-border)",
 				},
-				border: "hsl(var(--border))",
-				input: "hsl(var(--input))",
-				ring: "hsl(var(--ring))",
+				border: "var(--border)",
+				input: "var(--input)",
+				ring: "var(--ring)",
 
 				// ── Text hierarchy ──
 				// Corrected: aliases the real, already-wired --crm-text-secondary
@@ -98,7 +98,7 @@ export default {
 					"4": "hsl(var(--chart-4))",
 					"5": "hsl(var(--chart-5))",
 				},
-				// ── Crm colors ────────────────────────────────
+					// ── Crm colors ────────────────────────────────
 				crm: {
 					bg: '#0f0f0f',
 					's1': '#161616',
@@ -113,7 +113,12 @@ export default {
 					't1': '#e8e8e6',
 					't2': '#8a8a85',
 					't3': '#5a5a56',
+					// Brand navy button tokens — sourced from CSS vars so they
+					// stay in sync if the CSS var value ever changes.
+					'btn-primary': 'var(--crm-btn-primary-bg)',
+					'btn-primary-hover': '#162152',
 				}
+
 			},
 
 			// ── Border width ──────────────────────────────────
@@ -154,7 +159,12 @@ export default {
 
 			// ── Typography ────────────────────────────────────
 			fontFamily: {
-				sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+				sans: ["Figtree", "system-ui", "-apple-system", "sans-serif"],
+				heading: ["Poppins", "Figtree", "sans-serif"],
+				display: ["Poppins", "Figtree", "sans-serif"],
+				poppins: ["Poppins", "sans-serif"],
+				figtree: ["Figtree", "sans-serif"],
+				satoshi: ["Satoshi", "Roboto", "sans-serif"],
 			},
 
 			// ── Box shadows ───────────────────────────────────
@@ -165,6 +175,7 @@ export default {
 				card: "var(--shadow-card)",
 				"card-md": "var(--shadow-card-md)",
 				"primary-glow": "0 4px 14px rgba(99,102,241,0.25)",
+				"2xs": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
 			},
 
 			// ── Keyframes ─────────────────────────────────────

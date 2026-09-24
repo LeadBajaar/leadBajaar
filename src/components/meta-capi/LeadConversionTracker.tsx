@@ -22,7 +22,7 @@ import {
   Eye
 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
-import { integrationApi } from '@/lib/api'
+import { integrationApi, getLeads } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
 interface ConversionConfig {
@@ -73,7 +73,7 @@ export function LeadConversionTracker() {
       setIsLoading(true)
       const [configResponse, leadsResponse] = await Promise.all([
         integrationApi.getConversionApiConfiguration(),
-        integrationApi.getLeads({ per_page: 50 })
+        getLeads({ per_page: 50 })
       ])
 
       setConfigurations(configResponse.configurations || [])

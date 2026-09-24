@@ -230,8 +230,8 @@ export const BasicInfoTab = ({ eventType, setEventType, errors }: Props) => {
                         )}
                         style={{ 
                           backgroundColor: color,
-                          ringColor: color,
-                        }}
+                          '--tw-ring-color': color,
+                        } as any}
                       >
                         {isSelected && (
                           <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">

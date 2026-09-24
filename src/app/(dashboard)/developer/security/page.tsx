@@ -106,7 +106,7 @@ public function hashData($data) {
                                     </div>
                                     <div className="flex items-center gap-4 text-sm font-bold text-slate-900 dark:text-slate-100 flex-1">
                                         <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                                        <span>Minimal Scope: We only request <code>ads_management</code> and <code>leads_retrieval</code>.</span>
+                                        <span>Strict Scopes: We request the required permissions including <code>ads_management</code>, <code>ads_read</code>, and <code>leads_retrieval</code>.</span>
                                     </div>
                                     <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 p-4 font-mono text-xs text-slate-500 dark:text-slate-400 italic">
                                         {encryptionNote}

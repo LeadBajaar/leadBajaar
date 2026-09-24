@@ -15,6 +15,9 @@ import {
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { DeleteConfirmationModal } from "@/components/shared/DeleteConfirmationModal";
+import { PageHeader } from "@/components/page-header/PageHeader";
+
+import { EventTemplateSelectionModal } from "@/components/meetings/EventTemplateSelectionModal";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +25,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { EVENT_TEMPLATES } from "@/constants/event-templates"
+import { WIZARD_DRAFT_STORAGE_KEY, buildDraftFromWizardAnswers } from "@/lib/eventTypeWizard"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,6 +57,7 @@ export default function EventTypesPage() {
   const [typeToDelete, setTypeToDelete] = useState<string | number | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [selectedEventType, setSelectedEventType] = useState<EventType | null>(null)
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false)
 
   useEffect(() => {
     const loadEventTypes = async () => {
@@ -121,8 +127,11 @@ export default function EventTypesPage() {
     <div className="flex flex-col flex-1 h-full overflow-hidden gap-4 sm:gap-5">
 
       {/* ── Header ───────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between shrink-0 gap-4 sm:gap-0">
-        <div className="flex items-center gap-3 sm:gap-4">
+      <PageHeader
+        title="Event Types"
+        description="Configure your availability and booking page settings"
+        icon={<Zap className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--crm-accent)] fill-[var(--crm-accent)]" />}
+        breadcrumbs={
           <Button 
             variant="outline" 
             size="icon" 
@@ -131,70 +140,33 @@ export default function EventTypesPage() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="hidden sm:block">
-            <h1 className="text-xl sm:text-2xl font-bold text-[var(--crm-text-primary)] flex items-center gap-2 sm:gap-3">
-              Event Types
-              <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--crm-accent)] fill-[var(--crm-accent)]" />
-            </h1>
-            <p className="text-xs sm:text-sm text-[var(--crm-text-secondary)] mt-1">Configure your availability and booking page settings</p>
-          </div>
-          <div className="sm:hidden flex-1">
-            <h1 className="text-lg font-bold text-[var(--crm-text-primary)] flex items-center gap-2">
-              Event Types
-              <Zap className="h-4 w-4 text-[var(--crm-accent)] fill-[var(--crm-accent)]" />
-            </h1>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.location.href = '/api/auth/google'}
-            className="flex-1 sm:flex-none h-9 border-[var(--crm-border)] bg-[var(--crm-surface-2)] text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-3)] gap-1.5 px-2 sm:px-4"
-          >
-            <Calendar className="h-4 w-4 text-[var(--crm-text-secondary)]" />
-            <span className="hidden sm:inline">Connect Google Calendar</span>
-            <span className="sm:hidden">Calendar</span>
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                size="sm" 
-                className="flex-1 sm:flex-none h-9 bg-[var(--lb-navy)] hover:opacity-90 text-white gap-1.5 shadow-sm px-2 sm:px-4"
-              >
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">New Event Type</span>
-                <span className="sm:hidden">New Event</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 bg-[var(--crm-surface-1)]">
-              <DropdownMenuItem onClick={() => {
+        }
+        actions={
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.location.href = '/api/auth/google'}
+              className="flex-1 sm:flex-none h-9 border-[var(--crm-border)] bg-[var(--crm-surface-2)] text-[var(--crm-text-primary)] hover:bg-[var(--crm-surface-3)] gap-1.5 px-2 sm:px-4"
+            >
+              <Calendar className="h-4 w-4 text-[var(--crm-text-secondary)]" />
+              <span className="hidden sm:inline">Connect Google Calendar</span>
+              <span className="sm:hidden">Calendar</span>
+            </Button>
+            <Button variant="ghost"
+              onClick={() => {
                 if (!user?.name) { toast.error("User profile name is required to create an event type."); return; }
-                router.push('/meetings/event-types/wizard')
-              }} className="cursor-pointer flex flex-col items-start py-2.5 gap-0.5">
-                <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-[var(--crm-accent)]" /><span className="font-medium">Guided Setup</span></div>
-                <span className="text-xs text-[var(--crm-text-secondary)]">Answer a few questions and we'll set it up</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => {
-                if (!user?.name) { toast.error("User profile name is required to create an event type."); return; }
-                router.push('/meetings/event-types/new?type=one_on_one')
-              }} className="cursor-pointer flex flex-col items-start py-2.5 gap-0.5">
-                <div className="flex items-center gap-2"><Users className="h-4 w-4" /><span className="font-medium">One-on-One Event</span></div>
-                <span className="text-xs text-[var(--crm-text-secondary)]">Good for coffee chats, 1:1 interviews, etc.</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => {
-                if (!user?.name) { toast.error("User profile name is required to create an event type."); return; }
-                router.push('/meetings/event-types/new?type=group')
-              }} className="cursor-pointer flex flex-col items-start py-2.5 gap-0.5">
-                <div className="flex items-center gap-2"><Video className="h-4 w-4" /><span className="font-medium">Group Event</span></div>
-                <span className="text-xs text-[var(--crm-text-secondary)]">Good for webinars, online classes, etc.</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+                setIsTemplateModalOpen(true)
+              }}
+              className="flex-1 sm:flex-none h-9 bg-gradient-to-r from-[#FE4548] to-[#FF6E54] hover:from-[#FF6E54] hover:to-[#FE4548] text-white gap-1.5 shadow-sm px-3.5 sm:px-4 rounded-full font-extrabold shadow-rose-500/15 border border-[#FE4548]/10 hover:scale-[1.05] active:scale-[0.95] transition-all cursor-pointer flex items-center justify-center w-auto"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline ml-1.5">New Event Type</span>
+              <span className="sm:hidden ml-1.5">New Event</span>
+            </Button>
+          </>
+        }
+      />
 
       {/* ── Content ──────────────────────────────────────────────────────────── */}
       <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-[var(--crm-border)] pb-10 px-1">
@@ -228,7 +200,7 @@ export default function EventTypesPage() {
             </p>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button className="bg-[var(--lb-navy)] hover:opacity-90 text-white gap-2 px-6 shadow-sm">
+                <Button variant="ghost" className="h-10 bg-gradient-to-r from-[#FE4548] to-[#FF6E54] hover:from-[#FF6E54] hover:to-[#FE4548] text-white gap-2 px-6 shadow-md shadow-rose-500/20 rounded-full font-extrabold hover:scale-[1.05] active:scale-[0.95] transition-all cursor-pointer flex items-center justify-center w-auto">
                   <Plus className="h-4 w-4" />
                   Create your first event
                 </Button>
@@ -265,11 +237,11 @@ export default function EventTypesPage() {
             {eventTypes.map((eventType) => {
               const loc = locationIcons[eventType.location as keyof typeof locationIcons] || locationIcons.video
               return (
-                <Card key={eventType.id} className="group relative border-[var(--crm-border)] shadow-sm hover:shadow-md hover:border-[var(--lb-navy)]/50 transition-all duration-300 bg-[var(--crm-surface-1)] flex flex-col rounded-xl overflow-visible">
+                <Card key={eventType.id} className="group relative border border-slate-200 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-700 transition-all duration-300 bg-white dark:bg-[#111827] flex flex-col rounded-xl overflow-visible">
                   {/* Status Indicator (Top Bar) */}
                   <div 
                     className="h-1.5 w-full transition-all duration-300 rounded-t-xl opacity-80 group-hover:opacity-100" 
-                    style={{ backgroundColor: eventType.color || 'var(--lb-navy)' }} 
+                    style={{ backgroundColor: eventType.color || '#FE4548' }} 
                   />
 
                   <CardContent className="p-4 flex-1 flex flex-col">
@@ -304,39 +276,39 @@ export default function EventTypesPage() {
                     </div>
 
                     <div className="flex-1 mt-1 relative z-10">
-                      <h3 className="font-bold text-base text-[var(--crm-text-primary)] line-clamp-1 group-hover:text-[var(--lb-navy)] transition-colors">
+                      <h3 className="font-bold text-base text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-[#FE4548] transition-colors">
                         {eventType.title}
                       </h3>
-                      <p className="text-xs text-[var(--crm-text-secondary)] mt-1 line-clamp-1 italic">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1 italic font-medium">
                         {eventType.description || "No description provided."}
                       </p>
 
                       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-                        <div className="flex items-center text-[11px] font-medium text-[var(--crm-text-secondary)] gap-1 px-2 py-0.5 rounded-full bg-[var(--crm-surface-2)]">
-                          <Clock className="h-3 w-3 text-[var(--crm-text-tertiary)]" />
+                        <div className="flex items-center text-[11px] font-bold text-slate-600 dark:text-slate-300 gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 shadow-sm">
+                          <Clock className="h-3 w-3 text-slate-400" />
                           {eventType.duration} Min
                         </div>
-                        <div className="flex items-center text-[11px] font-medium text-[var(--crm-text-secondary)] gap-1 px-2 py-0.5 rounded-full bg-[var(--crm-surface-2)]">
-                          <Users className="h-3 w-3 text-[var(--crm-text-tertiary)]" />
+                        <div className="flex items-center text-[11px] font-bold text-slate-600 dark:text-slate-300 gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 shadow-sm">
+                          <Users className="h-3 w-3 text-slate-400" />
                           {eventType.type === 'group' ? 'Group Event' : '1-on-1'}
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-[var(--crm-border)] flex items-center justify-between relative z-10">
-                      <button
+                    <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between relative z-10">
+                      <Button variant="ghost"
                         onClick={() => { setSelectedEventType(eventType); setShowShareDialog(true); }}
-                        className="text-xs font-semibold text-[var(--lb-navy)] flex items-center gap-1.5 hover:underline"
+                        className="text-xs font-extrabold text-[#FE4548] flex items-center gap-1.5 hover:underline cursor-pointer p-0 h-auto w-auto"
                       >
                         <Share2 className="h-3.5 w-3.5" />
                         Share / Embed
-                      </button>
+                      </Button>
 
                       <Link href={`/meetings/event-types/${eventType.id}`}>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 group/btn text-[var(--crm-text-secondary)] hover:text-[var(--lb-navy)] hover:bg-[var(--crm-surface-3)] -mr-2"
+                          className="h-8 group/btn text-slate-600 hover:text-[#FE4548] hover:bg-slate-50 dark:text-slate-350 dark:hover:text-[#FE4548] dark:hover:bg-slate-800 -mr-2 font-extrabold"
                         >
                           Modify <ArrowRight className="h-3.5 w-3.5 ml-1.5 group-hover/btn:translate-x-1 transition-transform" />
                         </Button>
@@ -350,13 +322,13 @@ export default function EventTypesPage() {
             {/* Add New Card Slot */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="group h-full border-2 border-dashed border-[var(--crm-border)] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 hover:border-[var(--lb-navy)]/50 hover:bg-[var(--crm-surface-2)] transition-all duration-300 cursor-pointer min-h-[160px]">
-                  <div className="h-10 w-10 rounded-full bg-[var(--crm-surface-3)] flex items-center justify-center group-hover:scale-110 group-hover:bg-[var(--lb-navy)] group-hover:text-white transition-all duration-300">
-                    <Plus className="h-5 w-5 text-[var(--crm-text-secondary)] group-hover:text-white" />
+                <div className="group h-full border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 hover:border-[#FE4548]/40 hover:bg-slate-50 dark:hover:bg-[#1f2937]/30 transition-all duration-300 cursor-pointer min-h-[160px] bg-white dark:bg-[#111827] shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-md">
+                  <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:scale-110 group-hover:bg-[#FE4548] group-hover:text-white transition-all duration-300">
+                    <Plus className="h-5 w-5 text-slate-500 group-hover:text-white" />
                   </div>
                   <div className="text-center">
-                    <p className="font-bold text-[var(--crm-text-primary)]">Add Event Type</p>
-                    <p className="text-xs text-[var(--crm-text-secondary)] mt-1">Create a new scheduling card</p>
+                    <p className="font-extrabold text-slate-800 dark:text-slate-100">Add Event Type</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Create a new scheduling card</p>
                   </div>
                 </div>
               </DropdownMenuTrigger>
@@ -382,7 +354,7 @@ export default function EventTypesPage() {
                   router.push('/meetings/event-types/new?type=group')
                 }} className="cursor-pointer flex flex-col items-start py-2.5 gap-0.5">
                   <div className="flex items-center gap-2"><Video className="h-4 w-4" /><span className="font-medium">Group Event</span></div>
-                  <span className="text-xs text-[var(--crm-text-secondary)]">Good for webinars, online classes, etc.</span>
+                  <span className="text-xs text-[var(--crm-text-secondary)] font-medium">Good for webinars, online classes, etc.</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -391,14 +363,14 @@ export default function EventTypesPage() {
       </div>
 
       <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-        <DialogContent className="sm:max-w-xl w-full bg-[var(--crm-surface-1)] border-[var(--crm-border)] p-6 sm:p-8 rounded-[24px] shadow-2xl">
+        <DialogContent className="sm:max-w-xl w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 p-6 sm:p-8 rounded-[24px] shadow-2xl">
           <DialogHeader className="text-left space-y-3">
-            <div className="h-12 w-12 rounded-2xl bg-[var(--crm-surface-2)] flex items-center justify-center border border-[var(--crm-border)] shadow-sm">
-              <Share2 className="h-5 w-5 text-[var(--lb-navy)]" />
+            <div className="h-12 w-12 rounded-2xl bg-rose-500/10 flex items-center justify-center border border-rose-500/15 shadow-sm">
+              <Share2 className="h-5 w-5 text-[#FE4548]" />
             </div>
             <div>
-              <DialogTitle className="text-xl sm:text-2xl font-bold text-[var(--crm-text-primary)]">Share Booking Link</DialogTitle>
-              <DialogDescription className="text-sm text-[var(--crm-text-secondary)] mt-1.5">
+              <DialogTitle className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-100">Share Booking Link</DialogTitle>
+              <DialogDescription className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-medium">
                 Send this link to clients or colleagues to let them see your availability and book a slot instantly.
               </DialogDescription>
             </div>
@@ -414,9 +386,9 @@ export default function EventTypesPage() {
               <TabsContent value="link" className="space-y-6">
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                    <LinkIcon className="h-4 w-4 text-[var(--crm-text-tertiary)] group-focus-within:text-[var(--lb-navy)] transition-colors" />
+                    <LinkIcon className="h-4 w-4 text-slate-400 group-focus-within:text-[#FE4548] transition-colors" />
                   </div>
-                  <div className="w-full text-sm font-medium bg-[var(--crm-surface-2)] border border-[var(--crm-border)] rounded-2xl p-4 pl-11 pr-24 text-[var(--crm-text-primary)] break-all selection:bg-[var(--lb-navy)]/20">
+                  <div className="w-full text-sm font-semibold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 pl-11 pr-24 text-slate-800 dark:text-slate-200 break-all selection:bg-[#FE4548]/20">
                     {getBookingUrl(selectedEventType)}
                   </div>
                   <Button
@@ -427,7 +399,7 @@ export default function EventTypesPage() {
                       navigator.clipboard.writeText(bookingLink)
                       toast.success("Link copied to clipboard.")
                     }}
-                    className="absolute right-2 top-2 h-10 px-4 bg-[var(--crm-surface-1)] shadow-sm border border-[var(--crm-border)] rounded-xl hover:bg-[var(--crm-surface-3)] text-[var(--crm-text-primary)]"
+                    className="absolute right-2 top-2 h-10 px-4 bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-extrabold"
                   >
                     <Copy className="h-4 w-4 mr-2" />
                     Copy
@@ -435,26 +407,26 @@ export default function EventTypesPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button
-                    className="flex-1 bg-[var(--lb-navy)] hover:opacity-90 text-white rounded-2xl h-12 font-bold shadow-sm"
+                  <Button variant="ghost"
+                    className="flex-1 bg-gradient-to-r from-[#FE4548] to-[#FF6E54] hover:from-[#FF6E54] hover:to-[#FE4548] text-white rounded-2xl h-12 font-extrabold shadow-md shadow-rose-500/15 border border-[#FE4548]/10 hover:scale-[1.03] active:scale-[0.97] transition-all cursor-pointer flex items-center justify-center gap-2 w-auto"
                     onClick={() => openPreview(selectedEventType)}
                   >
-                    <ExternalLink className="mr-2 h-4 w-4" />
+                    <ExternalLink className="h-4 w-4" />
                     Preview Booking Page
                   </Button>
                   <Button
                     variant="outline"
-                    className="h-12 w-12 rounded-2xl p-0 border-[var(--crm-border)] bg-[var(--crm-surface-2)]"
+                    className="h-12 w-12 rounded-2xl p-0 border-slate-300 bg-white hover:bg-slate-50 dark:border-slate-750 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-extrabold"
                     onClick={() => setShowShareDialog(false)}
                   >
-                    <X className="h-5 w-5 text-[var(--crm-text-secondary)]" />
+                    <X className="h-5 w-5 text-slate-500" />
                   </Button>
                 </div>
               </TabsContent>
 
               <TabsContent value="embed" className="space-y-6 mt-0">
-                <div className="relative group rounded-2xl overflow-hidden border border-[var(--crm-border)]">
-                  <div className="w-full bg-[var(--crm-surface-2)] p-5 text-[var(--crm-text-primary)] font-mono text-[11px] overflow-x-auto whitespace-pre-wrap leading-relaxed break-words">
+                <div className="relative group rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
+                  <div className="w-full bg-slate-50 dark:bg-slate-900 p-5 text-slate-800 dark:text-slate-250 font-mono text-[11px] overflow-x-auto whitespace-pre-wrap leading-relaxed break-words">
                     {`<div style="width: 100%; display: flex; justify-content: center;">
   <iframe 
     src="${getBookingUrl(selectedEventType)}?embed=true"
@@ -478,14 +450,14 @@ export default function EventTypesPage() {
                         navigator.clipboard.writeText(embedCode)
                         toast.success("Embed code copied to clipboard.")
                       }}
-                      className="h-8 px-3 bg-white shadow-sm border border-[var(--crm-border)] rounded-lg hover:bg-[var(--crm-surface-3)] text-[var(--crm-text-primary)]"
+                      className="h-8 px-3 bg-white shadow-sm border border-slate-350 dark:border-slate-650 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 font-extrabold"
                     >
                       <Copy className="h-3.5 w-3.5 mr-1.5" />
                       Copy Code
                     </Button>
                   </div>
                 </div>
-                <div className="text-sm text-[var(--crm-text-secondary)] text-center pb-2">
+                <div className="text-sm text-slate-500 dark:text-slate-400 text-center pb-2 font-medium">
                   Copy and paste this HTML snippet into your website to embed the calendar directly onto your page.
                 </div>
               </TabsContent>
@@ -498,11 +470,34 @@ export default function EventTypesPage() {
         isOpen={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         onConfirm={deleteEventType}
-        isLoading={isDeleting}
         title="Delete Event Type"
-        description="This action is permanent and cannot be undone. Are you sure you want to delete this event type?"
-        confirmText="Delete"
-        cancelText="Cancel"
+        description="Are you sure you want to delete this event type? This action cannot be undone."
+        isLoading={isDeleting}
+      />
+
+      <EventTemplateSelectionModal
+        isOpen={isTemplateModalOpen}
+        onOpenChange={setIsTemplateModalOpen}
+        onSelectTemplate={(templateId) => {
+          setIsTemplateModalOpen(false)
+          if (templateId === 'scratch') {
+            router.push('/meetings/event-types/wizard')
+          } else {
+            const template = EVENT_TEMPLATES.find(t => t.id === templateId)
+            if (template?.fullPayload) {
+                const templateName = template.name.replace('{{userName}}', user?.name || 'Your Name');
+                const draft = {
+                    ...template.fullPayload,
+                    title: templateName,
+                    description: template.description
+                }
+                sessionStorage.setItem(WIZARD_DRAFT_STORAGE_KEY, JSON.stringify(draft))
+                router.push(`/meetings/event-types/new?type=${template.fullPayload.type || 'one_on_one'}`)
+            } else {
+                router.push(`/meetings/event-types/wizard?templateId=${templateId}`)
+            }
+          }
+        }}
       />
     </div>
   )

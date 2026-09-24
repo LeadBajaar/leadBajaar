@@ -4,7 +4,17 @@ import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ChatMessage } from './chat-message'
-import { wsService } from '@/services/websocket-service'
+// import { wsService } from '@/services/websocket-service'
+
+// Stub for now since websocket-service is commented out
+const wsService = {
+  initialize: () => {},
+  addMessageHandler: (handler: any) => {},
+  removeMessageHandler: (handler: any) => {},
+  subscribeToChat: (userId: string) => {},
+  disconnect: () => {},
+  sendMessage: async (msg: string) => { return { status: 'ok' }; }
+}
 import { Send } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 
@@ -95,7 +105,13 @@ export function ChatWindow() {
     <div className="flex flex-col h-[600px] border rounded-lg">
       <div className="flex-1 overflow-y-auto">
         {messages.map((message) => (
-          <ChatMessage key={message.id} {...message} />
+          <ChatMessage 
+            key={message.id} 
+            message={message.content} 
+            isBot={message.isBot} 
+            timestamp={message.timestamp} 
+            status={message.status} 
+          />
         ))}
         <div ref={messagesEndRef} />
       </div>

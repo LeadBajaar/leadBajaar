@@ -120,7 +120,7 @@ export function WebhookVerificationDialog({ pageId, pageName }: WebhookVerificat
                     {checklist.permissions.required_present ? (
                       <Badge className="bg-green-500 text-[10px]">VERIFIED</Badge>
                     ) : (
-                      <Badge variant="destructive" className="text-[10px]">MISSING</Badge>
+                      <Badge variant="danger" className="text-[10px]">MISSING</Badge>
                     )}
                   </div>
                   {!checklist.permissions.required_present && (

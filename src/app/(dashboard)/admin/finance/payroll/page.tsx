@@ -16,6 +16,7 @@ import {
   CreditCard, RefreshCw, CheckCircle, Clock, AlertCircle,
   Upload, Wand2, ChevronDown, ChevronUp, Users, DollarSign,
 } from 'lucide-react'
+import { PageHeader } from '@/components/page-header/PageHeader'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const PAYMENT_MODES = ['bank_transfer','upi','cash','cheque']
@@ -101,27 +102,28 @@ export default function PayrollPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">Monthly Payroll</h2>
-          <p className="text-sm text-muted-foreground">Manage salary payout cycles</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Select value={String(month)} onValueChange={v => setMonth(Number(v))}>
-            <SelectTrigger className="w-32 h-9 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {MONTHS.map((m, i) => <SelectItem key={i} value={String(i+1)}>{m}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={String(year)} onValueChange={v => setYear(Number(v))}>
-            <SelectTrigger className="w-24 h-9 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {[2024,2025,2026,2027].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm" onClick={fetchCycle} className="h-9"><RefreshCw className="h-3.5 w-3.5" /></Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Monthly Payroll"
+        description="Manage salary payout cycles"
+        icon={<DollarSign className="h-6 w-6 text-primary" />}
+        actions={
+          <div className="flex items-center gap-2">
+            <Select value={String(month)} onValueChange={v => setMonth(Number(v))}>
+              <SelectTrigger className="w-32 h-9 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {MONTHS.map((m, i) => <SelectItem key={i} value={String(i+1)}>{m}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={String(year)} onValueChange={v => setYear(Number(v))}>
+              <SelectTrigger className="w-24 h-9 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {[2024,2025,2026,2027].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="sm" onClick={fetchCycle} className="h-9"><RefreshCw className="h-3.5 w-3.5" /></Button>
+          </div>
+        }
+      />
 
       {/* Cycle Summary Cards */}
       {loading ? (
