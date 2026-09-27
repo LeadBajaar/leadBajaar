@@ -224,6 +224,66 @@ const catalogIntegrations: IntegrationItem[] = [
     category: "marketing",
     route: "/integrations/facebook-auth",
   },
+  {
+    id: "hubspot",
+    name: "HubSpot",
+    description: "Sync your CRM contacts, deals, and marketing data seamlessly.",
+    category: "marketing",
+  },
+  {
+    id: "salesforce",
+    name: "Salesforce",
+    description: "Connect LeadBajar with Salesforce to sync leads and accounts.",
+    category: "lead_sources",
+  },
+  {
+    id: "calendly",
+    name: "Calendly",
+    description: "Automatically create leads when meetings are scheduled.",
+    category: "productivity",
+  },
+  {
+    id: "zoom",
+    name: "Zoom",
+    description: "Auto-generate meeting links and track webinar attendees.",
+    category: "communication",
+  },
+  {
+    id: "slack",
+    name: "Slack",
+    description: "Get real-time notifications for new leads and deal updates.",
+    category: "productivity",
+  },
+  {
+    id: "shopify",
+    name: "Shopify",
+    description: "Import customers and abandoned carts to run recovery campaigns.",
+    category: "lead_sources",
+  },
+  {
+    id: "intercom",
+    name: "Intercom",
+    description: "Sync chat conversations and convert visitors into leads.",
+    category: "communication",
+  },
+  {
+    id: "razorpay",
+    name: "Razorpay",
+    description: "Collect payments, create payment links and manage subscriptions.",
+    category: "payment",
+  },
+  {
+    id: "activecampaign",
+    name: "ActiveCampaign",
+    description: "Trigger advanced email automations based on CRM activities.",
+    category: "marketing",
+  },
+  {
+    id: "linkedin",
+    name: "LinkedIn Lead Gen",
+    description: "Sync leads from LinkedIn Lead Gen forms directly to the CRM.",
+    category: "lead_sources",
+  }
 ];
 
 const categoryTabs = [
@@ -544,7 +604,24 @@ export default function IntegrationsPage() {
     }
   };
 
-  const filteredCatalog = catalogIntegrations.filter((item) => {
+  // Combine both lists to ensure "All Integrations" actually shows everything when searching
+  const allIntegrationsMap = new Map<string, IntegrationItem>();
+  [...popularIntegrationsList, ...catalogIntegrations].forEach(item => {
+    if (!allIntegrationsMap.has(item.id)) {
+      allIntegrationsMap.set(item.id, item);
+    }
+  });
+  const allIntegrations = Array.from(allIntegrationsMap.values());
+
+  const filteredCatalog = allIntegrations.filter((item) => {
+    const matchesSearch =
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = activeCategory === "all" || item.category === activeCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const filteredPopular = popularIntegrationsList.filter((item) => {
     const matchesSearch =
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -554,7 +631,7 @@ export default function IntegrationsPage() {
 
   return (
     <RoleGuard allowedFeatures={['integrations']}>
-      <div className="w-full min-h-full pb-20 sm:pb-24 lg:pb-28">
+      <div className="w-full min-h-full pb-0">
         
         {/* Meta Expired Alert */}
         {metaConnectionStatus && metaConnectionStatus.connected === false &&
@@ -602,36 +679,37 @@ export default function IntegrationsPage() {
         </div>
 
         {/* ── Popular Integrations ────────────────────────────────────────── */}
-        <div className="mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-              Popular Integrations
-            </h2>
-            <div className="flex items-center gap-1.5">
-              <Button
-                variant="outline" size="icon"
-                onClick={() => scrollPopular("left")}
-                className="w-7 h-7 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-2xs p-0"
-                title="Scroll left"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline" size="icon"
-                onClick={() => scrollPopular("right")}
-                className="w-7 h-7 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-2xs p-0"
-                title="Scroll right"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+        {filteredPopular.length > 0 && (
+          <div className="mb-10">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                Popular Integrations
+              </h2>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="outline" size="icon"
+                  onClick={() => scrollPopular("left")}
+                  className="w-7 h-7 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-2xs p-0"
+                  title="Scroll left"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline" size="icon"
+                  onClick={() => scrollPopular("right")}
+                  className="w-7 h-7 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-2xs p-0"
+                  title="Scroll right"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-          </div>
 
-          <div
-            ref={popularScrollRef}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 overflow-x-auto no-scrollbar pb-1"
-          >
-            {popularIntegrationsList.map((item) => {
+            <div
+              ref={popularScrollRef}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 overflow-x-auto no-scrollbar pb-1"
+            >
+              {filteredPopular.map((item) => {
               const isConnected = isIntegrationConnected(item.id);
               return (
                 <div
@@ -710,6 +788,7 @@ export default function IntegrationsPage() {
             })}
           </div>
         </div>
+        )}
 
         {/* ── All Integrations ────────────────────────────────────────────── */}
         <div>
@@ -821,7 +900,7 @@ export default function IntegrationsPage() {
         </div>
 
         {/* ── Missing an Integration Banner ────────────────────────────────── */}
-        <div className="mt-10 mb-12 lg:mb-16 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
+        <div className="mt-10 mb-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
           <div className="flex items-center gap-4 text-left w-full sm:w-auto">
             <div className="w-11 h-11 rounded-xl bg-blue-100/80 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
               <ShieldCheck className="h-5 w-5" />
@@ -842,6 +921,9 @@ export default function IntegrationsPage() {
             Request Integration
           </Button>
         </div>
+
+        {/* ── Spacer to guarantee bottom margin ────────────────────────────── */}
+        <div className="h-8 w-full shrink-0" />
 
         {/* ── Connect Confirmation Dialog ─────────────────────────────────── */}
         <Dialog open={!!integrationToConfirm} onOpenChange={(open) => !open && setIntegrationToConfirm(null)}>

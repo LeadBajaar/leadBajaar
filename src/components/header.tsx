@@ -104,13 +104,13 @@ export function Header({ setMobileOpen, mobileOpen }: HeaderProps) {
         >
           <Settings className="h-[20px] w-[20px] stroke-[1.8px]" />
         </Link>
-        <button 
-          onClick={() => window.open('mailto:support@leadbajaar.com')}
+        <a 
+          href="mailto:support@leadbajaar.com"
           className="h-9 w-9 flex items-center justify-center rounded-[var(--radius-button-secondary)] hover:bg-[rgba(255,255,255,0.08)] text-white border border-transparent transition-colors hidden sm:flex"
           title="Email Support"
         >
           <HelpCircle className="h-[20px] w-[20px] stroke-[1.8px]" />
-        </button>
+        </a>
         
         <div className="h-4 w-[1px] bg-[rgba(255,255,255,0.1)] mx-1 hidden sm:block" />
  

@@ -21,7 +21,8 @@ import {
   User, Bell, Shield, Mail,
   Settings, ChevronRight, Camera,
   Check, Info, LucideIcon, Globe,
-  Briefcase, Phone, CreditCard, Lock, Download
+  Briefcase, Phone, CreditCard, Lock, Download,
+  Users, Blocks, SlidersHorizontal, Edit2, Upload, Trash2
 } from 'lucide-react'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -401,151 +402,195 @@ export default function SettingsPage() {
 
   return (
     <RoleGuard allowedFeatures={['account_settings']}>
-      <div className="flex flex-col lg:flex-row flex-1 gap-6 lg:gap-8">
-
-      {/* ── Sidebar Navigation ── */}
-      <div className="w-full lg:w-72 flex flex-col gap-4 lg:gap-6 shrink-0">
+      <div className="flex flex-col h-full w-full gap-6 lg:gap-8 flex-1 min-h-0 relative">
         <PageHeader 
           title="Settings" 
-          description="Configure your account preferences" 
+          description="Manage your account, preferences and workspace settings." 
+          actions={
+            <div className="flex items-center gap-3">
+              <Button variant="outline" className="h-10 rounded-xl px-6 font-semibold bg-white border-slate-200" onClick={() => window.location.reload()}>Cancel</Button>
+              <Button 
+                onClick={handleSaveProfile} 
+                disabled={isSaving}
+                className="h-10 rounded-xl bg-[#ff5a36] hover:opacity-90 px-6 font-semibold shadow-sm text-white gap-2 border-0"
+              >
+                {isSaving && <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />}
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          }
         />
 
-        <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-x-visible no-scrollbar pb-2 lg:pb-0">
-          {SECTIONS.map((section) => (
-            // TODO: Migrate raw button to shared <Button> component later (complex styling)
-            <button
-              key={section.id}
-              onClick={() => setActiveTab(section.id)}
-              className={cn(
-                "group flex items-center lg:items-start gap-3 lg:gap-4 p-3 lg:p-4 rounded-xl lg:rounded-2xl transition-all duration-200 text-left relative shrink-0 lg:shrink",
-                activeTab === section.id
-                  ? "bg-[var(--crm-surface-1)] shadow-sm ring-1 ring-[var(--crm-border-hover)]"
-                  : "hover:bg-[var(--crm-surface-2)]"
-              )}
-            >
-              <div className={cn(
-                "h-10 w-10 shrink-0 rounded-xl flex items-center justify-center transition-colors",
-                activeTab === section.id
-                  ? "bg-[var(--crm-blue)] text-white shadow-lg shadow-[var(--crm-blue)]/30"
-                  : "bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] group-hover:bg-[var(--crm-surface-3)]"
-              )}>
-                <section.icon className="h-5 w-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={cn(
-                  "font-bold text-sm",
-                  activeTab === section.id ? "text-[var(--crm-blue)]" : "text-[var(--crm-text-primary)]"
-                )}>
-                  {section.title}
-                </p>
-                <p className="hidden lg:block text-[11px] text-[var(--crm-text-secondary)] leading-tight mt-0.5">{section.description}</p>
-              </div>
-              {activeTab === section.id && (
-                <div className="hidden lg:block absolute right-4 top-1/2 -translate-y-1/2">
-                  <ChevronRight className="h-4 w-4 text-indigo-400" />
-                </div>
-              )}
-            </button>
-          ))}
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 flex-1 min-h-0">
+          {/* ── Sidebar Navigation ── */}
+          <div className="w-full lg:w-72 flex flex-col gap-2 shrink-0">
+
+            <nav className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible no-scrollbar pb-2 lg:pb-0">
+              {SECTIONS.map((section) => (
+                <button
+                  key={section.id}
+                  onClick={() => setActiveTab(section.id)}
+                  className={cn(
+                    "group flex items-center lg:items-start gap-4 p-4 rounded-2xl transition-all duration-200 text-left relative shrink-0 lg:shrink",
+                    activeTab === section.id
+                      ? "bg-red-50 text-slate-900 font-semibold"
+                      : "bg-white text-slate-700 hover:bg-slate-50 border border-transparent shadow-sm"
+                  )}
+                >
+                  <div className={cn(
+                    "h-10 w-10 shrink-0 rounded-[14px] flex items-center justify-center transition-colors",
+                    activeTab === section.id
+                      ? "bg-[#ff5a36] text-white shadow-sm"
+                      : "bg-slate-50 text-slate-500 group-hover:bg-slate-100"
+                  )}>
+                    <section.icon className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0 flex flex-col justify-center h-10">
+                    <p className={cn(
+                      "text-[15px]",
+                      activeTab === section.id ? "font-bold" : "font-semibold"
+                    )}>
+                      {section.title}
+                    </p>
+                    <p className="hidden lg:block text-[12px] text-slate-500 leading-tight mt-0.5">{section.description}</p>
+                  </div>
+                  {activeTab === section.id && (
+                    <div className="hidden lg:block absolute right-4 top-1/2 -translate-y-1/2">
+                      <ChevronRight className="h-4 w-4 text-red-500" />
+                    </div>
+                  )}
+                </button>
+              ))}
         </nav>
       </div>
 
-      {/* ── Content Area ── */}
-      <div className="flex-1 overflow-y-auto pr-0 lg:pr-4 custom-scrollbar">
-        <div className="max-w-3xl mx-auto lg:mx-0 space-y-6 lg:space-y-8 pb-12">
+          {/* ── Content Area ── */}
+          <div className="flex-1 overflow-y-auto pb-12 custom-scrollbar pr-1">
+            <div className="max-w-4xl space-y-8">
 
           {activeTab === 'profile' && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              {/* Header Info */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-[var(--crm-text-primary)]">Profile Details</h2>
-                  <p className="text-sm text-[var(--crm-text-secondary)]">Update your photo and personal information here.</p>
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              {/* Profile Information Card */}
+              <div className="bg-white rounded-[14px] p-6 shadow-sm border border-slate-100">
+                <div className="mb-6">
+                  <h3 className="text-[17px] font-bold text-slate-900">Profile Information</h3>
+                  <p className="text-[13px] text-slate-500 mt-1">Update your photo and personal information. This information will be visible to your team members.</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" className="h-10 rounded-xl border-[var(--crm-border)] px-6 font-bold" onClick={() => window.location.reload()}>Cancel</Button>
-                  <Button 
-                    onClick={handleSaveProfile} 
-                    disabled={isSaving}
-                    className="h-10 rounded-xl bg-[var(--crm-blue)] hover:opacity-90 px-8 font-bold shadow-lg shadow-[var(--crm-blue)]/20 gap-2"
-                  >
-                    {isSaving && <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />}
-                    {isSaving ? 'Saving...' : 'Save'}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Profile Photo */}
-              <Card className="border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] p-4 lg:p-6 rounded-2xl lg:rounded-3xl ring-1 ring-[var(--crm-border)]">
                 <div className="flex flex-col sm:flex-row items-center gap-6 lg:gap-8 text-center sm:text-left">
                   <div className="relative group shrink-0">
-                    <Avatar className="h-24 w-24 lg:h-28 lg:w-28 ring-4 ring-[var(--crm-surface-2)] shadow-xl">
+                    <Avatar className="h-[104px] w-[104px] ring-4 ring-red-50 bg-red-50">
                       <AvatarImage src={imagePreview || undefined} />
-                      <AvatarFallback className="text-2xl font-bold bg-[var(--crm-surface-2)]">
-                        {profileSettings.name.split(' ').filter(Boolean).map(n => n[0].toUpperCase()).join('') || 'U'}
+                      <AvatarFallback className="text-[32px] font-bold text-slate-900 bg-red-50">
+                        {profileSettings.name.split(' ').filter(Boolean).map(n => n[0].toUpperCase()).join('') || 'MD'}
                       </AvatarFallback>
                     </Avatar>
-                    {/* TODO: Migrate raw button to shared <Button> component later (complex styling) */}
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="absolute inset-0 bg-black/40 rounded-full opacity-100 lg:opacity-0 lg:group-hover:opacity-100 flex items-center justify-center transition-all cursor-pointer backdrop-blur-[2px]"
+                      className="absolute bottom-0 right-0 bg-white rounded-xl p-2 shadow-sm border border-slate-200 cursor-pointer text-slate-700 hover:text-slate-900"
                     >
-                      <div className="bg-[var(--crm-surface-1)]/20 p-2 rounded-full border border-white/40">
-                        <Camera className="h-5 w-5 text-white" />
-                      </div>
+                      <Camera className="h-[18px] w-[18px]" />
                     </button>
                     <input ref={fileInputRef} type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                   </div>
                   <div className="space-y-2 flex-1">
-                    <h3 className="font-bold text-[var(--crm-text-primary)] text-lg">Change Avatar</h3>
-                    <p className="text-xs text-[var(--crm-text-tertiary)] max-w-xs leading-relaxed mx-auto sm:mx-0">
-                      Recommended: 400x400px. JPG, PNG or WebP. Max size: 2MB. Your avatar will be visible to team members.
-                    </p>
-                    <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
-                      <Button variant="outline" size="sm" className="h-8 rounded-lg text-[10px] font-bold uppercase tracking-wider px-3" onClick={() => fileInputRef.current?.click()}>Upload New</Button>
-                      <Button variant="ghost" size="sm" className="h-8 rounded-lg text-[10px] font-bold uppercase tracking-wider text-red-500 hover:text-red-600" onClick={() => setImagePreview(null)}>Remove</Button>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-[14px]">Change Avatar</h3>
+                      <p className="text-[12px] text-slate-500 mt-0.5">
+                        Recommended: 400x400px, JPG, PNG or WebP. Max size: 2MB.
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-center sm:justify-start gap-3 mt-3">
+                      <Button variant="outline" className="h-9 rounded-lg font-semibold border-slate-200 text-slate-700 bg-white" onClick={() => fileInputRef.current?.click()}>
+                        <Upload className="h-3.5 w-3.5 mr-2" />
+                        Upload New
+                      </Button>
+                      <Button variant="outline" className="h-9 rounded-lg font-semibold bg-red-50 border-red-200 text-red-600 hover:bg-red-100 hover:border-red-300 hover:text-red-700 shadow-none transition-all" onClick={() => setImagePreview(null)}>
+                        <Trash2 className="h-3.5 w-3.5 mr-2" />
+                        Remove
+                      </Button>
                     </div>
                   </div>
                 </div>
-              </Card>
+              </div>
 
-              {/* Form Fields */}
-              <Card className="border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] p-6 lg:p-8 rounded-2xl lg:rounded-3xl ring-1 ring-[var(--crm-border)]">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+              {/* Form Fields Card */}
+              <div className="bg-white rounded-[14px] p-6 shadow-sm border border-slate-100">
+                <div className="mb-6">
+                  <h3 className="text-[17px] font-bold text-slate-900">Personal Details</h3>
+                  <p className="text-[13px] text-slate-500 mt-1">Keep your information up to date.</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Full Name</Label>
+                    <Label className="text-[13px] font-bold text-slate-900">Full Name <span className="text-red-500">*</span></Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-tertiary)]" />
-                      <Input value={profileSettings.name} onChange={e => setProfileSettings(p => ({ ...p, name: e.target.value }))} className="pl-10 h-10 bg-[var(--crm-surface-1)] border-[var(--crm-border)] focus:ring-[var(--crm-blue)] focus:border-[var(--crm-blue)] bg-[var(--crm-surface-1)] rounded-xl font-medium" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-slate-400" />
+                      <Input value={profileSettings.name} onChange={e => setProfileSettings(p => ({ ...p, name: e.target.value }))} className="pl-[38px] h-10 bg-white border-slate-200 rounded-[10px] font-medium" />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Email Address</Label>
+                    <Label className="text-[13px] font-bold text-slate-900">Email Address <span className="text-red-500">*</span></Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-tertiary)]" />
-                      <Input value={profileSettings.email} disabled className="pl-10 h-10 bg-[var(--crm-surface-2)] border-[var(--crm-border)] rounded-xl text-[var(--crm-text-tertiary)] cursor-not-allowed" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-slate-400" />
+                      <Input value={profileSettings.email} disabled className="pl-[38px] h-10 bg-slate-50 border-slate-200 rounded-[10px] text-slate-500 cursor-not-allowed" />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Company</Label>
+                    <Label className="text-[13px] font-bold text-slate-900">Company</Label>
                     <div className="relative">
-                      <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-tertiary)]" />
-                      <Input value={profileSettings.company} onChange={e => setProfileSettings(p => ({ ...p, company: e.target.value }))} className="pl-10 h-10 bg-[var(--crm-surface-1)] border-[var(--crm-border)] focus:ring-[var(--crm-blue)] focus:border-[var(--crm-blue)] bg-[var(--crm-surface-1)] rounded-xl font-medium" />
+                      <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-slate-400" />
+                      <Input value={profileSettings.company} onChange={e => setProfileSettings(p => ({ ...p, company: e.target.value }))} className="pl-[38px] h-10 bg-white border-slate-200 rounded-[10px] font-medium" />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Phone</Label>
+                    <Label className="text-[13px] font-bold text-slate-900">Phone Number</Label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--crm-text-tertiary)]" />
-                      <Input value={profileSettings.phone} onChange={e => setProfileSettings(p => ({ ...p, phone: e.target.value }))} className="pl-10 h-10 bg-[var(--crm-surface-1)] border-[var(--crm-border)] focus:ring-[var(--crm-blue)] focus:border-[var(--crm-blue)] bg-[var(--crm-surface-1)] rounded-xl font-medium" />
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-slate-400" />
+                      <Input value={profileSettings.phone} onChange={e => setProfileSettings(p => ({ ...p, phone: e.target.value }))} className="pl-[38px] h-10 bg-white border-slate-200 rounded-[10px] font-medium" />
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <Label className="text-xs font-bold text-[var(--crm-text-secondary)] uppercase tracking-wider">Bio / Signature</Label>
-                    <Textarea value={profileSettings.bio} onChange={e => setProfileSettings(p => ({ ...p, bio: e.target.value }))} className="h-32 bg-[var(--crm-surface-1)] border-[var(--crm-border)] focus:ring-[var(--crm-blue)] focus:border-[var(--crm-blue)] bg-[var(--crm-surface-1)] rounded-2xl p-4 font-medium resize-none" placeholder="Write a few lines about yourself..." />
+                    <Label className="text-[13px] font-bold text-slate-900">Bio / Signature</Label>
+                    <div className="relative">
+                      <Edit2 className="absolute left-3 top-[14px] h-[18px] w-[18px] text-slate-400" />
+                      <Textarea value={profileSettings.bio} onChange={e => setProfileSettings(p => ({ ...p, bio: e.target.value }))} className="pl-[38px] h-24 bg-white border-slate-200 rounded-[10px] py-3.5 font-medium resize-none" placeholder="Write a few lines about yourself...&#10;For example: your role, expertise, interests, etc." />
+                    </div>
+                    <div className="flex justify-end mt-1">
+                      <span className="text-[11px] text-slate-400">{profileSettings.bio.length}/500 characters</span>
+                    </div>
                   </div>
                 </div>
-              </Card>
+              </div>
+
+              {/* Profile Preview Card */}
+              <div className="bg-white rounded-[14px] p-6 shadow-sm border border-slate-100">
+                <div className="mb-6">
+                  <h3 className="text-[17px] font-bold text-slate-900">Profile Preview</h3>
+                  <p className="text-[13px] text-slate-500 mt-1">This is how your profile will appear to your team members.</p>
+                </div>
+                <div className="bg-[#fff1ed] border border-[#ffe0d6] rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-5">
+                    <Avatar className="h-16 w-16 bg-[#ffddce] text-[#ff5a36] font-bold text-xl ring-2 ring-[#ffe0d6]">
+                      <AvatarImage src={imagePreview || undefined} />
+                      <AvatarFallback className="bg-[#ffddce] text-[#ff5a36]">{profileSettings.name.split(' ').filter(Boolean).map(n => n[0].toUpperCase()).join('') || 'MD'}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-slate-900 text-[16px]">{profileSettings.name || 'Your Name'}</h4>
+                        <Badge variant="secondary" className="bg-[#ffddce] text-[#ff5a36] text-[10px] uppercase font-bold tracking-wider hover:bg-[#ffddce] px-2 py-0.5 rounded-full border-0">Admin</Badge>
+                      </div>
+                      <p className="text-[13px] text-slate-600 mt-0.5">{profileSettings.company || 'Your Workspace'}</p>
+                      <div className="flex items-center gap-5 mt-2.5 text-[12px] text-slate-500 font-medium">
+                        <div className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-400" /> {profileSettings.email || 'Email not set'}</div>
+                        <div className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-slate-400" /> {profileSettings.phone || 'Not provided'}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <Button variant="outline" className="shrink-0 h-9 rounded-[8px] font-bold border-[#ffd1c3] text-[#ff5a36] bg-transparent hover:bg-white hover:text-[#ff5a36] w-full sm:w-auto">
+                    <Edit2 className="h-3.5 w-3.5 mr-2" />
+                    Edit Profile
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -553,19 +598,19 @@ export default function SettingsPage() {
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div>
                 <h2 className="text-xl font-bold text-[var(--crm-text-primary)]">Push & Email Notifications</h2>
-                <p className="text-sm text-[var(--crm-text-secondary)]">Control how you stay updated with platform events.</p>
+                <p className="text-sm text-[var(--crm-text-secondary)] mt-1">Control how you stay updated with platform events.</p>
               </div>
 
-              <Card className="border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] rounded-3xl overflow-hidden ring-1 ring-[var(--crm-border)]">
+              <div className="overflow-hidden">
                 <div className="divide-y divide-[var(--crm-border)]">
                   {/* Lead Notifications */}
-                  <div className="p-6 space-y-4 hover:bg-[var(--crm-surface-2)] transition-colors">
-                    <div className="flex items-center justify-between">
+                  <div className="p-5 lg:p-6 space-y-4 hover:bg-[var(--crm-surface-2)] transition-colors">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div className="space-y-1 pr-4">
                         <p className="font-bold text-[var(--crm-text-primary)]">Lead Notifications</p>
                         <p className="text-xs text-[var(--crm-text-secondary)] leading-relaxed">Receive alerts when a new lead arrives in your pipeline.</p>
                       </div>
-                      <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-6 shrink-0">
                         <div className="flex flex-col items-center gap-1.5">
                            <span className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase tracking-tighter">Email</span>
                            <Switch 
@@ -587,13 +632,13 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Meeting Notifications */}
-                  <div className="p-6 space-y-4 hover:bg-[var(--crm-surface-2)] transition-colors">
-                    <div className="flex items-center justify-between">
+                  <div className="p-5 lg:p-6 space-y-4 hover:bg-[var(--crm-surface-2)] transition-colors">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div className="space-y-1 pr-4">
                         <p className="font-bold text-[var(--crm-text-primary)]">Meeting Notifications</p>
                         <p className="text-xs text-[var(--crm-text-secondary)] leading-relaxed">Alerts for new bookings and confirmed appointments.</p>
                       </div>
-                      <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-6 shrink-0">
                         <div className="flex flex-col items-center gap-1.5">
                            <span className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase tracking-tighter">Email</span>
                            <Switch 
@@ -615,12 +660,12 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Daily Digest */}
-                  <div className="p-6 flex items-center justify-between hover:bg-[var(--crm-surface-2)] transition-colors">
+                  <div className="p-5 lg:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-[var(--crm-surface-2)] transition-colors">
                     <div className="space-y-1 pr-4">
                       <p className="font-bold text-[var(--crm-text-primary)]">Daily Performance Digest</p>
                       <p className="text-xs text-[var(--crm-text-secondary)] leading-relaxed">A summary of your daily conversion rates and top lead rankings at 9:00 AM.</p>
                     </div>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 shrink-0">
                        <span className="text-[10px] font-bold text-[var(--crm-text-tertiary)] uppercase tracking-tighter mr-2">Email Only</span>
                        <Switch 
                         checked={localNotificationSettings?.email_notifications?.daily_digest === true}
@@ -630,7 +675,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 </div>
-              </Card>
+              </div>
             </div>
           )}
 
@@ -641,35 +686,35 @@ export default function SettingsPage() {
                 <p className="text-sm text-[var(--crm-text-secondary)]">Manage your password and platform access control.</p>
               </div>
 
-              <Card className="border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] p-8 rounded-3xl ring-1 ring-[var(--crm-border)]">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-[var(--crm-surface-1)] border border-[var(--crm-border)]">
+              <div className="py-4">
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4 border-b border-[var(--crm-border)]">
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 flex items-center justify-center bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl">
+                      <div className="h-10 w-10 shrink-0 flex items-center justify-center bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl">
                         <Lock className="h-5 w-5 text-[var(--crm-blue)]" />
                       </div>
                       <div>
-                        <p className="font-bold text-[var(--crm-text-primary)]">Password Authentication</p>
+                        <p className="font-bold text-[var(--crm-text-primary)] text-sm">Password Authentication</p>
                         <p className="text-[11px] text-[var(--crm-text-secondary)] uppercase font-bold tracking-wider pt-0.5">Last updated 3 months ago</p>
                       </div>
                     </div>
-                    <Button variant="outline" className="h-9 px-6 rounded-xl font-bold border-[var(--crm-border)]">Change</Button>
+                    <Button variant="outline" className="h-9 w-full sm:w-auto px-6 rounded-xl font-bold border-[var(--crm-border)]">Change</Button>
                   </div>
 
-                  <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-[var(--crm-surface-1)] border border-[var(--crm-border)]">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4">
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 flex items-center justify-center bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl">
+                      <div className="h-10 w-10 shrink-0 flex items-center justify-center bg-[var(--crm-surface-1)] border border-[var(--crm-border)] rounded-xl">
                         <Shield className="h-5 w-5 text-emerald-500" />
                       </div>
                       <div>
-                        <p className="font-bold text-[var(--crm-text-primary)]">Two-Factor Authentication</p>
-                        <p className="text-[11px] text-[var(--crm-text-secondary)]">Currently disabled. We recommend enabling for extra security.</p>
+                        <p className="font-bold text-[var(--crm-text-primary)] text-sm">Two-Factor Authentication</p>
+                        <p className="text-xs text-[var(--crm-text-secondary)]">Currently disabled. We recommend enabling for extra security.</p>
                       </div>
                     </div>
-                    <Button className="h-9 px-6 rounded-xl font-bold bg-[var(--crm-blue)] hover:opacity-90 shadow-sm">Enable Now</Button>
+                    <Button className="h-9 w-full sm:w-auto px-6 rounded-xl font-bold bg-[var(--crm-blue)] hover:opacity-90">Enable Now</Button>
                   </div>
                 </div>
-              </Card>
+              </div>
             </div>
           )}
 
@@ -680,8 +725,8 @@ export default function SettingsPage() {
                 <p className="text-sm text-[var(--crm-text-secondary)]">View your current plan, limits, and platform usage.</p>
               </div>
 
-              <Card className="border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] p-8 rounded-3xl ring-1 ring-[var(--crm-border)]">
-                <div className="space-y-6">
+              <div className="py-6">
+                <div className="space-y-8">
                   {/* Current Plan & Custom Payment */}
                   <div className="flex flex-col gap-6 pb-6 border-b border-[var(--crm-border)]">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -702,15 +747,15 @@ export default function SettingsPage() {
                     </div>
                     
                     {/* Custom Payment Section */}
-                    <div className="bg-[var(--crm-surface-2)] p-4 rounded-xl border border-[var(--crm-border)] flex flex-col gap-4">
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="bg-[var(--crm-surface-2)] p-5 rounded-2xl border border-[var(--crm-border)] flex flex-col gap-5">
+                      <div className="flex flex-col xl:flex-row items-start xl:items-center gap-4">
                         <div className="flex-1">
-                          <p className="font-bold text-[var(--crm-text-primary)]">Custom Payment</p>
-                          <p className="text-xs text-[var(--crm-text-secondary)] leading-relaxed">
+                          <p className="font-bold text-[var(--crm-text-primary)] text-sm">Custom Payment</p>
+                          <p className="text-xs text-[var(--crm-text-secondary)] leading-relaxed mt-1">
                             Enter the amount to pay (Min: ₹{minPaymentAmount}). Your account will automatically activate with a Pro plan pending admin review.
                           </p>
                         </div>
-                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto">
                           <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[var(--crm-text-tertiary)]">₹</span>
                             <Input 
@@ -718,22 +763,22 @@ export default function SettingsPage() {
                               min={minPaymentAmount}
                               value={paymentAmount} 
                               onChange={(e) => setPaymentAmount(e.target.value)}
-                              className="pl-7 w-28 h-10 bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-xl font-bold"
+                              className="pl-7 w-full sm:w-32 h-10 bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-xl font-bold"
                             />
                           </div>
-                          <div className="relative flex gap-2">
+                          <div className="relative flex gap-2 w-full sm:w-auto">
                             <Input 
                               type="text" 
                               placeholder="Coupon code"
                               value={couponCode} 
                               onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                              className="w-32 h-10 bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-xl uppercase"
+                              className="w-full sm:w-32 h-10 bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-xl uppercase flex-1"
                             />
                             <Button 
                               variant="outline"
                               onClick={handleApplyCoupon}
                               disabled={isApplyingCoupon || !couponCode}
-                              className="rounded-xl h-10"
+                              className="rounded-xl h-10 shrink-0"
                             >
                               Apply
                             </Button>
@@ -742,7 +787,7 @@ export default function SettingsPage() {
                       </div>
 
                       {appliedCoupon && (
-                        <div className="flex justify-end pt-2 border-t border-[var(--crm-border)]">
+                        <div className="flex justify-end pt-3 border-t border-[var(--crm-border)]">
                           <div className="text-right text-sm">
                             <p className="text-[var(--crm-text-secondary)] line-through">Subtotal: ₹{appliedCoupon.original_amount}</p>
                             <p className="text-emerald-600 font-semibold text-xs mb-1">
@@ -753,11 +798,11 @@ export default function SettingsPage() {
                         </div>
                       )}
 
-                      <div className="flex justify-end">
+                      <div className="flex justify-start sm:justify-end">
                         <Button 
                           onClick={handleCustomPayment} 
                           disabled={isProcessingPayment}
-                          className="rounded-xl font-bold bg-[var(--crm-blue)] hover:opacity-90 h-10 px-8"
+                          className="rounded-xl font-bold bg-[var(--crm-blue)] hover:opacity-90 h-10 px-8 w-full sm:w-auto"
                         >
                           {isProcessingPayment ? 'Processing...' : `Pay ₹${appliedCoupon ? appliedCoupon.final_amount : paymentAmount}`}
                         </Button>
@@ -796,9 +841,9 @@ export default function SettingsPage() {
                     <p className="text-[11px] text-[var(--crm-text-secondary)] mt-2">Emails are sent via AWS SES and include full tracking. Count resets on the 1st of every month.</p>
                   </div>
                 </div>
-              </Card>
+              </div>
 
-              <Card className="border-[var(--crm-border)] shadow-sm bg-[var(--crm-surface-1)] p-8 rounded-3xl ring-1 ring-[var(--crm-border)]">
+              <div className="py-6 border-t border-[var(--crm-border)]">
                 <div className="space-y-6">
                   <h3 className="text-lg font-bold text-[var(--crm-text-primary)]">Billing History & Invoices</h3>
                   {invoices.length === 0 ? (
@@ -851,12 +896,13 @@ export default function SettingsPage() {
                     </div>
                   )}
                 </div>
-              </Card>
+              </div>
             </div>
           )}
 
         </div>
       </div>
+    </div>
     </div>
     </RoleGuard>
   )

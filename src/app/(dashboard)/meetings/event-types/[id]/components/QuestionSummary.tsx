@@ -90,7 +90,7 @@ export const QuestionSummary = ({ question, index, onEdit, onRemove }: Props) =>
         >
           <Edit2 className="h-3.5 w-3.5" />
         </Button>
-        {!question.isLocked && (
+        {(!question.isLocked || question.id === 'invitee_email') && (
           <Button
             variant="ghost"
             size="icon"

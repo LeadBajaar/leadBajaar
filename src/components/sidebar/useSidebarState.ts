@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { integrationApi } from '@/lib/api'
+import { integrationApi, evolutionApi } from '@/lib/api'
 import { useUser } from '@/contexts/UserContext'
 import { NavItemDef, NavSection } from './types'
 
@@ -98,7 +98,17 @@ export function useSidebarState(setMobileOpen?: (open: boolean) => void) {
         setEmailEnabled(integrations.some((i: any) => i.type === 'email' && i.is_active))
         // Note: facebook_auth might have a different type in DB, checking for 'facebook_auth'
         setFbAuthEnabled(integrations.some((i: any) => i.type === 'facebook_auth' && i.is_active))
-        setEvolutionEnabled(integrations.some((i: any) => i.type === 'evolution' && i.is_active))
+        
+        let isEvolutionEnabled = integrations.some((i: any) => i.type === 'evolution' && i.is_active)
+        try {
+          const accounts = await evolutionApi.getAccounts()
+          if (accounts?.data?.some((a: any) => a.status === 'connected' || a.status === 'open')) {
+            isEvolutionEnabled = true
+          }
+        } catch (e) {
+          // ignore
+        }
+        setEvolutionEnabled(isEvolutionEnabled)
       } catch (e) {
         // ignore
       }
@@ -139,7 +149,12 @@ export function useSidebarState(setMobileOpen?: (open: boolean) => void) {
     
     const roleMatch = hasRole(item.roles)
     const typeMatch = !item.types || hasType(item.types)
-    const featureMatch = !item.feature || hasFeature(item.feature)
+    
+    let featureMatch = !item.feature || hasFeature(item.feature)
+    if (evolutionEnabled && (item.href.startsWith('/evolution/inbox') || item.href.startsWith('/evolution/chatbot'))) {
+      featureMatch = true
+    }
+    
     const planMatch = !item.plans || hasPlan(item.plans) || hasType(['agency', 'super_admin'])
     return roleMatch && typeMatch && featureMatch && planMatch
   }

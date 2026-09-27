@@ -13,17 +13,33 @@ export function useLeadsData(isMobile: boolean) {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [visibleColumns, setVisibleColumns] = useState([
-    'name',
-    'agent',
-    'phone',
-    'stage',
-    'city',
-    'profession',
-    'notes',
-    'created_at',
-    'actions'
-  ]);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = window.localStorage.getItem('leads_visible_columns');
+        if (stored) return JSON.parse(stored);
+      } catch (e) {}
+    }
+    return [
+      'name',
+      'agent',
+      'phone',
+      'stage',
+      'city',
+      'profession',
+      'notes',
+      'created_at',
+      'actions'
+    ];
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem('leads_visible_columns', JSON.stringify(visibleColumns));
+      } catch (e) {}
+    }
+  }, [visibleColumns]);
 
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
   const [currentPage, setCurrentPage] = useState(1);

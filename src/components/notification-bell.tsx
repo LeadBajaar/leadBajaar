@@ -3,9 +3,9 @@
 import React from 'react';
 import { Bell, BellRing } from 'lucide-react';
 import {
-  Popover,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+  Sheet,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { PromotionModal } from './promotion-modal';
 import { useNotificationBellState } from './notification-bell/useNotificationBellState';
@@ -25,6 +25,7 @@ export function NotificationBell() {
     markAsRead,
     markAllAsRead,
     deleteNotification,
+    bulkDeleteNotifications,
     clearAllNotifications,
     confirmModal,
     setConfirmModal
@@ -40,8 +41,8 @@ export function NotificationBell() {
 
   return (
     <>
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
           <button className="relative group flex items-center justify-center h-10 w-10 rounded-full text-[var(--crm-shell-text)] transition-all bg-transparent hover:bg-transparent">
             {unreadCount > 0 ? (
               <BellRing className="h-[22px] w-[22px] text-primary animate-pulse group-hover:scale-110 transition-transform" />
@@ -56,7 +57,7 @@ export function NotificationBell() {
               </Badge>
             )}
           </button>
-        </PopoverTrigger>
+        </SheetTrigger>
         
         <NotificationDropdown
           notifications={notifications}
@@ -65,10 +66,11 @@ export function NotificationBell() {
           setIsOpen={setIsOpen}
           onMarkAllRead={markAllAsRead}
           onClearAll={clearAllNotifications}
-          onMarkRead={(id) => markAsRead([id])}
+          onMarkRead={markAsRead}
           onDelete={deleteNotification}
+          onBulkDelete={bulkDeleteNotifications}
         />
-      </Popover>
+      </Sheet>
 
       {activePromotions.length > 0 && (
         <PromotionModal 

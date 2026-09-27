@@ -114,6 +114,29 @@ export function useNotificationBellState() {
     });
   };
 
+  const executeBulkDelete = async (notificationIds: number[]) => {
+    try {
+      await Promise.all(notificationIds.map(id => api.delete(`/notifications/${id}`)));
+      setNotifications(prev => {
+        const deletedIds = new Set(notificationIds);
+        const remaining = prev.filter((n: Notification) => !deletedIds.has(n.id));
+        setUnreadCount(remaining.filter(n => !n.is_read).length);
+        return remaining;
+      });
+    } catch (error) {
+      console.error('Error in bulk delete:', error);
+    }
+  };
+
+  const bulkDeleteNotifications = (notificationIds: number[]) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Selected Notifications",
+      description: `Are you sure you want to delete ${notificationIds.length} selected notifications?`,
+      onConfirm: () => executeBulkDelete(notificationIds)
+    });
+  };
+
   const executeClearAllNotifications = async () => {
     try {
       await api.delete('/notifications/clear-all');
@@ -191,6 +214,7 @@ export function useNotificationBellState() {
     markAsRead,
     markAllAsRead,
     deleteNotification,
+    bulkDeleteNotifications,
     clearAllNotifications,
     confirmModal,
     setConfirmModal
