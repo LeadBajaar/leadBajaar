@@ -507,12 +507,11 @@ export default function IntegrationsPage() {
   const handleIntegrationCardAction = (item: IntegrationItem) => {
     const isConnected = isIntegrationConnected(item.id);
 
-    if (item.route) {
-      router.push(item.route);
-      return;
-    }
-
     if (isConnected) {
+      if (item.route) {
+        router.push(item.route);
+        return;
+      }
       if (item.id === "webhook") {
         setShowNewWebhookDialog(true);
       } else if (item.id === "email") {
