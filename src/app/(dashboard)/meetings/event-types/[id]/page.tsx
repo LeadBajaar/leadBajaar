@@ -292,7 +292,7 @@ export default function EventTypeForm() {
   }
   const removeQuestion = (index: number) => {
     const question = eventType.questions[index]
-    if (question.isLocked) {
+    if (question.isLocked && question.id !== 'invitee_email') {
       toast({
         title: "Action Denied",
         description: "This mandatory question cannot be deleted.",
