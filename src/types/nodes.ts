@@ -15,6 +15,8 @@ export interface BaseNodeData extends Record<string, unknown> {
 
 export interface MessageNodeData extends BaseNodeData {
   messageType?: 'text' | 'template' | 'cta_url'
+  media_url?: string
+  media_type?: 'image' | 'video' | 'audio' | 'document'
   buttons?: Array<{
     id: string
     text: string

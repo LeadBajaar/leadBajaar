@@ -43,6 +43,8 @@ interface Message {
   status?: 'pending' | 'sent' | 'delivered' | 'read' | 'failed'
   metadata?: unknown
   direction?: 'inbound' | 'outbound'
+  media_url?: string | null
+  message_type?: string
 }
 
 interface ChatUser {
@@ -85,6 +87,8 @@ export default function LiveChatPage() {
   const [hasMore, setHasMore] = useState(true)
   const [isFetchingMore, setIsFetchingMore] = useState(false)
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -149,7 +153,22 @@ export default function LiveChatPage() {
           created_at: (msg.created_at as string | undefined) || '',
           direction: (msg.direction === 'outgoing' ? 'outbound' : 'inbound') as 'inbound' | 'outbound',
           status: (msg.status as Message['status']) || 'read',
-          wa_message_id: msg.wa_message_id as string | undefined
+          wa_message_id: msg.wa_message_id as string | undefined,
+          media_url: (() => {
+            if (msg.media_url) return msg.media_url as string;
+            const raw = msg.raw_data as any;
+            const base64 = raw?.message?.base64 || raw?.base64;
+            if (base64) {
+              const mimeType = raw?.message?.imageMessage?.mimetype 
+                || raw?.message?.videoMessage?.mimetype 
+                || raw?.message?.audioMessage?.mimetype 
+                || raw?.message?.documentMessage?.mimetype 
+                || 'image/jpeg';
+              return `data:${mimeType};base64,${base64}`;
+            }
+            return undefined;
+          })(),
+          message_type: msg.message_type as string | undefined
         })) as Message[]
         
         const viewport = messagesEndRef.current?.closest('[data-radix-scroll-area-viewport]') as HTMLDivElement | null;
@@ -282,36 +301,65 @@ export default function LiveChatPage() {
   }, [messages[messages.length - 1]?.id])
 
   const handleSend = async () => {
-    if (!message.trim() || !activeChat || isSending) return
-    const text = message
-    const optimisticId = `local-${Date.now()}`;
-    const newMsg: Message = {
-      id: optimisticId,
-      content: text,
-      sender: 'agent',
-      time: formatMessageTime(new Date()),
-      created_at: new Date().toISOString(),
-      status: 'pending' // Show timer icon immediately
-    }
+    if ((!message.trim() && !selectedFile) || !activeChat || isSending) return
 
-    // Add message to UI immediately
-    setMessages(prev => [...prev, newMsg])
-    setMessage('')
+    const currentText = message.trim()
+    const fileToSend = selectedFile
 
     try {
       setIsSending(true)
-      const result = await evolutionApi.sendMessage(Number(activeChat.id), text);
-      const serverMsg = result.data;
 
-      // Update the status and ID once confirmed by server
-      setMessages(prev => prev.map(m =>
-        m.id === optimisticId ? { ...m, id: serverMsg.id, status: serverMsg.status || 'sent' } : m
-      ))
+      // Optimistic UI update
+      const tempId = 'local-' + Date.now()
+      
+      let tempMediaUrl = undefined;
+      let tempMessageType = 'text';
+      if (fileToSend) {
+        tempMediaUrl = URL.createObjectURL(fileToSend);
+        if (fileToSend.type.startsWith('image/')) tempMessageType = 'image';
+        else if (fileToSend.type.startsWith('video/')) tempMessageType = 'video';
+        else if (fileToSend.type.startsWith('audio/')) tempMessageType = 'audio';
+        else tempMessageType = 'document';
+      }
+
+      const optimisticMsg: Message = {
+        id: tempId,
+        content: currentText,
+        sender: 'agent',
+        time: formatMessageTime(new Date()),
+        created_at: new Date().toISOString(),
+        direction: 'outbound',
+        status: 'pending',
+        media_url: tempMediaUrl,
+        message_type: tempMessageType
+      }
+
+      setMessages(prev => [...prev, optimisticMsg])
+      
+      setMessage('')
+      setSelectedFile(null)
+
+      const res = await evolutionApi.sendMessage(activeChat.id, currentText, fileToSend)
+
+      if (res.status === 'success' || res.data) {
+        const actualMessage = res.data || res;
+        setMessages(prev => prev.map(msg => 
+          msg.id === tempId ? { 
+            ...msg, 
+            id: actualMessage.id,
+            status: actualMessage.status || 'sent',
+            wa_message_id: actualMessage.wa_message_id
+          } : msg
+        ));
+      } else {
+        throw new Error(res.message || 'Failed to send message')
+      }
+
     } catch (error) {
-      console.error('Error sending message:', error)
-      // Show failed status if server error
+      console.error('Send error:', error)
+      toast.error('Failed to send message')
       setMessages(prev => prev.map(m =>
-        m.id === optimisticId ? { ...m, status: 'failed' } : m
+        m.status === 'pending' && m.direction === 'outbound' ? { ...m, status: 'failed' } : m
       ))
     } finally {
       setIsSending(false)
@@ -647,6 +695,22 @@ export default function LiveChatPage() {
                                         : "bg-[var(--crm-surface-1)] text-[var(--crm-text-primary)] rounded-tl-none border border-[var(--crm-border)] shadow-sm"
                                     )}>
                                       <div className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere [word-break:break-word] min-w-[50px]">
+                                        {msg.media_url && (
+                                          <div className="mb-2">
+                                            {msg.message_type === 'video' ? (
+                                              <video src={msg.media_url} controls className="max-w-[240px] sm:max-w-xs rounded-md shadow-sm" />
+                                            ) : msg.message_type === 'audio' ? (
+                                              <audio src={msg.media_url} controls className="w-full max-w-[240px]" />
+                                            ) : msg.message_type === 'document' ? (
+                                              <a href={msg.media_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 bg-white/10 rounded-md hover:bg-white/20 transition-colors">
+                                                <Paperclip className="h-5 w-5" />
+                                                <span className="font-medium underline text-sm">Download Document</span>
+                                              </a>
+                                            ) : (
+                                              <img src={msg.media_url} alt="Media message" className="max-w-[240px] sm:max-w-xs rounded-md shadow-sm object-cover" loading="lazy" />
+                                            )}
+                                          </div>
+                                        )}
                                         {(() => {
                                           const raw = msg.content;
                                           
@@ -819,9 +883,38 @@ export default function LiveChatPage() {
 
                   {/* Input Area */}
                   <div className="p-3 lg:p-4 bg-[var(--crm-surface-1)] border-t border-[var(--crm-border)]">
+                    {/* Attachment Preview */}
+                    {selectedFile && (
+                      <div className="mb-2 p-2 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                        <div className="flex items-center gap-2 truncate">
+                          <Paperclip className="h-4 w-4 text-slate-500 shrink-0" />
+                          <span className="text-sm font-medium truncate">{selectedFile.name}</span>
+                          <span className="text-xs text-slate-400 shrink-0">({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)</span>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={() => setSelectedFile(null)} className="h-6 w-6 rounded-full hover:bg-red-50 hover:text-red-500">
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    )}
                     <div className="relative flex items-end gap-2 p-1.5 bg-white dark:bg-[#12121a] rounded-[24px] border border-[var(--crm-accent)] shadow-sm focus-within:shadow-md transition-all duration-300">
                       <div className="flex shrink-0 pb-0.5 pl-1 gap-0.5">
-                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)] hover:bg-[var(--crm-surface-3)] transition-all shrink-0">
+                        <input 
+                          type="file" 
+                          ref={fileInputRef} 
+                          className="hidden" 
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              setSelectedFile(e.target.files[0]);
+                            }
+                          }}
+                          accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        />
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => fileInputRef.current?.click()}
+                          className="h-10 w-10 rounded-full text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)] hover:bg-[var(--crm-surface-3)] transition-all shrink-0"
+                        >
                           <Paperclip className="h-5 w-5" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-[var(--crm-text-secondary)] hover:text-[var(--crm-accent)] hover:bg-[var(--crm-surface-3)] transition-all shrink-0">
@@ -848,7 +941,7 @@ export default function LiveChatPage() {
                       <div className="flex shrink-0 pb-0.5 pr-0.5 gap-1">
                         <Button
                           onClick={handleSend}
-                          disabled={!message.trim() || isSending}
+                          disabled={(!message.trim() && !selectedFile) || isSending}
                           className="h-10 w-10 p-0 bg-[var(--crm-accent)] hover:opacity-90 text-white rounded-full shadow-[0_2px_8px_rgba(var(--crm-accent-rgb),0.3)] transition-all active:scale-95 disabled:opacity-50 disabled:shadow-none flex items-center justify-center shrink-0"
                         >
                           {isSending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-4 w-4 ml-0.5" />}

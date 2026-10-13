@@ -35,24 +35,36 @@ export const evolutionApi = {
     });
     return response.data;
   },
-  getMessages: async (conversationId: number, page: number = 1): Promise<any> => {
+  getMessages: async (conversationId: number | string, page: number = 1): Promise<any> => {
     const response = await api.get(`/evolution/inbox/conversations/${conversationId}/messages`, {
       params: { page, limit: 25 }
     });
     return response.data;
   },
-  sendMessage: async (conversationId: number, message: string): Promise<any> => {
-    const response = await api.post('/evolution/inbox/messages/send', {
-      conversation_id: conversationId,
-      message,
-    });
+  sendMessage: async (conversationId: number | string, message?: string, file?: File | null): Promise<any> => {
+    let payload: any;
+    let headers: any = {};
+    if (file) {
+      const fd = new FormData();
+      fd.append('conversation_id', conversationId.toString());
+      if (message) fd.append('message', message);
+      fd.append('file', file);
+      payload = fd;
+      headers['Content-Type'] = 'multipart/form-data';
+    } else {
+      payload = {
+        conversation_id: conversationId,
+        message: message || '',
+      };
+    }
+    const response = await api.post('/evolution/inbox/messages/send', payload, { headers });
     return response.data;
   },
-  deleteConversation: async (conversationId: number): Promise<any> => {
+  deleteConversation: async (conversationId: number | string): Promise<any> => {
     const response = await api.delete(`/evolution/inbox/conversations/${conversationId}`);
     return response.data;
   },
-  clearSession: async (conversationId: number): Promise<any> => {
+  clearSession: async (conversationId: number | string): Promise<any> => {
     const response = await api.post('/evolution/inbox/session/clear', {
       conversation_id: conversationId,
     });

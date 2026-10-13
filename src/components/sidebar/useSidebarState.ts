@@ -39,6 +39,7 @@ export const sidebarSections: NavSection[] = [
     label: 'Platform Control',
     items: [
       { name: 'Admin', href: '/admin', iconClass: 'ti ti-shield', roles: ['Super Admin'], types: ['super_admin'], feature: 'system_admin', exact: true },
+      { name: 'Chatbot Templates', href: '/admin/chatbot-templates', iconClass: 'ti ti-messages', roles: ['Super Admin'], types: ['super_admin'], feature: 'system_admin' },
       { name: 'Emails', href: '/admin/emails', iconClass: 'ti ti-mail', roles: ['Super Admin'], types: ['super_admin'], feature: 'email_logs' },
       { name: 'Error Logs', href: '/admin/errors', iconClass: 'ti ti-activity', roles: ['Super Admin'], types: ['super_admin'], feature: 'error_logs' },
       { name: 'Finance', href: '/admin/finance/dashboard', iconClass: 'ti ti-currency-dollar', roles: ['Super Admin'], types: ['super_admin'], feature: 'finance_module' },

@@ -6,6 +6,7 @@ import { Header } from '@/components/header'
 import { UserProvider } from '@/contexts/UserContext'
 import { SubscriptionGuard } from '@/components/SubscriptionGuard'
 import { GlobalBanners } from '@/components/global-banners'
+import { SubscriptionValidityBanner } from '@/components/subscription-validity-banner'
 
 import { cn } from '@/lib/utils'
 
@@ -23,8 +24,9 @@ export default function DashboardLayout({
   return (
     <UserProvider>
       <SubscriptionGuard>
-        <div className="flex flex-col h-screen overflow-hidden bg-[var(--crm-bg)]">
+        <div className="flex flex-col overflow-hidden bg-[var(--crm-bg)] h-screen sm:h-[100dvh]">
             <GlobalBanners />
+            <SubscriptionValidityBanner />
             {/* Mobile Overlay */}
             {mobileOpen && (
               <div

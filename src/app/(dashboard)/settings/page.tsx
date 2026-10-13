@@ -596,9 +596,36 @@ export default function SettingsPage() {
 
           {activeTab === 'notifications' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div>
-                <h2 className="text-xl font-bold text-[var(--crm-text-primary)]">Push & Email Notifications</h2>
-                <p className="text-sm text-[var(--crm-text-secondary)] mt-1">Control how you stay updated with platform events.</p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-[var(--crm-text-primary)]">Push & Email Notifications</h2>
+                  <p className="text-sm text-[var(--crm-text-secondary)] mt-1">Control how you stay updated with platform events.</p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.href = '/integrations/email-marketing'}
+                  className="rounded-xl border-[var(--crm-border)] text-xs font-bold gap-2 h-9 w-fit"
+                >
+                  <Mail className="h-3.5 w-3.5 text-primary" />
+                  Email Delivery Settings
+                </Button>
+              </div>
+
+              {/* Email Delivery Pipeline Status Notice */}
+              <div className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <Mail className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-indigo-950 dark:text-indigo-200">
+                      Email Pipeline Configured
+                    </p>
+                    <p className="text-[11px] text-indigo-700/80 dark:text-indigo-300/70 mt-0.5 leading-relaxed">
+                      Emails are dispatched using LeadBajaar's reliable platform mailer or your custom connected SES/SMTP. You can switch between platform email or your own server anytime.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <div className="overflow-hidden">

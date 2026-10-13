@@ -26,6 +26,8 @@ export default function GlobalAutomationsSettings() {
   })
   const [isSavingSettings, setIsSavingSettings] = useState(false)
   const [templates, setTemplates] = useState<any[]>([])
+  const [waConnected, setWaConnected] = useState(false)
+  const [payperwaConnected, setPayperwaConnected] = useState(false)
   
   useEffect(() => {
     fetchAccountsAndTemplates()
@@ -34,12 +36,33 @@ export default function GlobalAutomationsSettings() {
 
   const fetchAccountsAndTemplates = async () => {
     try {
-      const response = await integrationApi.getWhatsAppAccounts()
-      if (response.accounts && response.accounts.length > 0) {
-        setTemplates(response.accounts[0].templates || [])
+      let combinedTemplates: any[] = []
+      
+      try {
+        const responseWA = await integrationApi.getWhatsAppAccounts()
+        if (responseWA.accounts && responseWA.accounts.length > 0) {
+          setWaConnected(true)
+          const waTemplates = responseWA.accounts[0].templates || []
+          combinedTemplates = [...combinedTemplates, ...waTemplates.map((t: any) => ({ ...t, provider: 'cloud' }))]
+        }
+      } catch (e) {
+        console.error("Failed to fetch WhatsApp templates", e)
       }
+
+      try {
+        const responsePP = await integrationApi.getPayperwaAccounts()
+        if (responsePP.accounts && responsePP.accounts.length > 0) {
+          setPayperwaConnected(true)
+          const ppTemplates = responsePP.accounts[0].templates || []
+          combinedTemplates = [...combinedTemplates, ...ppTemplates.map((t: any) => ({ ...t, provider: 'payperwa' }))]
+        }
+      } catch (e) {
+        // Silently catch so we don't throw console errors when they just haven't connected yet
+      }
+
+      setTemplates(combinedTemplates)
     } catch (error) {
-      console.error('Failed to fetch WhatsApp accounts', error)
+      console.error('Failed to fetch accounts and templates', error)
     }
   }
 
@@ -113,7 +136,10 @@ export default function GlobalAutomationsSettings() {
                  <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800">
                   <SelectItem value="cloud" className="focus:bg-blue-50 dark:focus:bg-blue-950/40 rounded-lg py-3">
                     <div className="flex flex-col">
-                      <span className="font-bold">WhatsApp Cloud API</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold">WhatsApp Cloud API</span>
+                        {!waConnected && <Badge variant="secondary" className="text-[9px] h-4 px-1.5 py-0 bg-slate-100 text-slate-500">Not connected</Badge>}
+                      </div>
                       <span className="text-[10px] text-slate-400 mt-0.5">Official Meta Business API (Reliable)</span>
                     </div>
                   </SelectItem>
@@ -129,6 +155,15 @@ export default function GlobalAutomationsSettings() {
                       <span className="text-[10px] text-slate-400 mt-0.5">Send via your linked Evolution device</span>
                     </div>
                   </SelectItem>
+                  <SelectItem value="payperwa" className="focus:bg-emerald-50 dark:focus:bg-emerald-950/40 rounded-lg py-3">
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-emerald-700 dark:text-emerald-400">🚀 PayPerWA</span>
+                        {!payperwaConnected && <Badge variant="secondary" className="text-[9px] h-4 px-1.5 py-0 bg-slate-100 text-slate-500">Not connected</Badge>}
+                      </div>
+                      <span className="text-[10px] text-slate-400 mt-0.5">Send via PayPerWA API</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
                </Select>
              </div>
@@ -142,6 +177,8 @@ export default function GlobalAutomationsSettings() {
                   ? 'This mode uses your official Meta Business Account. Ensure you have an active WhatsApp integration configured.'
                   : welcomeSettings.whatsapp_mode === 'evolution'
                   ? 'This mode sends via your Evolution-linked WhatsApp device. Ensure it is connected under Integrations > Evolution WhatsApp.'
+                  : welcomeSettings.whatsapp_mode === 'payperwa'
+                  ? 'This mode sends via PayPerWA. Ensure it is connected under Integrations > PayPerWA Integration.'
                   : 'This mode uses your personal WhatsApp. Ensure your device is connected via QR code in the WhatsApp Bot page.'}
               </p>
             </div>
@@ -150,25 +187,25 @@ export default function GlobalAutomationsSettings() {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <Label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
-                {welcomeSettings.whatsapp_mode === 'cloud' ? 'Select Template' : 'Message Content'}
+                {(welcomeSettings.whatsapp_mode === 'cloud' || welcomeSettings.whatsapp_mode === 'payperwa') ? 'Select Template' : 'Message Content'}
               </Label>
               <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800 text-[10px] font-bold py-0.5">
                 Tip: Use {"{{name}}"} for personalization
               </Badge>
             </div>
-            {welcomeSettings.whatsapp_mode === 'cloud' ? (
+            {(welcomeSettings.whatsapp_mode === 'cloud' || welcomeSettings.whatsapp_mode === 'payperwa') ? (
               <Select
                 value={welcomeSettings.whatsapp_welcome_template_id?.toString()}
                 onValueChange={(val: any) => setWelcomeSettings(prev => ({ ...prev, whatsapp_welcome_template_id: val }))}
               >
                 <SelectTrigger className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800/50 border-none ring-1 ring-slate-200 dark:ring-slate-700">
-                  <SelectValue placeholder="Select a WhatsApp Template" />
+                  <SelectValue placeholder="Select a WhatsApp/PayPerWA Template" />
                 </SelectTrigger>
                 <SelectContent>
                   {templates.length > 0 ? (
                     templates.map((template) => (
                       <SelectItem key={template.id} value={template.id.toString()}>
-                        {template.name}
+                        {template.name} {template.provider === 'payperwa' ? '(PayPerWA)' : '(Cloud)'}
                       </SelectItem>
                     ))
                   ) : (
@@ -247,7 +284,10 @@ export default function GlobalAutomationsSettings() {
                  <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800">
                   <SelectItem value="cloud" className="focus:bg-emerald-50 dark:focus:bg-emerald-500/10 rounded-lg py-3">
                     <div className="flex flex-col">
-                      <span className="font-bold">WhatsApp Cloud API</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold">WhatsApp Cloud API</span>
+                        {!waConnected && <Badge variant="secondary" className="text-[9px] h-4 px-1.5 py-0 bg-slate-100 text-slate-500">Not connected</Badge>}
+                      </div>
                       <span className="text-[10px] text-slate-400 mt-0.5">Official Meta Business API (Reliable)</span>
                     </div>
                   </SelectItem>
@@ -263,6 +303,15 @@ export default function GlobalAutomationsSettings() {
                       <span className="text-[10px] text-slate-400 mt-0.5">Send via your linked Evolution device</span>
                     </div>
                   </SelectItem>
+                  <SelectItem value="payperwa" className="focus:bg-emerald-50 dark:focus:bg-emerald-500/10 rounded-lg py-3">
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-emerald-700 dark:text-emerald-400">🚀 PayPerWA</span>
+                        {!payperwaConnected && <Badge variant="secondary" className="text-[9px] h-4 px-1.5 py-0 bg-slate-100 text-slate-500">Not connected</Badge>}
+                      </div>
+                      <span className="text-[10px] text-slate-400 mt-0.5">Send via PayPerWA API</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
                </Select>
              </div>
@@ -276,6 +325,8 @@ export default function GlobalAutomationsSettings() {
                   ? 'This mode uses your official Meta Business Account. Ensure you have an active WhatsApp integration configured.'
                   : welcomeSettings.whatsapp_meeting_mode === 'evolution'
                   ? 'This mode sends via your Evolution-linked WhatsApp device. Ensure it is connected under Integrations > Evolution WhatsApp.'
+                  : welcomeSettings.whatsapp_meeting_mode === 'payperwa'
+                  ? 'This mode sends via PayPerWA. Ensure it is connected under Integrations > PayPerWA Integration.'
                   : 'This mode uses your personal WhatsApp. Ensure your device is connected via QR code in the WhatsApp Bot page.'}
               </p>
             </div>
@@ -284,25 +335,25 @@ export default function GlobalAutomationsSettings() {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <Label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
-                {welcomeSettings.whatsapp_meeting_mode === 'cloud' ? 'Select Template' : 'Message Content'}
+                {(welcomeSettings.whatsapp_meeting_mode === 'cloud' || welcomeSettings.whatsapp_meeting_mode === 'payperwa') ? 'Select Template' : 'Message Content'}
               </Label>
               <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20 text-[10px] font-bold py-0.5">
                 Tip: Use {"{{name}}"} and {"{{time}}"} for personalization
               </Badge>
             </div>
-            {welcomeSettings.whatsapp_meeting_mode === 'cloud' ? (
+            {(welcomeSettings.whatsapp_meeting_mode === 'cloud' || welcomeSettings.whatsapp_meeting_mode === 'payperwa') ? (
               <Select
                 value={welcomeSettings.whatsapp_meeting_template_id?.toString()}
                 onValueChange={(val: any) => setWelcomeSettings(prev => ({ ...prev, whatsapp_meeting_template_id: val }))}
               >
                 <SelectTrigger className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800/50 border-none ring-1 ring-slate-200 dark:ring-slate-700">
-                  <SelectValue placeholder="Select a WhatsApp Template" />
+                  <SelectValue placeholder="Select a WhatsApp/PayPerWA Template" />
                 </SelectTrigger>
                 <SelectContent>
                   {templates.length > 0 ? (
                     templates.map((template) => (
                       <SelectItem key={template.id} value={template.id.toString()}>
-                        {template.name}
+                        {template.name} {template.provider === 'payperwa' ? '(PayPerWA)' : '(Cloud)'}
                       </SelectItem>
                     ))
                   ) : (

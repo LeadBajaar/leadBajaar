@@ -97,9 +97,15 @@ export const logout = async (): Promise<boolean> => {
       }
     });
     clearSession();
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('validityModalShown');
+    }
     return true;
   } catch (error) {
     clearSession(); // Clear session even if logout fails
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('validityModalShown');
+    }
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<ErrorResponse>;
       if (axiosError.response?.data?.message) {

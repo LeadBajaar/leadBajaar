@@ -88,10 +88,18 @@ interface IntegrationItem {
 const popularIntegrationsList: IntegrationItem[] = [
   {
     id: "whatsapp",
-    name: "WhatsApp",
+    name: "WhatsApp Cloud API",
     description: "Connect WhatsApp Business API to send messages, automate responses and manage chats.",
     category: "communication",
     route: "/integrations/whatsapp",
+    isPopular: true,
+  },
+  {
+    id: "payperwa",
+    name: "PayPerWA",
+    description: "Send WhatsApp messages via PayPerWA API.",
+    category: "communication",
+    route: "/integrations/payperwa",
     isPopular: true,
   },
   {
@@ -1029,13 +1037,23 @@ export default function IntegrationsPage() {
           onOpenChange={(open) => !open && setSelectedIntegrationId(null)}
           emailConfig={emailConfig}
           setEmailConfig={setEmailConfig}
-          onSave={async () => {
+          onSave={async (mode) => {
             try {
               setIsConnecting(true);
-              const method = (emailConfig as any).id ? 'put' : 'post';
-              const url = (emailConfig as any).id ? `/email/configurations/${(emailConfig as any).id}` : '/email/configurations';
-              await api[method](url, emailConfig);
-              toast.success('Email integration synchronized!');
+              if (mode === "platform") {
+                if ((emailConfig as any).id) {
+                  await api.delete(`/email/configurations/${(emailConfig as any).id}`);
+                }
+                toast.success('Switched to LeadBajaar Platform Mailer!');
+              } else {
+                const method = (emailConfig as any).id ? 'put' : 'post';
+                const url = (emailConfig as any).id ? `/email/configurations/${(emailConfig as any).id}` : '/email/configurations';
+                await api[method](url, {
+                  ...emailConfig,
+                  is_active: true,
+                });
+                toast.success('Custom email credentials connected!');
+              }
               setSelectedIntegrationId(null);
               fetchEmailConfig();
               fetchConnectedIntegrations();

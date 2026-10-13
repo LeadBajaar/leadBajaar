@@ -28,9 +28,9 @@ export function Sidebar({ mobileOpen, setMobileOpen, isCollapsed = false, setIsC
   return (
     <>
       <aside
-        style={{ width: isCollapsed ? '72px' : '216px' }}
+        style={{ width: isCollapsed ? '72px' : '216px', height: '100%' }}
         className={cn(
-          "sidebar fixed lg:relative z-[100] h-screen transition-all duration-300 flex flex-col bg-[var(--crm-sidebar-bg)]",
+          "sidebar fixed top-0 bottom-0 lg:relative lg:top-auto lg:bottom-auto z-[100] transition-all duration-300 flex flex-col bg-[var(--crm-sidebar-bg)] overflow-hidden",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
@@ -110,7 +110,7 @@ export function Sidebar({ mobileOpen, setMobileOpen, isCollapsed = false, setIsC
 
         {/* Footer */}
         <div className={cn(
-          "border-t border-[rgba(255,255,255,0.08)] shrink-0 pb-[76px]",
+          "border-t border-[rgba(255,255,255,0.08)] shrink-0 pb-4",
           isCollapsed ? "p-1.5 space-y-1.5" : "px-2 pt-3 space-y-1.5"
         )}>
           {/* User / Settings */}

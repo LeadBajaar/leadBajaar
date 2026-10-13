@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/state";
-import { Plus, Gift, UserCheck, Mail, MessageCircle, Calendar, RefreshCw } from "lucide-react";
+import { Plus, Gift, UserCheck, Mail, MessageCircle, Calendar, RefreshCw, MousePointerClick } from "lucide-react";
 
 export interface ActivityItem {
   label: string;
@@ -60,7 +60,13 @@ function getActivityDesign(item: ActivityItem) {
     return { color: "#554DF0", Icon: Plus }; // Purple
   }
 
-  // 5. Email Sent
+  // 5. Email Engagement
+  if (label.includes("email opened") || label.includes("opened email")) {
+    return { color: "#8B5CF6", Icon: Mail }; // Purple
+  }
+  if (label.includes("email clicked") || label.includes("link clicked") || label.includes("clicked link")) {
+    return { color: "#2563EB", Icon: MousePointerClick }; // Indigo/Blue
+  }
   if (
     label.includes("email sent") || 
     label.includes("sent email") || 

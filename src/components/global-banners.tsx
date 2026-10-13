@@ -21,8 +21,11 @@ export function GlobalBanners() {
       )
       
       setBanners(activeBanners)
-    } catch (error) {
-      console.error('Error fetching global banners:', error)
+    } catch (error: any) {
+      // Ignore 401/403 or silently fail
+      if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+        console.error('Error fetching global banners:', error?.response?.data || error.message || 'Unknown error')
+      }
     }
   }
 

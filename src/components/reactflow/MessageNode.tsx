@@ -65,8 +65,23 @@ function MessageNode({ data, selected }: { data: MessageNodeData; selected?: boo
       default: // text message
         return (
           <div className="space-y-2">
+            {data.media_url && (
+              <div className="mb-2 w-full rounded-md overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center min-h-[100px]">
+                {data.media_type === 'video' ? (
+                  <video src={data.media_url} controls className="w-full h-auto max-h-[140px] object-cover" />
+                ) : data.media_type === 'audio' ? (
+                  <audio src={data.media_url} controls className="w-full h-8" />
+                ) : data.media_type === 'document' ? (
+                  <a href={data.media_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 w-full justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                    <span className="font-medium underline text-xs text-blue-500">Download Document</span>
+                  </a>
+                ) : (
+                  <img src={data.media_url} alt="Media message" className="w-full h-auto max-h-[140px] object-cover" loading="lazy" />
+                )}
+              </div>
+            )}
             <div className="text-xs text-slate-700 dark:text-slate-200 whitespace-pre-wrap leading-relaxed max-h-[120px] overflow-y-auto custom-scrollbar">
-              {data.content || <span className="text-slate-400 italic">No message content set...</span>}
+              {data.content || (!data.media_url && <span className="text-slate-400 italic">No message content set...</span>)}
             </div>
             {data.buttons && data.buttons.length > 0 && (
               <div className="flex flex-col gap-1.5 mt-2">

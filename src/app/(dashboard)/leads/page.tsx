@@ -522,11 +522,33 @@ export default function LeadsPage() {
   const fetchTemplates = async () => {
     setIsLoadingTemplates(true);
     try {
-      const response = await integrationApi.getWhatsAppAccounts();
-      if (response.accounts && response.accounts.length > 0) {
-        setTemplates(response.accounts[0].templates || []);
-      } else {
-        toast.error("No WhatsApp account found");
+      let combinedTemplates: any[] = [];
+      
+      // Fetch WhatsApp Cloud API templates
+      try {
+        const responseWA = await integrationApi.getWhatsAppAccounts();
+        if (responseWA.accounts && responseWA.accounts.length > 0) {
+          const waTemplates = responseWA.accounts[0].templates || [];
+          combinedTemplates = [...combinedTemplates, ...waTemplates.map((t: any) => ({ ...t, provider: 'whatsapp' }))];
+        }
+      } catch (e) {
+        console.error("Failed to fetch WhatsApp templates", e);
+      }
+      
+      // Fetch PayPerWA templates
+      try {
+        const responsePP = await integrationApi.getPayperwaAccounts();
+        if (responsePP.accounts && responsePP.accounts.length > 0) {
+          const ppTemplates = responsePP.accounts[0].templates || [];
+          combinedTemplates = [...combinedTemplates, ...ppTemplates.map((t: any) => ({ ...t, provider: 'payperwa' }))];
+        }
+      } catch (e) {
+        console.error("Failed to fetch PayPerWA templates", e);
+      }
+
+      setTemplates(combinedTemplates);
+      if (combinedTemplates.length === 0) {
+        toast.error("No templates found across configured channels");
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to fetch templates");

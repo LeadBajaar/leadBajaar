@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect, memo, useMemo } from 'react'
+import { useState, useCallback, useEffect, memo, useMemo, useRef } from 'react'
 import {
   ReactFlow,
   MiniMap,
@@ -48,13 +48,15 @@ import {
   Info,
   Check,
   PanelRight,
+  Upload,
+  X,
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
 import { ChatbotFlow, chatbotService } from '@/services/chatbot'
-import { getChatbotTemplateById, ChatbotTemplate } from '@/constants/chatbot-templates'
-import { TemplateSelectionModal } from '@/components/chatbot/TemplateSelectionModal'
+import { TemplateSelectionModal, ChatbotTemplate } from '@/components/chatbot/TemplateSelectionModal'
 import { cn } from '@/lib/utils'
+import api from '@/lib/api/client'
 
 import MessageNode from '@/components/reactflow/MessageNode'
 import ConditionNode from '@/components/reactflow/ConditionNode'
@@ -96,7 +98,8 @@ const initialEdges: ChatbotEdge[] = [
 interface Props {
   flowId: string | null
   isNew?: boolean
-  onSave?: (flow: ChatbotFlow) => void
+  mode?: 'user' | 'template'
+  onSave?: (flow: any) => void | Promise<void>
 }
 
 const NodeProperties = memo(({
@@ -109,10 +112,62 @@ const NodeProperties = memo(({
   onDelete: (id: string) => void
 }) => {
   const [activeTab, setActiveTab] = useState<'config' | 'preview'>('config')
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { toast } = useToast()
 
   if (node.type === 'message') {
     const data = node.data as MessageNodeData
     const content = data.content || ''
+
+    const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+
+      try {
+        setIsUploadingMedia(true)
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('folder', 'whatsapp-chat')
+
+        let detectedType: 'image' | 'video' | 'audio' | 'document' = 'document'
+        if (file.type.startsWith('image/')) detectedType = 'image'
+        else if (file.type.startsWith('video/')) detectedType = 'video'
+        else if (file.type.startsWith('audio/')) detectedType = 'audio'
+
+        const res = await api.post('/storage/r2/upload-media', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+
+        if (res.data?.success && res.data?.url) {
+          onChange({
+            ...data,
+            media_url: res.data.url,
+            media_type: res.data.media_type || detectedType,
+          })
+          toast({
+            title: 'Uploaded to R2',
+            description: `Successfully uploaded ${file.name}`,
+          })
+        } else {
+          toast({
+            title: 'Upload Failed',
+            description: res.data?.message || 'Failed to upload media to R2',
+            variant: 'destructive',
+          })
+        }
+      } catch (err: any) {
+        console.error('R2 Upload error:', err)
+        toast({
+          title: 'Upload Error',
+          description: err?.response?.data?.message || err.message || 'Failed to upload media to R2',
+          variant: 'destructive',
+        })
+      } finally {
+        setIsUploadingMedia(false)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+      }
+    }
 
     const insertVariable = (token: string) => {
       onChange({ ...data, content: content ? `${content} ${token}` : token })
@@ -173,6 +228,71 @@ const NodeProperties = memo(({
                 placeholder="e.g. Welcome Greeting"
                 className="mt-1 h-9 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800"
               />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  Media Attachment (Optional)
+                </Label>
+                {data.media_url && (
+                  <button
+                    type="button"
+                    onClick={() => onChange({ ...data, media_url: undefined })}
+                    className="text-[10px] font-semibold text-red-500 hover:text-red-600 transition-colors flex items-center gap-1"
+                  >
+                    <X className="w-3 h-3" />
+                    Remove Media
+                  </button>
+                )}
+              </div>
+
+              <div className="flex gap-2 items-center">
+                <Input
+                  value={data.media_url || ''}
+                  onChange={(e) => onChange({ ...data, media_url: e.target.value })}
+                  placeholder="https://... or upload to R2"
+                  className="h-9 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 flex-1"
+                />
+
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={handleMediaUpload}
+                  accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                />
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isUploadingMedia}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="h-9 px-2.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold gap-1.5 shrink-0 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs"
+                  title="Upload to Cloudflare R2"
+                >
+                  {isUploadingMedia ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-crm-btn-primary dark:text-indigo-400" />
+                  ) : (
+                    <Upload className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300" />
+                  )}
+                  <span>{isUploadingMedia ? 'Uploading...' : 'Upload'}</span>
+                </Button>
+
+                <div className="w-24 shrink-0">
+                  <select
+                    value={data.media_type || 'image'}
+                    onChange={(e) => onChange({ ...data, media_type: e.target.value as any })}
+                    className="h-9 w-full text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 outline-none font-medium text-slate-700 dark:text-slate-300"
+                  >
+                    <option value="image">Image</option>
+                    <option value="video">Video</option>
+                    <option value="audio">Audio</option>
+                    <option value="document">Document</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div>
@@ -248,7 +368,22 @@ const NodeProperties = memo(({
 
             <div className="p-4 rounded-lg bg-[#E5DDD5] dark:bg-[#0B141A] border border-slate-300 dark:border-slate-800 shadow-inner flex flex-col justify-end min-h-[220px]">
               <div className="max-w-[90%] bg-white dark:bg-[#202C33] text-slate-800 dark:text-slate-100 p-3 rounded-lg rounded-tl-sm shadow-sm text-xs whitespace-pre-wrap leading-relaxed space-y-1">
-                <p>{simulatedPreview}</p>
+                {data.media_url && (
+                  <div className="mb-2 w-full rounded-md overflow-hidden bg-slate-100 dark:bg-slate-900 flex items-center justify-center">
+                    {data.media_type === 'video' ? (
+                      <video src={data.media_url} controls className="w-full h-auto max-h-[160px] object-cover" />
+                    ) : data.media_type === 'audio' ? (
+                      <audio src={data.media_url} controls className="w-full h-8" />
+                    ) : data.media_type === 'document' ? (
+                      <a href={data.media_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 w-full justify-center">
+                        <span className="font-medium underline text-xs text-blue-500">Download Document</span>
+                      </a>
+                    ) : (
+                      <img src={data.media_url} alt="Media message" className="w-full h-auto max-h-[160px] object-cover" loading="lazy" />
+                    )}
+                  </div>
+                )}
+                {simulatedPreview && <p>{simulatedPreview}</p>}
                 <div className="text-[9px] text-slate-400 dark:text-slate-500 text-right flex items-center justify-end gap-1 font-mono">
                   <span>10:45 AM</span>
                   <Check className="w-3 h-3 text-blue-500" />
@@ -349,7 +484,7 @@ const NodeProperties = memo(({
 })
 NodeProperties.displayName = 'NodeProperties'
 
-export default function EvolutionFlowBuilder({ flowId, isNew, onSave }: Props) {
+export default function EvolutionFlowBuilder({ flowId, isNew, mode = 'user', onSave }: Props) {
   const searchParams = useSearchParams()
   const templateParam = searchParams?.get('template')
 
@@ -370,14 +505,15 @@ export default function EvolutionFlowBuilder({ flowId, isNew, onSave }: Props) {
   // Hydrate template if specified in URL query params on new flow creation
   useEffect(() => {
     if (isNew && templateParam) {
-      const template = getChatbotTemplateById(templateParam)
-      if (template) {
-        setNodes(template.nodes)
-        setEdges(template.edges)
-        setFlowName(template.name)
-        setFlowTrigger(template.trigger)
-        setFlowDescription(template.description)
-      }
+      chatbotService.getEvolutionTemplateById(templateParam).then((template) => {
+        if (template) {
+          setNodes(template.nodes || [])
+          setEdges(template.edges || [])
+          setFlowName(template.name)
+          setFlowTrigger(template.trigger)
+          setFlowDescription(template.description)
+        }
+      })
     }
   }, [isNew, templateParam, setNodes, setEdges])
 
@@ -397,22 +533,28 @@ export default function EvolutionFlowBuilder({ flowId, isNew, onSave }: Props) {
   const loadFlow = useCallback(async (id: string) => {
     try {
       setIsLoading(true)
-      const data = await chatbotService.getFlow(id)
-      setFlowName(data.name || 'Untitled Flow')
+      let data: any;
+      if (mode === 'template') {
+        data = await chatbotService.getEvolutionTemplateById(id)
+      } else {
+        data = await chatbotService.getFlow(id)
+      }
+      
+      setFlowName(data.name || (mode === 'template' ? 'Untitled Template' : 'Untitled Flow'))
       setFlowDescription(data.description || '')
-      setFlowTrigger(data.trigger || 'message')
+      setFlowTrigger(data.trigger || (mode === 'template' ? '' : 'message'))
 
       if (data.nodes && data.nodes.length > 0) {
         setNodes(data.nodes)
         setEdges(data.edges || [])
       }
     } catch {
-      toast({ title: 'Error', description: 'Failed to load flow', variant: 'destructive' })
-      router.push('/evolution/chatbot')
+      toast({ title: 'Error', description: 'Failed to load flow data', variant: 'destructive' })
+      if (mode !== 'template') router.push('/evolution/chatbot')
     } finally {
       setIsLoading(false)
     }
-  }, [router, setNodes, setEdges, toast])
+  }, [router, setNodes, setEdges, toast, mode])
 
   useEffect(() => {
     if (flowId && !isNew) {
@@ -462,19 +604,32 @@ export default function EvolutionFlowBuilder({ flowId, isNew, onSave }: Props) {
   const handleSave = async () => {
     try {
       setIsSaving(true)
-      const payload = {
-        id: isNew ? undefined : flowId!,
-        name: flowName,
-        description: flowDescription,
-        trigger: flowTrigger,
-        channel_type: 'evolution',
-        nodes: nodes,
-        edges: edges,
-        is_active: true,
+      if (mode === 'template') {
+        const payload = {
+          name: flowName,
+          description: flowDescription,
+          trigger: flowTrigger,
+          nodes: nodes,
+          edges: edges,
+        }
+        if (onSave) {
+          await onSave(payload)
+        }
+      } else {
+        const payload = {
+          id: isNew ? undefined : flowId!,
+          name: flowName,
+          description: flowDescription,
+          trigger: flowTrigger,
+          channel_type: 'evolution',
+          nodes: nodes,
+          edges: edges,
+          is_active: true,
+        }
+        const saved = await chatbotService.saveFlow(payload)
+        toast({ title: 'Success', description: 'Evolution Flow saved successfully' })
+        if (onSave) onSave(saved)
       }
-      const saved = await chatbotService.saveFlow(payload)
-      toast({ title: 'Success', description: 'Evolution Flow saved successfully' })
-      if (onSave) onSave(saved)
     } catch {
       toast({ title: 'Error', description: 'Failed to save flow', variant: 'destructive' })
     } finally {
@@ -504,9 +659,9 @@ export default function EvolutionFlowBuilder({ flowId, isNew, onSave }: Props) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push('/evolution/chatbot')}
-            className="h-9 w-9 rounded-md text-slate-500 hover:text-slate-900 dark:hover:text-white shrink-0"
-            title="Back to Flows"
+            onClick={() => router.push(mode === 'template' ? '/admin/chatbot-templates' : '/evolution/chatbot')}
+            className="h-9 w-9 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white shrink-0 hover:bg-slate-100 dark:hover:bg-slate-800"
+            title="Back"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>

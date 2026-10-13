@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,19 @@ import {
   LayoutTemplate,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { CHATBOT_TEMPLATES, ChatbotTemplate } from '@/constants/chatbot-templates';
+import { chatbotService } from '@/services/chatbot';
+
+export interface ChatbotTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: 'all' | 'lead_gen' | 'support' | 'sales' | 'automation';
+  badge: string;
+  icon: string;
+  trigger: string;
+  nodes: any[];
+  edges: any[];
+}
 
 interface TemplateSelectionModalProps {
   isOpen: boolean;
@@ -49,9 +61,21 @@ export function TemplateSelectionModal({
 }: TemplateSelectionModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [templates, setTemplates] = useState<ChatbotTemplate[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsLoading(true);
+      chatbotService.getEvolutionTemplates().then((data) => {
+        setTemplates(data);
+        setIsLoading(false);
+      });
+    }
+  }, [isOpen]);
 
   const filteredTemplates = useMemo(() => {
-    return CHATBOT_TEMPLATES.filter((template) => {
+    return templates.filter((template) => {
       const matchesSearch =
         template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -62,7 +86,7 @@ export function TemplateSelectionModal({
 
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, templates]);
 
   const renderIcon = (iconName: string) => {
     switch (iconName) {
@@ -141,7 +165,15 @@ export function TemplateSelectionModal({
 
         {/* Templates Grid Container */}
         <div className="p-6 sm:p-8 overflow-y-auto flex-1 custom-scrollbar">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {isLoading ? (
+            <div className="flex h-40 items-center justify-center">
+              <div className="flex flex-col items-center gap-3">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-crm-btn-primary dark:border-slate-800 dark:border-t-indigo-500" />
+                <p className="text-xs font-semibold text-slate-500">Loading templates...</p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredTemplates.map((template) => {
               const isBlank = template.id === 'blank';
               const nodeCount = template.nodes.length;
@@ -209,6 +241,7 @@ export function TemplateSelectionModal({
               );
             })}
           </div>
+          )}
 
           {filteredTemplates.length === 0 && (
             <div className="py-12 text-center text-slate-400 text-xs font-medium">

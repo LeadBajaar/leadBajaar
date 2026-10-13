@@ -139,6 +139,48 @@ class ChatbotService {
     }
   }
 
+  async getEvolutionTemplates(): Promise<any[]> {
+    try {
+      const response = await this.fetchApi(`${this.baseUrl}/chatbot/evolution-templates`)
+      return response.data || response
+    } catch (error) {
+      logger.error('Error fetching evolution templates', error)
+      return []
+    }
+  }
+
+  async getEvolutionTemplateById(id: string): Promise<any> {
+    try {
+      const response = await this.fetchApi(`${this.baseUrl}/chatbot/evolution-templates/${id}`)
+      return response.data || response
+    } catch (error) {
+      logger.error('Error fetching evolution template', error)
+      return null
+    }
+  }
+
+  async createEvolutionTemplate(data: any): Promise<any> {
+    const response = await this.fetchApi(`${this.baseUrl}/chatbot/evolution-templates`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+    return response.data || response
+  }
+
+  async updateEvolutionTemplate(id: string, data: any): Promise<any> {
+    const response = await this.fetchApi(`${this.baseUrl}/chatbot/evolution-templates/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+    return response.data || response
+  }
+
+  async deleteEvolutionTemplate(id: string): Promise<void> {
+    await this.fetchApi(`${this.baseUrl}/chatbot/evolution-templates/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
   /**
    * Toggle the active / inactive status of a chatbot flow.
    * PATCH /api/chatbot/flows/{id}/toggle

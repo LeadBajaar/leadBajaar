@@ -146,6 +146,7 @@ export interface MessageTemplate {
   id: number;
   template_id: string;
   name: string;
+  provider?: 'whatsapp' | 'payperwa';
   category: string;
   language: string;
   status: string;

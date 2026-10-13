@@ -329,6 +329,7 @@ export default function FlowBuilderPage() {
       setIsUploading(true);
       const uploadData = new FormData();
       uploadData.append('image', file); // The API endpoint expects 'image' field for R2 upload
+      uploadData.append('folder', 'whatsapp-chat');
       
       const res = await api.post('/storage/r2/upload-image', uploadData, {
         headers: { 'Content-Type': 'multipart/form-data' }

@@ -141,6 +141,15 @@ export const integrationApi = {
     }
   },
 
+  getPayperwaAccounts: async (): Promise<any> => {
+    try {
+      const response = await api.get('/integrations/payperwa/accounts');
+      return response.data;
+    } catch (error: any) {
+      throw new Error('Failed to fetch PayPerWA accounts');
+    }
+  },
+
   getWhatsAppTemplates: async (accountId: number): Promise<any> => {
     try {
       const response = await api.get(`/integrations/whatsapp/${accountId}/templates`);

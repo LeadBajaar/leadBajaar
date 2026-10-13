@@ -94,10 +94,11 @@ export function useActionDialogs({
         template_id: String(selectedTemplate.id),
         lead_ids: selectedLeads,
         variables: variables,
-        variable_column_mapping: variableColumnMapping
+        variable_column_mapping: variableColumnMapping,
+        provider: selectedTemplate.provider || 'whatsapp'
       };
 
-      await integrationApi.sendBroadcast(broadcastData);
+      await integrationApi.sendBroadcast(broadcastData as any);
 
       setBroadcastResponse({
         success: true,

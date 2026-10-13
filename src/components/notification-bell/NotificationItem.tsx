@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Bell, Calendar, Facebook, UserPlus, Megaphone, Check, Trash2, ChevronRight } from 'lucide-react';
+import { Bell, Calendar, Facebook, UserPlus, Megaphone, Check, Trash2, ChevronRight, Mail, MousePointerClick } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -28,6 +28,10 @@ const getNotificationConfig = (type: string) => {
     case 'platform_modal':
     case 'platform_broadcast':
       return { icon: Megaphone, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20', border: 'border-indigo-100 dark:border-indigo-800/30' };
+    case 'email_opened':
+      return { icon: Mail, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-purple-200/50 dark:border-purple-800/30' };
+    case 'email_clicked':
+      return { icon: MousePointerClick, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-200/50 dark:border-blue-800/30' };
     default:
       return { icon: Bell, color: 'text-[var(--crm-text-secondary)]', bg: 'bg-[var(--crm-surface-3)]', border: 'border-[var(--crm-border)]' };
   }
