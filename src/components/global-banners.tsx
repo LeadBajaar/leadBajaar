@@ -12,9 +12,18 @@ export function GlobalBanners() {
   const fetchBanners = async () => {
     if (isLoadingUser || !user) return
 
+    // Skip polling if tab is hidden in background or browser is offline
+    if (typeof window !== 'undefined') {
+      if (document.visibilityState === 'hidden' || !navigator.onLine) {
+        return
+      }
+    }
+
     try {
-      const notificationsResponse = await api.get('/notifications')
-      const allNotifications = notificationsResponse.data.data || []
+      const notificationsResponse = await api.get('/notifications', {
+        timeout: 10000,
+      })
+      const allNotifications = notificationsResponse.data?.data || []
       
       const activeBanners = allNotifications.filter((n: any) => 
         !n.is_read && n.data?.display_format === 'banner'
@@ -22,17 +31,36 @@ export function GlobalBanners() {
       
       setBanners(activeBanners)
     } catch (error: any) {
-      // Ignore 401/403 or silently fail
-      if (error?.response?.status !== 401 && error?.response?.status !== 403) {
-        console.error('Error fetching global banners:', error?.response?.data || error.message || 'Unknown error')
+      // Background banner polling should fail gracefully without spamming the console.
+      // Ignore transient network blips, socket timeouts, 401/403, or background tab aborts.
+      if (process.env.NODE_ENV === 'development' && error?.response?.status && error.response.status >= 500) {
+        console.debug('Global banners background poll skipped:', error.message)
       }
     }
   }
 
   useEffect(() => {
     fetchBanners()
-    const interval = setInterval(fetchBanners, 30000)
-    return () => clearInterval(interval)
+
+    // Poll every 60 seconds instead of 30 seconds to reduce unnecessary network pressure
+    const interval = setInterval(fetchBanners, 60000)
+
+    // Re-check automatically when user returns to this tab or reconnects
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchBanners()
+      }
+    }
+    const handleOnline = () => fetchBanners()
+
+    window.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('online', handleOnline)
+
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('online', handleOnline)
+    }
   }, [user, isLoadingUser])
 
   const markAsRead = async (id: number) => {

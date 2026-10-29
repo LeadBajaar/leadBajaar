@@ -98,7 +98,8 @@ import {
   Send,
   Eye,
   Info,
-  Save
+  Save,
+  Sparkles
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -141,6 +142,9 @@ interface Company {
   expires_at?: string | null
   tags?: string[]
   is_email_enabled?: boolean
+  webhook_lead_tracking?: boolean
+  addons?: Record<string, boolean>
+  settings?: Record<string, any>
   custom_setup_fee?: number | null
   custom_renewal_fee?: number | null
 }
@@ -198,6 +202,65 @@ const AVAILABLE_PLATFORM_FEATURES = [
   { id: 'account_settings', label: 'Settings' },
 ]
 
+export interface PremiumAddonItem {
+  id: string
+  name: string
+  description: string
+  category: string
+  icon: any
+  badge?: string
+  isAvailable: boolean
+  comingSoon?: boolean
+}
+
+export const PLATFORM_PREMIUM_ADDONS: PremiumAddonItem[] = [
+  {
+    id: 'is_email_enabled',
+    name: 'Platform Email Sending & Campaigns',
+    description: 'Enable platform outbound email delivery, automated notifications, and email template dispatching for this company.',
+    category: 'Communication',
+    icon: Mail,
+    badge: 'Core Add-on',
+    isAvailable: true,
+  },
+  {
+    id: 'webhook_lead_tracking',
+    name: 'Webhook Lead Tracking & Source Filtering',
+    description: 'Track inbound & outbound webhook lead sources with 1-click "View Leads" CRM access and granular source filtering.',
+    category: 'Integrations',
+    icon: Plug2,
+    badge: 'Popular',
+    isAvailable: true,
+  },
+  {
+    id: 'whatsapp_cloud_api_pro',
+    name: 'WhatsApp Cloud API Automations',
+    description: 'Official WhatsApp Business Cloud API integration with automatic drip templates and interactive quick replies.',
+    category: 'Automation',
+    icon: Zap,
+    badge: 'Add-on',
+    isAvailable: true,
+  },
+  {
+    id: 'ai_smart_calling',
+    name: 'AI Conversational Calling Agent',
+    description: 'Instant automated voice qualification calls for new inbound leads within 60 seconds.',
+    category: 'Intelligence',
+    icon: Smartphone,
+    comingSoon: true,
+    isAvailable: false,
+  },
+  {
+    id: 'advanced_analytics_bi',
+    name: 'Advanced Business Intelligence & Custom Reports',
+    description: 'Deep funnel conversion analytics, cohort analysis, and automated executive email reports.',
+    category: 'Analytics',
+    icon: Activity,
+    comingSoon: true,
+    isAvailable: false,
+  }
+]
+
 const PLATFORM_ROLES = ['Admin', 'Manager', 'Agent']
 
 interface AdminUser {
@@ -239,6 +302,10 @@ export default function SuperAdminPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isAddonsModalOpen, setIsAddonsModalOpen] = useState(false)
+  const [selectedCompanyForAddons, setSelectedCompanyForAddons] = useState<Company | null>(null)
+  const [companyAddonsState, setCompanyAddonsState] = useState<Record<string, boolean>>({})
+  const [isSavingAddons, setIsSavingAddons] = useState(false)
   const [companyHistory, setCompanyHistory] = useState<any[]>([])
   const [plans, setPlans] = useState<PlanDefinition[]>(initialPlans)
   const [searchQuery, setSearchQuery] = useState('')
@@ -847,6 +914,53 @@ export default function SuperAdminPage() {
       })
     } finally {
       setIsUpdatingCompany(false)
+    }
+  }
+
+  const handleOpenAddonsModal = (company: Company) => {
+    setSelectedCompanyForAddons(company)
+    const initialAddons: Record<string, boolean> = {
+      webhook_lead_tracking: !!(
+        company.addons?.webhook_lead_tracking ??
+        company.webhook_lead_tracking ??
+        company.settings?.addons?.webhook_lead_tracking ??
+        company.settings?.webhook_lead_tracking
+      ),
+      is_email_enabled: !!(
+        company.addons?.is_email_enabled ??
+        company.addons?.email_feature ??
+        company.is_email_enabled ??
+        company.settings?.addons?.is_email_enabled ??
+        company.settings?.addons?.email_feature
+      ),
+      ...(company.addons || company.settings?.addons || {})
+    }
+    setCompanyAddonsState(initialAddons)
+    setIsAddonsModalOpen(true)
+  }
+
+  const handleSaveCompanyAddons = async () => {
+    if (!selectedCompanyForAddons) return
+    try {
+      setIsSavingAddons(true)
+      await adminApi.updateCompany(Number(selectedCompanyForAddons.id), {
+        addons: companyAddonsState,
+        is_email_enabled: !!(companyAddonsState['is_email_enabled'] ?? companyAddonsState['email_feature']),
+        webhook_lead_tracking: !!companyAddonsState['webhook_lead_tracking'],
+        settings: {
+          addons: companyAddonsState,
+          webhook_lead_tracking: !!companyAddonsState['webhook_lead_tracking']
+        }
+      })
+      toast.success("Premium Features Updated", {
+        description: `Premium add-ons for ${selectedCompanyForAddons.name} updated successfully.`
+      })
+      setIsAddonsModalOpen(false)
+      fetchData()
+    } catch (error: any) {
+      toast.error("Failed to update premium features", { description: error.message })
+    } finally {
+      setIsSavingAddons(false)
     }
   }
 
@@ -1691,10 +1805,17 @@ export default function SuperAdminPage() {
                                     className="cursor-pointer font-medium py-2.5 px-3 focus:bg-[var(--crm-surface-2)]:bg-[var(--crm-accent)] rounded-xl"
                                     onClick={() => {
                                       setEditingCompany({ ...company })
-                                      setIsEditModalOpen(true)
+                                       setTimeout(() => setIsEditModalOpen(true), 50)
+                                      // ready
                                     }}
                                   >
                                     <Edit className="mr-3 h-4 w-4 text-[var(--crm-text-secondary)]" /> Edit Plan & Billing
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="cursor-pointer font-medium py-2.5 px-3 focus:bg-[var(--crm-surface-2)]:bg-[var(--crm-accent)] rounded-xl"
+                                    onClick={() => setTimeout(() => handleOpenAddonsModal(company), 50)}
+                                  >
+                                    <Sparkles className="mr-3 h-4 w-4 text-amber-500" /> Premium Features
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     className="cursor-pointer font-bold py-2.5 px-3 text-[var(--crm-accent)] focus:bg-[var(--crm-surface-2)]:bg-[var(--crm-accent)] rounded-xl"
@@ -2769,7 +2890,14 @@ export default function SuperAdminPage() {
           </Tabs>
 
           {/* Edit Company Modal */}
-          <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+          <Dialog open={isEditModalOpen} onOpenChange={(open) => {
+            setIsEditModalOpen(open);
+            if (!open) {
+              setTimeout(() => {
+                document.body.style.pointerEvents = "";
+              }, 50);
+            }
+          }}>
             <DialogContent className="sm:max-w-[850px] bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-xl font-black text-[var(--crm-text-primary)]">Edit Company Billing</DialogTitle>
@@ -2868,15 +2996,33 @@ export default function SuperAdminPage() {
                     </div>
                   </div>
 
+
+                    <div className="space-y-0.5">
+</div>
+                  {/* email card */}
                   <div className="flex items-center justify-between p-4 bg-[var(--crm-accent-soft)] border border-indigo-100 rounded-2xl">
                     <div className="space-y-0.5">
                       <Label className="text-sm font-bold text-[var(--crm-text-primary)]">Email Feature</Label>
                       <p className="text-[10px] text-[var(--crm-text-secondary)] font-medium">Enable/Disable platform email sending for this company.</p>
                     </div>
                     <Switch 
-                      checked={editingCompany?.is_email_enabled ?? false} 
+                      checked={editingCompany?.is_email_enabled ?? false}
                       onCheckedChange={(checked) => setEditingCompany(prev => prev ? { ...prev, is_email_enabled: checked } : null)}
-                      className="data-[state=checked]:bg-[var(--crm-accent)]"
+                      className="data-[state=checked]:bg-[var(--crm-accent)]" />
+                  </div>
+                  <div className="hidden" style={{ display: 'none' }}>
+
+
+                    <div className="space-y-0.5">
+
+
+                    </div>
+                    <Switch 
+
+
+
+
+
                     />
                   </div>
                 </div>
@@ -2977,6 +3123,152 @@ export default function SuperAdminPage() {
                   ) : "Push Changes"}
                 </Button>
               </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Company Premium Features Modal */}
+          <Dialog open={isAddonsModalOpen} onOpenChange={(open) => {
+            setIsAddonsModalOpen(open);
+            if (!open) {
+              setTimeout(() => {
+                document.body.style.pointerEvents = "";
+              }, 50);
+            }
+          }}>
+            <DialogContent className="sm:max-w-[700px] bg-[var(--crm-surface-1)] border-[var(--crm-border)] rounded-3xl max-h-[90vh] overflow-hidden flex flex-col p-0 shadow-2xl">
+              <div className="p-6 border-b border-[var(--crm-border)] bg-[var(--crm-surface-2)]/60">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0 shadow-xs">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <DialogTitle className="text-xl font-black text-[var(--crm-text-primary)] flex items-center gap-2">
+                      Premium Features & Add-ons
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-[var(--crm-text-secondary)] font-medium mt-0.5">
+                      Configure active paid add-ons and standalone modules for <strong>{selectedCompanyForAddons?.name}</strong>.
+                    </DialogDescription>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 overflow-y-auto space-y-4 max-h-[calc(90vh-160px)]">
+                <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-[var(--crm-surface-2)] border border-[var(--crm-border)]">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-[var(--crm-accent)]" />
+                    <span className="text-xs font-bold text-[var(--crm-text-primary)]">
+                      Active Modules: {Object.values(companyAddonsState).filter(Boolean).length} of {PLATFORM_PREMIUM_ADDONS.filter(a => a.isAvailable).length} Available
+                    </span>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] font-bold text-[var(--crm-text-secondary)]">
+                    Tier: {selectedCompanyForAddons?.plan || 'Free'}
+                  </Badge>
+                </div>
+
+                <div className="space-y-3">
+                  {PLATFORM_PREMIUM_ADDONS.map((addon) => {
+                    const isEnabled = !!companyAddonsState[addon.id];
+                    const IconComponent = addon.icon;
+                    return (
+                      <div
+                        key={addon.id}
+                        className={cn(
+                          "p-4 rounded-2xl border transition-all duration-200 flex items-start gap-4",
+                          addon.isAvailable
+                            ? isEnabled
+                              ? "bg-[var(--crm-accent-soft)]/40 border-indigo-200 dark:border-indigo-900 shadow-xs"
+                              : "bg-[var(--crm-surface-1)] border-[var(--crm-border)] hover:border-slate-300 dark:hover:border-slate-700"
+                            : "bg-[var(--crm-surface-2)]/60 border-[var(--crm-border)] opacity-70"
+                        )}
+                      >
+                        <div className={cn(
+                          "h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 border mt-0.5",
+                          isEnabled
+                            ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                            : "bg-[var(--crm-surface-2)] text-[var(--crm-text-secondary)] border-[var(--crm-border)]"
+                        )}>
+                          <IconComponent className="h-5 w-5" />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <h4 className="text-sm font-bold text-[var(--crm-text-primary)]">
+                              {addon.name}
+                            </h4>
+                            <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 bg-[var(--crm-surface-3)] text-[var(--crm-text-secondary)] border-none">
+                              {addon.category}
+                            </Badge>
+                            {addon.badge && (
+                              <Badge className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 bg-amber-500/10 text-amber-600 border border-amber-200 dark:border-amber-900/50">
+                                {addon.badge}
+                              </Badge>
+                            )}
+                            {addon.comingSoon && (
+                              <Badge variant="outline" className="text-[9px] font-bold text-slate-400 border-dashed">
+                                Coming Soon
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-[var(--crm-text-secondary)] font-normal leading-relaxed">
+                            {addon.description}
+                          </p>
+                          <div className="mt-2 flex items-center gap-2">
+                            <span className={cn(
+                              "text-[10px] font-bold inline-flex items-center gap-1",
+                              isEnabled ? "text-emerald-600 dark:text-emerald-400" : "text-[var(--crm-text-secondary)]"
+                            )}>
+                              <span className={cn("h-1.5 w-1.5 rounded-full", isEnabled ? "bg-emerald-500 animate-pulse" : "bg-slate-300 dark:bg-slate-600")} />
+                              {isEnabled ? "Feature Allowed for this Company" : "Feature Hidden from Company"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="shrink-0 pt-1">
+                          {addon.isAvailable ? (
+                            <Switch
+                              checked={isEnabled}
+                              onCheckedChange={(checked) => {
+                                setCompanyAddonsState(prev => ({
+                                  ...prev,
+                                  [addon.id]: checked
+                                }));
+                              }}
+        
+                            />
+                          ) : (
+                            <span className="text-[10px] font-bold text-slate-400 italic">Locked</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="p-4 border-t border-[var(--crm-border)] bg-[var(--crm-surface-2)] flex items-center justify-between gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsAddonsModalOpen(false)}
+                  disabled={isSavingAddons}
+                  className="rounded-xl h-10 px-5 text-xs font-bold border-[var(--crm-border)]"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveCompanyAddons}
+                  disabled={isSavingAddons}
+                  className="rounded-xl h-10 px-6 text-xs font-bold bg-[var(--crm-accent)] text-white hover:opacity-90 shadow-sm"
+                >
+                  {isSavingAddons ? (
+                    <>
+                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                      Saving Add-ons...
+                    </>
+                  ) : (
+                    "Save Premium Features"
+                  )}
+                </Button>
+              </div>
             </DialogContent>
           </Dialog>
 

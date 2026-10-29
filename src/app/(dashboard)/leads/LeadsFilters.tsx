@@ -17,6 +17,8 @@ import { DateRangePicker } from "@/components/ui/date-range-picker"
 import { cn } from "@/lib/utils"
 import { sourceConfig, columns } from './types'
 import { DateRange } from "react-day-picker"
+import { integrationApi } from '@/lib/api'
+import { useUser } from '@/contexts/UserContext'
 
 interface LeadsFiltersProps {
   filters: {
@@ -24,6 +26,7 @@ interface LeadsFiltersProps {
     status: string[];
     stage: string[];
     source: string[];
+    webhookId?: string;
     dateRange: DateRange | undefined;
     createdAt: DateRange | undefined;
   };
@@ -61,7 +64,28 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
   setViewMode,
   onOpenMobileFilters
 }) => {
+  const { hasAddon } = useUser();
+  const canUseWebhookTracking = hasAddon('webhook_lead_tracking');
+  const [sources, setSources] = React.useState<Array<{ id: string; name: string; uuid?: string }>>([]);
+
+  React.useEffect(() => {
+    if (!canUseWebhookTracking) return;
+    integrationApi.getConnectedIntegrations()
+      .then((res: any[]) => {
+        const whs = (res || [])
+          .filter((i: any) => i.type === 'webhook')
+          .map((i: any) => ({
+            id: i.id.toString(),
+            uuid: i.uuid,
+            name: i.config?.name || `Source #${i.id}`,
+          }));
+        setSources(whs);
+      })
+      .catch(() => {});
+  }, [canUseWebhookTracking]);
+
   const mobileActiveFiltersCount =
+    (canUseWebhookTracking && filters.webhookId && filters.webhookId !== 'all' ? 1 : 0) +
     (filters.status.length > 0 ? 1 : 0) +
     (filters.stage.length > 0 ? 1 : 0) +
     (filters.source.length > 0 ? 1 : 0) +
@@ -136,6 +160,7 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
 
             {(() => {
               const activeFiltersCount = 
+                (canUseWebhookTracking && filters.webhookId && filters.webhookId !== 'all' ? 1 : 0) +
                 (filters.status.length > 0 ? 1 : 0) +
                 (filters.stage.length > 0 ? 1 : 0) +
                 (filters.source.length > 0 ? 1 : 0) +
@@ -143,6 +168,57 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
                 (filters.createdAt ? 1 : 0);
 
               return (
+                <>
+                {canUseWebhookTracking && (sources.length > 0 || (filters.webhookId && filters.webhookId !== "all")) && (
+                  <Select
+                    value={sources.find(w => w.id === filters.webhookId || (w.uuid && w.uuid === filters.webhookId))?.id || filters.webhookId || "all"}
+                    onValueChange={(val) => handleFilterChange("webhookId", val)}
+                  >
+                    <SelectTrigger
+                      className={cn(
+                        "h-8 px-2.5 text-xs font-semibold rounded-xl border transition-all gap-1.5 whitespace-nowrap shadow-xs w-auto min-w-[130px] max-w-[210px]",
+                        filters.webhookId && filters.webhookId !== "all"
+                          ? "bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700"
+                          : "bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      )}
+                    >
+                      <Globe className={cn("h-3.5 w-3.5 shrink-0", filters.webhookId && filters.webhookId !== "all" ? "text-white" : "text-indigo-500")} />
+                      <span className="truncate">
+                        {filters.webhookId && filters.webhookId !== "all"
+                          ? (sources.find(w => w.id === filters.webhookId || (w.uuid && w.uuid === filters.webhookId))?.name || "Connected Source")
+                          : "All Sources"}
+                      </span>
+                      {filters.webhookId && filters.webhookId !== "all" && (
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          className="ml-0.5 h-4 w-4 rounded-full flex items-center justify-center hover:bg-indigo-700/50 text-white transition-colors shrink-0"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleFilterChange("webhookId", "all");
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </div>
+                      )}
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      <SelectItem value="all" className="text-xs font-medium">
+                        All Sources
+                      </SelectItem>
+                      <Separator className="my-1" />
+                      <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Connected Sources:
+                      </div>
+                      {sources.map((wh) => (
+                        <SelectItem key={wh.id} value={wh.id} className="text-xs font-medium">
+                          {wh.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button 
@@ -173,200 +249,236 @@ export const LeadsFilters: React.FC<LeadsFiltersProps> = ({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent align="end" className="w-80 p-4 rounded-2xl shadow-xl border-slate-200 dark:border-slate-800 font-sans">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                    <h4 className="font-semibold text-xs font-heading text-slate-900 dark:text-white">Filters</h4>
-                    <Button
-                      variant="ghost"
-                      onClick={clearFilters}
-                      className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium p-0 h-auto w-auto"
-                    >
-                      Clear All
-                    </Button>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Temperature</label>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            className={cn(
-                              "w-full justify-between h-8 text-xs font-normal transition-all rounded-xl",
-                              filters.status.length > 0 
-                                ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400" 
-                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
-                            )}
-                          >
-                            <span className="truncate">{filters.status.length > 0 ? `${filters.status.length} selected` : 'All Temps'}</span>
-                            <div className="flex items-center gap-1 shrink-0">
-                              {filters.status.length > 0 && (
-                                <div 
-                                  role="button"
-                                  tabIndex={0}
-                                  className="h-4 w-4 rounded-full flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800 text-primary transition-colors"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleFilterChange('status', []);
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                        <h4 className="font-semibold text-xs font-heading text-slate-900 dark:text-white">Filters</h4>
+                        <Button
+                          variant="ghost"
+                          onClick={clearFilters}
+                          className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium p-0 h-auto w-auto"
+                        >
+                          Clear All
+                        </Button>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Temperature</label>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                className={cn(
+                                  "w-full justify-between h-8 text-xs font-normal transition-all rounded-xl",
+                                  filters.status.length > 0 
+                                    ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400" 
+                                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                                )}
+                              >
+                                <span className="truncate">{filters.status.length > 0 ? `${filters.status.length} selected` : 'All Temps'}</span>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  {filters.status.length > 0 && (
+                                    <div 
+                                      role="button"
+                                      tabIndex={0}
+                                      className="h-4 w-4 rounded-full flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800 text-primary transition-colors"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleFilterChange('status', []);
+                                      }}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </div>
+                                  )}
+                                  <ChevronDown className="h-4 w-4 opacity-50" />
+                                </div>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[250px] overflow-y-auto">
+                              {['Hot', 'Warm', 'Cold'].map(temp => (
+                                <DropdownMenuCheckboxItem
+                                  key={temp}
+                                  checked={filters.status.includes(temp)}
+                                  onCheckedChange={(checked) => {
+                                    const next = checked 
+                                      ? [...filters.status, temp]
+                                      : filters.status.filter(t => t !== temp);
+                                    handleFilterChange('status', next);
                                   }}
                                 >
-                                  <X className="h-3 w-3" />
-                                </div>
-                              )}
-                              <ChevronDown className="h-4 w-4 opacity-50" />
-                            </div>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[250px] overflow-y-auto">
-                          {['Hot', 'Warm', 'Cold'].map(temp => (
-                            <DropdownMenuCheckboxItem
-                              key={temp}
-                              checked={filters.status.includes(temp)}
-                              onCheckedChange={(checked) => {
-                                const next = checked 
-                                  ? [...filters.status, temp]
-                                  : filters.status.filter(t => t !== temp);
-                                handleFilterChange('status', next);
-                              }}
-                            >
-                              {temp}
-                            </DropdownMenuCheckboxItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                                  {temp}
+                                </DropdownMenuCheckboxItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
 
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Stage</label>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            className={cn(
-                              "w-full justify-between h-8 text-xs font-normal transition-all rounded-xl",
-                              filters.stage.length > 0 
-                                ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400" 
-                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
-                            )}
-                          >
-                            <span className="truncate">{filters.stage.length > 0 ? `${filters.stage.length} selected` : 'All Stages'}</span>
-                            <div className="flex items-center gap-1 shrink-0">
-                              {filters.stage.length > 0 && (
-                                <div 
-                                  role="button"
-                                  tabIndex={0}
-                                  className="h-4 w-4 rounded-full flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800 text-primary transition-colors"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleFilterChange('stage', []);
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Stage</label>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                className={cn(
+                                  "w-full justify-between h-8 text-xs font-normal transition-all rounded-xl",
+                                  filters.stage.length > 0 
+                                    ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400" 
+                                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                                )}
+                              >
+                                <span className="truncate">{filters.stage.length > 0 ? `${filters.stage.length} selected` : 'All Stages'}</span>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  {filters.stage.length > 0 && (
+                                    <div 
+                                      role="button"
+                                      tabIndex={0}
+                                      className="h-4 w-4 rounded-full flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800 text-primary transition-colors"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleFilterChange('stage', []);
+                                      }}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </div>
+                                  )}
+                                  <ChevronDown className="h-4 w-4 opacity-50" />
+                                </div>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[250px] overflow-y-auto">
+                              {Object.keys(stages).map(stage => (
+                                <DropdownMenuCheckboxItem
+                                  key={stage}
+                                  checked={filters.stage.includes(stage)}
+                                  onCheckedChange={(checked) => {
+                                    const next = checked 
+                                      ? [...filters.stage, stage]
+                                      : filters.stage.filter(s => s !== stage);
+                                    handleFilterChange('stage', next);
                                   }}
                                 >
-                                  <X className="h-3 w-3" />
-                                </div>
-                              )}
-                              <ChevronDown className="h-4 w-4 opacity-50" />
-                            </div>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[250px] overflow-y-auto">
-                          {Object.keys(stages).map(stage => (
-                            <DropdownMenuCheckboxItem
-                              key={stage}
-                              checked={filters.stage.includes(stage)}
-                              onCheckedChange={(checked) => {
-                                const next = checked 
-                                  ? [...filters.stage, stage]
-                                  : filters.stage.filter(s => s !== stage);
-                                handleFilterChange('stage', next);
-                              }}
-                            >
-                              {stage}
-                            </DropdownMenuCheckboxItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                                  {stage}
+                                </DropdownMenuCheckboxItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
 
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Source</label>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            className={cn(
-                              "w-full justify-between h-8 text-xs font-normal transition-all rounded-xl",
-                              filters.source.length > 0 
-                                ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400" 
-                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
-                            )}
-                          >
-                            <span className="truncate">{filters.source.length > 0 ? `${filters.source.length} selected` : 'All Sources'}</span>
-                            <div className="flex items-center gap-1 shrink-0">
-                              {filters.source.length > 0 && (
-                                <div 
-                                  role="button"
-                                  tabIndex={0}
-                                  className="h-4 w-4 rounded-full flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800 text-primary transition-colors"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleFilterChange('source', []);
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Source</label>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                className={cn(
+                                  "w-full justify-between h-8 text-xs font-normal transition-all rounded-xl",
+                                  filters.source.length > 0 
+                                    ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400" 
+                                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                                )}
+                              >
+                                <span className="truncate">{filters.source.length > 0 ? `${filters.source.length} selected` : 'All Sources'}</span>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  {filters.source.length > 0 && (
+                                    <div 
+                                      role="button"
+                                      tabIndex={0}
+                                      className="h-4 w-4 rounded-full flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800 text-primary transition-colors"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleFilterChange('source', []);
+                                      }}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </div>
+                                  )}
+                                  <ChevronDown className="h-4 w-4 opacity-50" />
+                                </div>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[250px] overflow-y-auto">
+                              {Object.keys(sourceConfig).map(source => (
+                                <DropdownMenuCheckboxItem
+                                  key={source}
+                                  checked={filters.source.includes(source)}
+                                  onCheckedChange={(checked) => {
+                                    const next = checked 
+                                      ? [...filters.source, source]
+                                      : filters.source.filter(s => s !== source);
+                                    handleFilterChange('source', next);
                                   }}
                                 >
-                                  <X className="h-3 w-3" />
-                                </div>
-                              )}
-                              <ChevronDown className="h-4 w-4 opacity-50" />
-                            </div>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[250px] overflow-y-auto">
-                          {Object.keys(sourceConfig).map(source => (
-                            <DropdownMenuCheckboxItem
-                              key={source}
-                              checked={filters.source.includes(source)}
-                              onCheckedChange={(checked) => {
-                                const next = checked 
-                                  ? [...filters.source, source]
-                                  : filters.source.filter(s => s !== source);
-                                handleFilterChange('source', next);
-                              }}
-                            >
-                              {source}
-                            </DropdownMenuCheckboxItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                                  {source}
+                                </DropdownMenuCheckboxItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
 
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Last Contact</label>
-                      <DateRangePicker
-                        value={filters.dateRange}
-                        onChange={(range) => handleFilterChange('dateRange', range)}
-                        placeholder="Select date range"
-                        className="w-full h-8 text-xs border border-slate-200 dark:border-slate-800 rounded-xl"
-                      />
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Last Contact</label>
+                          <DateRangePicker
+                            value={filters.dateRange}
+                            onChange={(range) => handleFilterChange('dateRange', range)}
+                            placeholder="Select date range"
+                            className="w-full h-8 text-xs border border-slate-200 dark:border-slate-800 rounded-xl"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Created Date</label>
+                          <DateRangePicker
+                            value={filters.createdAt}
+                            onChange={(range) => handleFilterChange('createdAt', range)}
+                            placeholder="Select date range"
+                            className="w-full h-8 text-xs border border-slate-200 dark:border-slate-800 rounded-xl"
+                          />
+                        </div>
+
+                        {canUseWebhookTracking && (sources.length > 0 || (filters.webhookId && filters.webhookId !== "all")) && (
+                          <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center justify-between">
+                              <label className="text-xs font-medium text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                                <Globe className="h-3.5 w-3.5 text-indigo-500" />
+                                Connected Sources
+                              </label>
+                              {filters.webhookId && filters.webhookId !== 'all' && (
+                                <button
+                                  onClick={() => handleFilterChange('webhookId', 'all')}
+                                  className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline"
+                                >
+                                  Clear
+                                </button>
+                              )}
+                            </div>
+                            <Select
+                              value={sources.find(w => w.id === filters.webhookId || (w.uuid && w.uuid === filters.webhookId))?.id || filters.webhookId || "all"}
+                              onValueChange={(val) => handleFilterChange("webhookId", val)}
+                            >
+                              <SelectTrigger className="w-full h-8 text-xs font-normal rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                                <SelectValue placeholder="All Sources" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-[220px]">
+                                <SelectItem value="all" className="text-xs font-medium">All Sources</SelectItem>
+                                {sources.map((wh) => (
+                                  <SelectItem key={wh.id} value={wh.id} className="text-xs">
+                                    {wh.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Created Date</label>
-                      <DateRangePicker
-                        value={filters.createdAt}
-                        onChange={(range) => handleFilterChange('createdAt', range)}
-                        placeholder="Select date range"
-                        className="w-full h-8 text-xs border border-slate-200 dark:border-slate-800 rounded-xl"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-            );
-          })()}
+                  </PopoverContent>
+                </Popover>
+                </>
+              );
+            })()}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

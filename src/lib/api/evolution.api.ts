@@ -69,6 +69,11 @@ export const evolutionApi = {
       conversation_id: conversationId,
     });
     return response.data;
+  },
+  toggleBot: async (conversationId: number | string, isBotActive?: boolean): Promise<any> => {
+    const payload = isBotActive !== undefined ? { is_bot_active: isBotActive } : {};
+    const response = await api.post(`/evolution/inbox/conversations/${conversationId}/toggle-bot`, payload);
+    return response.data;
   }
 };
 

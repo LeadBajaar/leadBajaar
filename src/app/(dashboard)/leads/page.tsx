@@ -326,7 +326,7 @@ export default function LeadsPage() {
     fetchStagesData();
     fetchTeamMembers();
     fetchLeads();
-  }, [currentPage, itemsPerPage, debouncedSearch, filters.status, filters.stage, filters.source, filters.dateRange, filters.createdAt]);
+  }, [currentPage, itemsPerPage, debouncedSearch, filters.status, filters.stage, filters.source, filters.webhookId, filters.dateRange, filters.createdAt]);
 
   useEffect(() => {
     if (showDealValue && editingLead) {
@@ -674,6 +674,14 @@ export default function LeadsPage() {
               </Button>
               <Button
                 variant="ghost"
+                className="text-blue-600 dark:text-blue-400 border-none"
+                onClick={() => setShowExportDialog(true)}
+              >
+                <i className="ti ti-upload mr-1" />
+                Export
+              </Button>
+              <Button
+                variant="ghost"
                 className="text-red-500 border-none"
                 onClick={handleBulkDelete}
               >
@@ -733,6 +741,7 @@ export default function LeadsPage() {
                 filters.status.length > 0 ||
                 filters.stage.length > 0 ||
                 filters.source.length > 0 ||
+                (!!filters.webhookId && filters.webhookId !== 'all') ||
                 !!filters.dateRange ||
                 !!filters.createdAt
               }
@@ -828,6 +837,7 @@ export default function LeadsPage() {
           onSelectAll={() => setSelectedLeads(leads.map(lead => lead.id))}
           onBroadcast={() => setShowBroadcastDialog(true)}
           onChangeStage={() => setShowStageChange(true)}
+          onExport={() => setShowExportDialog(true)}
           onDelete={handleBulkDelete}
         />
       )}

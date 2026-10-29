@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { Trash2, MessageSquare, Tag } from 'lucide-react'
+import { Trash2, MessageSquare, Tag, DownloadCloud } from 'lucide-react'
 
 interface MobileBulkActionBarProps {
   selectedCount: number;
@@ -12,6 +12,7 @@ interface MobileBulkActionBarProps {
   onBroadcast: () => void;
   onChangeStage: () => void;
   onDelete: () => void;
+  onExport?: () => void;
 }
 
 export const MobileBulkActionBar: React.FC<MobileBulkActionBarProps> = ({
@@ -21,7 +22,8 @@ export const MobileBulkActionBar: React.FC<MobileBulkActionBarProps> = ({
   onSelectAll,
   onBroadcast,
   onChangeStage,
-  onDelete
+  onDelete,
+  onExport
 }) => {
   if (selectedCount === 0) return null;
 
@@ -69,6 +71,18 @@ export const MobileBulkActionBar: React.FC<MobileBulkActionBarProps> = ({
             </span>
             <span className="text-[11px] font-medium text-[var(--crm-text-secondary)]">Stage</span>
           </button>
+
+          {onExport && (
+            <button
+              className="flex flex-col items-center gap-1.5 flex-1 active:scale-[0.96] transition-transform"
+              onClick={onExport}
+            >
+              <span className="h-11 w-11 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <DownloadCloud className="h-5 w-5" />
+              </span>
+              <span className="text-[11px] font-medium text-[var(--crm-text-secondary)]">Export</span>
+            </button>
+          )}
 
           <button
             className="flex flex-col items-center gap-1.5 flex-1 active:scale-[0.96] transition-transform"

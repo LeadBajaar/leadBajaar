@@ -40,7 +40,9 @@ export const ImportLeadsDialog: React.FC<ImportLeadsDialogProps> = ({
   importStats,
   showGeneratingReport
 }) => {
-  const handleOpenChange = useModalHistory(showMapping, (open) => !open && resetImport(), 'importLeadsDialog');
+  const handleOpenChange = useModalHistory(showMapping, (open) => {
+    if (!open) resetImport();
+  }, 'importLeadsDialog');
 
   return (
     <Dialog open={showMapping} onOpenChange={handleOpenChange}>
@@ -114,6 +116,7 @@ export const ImportLeadsDialog: React.FC<ImportLeadsDialogProps> = ({
                         <SelectItem value="deal_value" className="text-xs font-medium">Deal Value</SelectItem>
                         <SelectItem value="stage" className="text-xs font-medium">Stage</SelectItem>
                         <SelectItem value="status" className="text-xs font-medium">Temperature</SelectItem>
+                        <SelectItem value="created_at" className="text-xs font-medium">Created At</SelectItem>
                         <SelectItem value="source" className="text-xs font-medium">Source</SelectItem>
                         <SelectItem value="notes" className="text-xs font-medium">Notes/Comment</SelectItem>
                       </SelectContent>
@@ -187,7 +190,7 @@ export const ImportLeadsDialog: React.FC<ImportLeadsDialogProps> = ({
         </div>
 
         <DialogFooter className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex max-sm:flex-row max-sm:gap-3 flex-row items-center sm:justify-end gap-2 shrink-0">
-          <Button variant="ghost" onClick={() => { resetImport(); handleOpenChange(false); }} disabled={isImporting} className="rounded-xl font-semibold text-slate-500 max-sm:flex-1 max-sm:h-12 max-sm:border max-sm:border-slate-200">
+          <Button variant="ghost" onClick={() => handleOpenChange(false)} disabled={isImporting} className="rounded-xl font-semibold text-slate-500 max-sm:flex-1 max-sm:h-12 max-sm:border max-sm:border-slate-200">
             {importStats ? 'Close' : 'Cancel'}
           </Button>
           {!importStats && (

@@ -97,8 +97,21 @@ export function useSidebarState(setMobileOpen?: (open: boolean) => void) {
         setMetaCapiEnabled(integrations.some((i: any) => i.type === 'facebook_conversion_api' && i.is_active))
         setWebhooksEnabled(integrations.some((i: any) => i.type === 'webhook' && i.is_active))
         setEmailEnabled(integrations.some((i: any) => i.type === 'email' && i.is_active))
-        // Note: facebook_auth might have a different type in DB, checking for 'facebook_auth'
-        setFbAuthEnabled(integrations.some((i: any) => i.type === 'facebook_auth' && i.is_active))
+        let isFbConnected = integrations.some(
+          (i: any) => ['facebook_auth', 'meta_oauth', 'facebook_oauth'].includes(i.type) && (i.is_active === true || i.is_active === 1 || i.is_active === '1')
+        )
+        if (!isFbConnected) {
+          try {
+            const metaStatus = await integrationApi.getMetaStatus()
+            if (metaStatus && (metaStatus.connected || metaStatus.status === 'connected' || metaStatus.status === 'active')) {
+              isFbConnected = true
+            }
+          } catch {
+            // ignore
+          }
+        }
+        setFbAuthEnabled(isFbConnected)
+
         
         let isEvolutionEnabled = integrations.some((i: any) => i.type === 'evolution' && i.is_active)
         try {
@@ -117,7 +130,11 @@ export function useSidebarState(setMobileOpen?: (open: boolean) => void) {
     
     checkIntegrations()
     window.addEventListener('integrationsUpdated', checkIntegrations)
-    return () => window.removeEventListener('integrationsUpdated', checkIntegrations)
+    window.addEventListener('storage', checkIntegrations)
+    return () => {
+      window.removeEventListener('integrationsUpdated', checkIntegrations)
+      window.removeEventListener('storage', checkIntegrations)
+    }
   }, [])
 
   const [pendingHref, setPendingHref] = useState<string | null>(null)
@@ -141,6 +158,7 @@ export function useSidebarState(setMobileOpen?: (open: boolean) => void) {
     if (item.name === 'Webhooks' && !webhooksEnabled) return false
     if (item.name === 'Email Marketing' && !emailEnabled) return false
     if (item.name === 'Facebook Auth' && !fbAuthEnabled) return false
+    if ((item.name === 'Campaigns' || item.name === 'Performance') && !fbAuthEnabled) return false
     
     // Filter evolution features based on enabled status
     if ((item.href.startsWith('/evolution/inbox') || item.href.startsWith('/evolution/chatbot')) && !evolutionEnabled) {
@@ -162,6 +180,10 @@ export function useSidebarState(setMobileOpen?: (open: boolean) => void) {
 
   const visibleMain = mainNav.filter(canSee)
   const visibleSections = sidebarSections
+    .filter(section => {
+      if (section.label === 'Meta Ads' && !fbAuthEnabled) return false
+      return true
+    })
     .map(s => ({ ...s, items: s.items.filter(canSee) }))
     .filter(s => s.items.length > 0)
 

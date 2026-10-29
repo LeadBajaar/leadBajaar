@@ -15,7 +15,8 @@ import {
   CheckCheck, MessageSquare, AlertCircle,
   ChevronLeft, X,
   Sparkles, Zap, ShieldCheck,
-  Paperclip, Smile, ExternalLink, Trash2
+  Paperclip, Smile, ExternalLink, Trash2,
+  Bot, BotOff
 } from 'lucide-react'
 import {
   evolutionApi
@@ -66,6 +67,7 @@ interface Chat {
   status: 'active' | 'inactive';
   lastActive: string;
   priority: 'high' | 'medium' | 'low';
+  is_bot_active?: boolean;
 }
 
 export default function LiveChatPage() {
@@ -239,6 +241,7 @@ export default function LiveChatPage() {
         status: 'active',
         lastActive: formatLastActive(chat.last_message_at as string | undefined),
         priority: ((chat.unread_count as number) || 0) > 0 ? 'high' : 'low',
+        is_bot_active: chat.is_bot_active !== false,
         messages: []
       };
       })
@@ -351,6 +354,8 @@ export default function LiveChatPage() {
             wa_message_id: actualMessage.wa_message_id
           } : msg
         ));
+        setActiveChat(prev => prev ? { ...prev, is_bot_active: false } : null);
+        setChats(prev => prev.map(c => c.id === activeChat.id ? { ...c, is_bot_active: false } : c));
       } else {
         throw new Error(res.message || 'Failed to send message')
       }
@@ -589,6 +594,15 @@ export default function LiveChatPage() {
                       <h2 className="font-bold text-[var(--crm-text-primary)] flex items-center gap-2 truncate">
                         <span className="truncate">{activeChat.user.name}</span>
                         {activeChat.priority === 'high' && <Badge className="bg-red-50 text-red-600 border-red-100 text-[10px] font-bold px-1.5 py-0 shrink-0">URGENT</Badge>}
+                        {activeChat.is_bot_active === false ? (
+                          <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-semibold px-1.5 py-0 shrink-0">
+                            Normal Mode (Bot Paused)
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-semibold px-1.5 py-0 shrink-0">
+                            Bot Active
+                          </Badge>
+                        )}
                       </h2>
                       <p className="text-xs text-[var(--crm-text-secondary)] font-medium flex items-center gap-1.5 mt-0.5 truncate">
                         <span className="flex items-center gap-1"><Zap className="h-3 w-3 text-amber-500 fill-amber-500" /> <span className="hidden sm:inline">{activeChat.user.company}</span></span>
@@ -1014,15 +1028,47 @@ export default function LiveChatPage() {
                         variant="outline" 
                         onClick={async () => {
                           try {
+                            const res = await evolutionApi.toggleBot(Number(activeChat.id));
+                            const newStatus = res.is_bot_active;
+                            setActiveChat(prev => prev ? { ...prev, is_bot_active: newStatus } : null);
+                            setChats(prev => prev.map(c => c.id === activeChat.id ? { ...c, is_bot_active: newStatus } : c));
+                            toast.success(res.message);
+                          } catch {
+                            toast.error("Failed to toggle bot status.");
+                          }
+                        }}
+                        className={cn(
+                          "w-full h-8 rounded-[var(--r-md)] text-xs font-semibold border transition-colors flex items-center justify-center gap-1.5",
+                          activeChat.is_bot_active !== false 
+                            ? "border-amber-200 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/20" 
+                            : "border-emerald-200 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
+                        )}
+                      >
+                        {activeChat.is_bot_active !== false ? (
+                          <>
+                            <BotOff className="h-3.5 w-3.5" />
+                            <span>Pause Bot (Enable Normal Mode)</span>
+                          </>
+                        ) : (
+                          <>
+                            <Bot className="h-3.5 w-3.5" />
+                            <span>Resume Chatbot</span>
+                          </>
+                        )}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={async () => {
+                          try {
                             await evolutionApi.clearSession(Number(activeChat.id));
-                            toast.success("Chatbot session cleared!");
+                            toast.success("Chatbot session & repetition history reset!");
                           } catch {
                             toast.error("Failed to clear session.");
                           }
                         }}
-                        className="w-full h-8 rounded-[var(--r-md)] text-xs font-semibold border-[var(--crm-border)] hover:bg-[var(--crm-surface-1)] text-amber-600 hover:text-amber-700 hover:border-amber-200"
+                        className="w-full h-8 rounded-[var(--r-md)] text-xs font-semibold border-[var(--crm-border)] hover:bg-[var(--crm-surface-1)] text-slate-600 hover:text-slate-800"
                       >
-                        Clear Chatbot Session
+                        Reset Bot Session & Repetitions
                       </Button>
                       <Button variant="outline" className="w-full h-8 rounded-[var(--r-md)] text-xs font-semibold border-[var(--crm-border)] hover:bg-[var(--crm-surface-1)]">Block Customer</Button>
                       <Button className="w-full h-8 rounded-[var(--r-md)] text-xs font-semibold bg-[var(--crm-accent)] hover:opacity-90 text-white">Mark as Resolved</Button>

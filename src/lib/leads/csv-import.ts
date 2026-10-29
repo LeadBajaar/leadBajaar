@@ -65,34 +65,15 @@ export const prepareImportData = (
   const dataRows = lines.slice(1).map(line => parseCSVLine(line));
 
   return dataRows.map(row => {
-    const lead: CreateLeadDto = {
-      name: '',
-      email: '',
-      stage: 'New',
-      status: 'Warm',
-    };
+    const lead: CreateLeadDto = {};
 
     columnMapping.forEach(mapping => {
-      if (mapping.leadField !== 'skip') {
+      if (mapping.leadField && mapping.leadField !== 'skip') {
         const index = headers.indexOf(mapping.csvHeader);
         if (index !== -1) {
-          const value = row[index];
-          switch (mapping.leadField) {
-            case 'name':
-            case 'email':
-            case 'phone':
-            case 'company':
-            case 'stage':
-            case 'source':
-            case 'city':
-            case 'profession':
-              lead[mapping.leadField] = value;
-              break;
-            case 'status':
-              if (['Hot', 'Warm', 'Cold'].includes(value)) {
-                lead.status = value as 'Hot' | 'Warm' | 'Cold';
-              }
-              break;
+          const value = row[index]?.trim();
+          if (value !== undefined && value !== '') {
+            lead[mapping.leadField] = value;
           }
         }
       }

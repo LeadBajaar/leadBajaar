@@ -1,38 +1,32 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { FacebookOAuthButton } from "@/components/facebook-oauth/FacebookOAuthButton";
-import { FacebookDashboard } from "@/components/facebook-oauth/FacebookDashboard";
+import { useSearchParams } from "next/navigation";
 import { RoleGuard } from "@/components/RoleGuard";
 import { toast } from "sonner";
-import { Facebook } from "lucide-react";
-import { PageHeader } from "@/components/page-header/PageHeader";
+import { Loader2 } from "lucide-react";
+import { MetaAuthContainer } from "./components/MetaAuthContainer";
 
 export default function FacebookAuthPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
     const metaStatus = searchParams.get("meta_connected");
     const errorMsg   = searchParams.get("message");
 
-    // Case 1: This page was opened as a popup by window.open() in FacebookOAuthButton.
+    // Case 1: This page was opened as a popup by window.open().
     // Because of Cross-Origin Opener Policy (COOP), window.opener is often null after returning from facebook.com.
     // We use localStorage to reliably broadcast success back to the main window.
     if (metaStatus === "success") {
-      // Broadcast via localStorage (Bulletproof for COOP)
       localStorage.setItem('META_OAUTH_SUCCESS', Date.now().toString());
+      window.dispatchEvent(new Event('integrationsUpdated'));
       
       // Close the popup automatically
       setTimeout(() => {
         window.close();
-        // If window.close is blocked, fallback to normal toast
         if (!window.closed) {
-          toast.success("Facebook Connected!", {
-            description: "Your Meta account has been connected successfully. You may close this window.",
+          toast.success("Facebook Connected", {
+            description: "Your Meta account has been linked successfully.",
           });
           window.history.replaceState({}, "", "/integrations/facebook-auth");
         }
@@ -53,9 +47,10 @@ export default function FacebookAuthPage() {
   if (metaStatus === "success" || errorMsg) {
     return (
       <div className="flex h-[100dvh] w-full items-center justify-center bg-background">
-        <div className="text-center p-6">
-          <h2 className="text-xl font-semibold">Finalizing Connection...</h2>
-          <p className="text-sm text-muted-foreground mt-2">Please wait, this window will close automatically.</p>
+        <div className="text-center p-6 space-y-2">
+          <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
+          <h2 className="text-base font-semibold text-foreground">Finalizing Meta Connection...</h2>
+          <p className="text-xs text-muted-foreground">Please wait, this window will close automatically.</p>
         </div>
       </div>
     );
@@ -63,32 +58,9 @@ export default function FacebookAuthPage() {
 
   return (
     <RoleGuard allowedFeatures={['integrations']}>
-      <div className="flex flex-col flex-1 gap-4 sm:gap-5">
-        {/* ── Header ────────────────────────────────────────────────────────────── */}
-        <PageHeader
-          title="Facebook Integration"
-          description="Connect your Facebook accounts to manage pages and services."
-          icon={<Facebook className="h-6 w-6 text-primary" />}
-        />
-
-        {/* ── Content ──────────────────────────────────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
-          <div className="w-full space-y-6">
-            <div className="w-full">
-              <FacebookOAuthButton
-                onConnect={() => {
-                  window.dispatchEvent(new CustomEvent('TRIGGER_META_SYNC'));
-                }}
-              />
-            </div>
-            
-            <div className="w-full">
-              <FacebookDashboard />
-            </div>
-          </div>
-        </div>
+      <div className="flex flex-col flex-1 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        <MetaAuthContainer />
       </div>
     </RoleGuard>
   );
 }
-

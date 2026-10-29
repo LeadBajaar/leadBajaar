@@ -1,12 +1,18 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { format } from 'date-fns';
 import { DateRange } from "react-day-picker";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'next/navigation';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Lead } from '../types';
 import { getLeads } from '@/lib/api';
+import { useUser } from '@/contexts/UserContext';
 
 export function useLeadsData(isMobile: boolean) {
+  const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const { hasAddon } = useUser();
+  const canUseWebhookTracking = hasAddon('webhook_lead_tracking');
   // Mobile/Pagination states (we still keep the accumulated list for mobile if desired, or we just rely on query data)
   // Let's keep a local state for leads if we need to append for mobile, but for now we can just sync it
   const [accumulatedLeads, setAccumulatedLeads] = useState<Lead[]>([]);
@@ -51,16 +57,39 @@ export function useLeadsData(isMobile: boolean) {
     status: string[];
     stage: string[];
     source: string[];
+    webhookId?: string;
     dateRange: DateRange | undefined;
     createdAt: DateRange | undefined;
-  }>({
-    search: '',
-    status: [],
-    stage: [],
-    source: [],
-    dateRange: undefined,
-    createdAt: undefined
+  }>(() => {
+    let initialWebhook = 'all';
+    if (canUseWebhookTracking) {
+      if (searchParams) {
+        initialWebhook = searchParams.get('webhookId') || 'all';
+      } else if (typeof window !== 'undefined') {
+        const sp = new URLSearchParams(window.location.search);
+        initialWebhook = sp.get('webhookId') || 'all';
+      }
+    }
+    return {
+      search: '',
+      status: [],
+      stage: [],
+      source: [],
+      webhookId: initialWebhook,
+      dateRange: undefined,
+      createdAt: undefined
+    };
   });
+
+  // Keep filters.webhookId synchronized with the URL query parameter
+  useEffect(() => {
+    if (!canUseWebhookTracking) return;
+    const urlWebhook = searchParams?.get('webhookId');
+    if (urlWebhook && urlWebhook !== filters.webhookId) {
+      setFilters(prev => ({ ...prev, webhookId: urlWebhook }));
+      setCurrentPage(1);
+    }
+  }, [searchParams, canUseWebhookTracking, filters.webhookId]);
 
   const debouncedSearch = useDebounce(filters.search, 500);
   const [isSearching, setIsSearching] = useState(false);
@@ -84,6 +113,16 @@ export function useLeadsData(isMobile: boolean) {
   const handleFilterChange = (key: string, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }));
     setCurrentPage(1);
+
+    if (key === 'webhookId' && typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (value && value !== 'all') {
+        url.searchParams.set('webhookId', value);
+      } else {
+        url.searchParams.delete('webhookId');
+      }
+      window.history.replaceState({}, '', url.toString());
+    }
   };
 
   const clearFilters = () => {
@@ -92,10 +131,17 @@ export function useLeadsData(isMobile: boolean) {
       status: [],
       stage: [],
       source: [],
+      webhookId: 'all',
       dateRange: undefined,
       createdAt: undefined
     });
     setCurrentPage(1);
+
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('webhookId');
+      window.history.replaceState({}, '', url.toString());
+    }
   };
 
   const queryParams = useMemo(() => ({
@@ -105,6 +151,7 @@ export function useLeadsData(isMobile: boolean) {
     ...(filters.status.length > 0 && { status: filters.status.join(',') }),
     ...(filters.stage.length > 0 && { stage: filters.stage.join(',') }),
     ...(filters.source.length > 0 && { source: filters.source.join(',') }),
+    ...(canUseWebhookTracking && filters.webhookId && filters.webhookId !== 'all' && { webhook_id: filters.webhookId }),
     ...(filters.dateRange?.from && {
       last_contact_from: format(filters.dateRange.from, 'yyyy-MM-dd')
     }),
@@ -124,6 +171,8 @@ export function useLeadsData(isMobile: boolean) {
     filters.status,
     filters.stage,
     filters.source,
+    filters.webhookId,
+    canUseWebhookTracking,
     filters.dateRange,
     filters.createdAt
   ]);
@@ -165,6 +214,7 @@ export function useLeadsData(isMobile: boolean) {
 
   // The caller expects `fetchLeads` to be a function returning a promise.
   const fetchLeads = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['leads'] });
     await refetch();
   };
 

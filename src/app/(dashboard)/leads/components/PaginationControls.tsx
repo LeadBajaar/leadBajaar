@@ -35,7 +35,7 @@ export function PaginationControls({
             }}
             className="h-9.5 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[13px] font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-xs"
           >
-            {[10, 25, 50, 100].map(n => (
+            {[10, 25, 50, 100, 200, 250, 500, 1000].map(n => (
               <option key={n} value={n}>{n}</option>
             ))}
           </select>

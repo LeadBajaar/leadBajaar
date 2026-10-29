@@ -22,6 +22,9 @@ export interface User {
     expires_at?: string;
     subscription_started_at?: string;
     monthly_email_count?: number;
+    is_email_enabled?: boolean;
+    settings?: Record<string, any>;
+    addons?: Record<string, boolean>;
     custom_setup_fee?: number;
     custom_renewal_fee?: number;
     plan_details?: {

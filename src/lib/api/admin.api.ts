@@ -38,7 +38,7 @@ export const adminApi = {
     }
   },
 
-  updateCompany: async (id: number, data: { plan?: string; status?: string; expires_at?: string; subscription_started_at?: string; is_email_enabled?: boolean; custom_setup_fee?: number | null; custom_renewal_fee?: number | null }): Promise<any> => {
+  updateCompany: async (id: number, data: { plan?: string; status?: string; expires_at?: string; subscription_started_at?: string; is_email_enabled?: boolean; webhook_lead_tracking?: boolean; addons?: Record<string, boolean>; settings?: Record<string, any>; custom_setup_fee?: number | null; custom_renewal_fee?: number | null }): Promise<any> => {
     try {
       const response = await api.patch(`/admin/companies/${id}`, data);
       return response.data;

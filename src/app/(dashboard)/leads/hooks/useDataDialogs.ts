@@ -73,10 +73,27 @@ export function useDataDialogs({ fetchLeads, handleError }: UseDataDialogsProps)
 
         setPreview(preview)
 
-        // Initialize column mapping
+        // Initialize column mapping with smart auto-detection
+        const guessField = (header: string): string => {
+          const h = header.toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (['phone', 'phonenumber', 'mobile', 'mobilenumber', 'contact', 'contactnumber', 'tel'].includes(h)) return 'phone';
+          if (['name', 'fullname', 'leadname', 'clientname', 'customername'].includes(h)) return 'name';
+          if (['email', 'emailaddress', 'mail'].includes(h)) return 'email';
+          if (['createdat', 'createdtime', 'creationtime', 'createddate', 'creationdate', 'date', 'datetime', 'time', 'timestamp', 'leadcreatedat', 'leadcreatedtime'].includes(h)) return 'created_at';
+          if (['stage', 'leadstage', 'pipelinestage', 'currentstage'].includes(h)) return 'stage';
+          if (['status', 'temperature', 'leadstatus', 'temp'].includes(h)) return 'status';
+          if (['city', 'location', 'town'].includes(h)) return 'city';
+          if (['company', 'organization', 'business', 'companyname'].includes(h)) return 'company';
+          if (['profession', 'occupation', 'job', 'designation', 'role'].includes(h)) return 'profession';
+          if (['source', 'leadsource', 'utm_source', 'channel'].includes(h)) return 'source';
+          if (['notes', 'note', 'comment', 'comments', 'remark', 'remarks'].includes(h)) return 'notes';
+          if (['dealvalue', 'value', 'deal', 'deal_value', 'amount'].includes(h)) return 'deal_value';
+          return 'skip';
+        };
+
         setColumnMapping(headers.map(header => ({
           csvHeader: header,
-          leadField: 'skip'
+          leadField: guessField(header)
         })))
         setShowMapping(true)
       } catch (err: any) {

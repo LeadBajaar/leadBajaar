@@ -12,45 +12,65 @@ export function useModalHistory(
   onOpenChange: (open: boolean) => void,
   modalId: string = 'modal'
 ) {
-  const isPopping = useRef(false);
+  const onOpenChangeRef = useRef(onOpenChange);
+  onOpenChangeRef.current = onOpenChange;
+
+  const didPushRef = useRef(false);
+  const isPoppingRef = useRef(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     let timeoutId: NodeJS.Timeout;
 
-    const handlePopState = (e: PopStateEvent) => {
-      // Only close if the history state doesn't match our modal ID.
-      // If we go back, the state will be the PREVIOUS state (not our modalId).
+    const handlePopState = () => {
       if (isOpen && window.history.state?.modal !== modalId) {
-        isPopping.current = true;
-        onOpenChange(false);
+        isPoppingRef.current = true;
+        didPushRef.current = false;
+        onOpenChangeRef.current(false);
       }
     };
 
     if (isOpen) {
-      isPopping.current = false;
+      isPoppingRef.current = false;
       // Delay pushState to allow any pending history.back() from closing modals to process first.
       timeoutId = setTimeout(() => {
-        window.history.pushState({ modal: modalId }, '');
-        window.addEventListener('popstate', handlePopState);
+        try {
+          const currentState = window.history.state || {};
+          window.history.pushState({ ...currentState, modal: modalId }, '');
+          didPushRef.current = true;
+          window.addEventListener('popstate', handlePopState);
+        } catch {
+          // Ignore history errors if any
+        }
       }, 50);
     }
 
     return () => {
       clearTimeout(timeoutId);
       window.removeEventListener('popstate', handlePopState);
-      
-      if (isOpen && !isPopping.current) {
-        // The modal is closing programmatically, we should clean up the history state
-        if (window.history.state?.modal === modalId) {
+    };
+  }, [isOpen, modalId]);
+
+  // Clean up history state only when isOpen transitions from true to false
+  const prevIsOpenRef = useRef(isOpen);
+  useEffect(() => {
+    if (prevIsOpenRef.current && !isOpen) {
+      // Modal closed programmatically (not via browser back button)
+      if (didPushRef.current && !isPoppingRef.current) {
+        didPushRef.current = false;
+        if (typeof window !== 'undefined' && window.history.state?.modal === modalId) {
           window.history.back();
         }
       }
-    };
-  }, [isOpen, onOpenChange, modalId]);
+      isPoppingRef.current = false;
+    }
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen, modalId]);
 
   const handleOpenChange = useCallback((open: boolean) => {
-    onOpenChange(open);
-  }, [onOpenChange]);
+    onOpenChangeRef.current(open);
+  }, []);
 
   return handleOpenChange;
 }

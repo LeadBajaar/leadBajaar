@@ -15,6 +15,7 @@ interface UserContextType {
   hasType: (types: UserType[]) => boolean
   hasPlan: (plans: string[]) => boolean
   hasFeature: (feature: string) => boolean
+  hasAddon: (addonKey: string) => boolean
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -57,14 +58,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const hasPlan = (plans: string[]) => {
     if (!user || !user.company?.plan) return false;
-    return plans.includes(user.company.plan.toLowerCase());
+    return plans.map(p => p.toLowerCase()).includes(user.company.plan.toLowerCase());
   }
 
   const hasFeature = (feature: string) => {
     if (!user) return false;
     
     // Super Admin always has all features
-    if (user.role === 'Super Admin') return true;
+    const normalizedRole = user.role?.toLowerCase().replace(/_/g, ' ');
+    if (normalizedRole === 'super admin' || user.user_type === 'super_admin') return true;
     
     // Check if feature exists in plan_details
     const planFeatures = user.company?.plan_details?.features;
@@ -90,8 +92,35 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     return false;
   }
 
+  const hasAddon = (addonKey: string) => {
+    if (!user) return false;
+
+    // Super Admin always has full access to all features and add-ons
+    const normalizedRole = user.role?.toLowerCase().replace(/_/g, ' ');
+    if (normalizedRole === 'super admin' || user.user_type === 'super_admin') return true;
+
+    // Check company settings or addons for this addon flag (allowed by Admin or purchased)
+    const company = user.company;
+    if (!company) return false;
+
+    if (addonKey === 'is_email_enabled' || addonKey === 'email_feature') {
+      if (company.is_email_enabled !== undefined) {
+        return company.is_email_enabled === true;
+      }
+    }
+
+    if (company.addons && company.addons[addonKey] !== undefined) {
+      return company.addons[addonKey] === true;
+    }
+
+    const settings = company.settings;
+    if (!settings) return false;
+
+    return settings[addonKey] === true || settings.addons?.[addonKey] === true;
+  }
+
   return (
-    <UserContext.Provider value={{ user, isLoading, hasRole, hasType, hasPlan, hasFeature }}>
+    <UserContext.Provider value={{ user, isLoading, hasRole, hasType, hasPlan, hasFeature, hasAddon }}>
       {children}
     </UserContext.Provider>
   );

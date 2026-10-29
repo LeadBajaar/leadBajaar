@@ -1,14 +1,19 @@
 export interface CreateLeadDto {
-  name: string;
-  email: string;
+  name?: string;
+  email?: string;
   phone?: string;
   company?: string;
-  stage: string;
-  status?: 'Hot' | 'Warm' | 'Cold';
+  stage?: string;
+  status?: 'Hot' | 'Warm' | 'Cold' | string;
   source?: string;
   city?: string;
   profession?: string;
   notes?: string;
+  deal_value?: number | string;
+  paid_amount?: number | string;
+  created_at?: string;
+  created_time?: string;
+  [key: string]: any;
 }
 
 export interface ImportLeadDto {

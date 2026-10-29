@@ -140,9 +140,12 @@ export function WebhookConfigDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] h-[85vh] max-h-[750px] flex flex-col p-0 overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#10182D] rounded-2xl shadow-2xl">
+      <DialogContent className={cn(
+        "flex flex-col p-0 overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#10182D] rounded-2xl shadow-2xl",
+        webhookId ? "sm:max-w-[700px] h-[85vh] max-h-[750px]" : "sm:max-w-[480px] h-auto max-h-[85vh]"
+      )}>
         {/* Header */}
-        <div className="bg-slate-50/70 dark:bg-[#121A30] border-b border-slate-200/80 dark:border-slate-800/80 px-6 py-5 flex-none">
+        <div className="bg-slate-50/70 dark:bg-[#121A30] border-b border-slate-200/80 dark:border-slate-800/80 px-6 py-5 shrink-0">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-3">
               <div className="h-9 w-9 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400">
@@ -160,7 +163,7 @@ export function WebhookConfigDialog({
             <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-1 ml-12">
               {webhookId
                 ? "Configure webhook payload mappings, security secrets, and data endpoints."
-                : "Connect a new external application or system to send or receive leads."}
+                : "Enter a name to create a new webhook endpoint."}
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -238,7 +241,7 @@ export function WebhookConfigDialog({
                   <div className="space-y-0.5">
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white">Data Enrichment (HubSpot / CRM)</h4>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Fetch full contact object details using `objectId` from incoming webhook payload.
+                      Fetch full contact object details using <code className="font-mono text-[10px] bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">objectId</code> from incoming webhook payload.
                     </p>
                   </div>
                   <Switch
@@ -464,7 +467,7 @@ export function WebhookConfigDialog({
               </TabsContent>
             </Tabs>
           ) : (
-            /* Create Webhook Form */
+
             <div className="space-y-5 py-2">
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold text-slate-900 dark:text-white">Webhook Name</Label>
@@ -478,7 +481,7 @@ export function WebhookConfigDialog({
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-slate-900 dark:text-white">Destination URL (Optional for Inbound)</Label>
+                <Label className="text-xs font-bold text-slate-900 dark:text-white">Destination URL <span className="text-slate-400 font-normal">(Optional)</span></Label>
                 <Input
                   type="url"
                   className="h-10 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl text-xs font-mono"
@@ -486,51 +489,16 @@ export function WebhookConfigDialog({
                   onChange={(e) => setNewWebhook((prev) => ({ ...prev, url: e.target.value }))}
                   placeholder="https://your-domain.com/webhook-receiver"
                 />
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">Leave blank if you are only receiving leads via LeadBajaar&apos;s inbound endpoint.</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Leave blank if you are only receiving leads into LeadBajaar CRM.</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-                <div className="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/50 flex flex-col items-center text-center space-y-1.5">
-                  <div className="h-8 w-8 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                    <ArrowDownToLine className="h-4 w-4" />
-                  </div>
-                  <p className="text-xs font-bold text-slate-900 dark:text-white">Inbound Webhook</p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">Accept leads from third-party websites or apps directly into CRM.</p>
-                </div>
-                <div className="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/50 flex flex-col items-center text-center space-y-1.5">
-                  <div className="h-8 w-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                    <Send className="h-4 w-4" />
-                  </div>
-                  <p className="text-xs font-bold text-slate-900 dark:text-white">Outbound Webhook</p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">Forward CRM lead creations or updates to your external endpoints.</p>
-                </div>
-              </div>
-
-              <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800/80">
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Secure by Default
-                </h4>
-                <ul className="text-[11px] space-y-1.5 text-slate-500 dark:text-slate-400">
-                  <li className="flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
-                    <span>Unique per-integration UUID receiving URL</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
-                    <span>HMAC-SHA256 payload signature verification</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
-                    <span>Real-time payload listener with auto-detection</span>
-                  </li>
-                </ul>
-              </div>
+              
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <DialogFooter className="flex-none px-6 py-4 bg-slate-50/70 dark:bg-[#121A30] border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-end gap-2.5">
+        <DialogFooter className="shrink-0 px-6 py-4 bg-slate-50/70 dark:bg-[#121A30] border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-end gap-2.5">
           <Button
             variant="ghost"
             className="rounded-xl font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs cursor-pointer"
@@ -541,7 +509,7 @@ export function WebhookConfigDialog({
           <Button
             className="rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold text-xs px-6 py-2.5 shadow-xs cursor-pointer"
             onClick={handleAction}
-            disabled={isConnecting}
+            disabled={isConnecting || (!webhookId && !newWebhook.name?.trim())}
           >
             {isConnecting ? (
               <>

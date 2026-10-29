@@ -159,9 +159,11 @@ export default {
 
 			// ── Typography ────────────────────────────────────
 			fontFamily: {
-				sans: ["Figtree", "system-ui", "-apple-system", "sans-serif"],
-				heading: ["Poppins", "Figtree", "sans-serif"],
-				display: ["Poppins", "Figtree", "sans-serif"],
+				sans: ["Plus Jakarta Sans", "Inter", "Figtree", "system-ui", "-apple-system", "sans-serif"],
+				heading: ["Plus Jakarta Sans", "Inter", "sans-serif"],
+				display: ["Plus Jakarta Sans", "Inter", "sans-serif"],
+				jakarta: ["Plus Jakarta Sans", "sans-serif"],
+				inter: ["Inter", "sans-serif"],
 				poppins: ["Poppins", "sans-serif"],
 				figtree: ["Figtree", "sans-serif"],
 				satoshi: ["Satoshi", "Roboto", "sans-serif"],

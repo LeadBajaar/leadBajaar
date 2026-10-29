@@ -8,6 +8,8 @@ import { cn } from '@/lib/utils'
 import { sourceConfig } from '../types'
 import { addDays, endOfDay, format, isSameDay, startOfDay } from 'date-fns'
 import { useModalHistory } from '@/hooks/use-modal-history'
+import { integrationApi } from '@/lib/api'
+import { useUser } from '@/contexts/UserContext'
 
 interface MobileFilterBottomSheetProps {
   isOpen: boolean;
@@ -51,6 +53,25 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
   stages
 }) => {
   const handleOpenChange = useModalHistory(isOpen, onOpenChange, 'filterBottomSheet');
+  const { hasAddon } = useUser();
+  const canUseWebhookTracking = hasAddon('webhook_lead_tracking');
+  const [webhooks, setWebhooks] = React.useState<Array<{ id: string; name: string; uuid?: string }>>([]);
+
+  useEffect(() => {
+    if (!canUseWebhookTracking) return;
+    integrationApi.getConnectedIntegrations()
+      .then((res: any[]) => {
+        const whs = (res || [])
+          .filter((i: any) => i.type === 'webhook')
+          .map((i: any) => ({
+            id: i.id.toString(),
+            uuid: i.uuid,
+            name: i.config?.name || `Source #${i.id}`,
+          }));
+        setWebhooks(whs);
+      })
+      .catch(() => {});
+  }, [canUseWebhookTracking]);
 
   const toggleValue = (key: 'status' | 'stage' | 'source', value: string) => {
     const current: string[] = filters[key] || [];
@@ -64,6 +85,7 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
     (filters.status.length > 0 ? 1 : 0) +
     (filters.stage.length > 0 ? 1 : 0) +
     (filters.source.length > 0 ? 1 : 0) +
+    (canUseWebhookTracking && filters.webhookId && filters.webhookId !== 'all' ? 1 : 0) +
     (filters.dateRange ? 1 : 0) +
     (filters.createdAt ? 1 : 0);
 
@@ -141,6 +163,34 @@ export const MobileFilterBottomSheet: React.FC<MobileFilterBottomSheetProps> = (
               ))}
             </div>
           </div>
+
+          {canUseWebhookTracking && webhooks.length > 0 && (
+            <div>
+              <SectionLabel>Connected Sources</SectionLabel>
+              <div className="flex flex-wrap gap-1.5">
+                <FilterChip
+                  active={!filters.webhookId || filters.webhookId === 'all'}
+                  onClick={() => handleFilterChange('webhookId', 'all')}
+                >
+                  All Sources
+                </FilterChip>
+                {webhooks.map((wh) => (
+                  <FilterChip
+                    key={wh.id}
+                    active={filters.webhookId === wh.id || (!!wh.uuid && filters.webhookId === wh.uuid)}
+                    onClick={() =>
+                      handleFilterChange(
+                        'webhookId',
+                        (filters.webhookId === wh.id || (!!wh.uuid && filters.webhookId === wh.uuid)) ? 'all' : wh.id
+                      )
+                    }
+                  >
+                    {wh.name}
+                  </FilterChip>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div>
             <SectionLabel>Created Date</SectionLabel>

@@ -275,6 +275,34 @@ export const integrationApi = {
     }
   },
 
+  getWebhookLeads: async (params?: {
+    webhook_id?: string;
+    integration_id?: string;
+    search?: string;
+    stage?: string;
+    date_range?: string;
+    page?: number;
+    per_page?: number;
+  }): Promise<any> => {
+    try {
+      const response = await api.get('/integrations/webhooks/leads', { params });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to fetch webhook leads';
+      throw new Error(message);
+    }
+  },
+
+  getWebhookLeadPayload: async (leadId: number | string): Promise<any> => {
+    try {
+      const response = await api.get(`/integrations/webhooks/lead-payload/${leadId}`);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to fetch webhook payload';
+      throw new Error(message);
+    }
+  },
+
   // Add the sendBroadcast method
   sendBroadcast: async (data: {
     template_id: string;
